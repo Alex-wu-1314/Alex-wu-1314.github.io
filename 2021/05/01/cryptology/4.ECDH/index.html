@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景：从经典 DH 到 ECDH 椭圆曲线密码学（ECC）基础 ECDH 协议详解 域参数（Domain Parameters） ECDHE：短暂密钥与前向保密 主流椭圆曲线选型 Montgomery 曲线与 X25519 &#x2F; X448 安全性分析 与经典 DH 的对比 在 TLS 中的应用 其他实际应用场景 工程实现示例 量子计算的威胁与后量子密码学 已知攻击与防御实践   1.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elliptic-curve Diffie–Hellman">
+<meta property="og:url" content="http://example.com/2021/05/01/cryptology/4.ECDH/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景：从经典 DH 到 ECDH 椭圆曲线密码学（ECC）基础 ECDH 协议详解 域参数（Domain Parameters） ECDHE：短暂密钥与前向保密 主流椭圆曲线选型 Montgomery 曲线与 X25519 &#x2F; X448 安全性分析 与经典 DH 的对比 在 TLS 中的应用 其他实际应用场景 工程实现示例 量子计算的威胁与后量子密码学 已知攻击与防御实践   1.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-04-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-16T00:22:23.567Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Elliptic-curve Diffie–Hellman</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/04/20/cryptology/3.diffie-hellman-key-exchange/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/05/01/cryptology/4.ECDH/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/05/01/cryptology/4.ECDH/&text=Elliptic-curve Diffie–Hellman"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/05/01/cryptology/4.ECDH/&is_video=false&description=Elliptic-curve Diffie–Hellman"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Elliptic-curve Diffie–Hellman&body=Check out this article: http://example.com/2021/05/01/cryptology/4.ECDH/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/05/01/cryptology/4.ECDH/&name=Elliptic-curve Diffie–Hellman&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/05/01/cryptology/4.ECDH/&t=Elliptic-curve Diffie–Hellman"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%BB%8E%E7%BB%8F%E5%85%B8-DH-%E5%88%B0-ECDH"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：从经典 DH 到 ECDH</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Diffie%E2%80%93Hellman-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 Diffie–Hellman 密钥交换的诞生</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%BB%8F%E5%85%B8-DH-%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 经典 DH 的局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ECDH-%E7%9A%84%E5%87%BA%E7%8E%B0"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 ECDH 的出现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%88ECC%EF%BC%89%E5%9F%BA%E7%A1%80"><span class="toc-number">3.</span> <span class="toc-text">2. 椭圆曲线密码学（ECC）基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E6%96%B9%E7%A8%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 椭圆曲线方程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%89%E9%99%90%E5%9F%9F%E4%B8%8A%E7%9A%84%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 有限域上的椭圆曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%BE%A4%E8%BF%90%E7%AE%97%EF%BC%9A%E7%82%B9%E5%8A%A0%E6%B3%95"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 群运算：点加法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E9%87%8F%E4%B9%98%E6%B3%95"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 标量乘法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-ECDH-%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. ECDH 协议详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8D%8F%E8%AE%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 协议流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%B1%E4%BA%AB%E5%AF%86%E9%92%A5%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 共享密钥的使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E6%95%B0%E5%AD%A6%E4%BE%9D%E6%8D%AE"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 安全性的数学依据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%9F%9F%E5%8F%82%E6%95%B0%EF%BC%88Domain-Parameters%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 域参数（Domain Parameters）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-ECDHE%EF%BC%9A%E7%9F%AD%E6%9A%82%E5%AF%86%E9%92%A5%E4%B8%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86"><span class="toc-number">6.</span> <span class="toc-text">5. ECDHE：短暂密钥与前向保密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%9D%99%E6%80%81%E5%AF%86%E9%92%A5-vs-%E7%9F%AD%E6%9A%82%E5%AF%86%E9%92%A5"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 静态密钥 vs. 短暂密钥</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Perfect-Forward-Secrecy%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 前向保密（Perfect Forward Secrecy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-ECDHE-%E7%9A%84%E8%AE%A4%E8%AF%81%E9%97%AE%E9%A2%98"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 ECDHE 的认证问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E6%B5%81%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E9%80%89%E5%9E%8B"><span class="toc-number">7.</span> <span class="toc-text">6. 主流椭圆曲线选型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-NIST-%E6%9B%B2%E7%BA%BF%EF%BC%88P-256-P-384-P-521%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 NIST 曲线（P-256 &#x2F; P-384 &#x2F; P-521）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Brainpool-%E6%9B%B2%E7%BA%BF"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Brainpool 曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-secp256k1%EF%BC%88Koblitz-%E6%9B%B2%E7%BA%BF%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 secp256k1（Koblitz 曲线）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-Montgomery-%E6%9B%B2%E7%BA%BF%E4%B8%8E-X25519-X448"><span class="toc-number">8.</span> <span class="toc-text">7. Montgomery 曲线与 X25519 &#x2F; X448</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Montgomery-%E6%9B%B2%E7%BA%BF"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 Montgomery 曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Curve25519-X25519"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 Curve25519 &#x2F; X25519</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Curve448-X448"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 Curve448 &#x2F; X448</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%85%B6%E4%BB%96-Montgomery-%E6%9B%B2%E7%BA%BF%E6%8F%90%E6%A1%88"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 其他 Montgomery 曲线提案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">9.</span> <span class="toc-text">8. 安全性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-ECDLP-%E7%9A%84%E9%9A%BE%E5%BA%A6"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 ECDLP 的难度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-ECDLP-%E4%B8%8E%E4%BC%A0%E7%BB%9F-DLP-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 ECDLP 与传统 DLP 的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%AE%89%E5%85%A8%E7%AD%89%E7%BA%A7%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 安全等级对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E9%9D%99%E6%80%81%E5%AF%86%E9%92%A5%E7%9A%84%E9%A2%9D%E5%A4%96%E5%AE%89%E5%85%A8%E8%A6%81%E6%B1%82"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 静态密钥的额外安全要求</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%8E%E7%BB%8F%E5%85%B8-DH-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. 与经典 DH 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%9C%A8-TLS-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">11.</span> <span class="toc-text">10. 在 TLS 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-TLS-1-2-%E4%B8%AD%E7%9A%84-ECDHE"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 TLS 1.2 中的 ECDHE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-TLS-1-3-%E4%B8%AD%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 TLS 1.3 中的变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%80%A7%E8%83%BD%E6%95%B0%E6%8D%AE"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 性能数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%85%B6%E4%BB%96%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">12.</span> <span class="toc-text">11. 其他实际应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%8D%B3%E6%97%B6%E9%80%9A%E8%AE%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%8A%A0%E5%AF%86"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 即时通讯端到端加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-SSH"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 SSH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%8C%BA%E5%9D%97%E9%93%BE"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 区块链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-IPsec-%E4%B8%8E-VPN"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 IPsec 与 VPN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-5-IoT-%E4%B8%8E%E6%99%BA%E8%83%BD%E7%94%B5%E7%BD%91"><span class="toc-number">12.0.5.</span> <span class="toc-text">11.5 IoT 与智能电网</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-6-%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6%E5%8A%A0%E5%AF%86"><span class="toc-number">12.0.6.</span> <span class="toc-text">11.6 电子邮件加密</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B"><span class="toc-number">13.</span> <span class="toc-text">12. 工程实现示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-Python%EF%BC%88%E4%BD%BF%E7%94%A8-cryptography-%E5%BA%93%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 Python（使用 cryptography 库）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-JavaScript%EF%BC%88Node-js%EF%BC%8C%E4%BD%BF%E7%94%A8%E5%86%85%E7%BD%AE-crypto-%E6%A8%A1%E5%9D%97%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 JavaScript（Node.js，使用内置 crypto 模块）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-OpenSSL%EF%BC%88C-%E8%AF%AD%E8%A8%80%EF%BC%8C%E4%BD%BF%E7%94%A8-EVP-%E6%8E%A5%E5%8F%A3%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 OpenSSL（C 语言，使用 EVP 接口）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">14.</span> <span class="toc-text">13. 量子计算的威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-Shor-%E7%AE%97%E6%B3%95%E7%9A%84%E5%A8%81%E8%83%81"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 Shor 算法的威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-NSA-%E7%9A%84%E5%BA%94%E5%AF%B9"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 NSA 的应对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 后量子密钥交换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B7%B2%E7%9F%A5%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1%E5%AE%9E%E8%B7%B5"><span class="toc-number">15.</span> <span class="toc-text">14. 已知攻击与防御实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E5%B0%8F%E5%AD%90%E7%BE%A4%E6%94%BB%E5%87%BB%EF%BC%88Small-Subgroup-Attack%EF%BC%89"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 小子群攻击（Small Subgroup Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E6%97%A0%E6%95%88%E6%9B%B2%E7%BA%BF%E6%94%BB%E5%87%BB%EF%BC%88Invalid-Curve-Attack%EF%BC%89"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 无效曲线攻击（Invalid Curve Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB%EF%BC%88MITM%EF%BC%89"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 中间人攻击（MITM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-4-%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%EF%BC%88Side-Channel-Attack%EF%BC%89"><span class="toc-number">15.0.4.</span> <span class="toc-text">14.4 侧信道攻击（Side-Channel Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-5-%E5%85%B1%E4%BA%AB%E5%AF%86%E9%92%A5%E7%9A%84%E4%B8%8D%E5%BD%93%E4%BD%BF%E7%94%A8"><span class="toc-number">15.0.5.</span> <span class="toc-text">14.5 共享密钥的不当使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">17.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Elliptic-curve Diffie–Hellman
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-04-30T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-05-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%BB%8E%E7%BB%8F%E5%85%B8-dh-%E5%88%B0-ecdh">背景：从经典 DH 到 ECDH</a></li>
+<li><a href="#2-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E5%AF%86%E7%A0%81%E5%AD%A6ecc%E5%9F%BA%E7%A1%80">椭圆曲线密码学（ECC）基础</a></li>
+<li><a href="#3-ecdh-%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3">ECDH 协议详解</a></li>
+<li><a href="#4-%E5%9F%9F%E5%8F%82%E6%95%B0domain-parameters">域参数（Domain Parameters）</a></li>
+<li><a href="#5-ecdhe%E7%9F%AD%E6%9A%82%E5%AF%86%E9%92%A5%E4%B8%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86">ECDHE：短暂密钥与前向保密</a></li>
+<li><a href="#6-%E4%B8%BB%E6%B5%81%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E9%80%89%E5%9E%8B">主流椭圆曲线选型</a></li>
+<li><a href="#7-montgomery-%E6%9B%B2%E7%BA%BF%E4%B8%8E-x25519--x448">Montgomery 曲线与 X25519 &#x2F; X448</a></li>
+<li><a href="#8-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90">安全性分析</a></li>
+<li><a href="#9-%E4%B8%8E%E7%BB%8F%E5%85%B8-dh-%E7%9A%84%E5%AF%B9%E6%AF%94">与经典 DH 的对比</a></li>
+<li><a href="#10-%E5%9C%A8-tls-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">在 TLS 中的应用</a></li>
+<li><a href="#11-%E5%85%B6%E4%BB%96%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">其他实际应用场景</a></li>
+<li><a href="#12-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B">工程实现示例</a></li>
+<li><a href="#13-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6">量子计算的威胁与后量子密码学</a></li>
+<li><a href="#14-%E5%B7%B2%E7%9F%A5%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1%E5%AE%9E%E8%B7%B5">已知攻击与防御实践</a></li>
+</ol>
+<hr>
+<h1 id="1-背景：从经典-DH-到-ECDH"><a href="#1-背景：从经典-DH-到-ECDH" class="headerlink" title="1. 背景：从经典 DH 到 ECDH"></a>1. 背景：从经典 DH 到 ECDH</h1><h3 id="1-1-Diffie–Hellman-密钥交换的诞生"><a href="#1-1-Diffie–Hellman-密钥交换的诞生" class="headerlink" title="1.1 Diffie–Hellman 密钥交换的诞生"></a>1.1 Diffie–Hellman 密钥交换的诞生</h3><p>1976 年，Whitfield Diffie 与 Martin Hellman 提出了第一个公钥协议——Diffie–Hellman 密钥交换（DH）。其核心思想是：两个素未谋面的通信方，可以在<strong>完全公开的信道</strong>上协商出一个只有彼此知晓的共享密钥，而无需事先通过安全通道传递任何秘密。</p>
+<p>传统 DH 的安全性依赖于<strong>有限域上的离散对数问题（DLP）</strong>， 已知 $g$、$p$、$g^a \mod p$，反向求 $a$ 在计算上是不可行的。</p>
+<h3 id="1-2-经典-DH-的局限"><a href="#1-2-经典-DH-的局限" class="headerlink" title="1.2 经典 DH 的局限"></a>1.2 经典 DH 的局限</h3><p>随着计算能力的提升，经典 DH 需要越来越长的密钥才能保证安全。目前推荐的密钥长度为 <strong>2048 位及以上</strong>，这带来了显著的计算开销与带宽消耗，在移动设备、IoT 等资源受限场景中尤为明显。</p>
+<h3 id="1-3-ECDH-的出现"><a href="#1-3-ECDH-的出现" class="headerlink" title="1.3 ECDH 的出现"></a>1.3 ECDH 的出现</h3><p><strong>椭圆曲线 Diffie–Hellman（ECDH）</strong> 是 DH 协议在椭圆曲线密码学（ECC）上的变体。椭圆曲线上的<strong>离散对数问题（ECDLP）</strong>比有限域上的 DLP 更难破解，因此在达到相同安全强度的前提下，ECDH 可以使用<strong>更短的密钥</strong>，显著提升性能。</p>
+<blockquote>
+<p>等效安全对比：DH 需要 2048 位密钥才能达到与 ECDH 250 位密钥相同的安全等级。</p>
+</blockquote>
+<hr>
+<h1 id="2-椭圆曲线密码学（ECC）基础"><a href="#2-椭圆曲线密码学（ECC）基础" class="headerlink" title="2. 椭圆曲线密码学（ECC）基础"></a>2. 椭圆曲线密码学（ECC）基础</h1><h3 id="2-1-椭圆曲线方程"><a href="#2-1-椭圆曲线方程" class="headerlink" title="2.1 椭圆曲线方程"></a>2.1 椭圆曲线方程</h3><p>在密码学中，椭圆曲线通常以<strong>Weierstrass 短形式</strong>表示：</p>
+<p>$$y^2 &#x3D; x^3 + ax + b$$</p>
+<p>其中要求判别式 $\Delta &#x3D; -16(4a^3 + 27b^2) \neq 0$，以确保曲线光滑（无奇异点）。</p>
+<h3 id="2-2-有限域上的椭圆曲线"><a href="#2-2-有限域上的椭圆曲线" class="headerlink" title="2.2 有限域上的椭圆曲线"></a>2.2 有限域上的椭圆曲线</h3><p>密码学中的椭圆曲线并非定义在实数域上，而是定义在<strong>有限域</strong>上：</p>
+<ul>
+<li><strong>素数域</strong> $\mathbb{F}_p$：坐标取模素数 $p$</li>
+<li><strong>二进制扩域</strong> $\mathbb{F}_{2^m}$：坐标为二进制多项式</li>
+</ul>
+<h3 id="2-3-群运算：点加法"><a href="#2-3-群运算：点加法" class="headerlink" title="2.3 群运算：点加法"></a>2.3 群运算：点加法</h3><p>椭圆曲线上的点（连同一个”无穷远点” $\mathcal{O}$）构成一个<strong>阿贝尔群</strong>，其运算称为<strong>点加法</strong>。几何上，两点 $P$、$Q$ 的加法是：过 $P$、$Q$ 作直线，与曲线交于第三点，再关于 $x$ 轴作反射即得 $P + Q$。</p>
+<h3 id="2-4-标量乘法"><a href="#2-4-标量乘法" class="headerlink" title="2.4 标量乘法"></a>2.4 标量乘法</h3><p><strong>标量乘法</strong>是椭圆曲线密码学的核心运算：</p>
+<p>$$Q &#x3D; k \cdot G &#x3D; \underbrace{G + G + \cdots + G}_{k \text{ 次}}$$</p>
+<p>其中 $G$ 是曲线上的<strong>基点（生成元）</strong>，$k$ 是整数（私钥）。$Q$ 即为对应的<strong>公钥</strong>。</p>
+<ul>
+<li><strong>正向计算</strong>：已知 $k$ 和 $G$，求 $Q &#x3D; kG$ 高效可行（使用 double-and-add 算法，复杂度 $O(\log k)$）。</li>
+<li><strong>逆向计算</strong>（ECDLP）：已知 $G$ 和 $Q$，求 $k$ 在计算上极其困难。</li>
+</ul>
+<hr>
+<h1 id="3-ECDH-协议详解"><a href="#3-ECDH-协议详解" class="headerlink" title="3. ECDH 协议详解"></a>3. ECDH 协议详解</h1><h3 id="3-1-协议流程"><a href="#3-1-协议流程" class="headerlink" title="3.1 协议流程"></a>3.1 协议流程</h3><p>假设 Alice 与 Bob 希望在不安全信道上协商共享密钥，第三方 Eve 可以窃听所有通信。</p>
+<p><strong>前提</strong>：双方事先约定好相同的椭圆曲线域参数，包括曲线方程、基点 $G$、阶 $n$ 等。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Alice                                   Bob</span><br><span class="line">──────────────────────────────────────────────</span><br><span class="line">1. 生成私钥 d_A（随机整数）</span><br><span class="line">   计算公钥 Q_A = d_A · G</span><br><span class="line">                                        3. 生成私钥 d_B（随机整数）</span><br><span class="line">                                           计算公钥 Q_B = d_B · G</span><br><span class="line"></span><br><span class="line">2. 发送公钥 Q_A ─────────────────────→</span><br><span class="line">                                        4. 发送公钥 Q_B</span><br><span class="line">                 ←─────────────────────</span><br><span class="line"></span><br><span class="line">5. 计算共享秘密:                        6. 计算共享秘密:</span><br><span class="line">   S = d_A · Q_B                           S = d_B · Q_A</span><br><span class="line">     = d_A · (d_B · G)                       = d_B · (d_A · G)</span><br><span class="line">     = d_A · d_B · G                         = d_A · d_B · G</span><br></pre></td></tr></table></figure>
+
+<p>由于椭圆曲线上标量乘法满足交换律与结合律：</p>
+<p>$$d_A \cdot Q_B &#x3D; d_A \cdot d_B \cdot G &#x3D; d_B \cdot d_A \cdot G &#x3D; d_B \cdot Q_A$$</p>
+<p>因此双方得到了**相同的点 $S$**，共享密钥通常取 $S$ 的 $x$ 坐标 $x_S$。</p>
+<h3 id="3-2-共享密钥的使用"><a href="#3-2-共享密钥的使用" class="headerlink" title="3.2 共享密钥的使用"></a>3.2 共享密钥的使用</h3><p>直接将 $x_S$ 用作对称密钥存在安全隐患（其分布并非均匀的），<strong>正确做法</strong>是将其输入一个<strong>密钥派生函数（KDF）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SharedKey = KDF(x_S)   // 例如 HKDF-SHA256</span><br></pre></td></tr></table></figure>
+
+<p>派生后的密钥再用于对称加密（如 AES-256-GCM）加密后续通信。</p>
+<h3 id="3-3-安全性的数学依据"><a href="#3-3-安全性的数学依据" class="headerlink" title="3.3 安全性的数学依据"></a>3.3 安全性的数学依据</h3><ul>
+<li><strong>Alice 的私钥安全</strong>：Eve 知道 $G$ 和 $Q_A &#x3D; d_A \cdot G$，但求 $d_A$ 需要解 ECDLP。</li>
+<li><strong>共享密钥安全</strong>：Eve 知道 $Q_A$ 和 $Q_B$，但求 $d_A \cdot d_B \cdot G$ 需要解<strong>椭圆曲线 Diffie–Hellman 问题（ECDHP）</strong>，其难度不低于 ECDLP。</li>
+</ul>
+<hr>
+<h1 id="4-域参数（Domain-Parameters）"><a href="#4-域参数（Domain-Parameters）" class="headerlink" title="4. 域参数（Domain Parameters）"></a>4. 域参数（Domain Parameters）</h1><p>域参数是通信双方必须事先约定的曲线描述信息。对于<strong>素数域</strong>，参数组为：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$p$</td>
+<td>定义有限域的素数</td>
+</tr>
+<tr>
+<td>$a, b$</td>
+<td>曲线方程系数</td>
+</tr>
+<tr>
+<td>$G$</td>
+<td>基点（生成元），坐标 $(G_x, G_y)$</td>
+</tr>
+<tr>
+<td>$n$</td>
+<td>基点 $G$ 的阶（满足 $n \cdot G &#x3D; \mathcal{O}$）</td>
+</tr>
+<tr>
+<td>$h$</td>
+<td>余因子（cofactor），通常为 1、2 或 4</td>
+</tr>
+</tbody></table>
+<p>对于<strong>二进制扩域</strong>，参数组为 $(m, f(x), a, b, G, n, h)$，其中 $f(x)$ 是不可约多项式。</p>
+<p><strong>以 secp256k1（比特币使用的曲线）为例：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">p  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F</span><br><span class="line">   = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1</span><br><span class="line">a  = 0</span><br><span class="line">b  = 7</span><br><span class="line">G  = (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,</span><br><span class="line">      0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)</span><br><span class="line">n  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141</span><br><span class="line">h  = 1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="5-ECDHE：短暂密钥与前向保密"><a href="#5-ECDHE：短暂密钥与前向保密" class="headerlink" title="5. ECDHE：短暂密钥与前向保密"></a>5. ECDHE：短暂密钥与前向保密</h1><h3 id="5-1-静态密钥-vs-短暂密钥"><a href="#5-1-静态密钥-vs-短暂密钥" class="headerlink" title="5.1 静态密钥 vs. 短暂密钥"></a>5.1 静态密钥 vs. 短暂密钥</h3><p>ECDH 中的公钥可以是：</p>
+<ul>
+<li><strong>静态密钥（Static）</strong>：长期使用，通常通过证书进行身份认证。静态密钥<strong>不提供前向保密</strong>，若私钥泄漏，过去所有会话的通信都可被解密。</li>
+<li><strong>短暂密钥（Ephemeral）</strong>：每次会话都重新生成，用后即弃。这种变体称为 <strong>ECDHE</strong>（Elliptic-curve Diffie–Hellman Ephemeral，末尾 “E” 代表 Ephemeral）。</li>
+</ul>
+<h3 id="5-2-前向保密（Perfect-Forward-Secrecy）"><a href="#5-2-前向保密（Perfect-Forward-Secrecy）" class="headerlink" title="5.2 前向保密（Perfect Forward Secrecy）"></a>5.2 前向保密（Perfect Forward Secrecy）</h3><p><strong>完美前向保密（PFS）</strong> 是指：即使服务器的长期私钥在未来某一天被泄露，攻击者也<strong>无法解密过去的会话记录</strong>。</p>
+<p>ECDHE 通过以下机制实现 PFS：</p>
+<ol>
+<li>每次握手生成全新的临时密钥对 $(d_{tmp}, Q_{tmp})$</li>
+<li>用临时密钥完成 DH 交换，派生会话密钥</li>
+<li>握手完成后立即销毁临时私钥 $d_{tmp}$</li>
+</ol>
+<p>即便日后攻击者拿到了服务器的长期私钥，也无从重建那个已被销毁的 $d_{tmp}$，自然无法还原会话密钥。</p>
+<h3 id="5-3-ECDHE-的认证问题"><a href="#5-3-ECDHE-的认证问题" class="headerlink" title="5.3 ECDHE 的认证问题"></a>5.3 ECDHE 的认证问题</h3><p>短暂密钥本身是临时生成的，<strong>不携带身份信息</strong>，因此单独使用 ECDHE 并不能防止中间人攻击（MITM）。实际部署中，ECDHE 必须配合认证机制使用：</p>
+<ul>
+<li><strong>ECDHE_ECDSA</strong>：用 ECDSA 对临时公钥进行签名</li>
+<li><strong>ECDHE_RSA</strong>：用 RSA 证书对临时公钥进行签名</li>
+<li><strong>ECDH_anon</strong>：匿名模式，无签名，易受 MITM 攻击，不建议在生产环境使用</li>
+</ul>
+<p>若通信双方中至少有一方使用<strong>静态公钥</strong>（通过证书信任），则可以防御 MITM，但代价是失去前向保密性。</p>
+<hr>
+<h1 id="6-主流椭圆曲线选型"><a href="#6-主流椭圆曲线选型" class="headerlink" title="6. 主流椭圆曲线选型"></a>6. 主流椭圆曲线选型</h1><h3 id="6-1-NIST-曲线（P-256-P-384-P-521）"><a href="#6-1-NIST-曲线（P-256-P-384-P-521）" class="headerlink" title="6.1 NIST 曲线（P-256 &#x2F; P-384 &#x2F; P-521）"></a>6.1 NIST 曲线（P-256 &#x2F; P-384 &#x2F; P-521）</h3><p>由美国国家标准与技术研究院（NIST）标准化，广泛用于 TLS、代码签名等场景。</p>
+<table>
+<thead>
+<tr>
+<th>曲线</th>
+<th>密钥长度</th>
+<th>安全强度</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P-256 (secp256r1)</td>
+<td>256 bit</td>
+<td>~128 bit</td>
+<td>最常用，适合大多数场景</td>
+</tr>
+<tr>
+<td>P-384 (secp384r1)</td>
+<td>384 bit</td>
+<td>~192 bit</td>
+<td>适合高安全需求</td>
+</tr>
+<tr>
+<td>P-521 (secp521r1)</td>
+<td>521 bit</td>
+<td>~260 bit</td>
+<td>最高安全等级</td>
+</tr>
+</tbody></table>
+<p><strong>争议</strong>：部分密码学家对 NIST 曲线的参数选取过程持保留态度，认为其随机种子来源不透明，存在潜在的后门风险（尤其在斯诺登事件披露 NSA 干预 Dual_EC_DRBG 之后）。</p>
+<h3 id="6-2-Brainpool-曲线"><a href="#6-2-Brainpool-曲线" class="headerlink" title="6.2 Brainpool 曲线"></a>6.2 Brainpool 曲线</h3><p>由欧洲 Brainpool 工作组独立设计，参数生成过程完全公开透明，可作为 NIST 曲线的替代方案。包括 brainpoolP256r1、brainpoolP384r1、brainpoolP512r1 等。</p>
+<h3 id="6-3-secp256k1（Koblitz-曲线）"><a href="#6-3-secp256k1（Koblitz-曲线）" class="headerlink" title="6.3 secp256k1（Koblitz 曲线）"></a>6.3 secp256k1（Koblitz 曲线）</h3><p>以 $a&#x3D;0$, $b&#x3D;7$ 定义，参数极其简洁，被<strong>比特币和以太坊</strong>等区块链项目广泛采用。其特殊的代数结构可实现高效的标量乘法。</p>
+<hr>
+<h1 id="7-Montgomery-曲线与-X25519-X448"><a href="#7-Montgomery-曲线与-X25519-X448" class="headerlink" title="7. Montgomery 曲线与 X25519 &#x2F; X448"></a>7. Montgomery 曲线与 X25519 &#x2F; X448</h1><h3 id="7-1-Montgomery-曲线"><a href="#7-1-Montgomery-曲线" class="headerlink" title="7.1 Montgomery 曲线"></a>7.1 Montgomery 曲线</h3><p>Montgomery 曲线的方程形式为：</p>
+<p>$$By^2 &#x3D; x^3 + Ax^2 + x$$</p>
+<p>其最大优势在于支持高效的<strong>Montgomery Ladder</strong>算法进行标量乘法，该算法不仅速度快，还天然具有<strong>常数时间特性</strong>，可抵抗时序攻击等侧信道攻击。</p>
+<h3 id="7-2-Curve25519-X25519"><a href="#7-2-Curve25519-X25519" class="headerlink" title="7.2 Curve25519 &#x2F; X25519"></a>7.2 Curve25519 &#x2F; X25519</h3><p><strong>Curve25519</strong> 由 Daniel J. Bernstein（djb）于 2005 年提出，是目前最广泛使用的椭圆曲线之一。</p>
+<ul>
+<li><strong>曲线方程</strong>：$y^2 &#x3D; x^3 + 486662x^2 + x$（Montgomery 曲线，$B&#x3D;1$）</li>
+<li><strong>有限域</strong>：定义在素数 $p &#x3D; 2^{255} - 19$ 上（因此得名 Curve<strong>25519</strong>）</li>
+<li><strong>密钥长度</strong>：256 位</li>
+<li><strong>安全强度</strong>：约 <strong>128 位</strong></li>
+<li><strong>子群阶</strong>：$n &#x3D; 2^{252} + 27742317777372353535851937790883648493$</li>
+<li><strong>余因子</strong>：$h &#x3D; 8$</li>
+</ul>
+<p>用于 ECDH 密钥交换时的函数名称为 <strong>X25519</strong>（RFC 7748）。</p>
+<p><strong>Curve25519 的优势：</strong></p>
+<ul>
+<li>极高的性能（与 P-256 相比快 1.5–2 倍）</li>
+<li>无已知专利覆盖，参考实现为公有领域</li>
+<li>参数透明，抵御后门风险</li>
+<li>常数时间实现，抵御侧信道攻击</li>
+<li>TLS 1.3 官方支持（RFC 8446）</li>
+</ul>
+<p>2017 年，NIST 宣布将 Curve25519 和 Curve448 纳入 SP 800-186，批准用于美国联邦政府。2023 年更新版正式允许使用 Curve25519。</p>
+<h3 id="7-3-Curve448-X448"><a href="#7-3-Curve448-X448" class="headerlink" title="7.3 Curve448 &#x2F; X448"></a>7.3 Curve448 &#x2F; X448</h3><p><strong>Curve448</strong> 由 Mike Hamburg（Rambus 密码研究中心）设计：</p>
+<ul>
+<li><strong>有限域</strong>：定义在 $p &#x3D; 2^{448} - 2^{224} - 1$ 上</li>
+<li><strong>安全强度</strong>：约 <strong>224 位</strong></li>
+<li>也属于 TLS 1.3 标准支持的曲线</li>
+</ul>
+<p>X448 是对应的 ECDH 函数名称（RFC 7748）。适合对安全等级有更高要求的场景。</p>
+<h3 id="7-4-其他-Montgomery-曲线提案"><a href="#7-4-其他-Montgomery-曲线提案" class="headerlink" title="7.4 其他 Montgomery 曲线提案"></a>7.4 其他 Montgomery 曲线提案</h3><p>研究人员还提出了与 Curve25519&#x2F;Curve448 性能相当的竞争曲线：</p>
+<ul>
+<li><strong>M[4698]</strong> ：$p &#x3D; 2^{444} - 17$，$A &#x3D; 4698$，可替代 Curve25519</li>
+<li><strong>M[4058]</strong> ：$p &#x3D; 2^{444} - 17$，$A &#x3D; 4058$，可替代 Curve448</li>
+<li><strong>M[996558] &#x2F; M[952902] &#x2F; M[1504058]</strong> ：定义在 $p &#x3D; 2^{521} - 1$ 上，提供 256 位安全等级</li>
+</ul>
+<hr>
+<h1 id="8-安全性分析"><a href="#8-安全性分析" class="headerlink" title="8. 安全性分析"></a>8. 安全性分析</h1><h3 id="8-1-ECDLP-的难度"><a href="#8-1-ECDLP-的难度" class="headerlink" title="8.1 ECDLP 的难度"></a>8.1 ECDLP 的难度</h3><p>ECDH 的安全性最终归结为<strong>椭圆曲线离散对数问题（ECDLP）</strong>的难度：已知基点 $G$ 和公钥 $Q &#x3D; kG$，求私钥 $k$。</p>
+<p>目前已知针对 ECDLP 的最优通用攻击是 <strong>Pohlig-Hellman + Pollard’s rho 算法</strong>，复杂度为 $O(\sqrt{n})$，其中 $n$ 是基点的阶。对于 256 位安全的曲线，这大约需要 $2^{128}$ 次运算，在可预见的未来是不可行的。</p>
+<h3 id="8-2-ECDLP-与传统-DLP-的对比"><a href="#8-2-ECDLP-与传统-DLP-的对比" class="headerlink" title="8.2 ECDLP 与传统 DLP 的对比"></a>8.2 ECDLP 与传统 DLP 的对比</h3><p>与定义在有限域乘法群上的 DLP 不同，ECDLP <strong>没有亚指数级</strong>（subexponential）通用攻击算法（如 Number Field Sieve）。这是 ECC 密钥可以更短的根本原因。</p>
+<h3 id="8-3-安全等级对比表"><a href="#8-3-安全等级对比表" class="headerlink" title="8.3 安全等级对比表"></a>8.3 安全等级对比表</h3><table>
+<thead>
+<tr>
+<th>对称加密</th>
+<th>RSA &#x2F; DH 密钥长度</th>
+<th>ECC 密钥长度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>80 bit</td>
+<td>1024 bit</td>
+<td>160 bit</td>
+</tr>
+<tr>
+<td>112 bit</td>
+<td>2048 bit</td>
+<td>224 bit</td>
+</tr>
+<tr>
+<td>128 bit</td>
+<td>3072 bit</td>
+<td>256 bit</td>
+</tr>
+<tr>
+<td>192 bit</td>
+<td>7680 bit</td>
+<td>384 bit</td>
+</tr>
+<tr>
+<td>256 bit</td>
+<td>15360 bit</td>
+<td>521 bit</td>
+</tr>
+</tbody></table>
+<h3 id="8-4-静态密钥的额外安全要求"><a href="#8-4-静态密钥的额外安全要求" class="headerlink" title="8.4 静态密钥的额外安全要求"></a>8.4 静态密钥的额外安全要求</h3><p>使用静态私钥的一方<strong>必须</strong>对收到的对方公钥进行合法性验证：</p>
+<ul>
+<li>公钥点是否在指定曲线上</li>
+<li>公钥点的阶是否正确（尤其在余因子 $h &gt; 1$ 时）</li>
+</ul>
+<p>否则攻击者可构造<strong>小子群攻击（Small Subgroup Attack）</strong>或<strong>无效曲线攻击（Invalid Curve Attack）</strong>来逐步还原私钥（多个 TLS 库历史上曾受此漏洞影响）。</p>
+<hr>
+<h1 id="9-与经典-DH-的对比"><a href="#9-与经典-DH-的对比" class="headerlink" title="9. 与经典 DH 的对比"></a>9. 与经典 DH 的对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>经典 DH</th>
+<th>ECDH</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数学基础</td>
+<td>有限域乘法群上的离散对数</td>
+<td>椭圆曲线群上的离散对数</td>
+</tr>
+<tr>
+<td>128 位安全对应密钥长度</td>
+<td>~3072 bit</td>
+<td>~256 bit</td>
+</tr>
+<tr>
+<td>计算性能</td>
+<td>较慢（大整数模幂）</td>
+<td>较快（点标量乘法）</td>
+</tr>
+<tr>
+<td>带宽占用</td>
+<td>较大</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>已知亚指数攻击</td>
+<td>有（NFS 等）</td>
+<td>无（通用情形）</td>
+</tr>
+<tr>
+<td>适合资源受限设备</td>
+<td>一般</td>
+<td>优秀</td>
+</tr>
+<tr>
+<td>主要安全标准</td>
+<td>RFC 2631 等</td>
+<td>RFC 8422, RFC 7748 等</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="10-在-TLS-中的应用"><a href="#10-在-TLS-中的应用" class="headerlink" title="10. 在 TLS 中的应用"></a>10. 在 TLS 中的应用</h1><h3 id="10-1-TLS-1-2-中的-ECDHE"><a href="#10-1-TLS-1-2-中的-ECDHE" class="headerlink" title="10.1 TLS 1.2 中的 ECDHE"></a>10.1 TLS 1.2 中的 ECDHE</h3><p>在 TLS 1.2 中，ECDHE 作为密钥交换算法，与身份认证算法组合形成密码套件（Cipher Suite）：</p>
+<table>
+<thead>
+<tr>
+<th>密码套件</th>
+<th>密钥交换</th>
+<th>认证</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ECDHE_ECDSA</td>
+<td>临时 ECDH</td>
+<td>ECDSA 签名</td>
+</tr>
+<tr>
+<td>ECDHE_RSA</td>
+<td>临时 ECDH</td>
+<td>RSA 签名</td>
+</tr>
+<tr>
+<td>ECDH_anon</td>
+<td>临时 ECDH</td>
+<td>无（不推荐）</td>
+</tr>
+</tbody></table>
+<p>握手流程：</p>
+<ol>
+<li><strong>ClientHello</strong>：客户端发送支持的曲线列表（按优先级排序）</li>
+<li><strong>ServerHello + ServerKeyExchange</strong>：服务端选择曲线，生成临时密钥对，发送公钥并用证书私钥签名</li>
+<li><strong>ClientKeyExchange</strong>：客户端生成临时密钥对，发送公钥</li>
+<li>双方各自计算共享密钥，派生会话密钥</li>
+</ol>
+<h3 id="10-2-TLS-1-3-中的变化"><a href="#10-2-TLS-1-3-中的变化" class="headerlink" title="10.2 TLS 1.3 中的变化"></a>10.2 TLS 1.3 中的变化</h3><p>TLS 1.3（RFC 8446，2018 年发布）做出了重要调整：</p>
+<ul>
+<li><strong>移除了 RSA 密钥交换</strong>，使 (EC)DHE 成为<strong>唯一的密钥交换算法</strong></li>
+<li>所有连接默认提供前向保密</li>
+<li>支持的 ECDHE 曲线包括：<strong>X25519</strong>（默认推荐）、X448、P-256、P-384、P-521</li>
+<li>TLS 1.3 dropped support for ciphers without forward secrecy</li>
+</ul>
+<h3 id="10-3-性能数据"><a href="#10-3-性能数据" class="headerlink" title="10.3 性能数据"></a>10.3 性能数据</h3><p>研究表明，ECDHE-ECDSA 在真实场景中的 TLS 握手延迟中位数约为 <strong>366 ms</strong>，优于基于 RSA 的握手（无前向保密），说明部署 ECC 不仅更安全，性能也更佳。在移动端（Android）上，这一优势更为明显。</p>
+<hr>
+<h1 id="11-其他实际应用场景"><a href="#11-其他实际应用场景" class="headerlink" title="11. 其他实际应用场景"></a>11. 其他实际应用场景</h1><h3 id="11-1-即时通讯端到端加密"><a href="#11-1-即时通讯端到端加密" class="headerlink" title="11.1 即时通讯端到端加密"></a>11.1 即时通讯端到端加密</h3><ul>
+<li><strong>Signal Protocol</strong>：使用 ECDH（基于 Curve25519 的 X25519）实现<strong>后妥协安全（Post-Compromise Security）</strong>，即在密钥泄露后可通过密钥轮换恢复安全性。</li>
+<li><strong>LINE Messenger</strong>：自 2015 年 10 月起，在其 “Letter Sealing” 功能中使用 ECDH 协议实现所有消息的端到端加密。</li>
+</ul>
+<h3 id="11-2-SSH"><a href="#11-2-SSH" class="headerlink" title="11.2 SSH"></a>11.2 SSH</h3><p>OpenSSH 自 2014 年起默认使用基于 Curve25519 的 ECDH 进行密钥交换。</p>
+<h3 id="11-3-区块链"><a href="#11-3-区块链" class="headerlink" title="11.3 区块链"></a>11.3 区块链</h3><p>比特币、以太坊等区块链项目使用 secp256k1 曲线进行密钥派生与数字签名（ECDSA）。尽管 secp256k1 主要用于签名，但相同曲线上的 ECDH 也可用于地址间的加密通信。</p>
+<h3 id="11-4-IPsec-与-VPN"><a href="#11-4-IPsec-与-VPN" class="headerlink" title="11.4 IPsec 与 VPN"></a>11.4 IPsec 与 VPN</h3><p>IPsec 的 IKEv2 协议支持 ECDHE 作为可选的密钥交换算法，提供前向保密。</p>
+<h3 id="11-5-IoT-与智能电网"><a href="#11-5-IoT-与智能电网" class="headerlink" title="11.5 IoT 与智能电网"></a>11.5 IoT 与智能电网</h3><p>ECDHE 因其密钥短、计算轻量的特点，特别适合嵌入式设备和智能电网的安全通信。在树莓派硬件上，ECDHE 握手时间已可低于 <strong>0.4 ms</strong>。</p>
+<h3 id="11-6-电子邮件加密"><a href="#11-6-电子邮件加密" class="headerlink" title="11.6 电子邮件加密"></a>11.6 电子邮件加密</h3><p>ProtonMail 在 TLS 之上使用 PGP 签名对 ECDHE 参数进行认证，构建端到端安全隧道。</p>
+<hr>
+<h1 id="12-工程实现示例"><a href="#12-工程实现示例" class="headerlink" title="12. 工程实现示例"></a>12. 工程实现示例</h1><h3 id="12-1-Python（使用-cryptography-库）"><a href="#12-1-Python（使用-cryptography-库）" class="headerlink" title="12.1 Python（使用 cryptography 库）"></a>12.1 Python（使用 <code>cryptography</code> 库）</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> cryptography.hazmat.primitives.asymmetric.x25519 <span class="keyword">import</span> X25519PrivateKey</span><br><span class="line"><span class="keyword">from</span> cryptography.hazmat.primitives.kdf.hkdf <span class="keyword">import</span> HKDF</span><br><span class="line"><span class="keyword">from</span> cryptography.hazmat.primitives <span class="keyword">import</span> hashes</span><br><span class="line"></span><br><span class="line"><span class="comment"># Alice 生成密钥对</span></span><br><span class="line">alice_private = X25519PrivateKey.generate()</span><br><span class="line">alice_public = alice_private.public_key()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bob 生成密钥对</span></span><br><span class="line">bob_private = X25519PrivateKey.generate()</span><br><span class="line">bob_public = bob_private.public_key()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 交换公钥（通过不安全信道），各自计算共享密钥</span></span><br><span class="line">alice_shared = alice_private.exchange(bob_public)</span><br><span class="line">bob_shared = bob_private.exchange(alice_public)</span><br><span class="line"></span><br><span class="line"><span class="keyword">assert</span> alice_shared == bob_shared  <span class="comment"># 两者相同</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过 KDF 派生最终密钥</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">derive_key</span>(<span class="params">shared_secret: <span class="built_in">bytes</span>, info: <span class="built_in">bytes</span> = <span class="string">b&quot;ecdh demo&quot;</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="keyword">return</span> HKDF(</span><br><span class="line">        algorithm=hashes.SHA256(),</span><br><span class="line">        length=<span class="number">32</span>,</span><br><span class="line">        salt=<span class="literal">None</span>,</span><br><span class="line">        info=info,</span><br><span class="line">    ).derive(shared_secret)</span><br><span class="line"></span><br><span class="line">alice_key = derive_key(alice_shared)</span><br><span class="line">bob_key = derive_key(bob_shared)</span><br><span class="line"><span class="keyword">assert</span> alice_key == bob_key</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;共享密钥（hex）:&quot;</span>, alice_key.<span class="built_in">hex</span>())</span><br></pre></td></tr></table></figure>
+
+<h3 id="12-2-JavaScript（Node-js，使用内置-crypto-模块）"><a href="#12-2-JavaScript（Node-js，使用内置-crypto-模块）" class="headerlink" title="12.2 JavaScript（Node.js，使用内置 crypto 模块）"></a>12.2 JavaScript（Node.js，使用内置 <code>crypto</code> 模块）</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> crypto = <span class="built_in">require</span>(<span class="string">&#x27;crypto&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Alice 生成 ECDH 密钥对（P-256 曲线）</span></span><br><span class="line"><span class="keyword">const</span> alice = crypto.<span class="title function_">createECDH</span>(<span class="string">&#x27;prime256v1&#x27;</span>);</span><br><span class="line">alice.<span class="title function_">generateKeys</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Bob 生成 ECDH 密钥对</span></span><br><span class="line"><span class="keyword">const</span> bob = crypto.<span class="title function_">createECDH</span>(<span class="string">&#x27;prime256v1&#x27;</span>);</span><br><span class="line">bob.<span class="title function_">generateKeys</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 交换公钥，计算共享密钥</span></span><br><span class="line"><span class="keyword">const</span> aliceSecret = alice.<span class="title function_">computeSecret</span>(bob.<span class="title function_">getPublicKey</span>());</span><br><span class="line"><span class="keyword">const</span> bobSecret = bob.<span class="title function_">computeSecret</span>(alice.<span class="title function_">getPublicKey</span>());</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Secrets match:&#x27;</span>, aliceSecret.<span class="title function_">equals</span>(bobSecret));</span><br><span class="line"><span class="comment">// 应通过 HKDF 等 KDF 进一步派生密钥后再使用</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="12-3-OpenSSL（C-语言，使用-EVP-接口）"><a href="#12-3-OpenSSL（C-语言，使用-EVP-接口）" class="headerlink" title="12.3 OpenSSL（C 语言，使用 EVP 接口）"></a>12.3 OpenSSL（C 语言，使用 EVP 接口）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/evp.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;openssl/ec.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> *<span class="title function_">ecdh_derive</span><span class="params">(<span class="type">size_t</span> *secret_len)</span> &#123;</span><br><span class="line">    EVP_PKEY_CTX *pctx, *kctx, *ctx;</span><br><span class="line">    EVP_PKEY *pkey = <span class="literal">NULL</span>, *peerkey, *params = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *secret;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 使用 P-256 曲线生成参数 */</span></span><br><span class="line">    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, <span class="literal">NULL</span>);</span><br><span class="line">    EVP_PKEY_paramgen_init(pctx);</span><br><span class="line">    EVP_PKEY_CTX_set_ec_paramgen_curve_nid(pctx, NID_X9_62_prime256v1);</span><br><span class="line">    EVP_PKEY_paramgen(pctx, &amp;params);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 生成本地密钥对 */</span></span><br><span class="line">    kctx = EVP_PKEY_CTX_new(params, <span class="literal">NULL</span>);</span><br><span class="line">    EVP_PKEY_keygen_init(kctx);</span><br><span class="line">    EVP_PKEY_keygen(kctx, &amp;pkey);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* peerkey 需通过安全方式获取对方公钥 */</span></span><br><span class="line">    <span class="comment">// peerkey = ...; </span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 计算共享密钥 */</span></span><br><span class="line">    ctx = EVP_PKEY_CTX_new(pkey, <span class="literal">NULL</span>);</span><br><span class="line">    EVP_PKEY_derive_init(ctx);</span><br><span class="line">    EVP_PKEY_derive_set_peer(ctx, peerkey);</span><br><span class="line">    EVP_PKEY_derive(ctx, <span class="literal">NULL</span>, secret_len);</span><br><span class="line">    secret = OPENSSL_malloc(*secret_len);</span><br><span class="line">    EVP_PKEY_derive(ctx, secret, secret_len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 注意：secret 需经过 KDF 处理后才能作为对称密钥使用 */</span></span><br><span class="line">    <span class="keyword">return</span> secret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="13-量子计算的威胁与后量子密码学"><a href="#13-量子计算的威胁与后量子密码学" class="headerlink" title="13. 量子计算的威胁与后量子密码学"></a>13. 量子计算的威胁与后量子密码学</h1><h3 id="13-1-Shor-算法的威胁"><a href="#13-1-Shor-算法的威胁" class="headerlink" title="13.1 Shor 算法的威胁"></a>13.1 Shor 算法的威胁</h3><p>量子计算机上的 <strong>Shor 算法</strong> 可以在多项式时间内解决 ECDLP，从而彻底破解 ECDH 的安全性。破解 128 位安全的 ECC（256 位密钥）理论上需要约 <strong>906 个逻辑量子比特</strong>；相比之下，破解 2048 位 RSA 需要约 4098 个量子比特和数万亿次 Toffoli 门操作。这意味着 <strong>ECC 比 RSA 更容易成为量子计算机的目标</strong>。</p>
+<p>然而，目前实际可用的量子计算机规模远远达不到上述要求，估计距此类攻击成为现实还有数十年时间。</p>
+<h3 id="13-2-NSA-的应对"><a href="#13-2-NSA-的应对" class="headerlink" title="13.2 NSA 的应对"></a>13.2 NSA 的应对</h3><p>2015 年 8 月，NSA 宣布计划以新的密码套件替换原有的基于 ECC 的 Suite B，理由是担忧未来量子计算的威胁。</p>
+<h3 id="13-3-后量子密钥交换"><a href="#13-3-后量子密钥交换" class="headerlink" title="13.3 后量子密钥交换"></a>13.3 后量子密钥交换</h3><p>NIST 后量子密码学标准化项目已于 2024 年完成首批标准发布（ML-KEM 等），各大协议正在逐步迁移至抗量子方案。部分实现已探索将 ECDHE 与后量子 KEM 算法<strong>混合使用（Hybrid）</strong>，以在经典与量子双重威胁下保持安全性。</p>
+<hr>
+<h1 id="14-已知攻击与防御实践"><a href="#14-已知攻击与防御实践" class="headerlink" title="14. 已知攻击与防御实践"></a>14. 已知攻击与防御实践</h1><h3 id="14-1-小子群攻击（Small-Subgroup-Attack）"><a href="#14-1-小子群攻击（Small-Subgroup-Attack）" class="headerlink" title="14.1 小子群攻击（Small Subgroup Attack）"></a>14.1 小子群攻击（Small Subgroup Attack）</h3><p>当曲线余因子 $h &gt; 1$ 时，如果接收方不对公钥点的阶进行验证，攻击者可以发送一个小子群上的低阶点，通过多次交互逐渐恢复对方的私钥信息。</p>
+<p><strong>防御</strong>：接收方必须验证收到的公钥点具有正确的阶，或使用余因子清除（cofactor multiplication）。</p>
+<h3 id="14-2-无效曲线攻击（Invalid-Curve-Attack）"><a href="#14-2-无效曲线攻击（Invalid-Curve-Attack）" class="headerlink" title="14.2 无效曲线攻击（Invalid Curve Attack）"></a>14.2 无效曲线攻击（Invalid Curve Attack）</h3><p>在基于 Weierstrass 曲线的 ECDH 实现中，如果服务端不验证客户端发来的点是否在约定曲线上，攻击者可以构造不在目标曲线上的点进行攻击，逐步推断出服务端私钥的各个比特。数个知名 TLS 库曾存在此漏洞。</p>
+<p><strong>防御</strong>：严格验证公钥点是否满足曲线方程。使用 X25519&#x2F;X448 等 Montgomery 曲线则天然规避此问题（其输入仅为 $x$ 坐标，实现上更难出错）。</p>
+<h3 id="14-3-中间人攻击（MITM）"><a href="#14-3-中间人攻击（MITM）" class="headerlink" title="14.3 中间人攻击（MITM）"></a>14.3 中间人攻击（MITM）</h3><p>裸的 ECDH&#x2F;ECDHE 不提供身份认证，攻击者可替换双方的公钥，各自与双方建立独立的共享密钥。</p>
+<p><strong>防御</strong>：配合数字签名（ECDSA &#x2F; RSA）或预共享密钥（PSK）进行认证。</p>
+<h3 id="14-4-侧信道攻击（Side-Channel-Attack）"><a href="#14-4-侧信道攻击（Side-Channel-Attack）" class="headerlink" title="14.4 侧信道攻击（Side-Channel Attack）"></a>14.4 侧信道攻击（Side-Channel Attack）</h3><p>非常数时间的 ECC 实现可能通过时序差异、功耗分析等手段泄露私钥信息。</p>
+<p><strong>防御</strong>：使用常数时间算法（如 Montgomery Ladder）；Curve25519 的参考实现已特别针对此问题优化。</p>
+<h3 id="14-5-共享密钥的不当使用"><a href="#14-5-共享密钥的不当使用" class="headerlink" title="14.5 共享密钥的不当使用"></a>14.5 共享密钥的不当使用</h3><p>ECDH 共享密钥（$x_S$ 坐标）的分布不均匀，直接用作对称密钥可能泄漏私钥信息。</p>
+<p><strong>防御</strong>：始终通过 KDF（如 HKDF）派生最终密钥。</p>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>ECDH &#x2F; ECDHE 是现代密码学基础设施的核心组件，其核心价值在于：</p>
+<ul>
+<li>以<strong>极短的密钥</strong>（256 位）提供与 3072 位传统 DH 相当的安全强度</li>
+<li>通过<strong>短暂密钥（ECDHE）</strong>实现完美前向保密，抵御长期密钥泄露的影响</li>
+<li>性能优异，适合从高性能服务器到低功耗 IoT 设备的广泛部署场景</li>
+</ul>
+<p>在曲线选择上，<strong>X25519</strong>（Curve25519）凭借其透明的参数、极高的性能和无专利负担，已成为当今最推荐的默认选择，也是 TLS 1.3 的优先曲线。<strong>X448</strong>（Curve448）则为需要更高安全等级的场景提供了选择。</p>
+<p>面向未来，随着量子计算的发展，ECDH 与后量子 KEM 算法的<strong>混合方案</strong>将是过渡期的现实选择，最终迁移至标准化的后量子密钥交换算法。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman">Elliptic-curve Diffie–Hellman</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Elliptic-curve_cryptography">Elliptic-curve cryptography</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Curve25519">Curve25519</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Forward_secrecy">Forward secrecy</a></li>
+<li>RFC 7748: <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7748">Elliptic Curves for Security</a> (X25519 &amp; X448)</li>
+<li>RFC 8446: <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8446">The Transport Layer Security (TLS) Protocol Version 1.3</a></li>
+<li>RFC 8422: <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8422">ECC Cipher Suites for TLS 1.2 and Earlier</a></li>
+<li>OpenSSL Wiki: <a target="_blank" rel="noopener" href="https://wiki.openssl.org/index.php/Elliptic_Curve_Diffie_Hellman">Elliptic Curve Diffie-Hellman</a></li>
+<li>Nakov, S.: <a target="_blank" rel="noopener" href="https://cryptobook.nakov.com/asymmetric-key-ciphers/ecdh-key-exchange">ECDH Key Exchange - Practical Cryptography for Developers</a></li>
+<li>Bernstein, D.J.: <em>Curve25519: New Diffie-Hellman Speed Records</em> (2006)</li>
+<li>Hamburg, M.: <em>Ed448-Goldilocks, a new elliptic curve</em> (2015)</li>
+<li>NIST SP 800-186: <em>Recommendations for Discrete Logarithm-Based Cryptography: Elliptic Curve Domain Parameters</em> (2023)</li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%BB%8E%E7%BB%8F%E5%85%B8-DH-%E5%88%B0-ECDH"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：从经典 DH 到 ECDH</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Diffie%E2%80%93Hellman-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 Diffie–Hellman 密钥交换的诞生</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%BB%8F%E5%85%B8-DH-%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 经典 DH 的局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ECDH-%E7%9A%84%E5%87%BA%E7%8E%B0"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 ECDH 的出现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%88ECC%EF%BC%89%E5%9F%BA%E7%A1%80"><span class="toc-number">3.</span> <span class="toc-text">2. 椭圆曲线密码学（ECC）基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E6%96%B9%E7%A8%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 椭圆曲线方程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%89%E9%99%90%E5%9F%9F%E4%B8%8A%E7%9A%84%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 有限域上的椭圆曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%BE%A4%E8%BF%90%E7%AE%97%EF%BC%9A%E7%82%B9%E5%8A%A0%E6%B3%95"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 群运算：点加法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E9%87%8F%E4%B9%98%E6%B3%95"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 标量乘法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-ECDH-%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. ECDH 协议详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8D%8F%E8%AE%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 协议流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%B1%E4%BA%AB%E5%AF%86%E9%92%A5%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 共享密钥的使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E6%95%B0%E5%AD%A6%E4%BE%9D%E6%8D%AE"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 安全性的数学依据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%9F%9F%E5%8F%82%E6%95%B0%EF%BC%88Domain-Parameters%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 域参数（Domain Parameters）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-ECDHE%EF%BC%9A%E7%9F%AD%E6%9A%82%E5%AF%86%E9%92%A5%E4%B8%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86"><span class="toc-number">6.</span> <span class="toc-text">5. ECDHE：短暂密钥与前向保密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%9D%99%E6%80%81%E5%AF%86%E9%92%A5-vs-%E7%9F%AD%E6%9A%82%E5%AF%86%E9%92%A5"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 静态密钥 vs. 短暂密钥</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Perfect-Forward-Secrecy%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 前向保密（Perfect Forward Secrecy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-ECDHE-%E7%9A%84%E8%AE%A4%E8%AF%81%E9%97%AE%E9%A2%98"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 ECDHE 的认证问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E6%B5%81%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E9%80%89%E5%9E%8B"><span class="toc-number">7.</span> <span class="toc-text">6. 主流椭圆曲线选型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-NIST-%E6%9B%B2%E7%BA%BF%EF%BC%88P-256-P-384-P-521%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 NIST 曲线（P-256 &#x2F; P-384 &#x2F; P-521）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Brainpool-%E6%9B%B2%E7%BA%BF"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Brainpool 曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-secp256k1%EF%BC%88Koblitz-%E6%9B%B2%E7%BA%BF%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 secp256k1（Koblitz 曲线）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-Montgomery-%E6%9B%B2%E7%BA%BF%E4%B8%8E-X25519-X448"><span class="toc-number">8.</span> <span class="toc-text">7. Montgomery 曲线与 X25519 &#x2F; X448</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Montgomery-%E6%9B%B2%E7%BA%BF"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 Montgomery 曲线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Curve25519-X25519"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 Curve25519 &#x2F; X25519</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-Curve448-X448"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 Curve448 &#x2F; X448</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%85%B6%E4%BB%96-Montgomery-%E6%9B%B2%E7%BA%BF%E6%8F%90%E6%A1%88"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 其他 Montgomery 曲线提案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">9.</span> <span class="toc-text">8. 安全性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-ECDLP-%E7%9A%84%E9%9A%BE%E5%BA%A6"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 ECDLP 的难度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-ECDLP-%E4%B8%8E%E4%BC%A0%E7%BB%9F-DLP-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 ECDLP 与传统 DLP 的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%AE%89%E5%85%A8%E7%AD%89%E7%BA%A7%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 安全等级对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E9%9D%99%E6%80%81%E5%AF%86%E9%92%A5%E7%9A%84%E9%A2%9D%E5%A4%96%E5%AE%89%E5%85%A8%E8%A6%81%E6%B1%82"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 静态密钥的额外安全要求</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%8E%E7%BB%8F%E5%85%B8-DH-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. 与经典 DH 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%9C%A8-TLS-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">11.</span> <span class="toc-text">10. 在 TLS 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-TLS-1-2-%E4%B8%AD%E7%9A%84-ECDHE"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 TLS 1.2 中的 ECDHE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-TLS-1-3-%E4%B8%AD%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 TLS 1.3 中的变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E6%80%A7%E8%83%BD%E6%95%B0%E6%8D%AE"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 性能数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%85%B6%E4%BB%96%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">12.</span> <span class="toc-text">11. 其他实际应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%8D%B3%E6%97%B6%E9%80%9A%E8%AE%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%8A%A0%E5%AF%86"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 即时通讯端到端加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-SSH"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 SSH</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%8C%BA%E5%9D%97%E9%93%BE"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 区块链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-IPsec-%E4%B8%8E-VPN"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 IPsec 与 VPN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-5-IoT-%E4%B8%8E%E6%99%BA%E8%83%BD%E7%94%B5%E7%BD%91"><span class="toc-number">12.0.5.</span> <span class="toc-text">11.5 IoT 与智能电网</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-6-%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6%E5%8A%A0%E5%AF%86"><span class="toc-number">12.0.6.</span> <span class="toc-text">11.6 电子邮件加密</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B"><span class="toc-number">13.</span> <span class="toc-text">12. 工程实现示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-Python%EF%BC%88%E4%BD%BF%E7%94%A8-cryptography-%E5%BA%93%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 Python（使用 cryptography 库）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-JavaScript%EF%BC%88Node-js%EF%BC%8C%E4%BD%BF%E7%94%A8%E5%86%85%E7%BD%AE-crypto-%E6%A8%A1%E5%9D%97%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 JavaScript（Node.js，使用内置 crypto 模块）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-OpenSSL%EF%BC%88C-%E8%AF%AD%E8%A8%80%EF%BC%8C%E4%BD%BF%E7%94%A8-EVP-%E6%8E%A5%E5%8F%A3%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 OpenSSL（C 语言，使用 EVP 接口）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">14.</span> <span class="toc-text">13. 量子计算的威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-Shor-%E7%AE%97%E6%B3%95%E7%9A%84%E5%A8%81%E8%83%81"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 Shor 算法的威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-NSA-%E7%9A%84%E5%BA%94%E5%AF%B9"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 NSA 的应对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 后量子密钥交换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B7%B2%E7%9F%A5%E6%94%BB%E5%87%BB%E4%B8%8E%E9%98%B2%E5%BE%A1%E5%AE%9E%E8%B7%B5"><span class="toc-number">15.</span> <span class="toc-text">14. 已知攻击与防御实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E5%B0%8F%E5%AD%90%E7%BE%A4%E6%94%BB%E5%87%BB%EF%BC%88Small-Subgroup-Attack%EF%BC%89"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 小子群攻击（Small Subgroup Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E6%97%A0%E6%95%88%E6%9B%B2%E7%BA%BF%E6%94%BB%E5%87%BB%EF%BC%88Invalid-Curve-Attack%EF%BC%89"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 无效曲线攻击（Invalid Curve Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB%EF%BC%88MITM%EF%BC%89"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 中间人攻击（MITM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-4-%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB%EF%BC%88Side-Channel-Attack%EF%BC%89"><span class="toc-number">15.0.4.</span> <span class="toc-text">14.4 侧信道攻击（Side-Channel Attack）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-5-%E5%85%B1%E4%BA%AB%E5%AF%86%E9%92%A5%E7%9A%84%E4%B8%8D%E5%BD%93%E4%BD%BF%E7%94%A8"><span class="toc-number">15.0.5.</span> <span class="toc-text">14.5 共享密钥的不当使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">17.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/05/01/cryptology/4.ECDH/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/05/01/cryptology/4.ECDH/&text=Elliptic-curve Diffie–Hellman"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/05/01/cryptology/4.ECDH/&is_video=false&description=Elliptic-curve Diffie–Hellman"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Elliptic-curve Diffie–Hellman&body=Check out this article: http://example.com/2021/05/01/cryptology/4.ECDH/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/05/01/cryptology/4.ECDH/&title=Elliptic-curve Diffie–Hellman"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/05/01/cryptology/4.ECDH/&name=Elliptic-curve Diffie–Hellman&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/05/01/cryptology/4.ECDH/&t=Elliptic-curve Diffie–Hellman"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

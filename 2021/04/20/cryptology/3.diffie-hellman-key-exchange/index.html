@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Diffie–Hellman 密钥交换：原理、数学与现代应用, 一文读懂公钥密码学的奠基性协议   目录 背景与历史 核心思想：用颜色类比理解 数学基础 3.1 模幂运算 3.2 离散对数问题 3.3 Diffie–Hellman 问题（DHP）   协议步骤详解 4.1 公共参数的选取 4.2 密钥交换流程 4.3 具体数值示例   安全性分析 5.1 窃听者能看到什么？ 5.2 为什么难以破">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Diffie–Hellman key exchange">
+<meta property="og:url" content="http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="Diffie–Hellman 密钥交换：原理、数学与现代应用, 一文读懂公钥密码学的奠基性协议   目录 背景与历史 核心思想：用颜色类比理解 数学基础 3.1 模幂运算 3.2 离散对数问题 3.3 Diffie–Hellman 问题（DHP）   协议步骤详解 4.1 公共参数的选取 4.2 密钥交换流程 4.3 具体数值示例   安全性分析 5.1 窃听者能看到什么？ 5.2 为什么难以破">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-04-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-15T22:38:34.833Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Diffie–Hellman key exchange</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/05/01/cryptology/4.ECDH/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/04/12/cryptology/2.SSL_TLS_Handshake/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&text=Diffie–Hellman key exchange"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&is_video=false&description=Diffie–Hellman key exchange"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Diffie–Hellman key exchange&body=Check out this article: http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&name=Diffie–Hellman key exchange&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&t=Diffie–Hellman key exchange"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与历史</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%8F%91%E6%98%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 发明背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%8B%AC%E7%AB%8B%E5%8F%91%E7%8E%B0"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 独立发现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%EF%BC%9A%E7%94%A8%E9%A2%9C%E8%89%B2%E7%B1%BB%E6%AF%94%E7%90%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">2. 核心思想：用颜色类比理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">3. 数学基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A8%A1%E5%B9%82%E8%BF%90%E7%AE%97"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 模幂运算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%A6%BB%E6%95%A3%E5%AF%B9%E6%95%B0%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 离散对数问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Diffie%E2%80%93Hellman-%E9%97%AE%E9%A2%98%EF%BC%88DHP%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 Diffie–Hellman 问题（DHP）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8D%8F%E8%AE%AE%E6%AD%A5%E9%AA%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. 协议步骤详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%AC%E5%85%B1%E5%8F%82%E6%95%B0%E7%9A%84%E9%80%89%E5%8F%96"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 公共参数的选取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%E6%B5%81%E7%A8%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 密钥交换流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%85%B7%E4%BD%93%E6%95%B0%E5%80%BC%E7%A4%BA%E4%BE%8B"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 具体数值示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">5. 安全性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%AA%83%E5%90%AC%E8%80%85%E8%83%BD%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 窃听者能看到什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9A%BE%E4%BB%A5%E7%A0%B4%E8%A7%A3%EF%BC%9F"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 为什么难以破解？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%BE%A4%E7%9A%84%E9%80%89%E5%8F%96%E5%AF%B9%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 群的选取对安全性的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E8%A6%81%E6%94%BB%E5%87%BB%E5%90%91%E9%87%8F"><span class="toc-number">7.</span> <span class="toc-text">6. 主要攻击向量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB%EF%BC%88MitM%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 中间人攻击（MitM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Logjam-%E6%94%BB%E5%87%BB"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Logjam 攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B0%8F%E5%AD%90%E7%BE%A4%E6%94%BB%E5%87%BB"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 小子群攻击</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E9%87%8D%E8%A6%81%E5%8F%98%E4%BD%93%E4%B8%8E%E6%89%A9%E5%B1%95"><span class="toc-number">8.</span> <span class="toc-text">7. 重要变体与扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%B4%E6%97%B6-DH%EF%BC%88Ephemeral-DH-DHE%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 临时 DH（Ephemeral DH &#x2F; DHE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF-DH%EF%BC%88ECDH-ECDHE%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 椭圆曲线 DH（ECDH &#x2F; ECDHE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AF%86%E7%A0%81%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%EF%BC%88PAKE%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 密码认证密钥协商（PAKE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Station-to-Station-%E5%8D%8F%E8%AE%AE%EF%BC%88STS%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 Station-to-Station 协议（STS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-X3DH%EF%BC%88%E6%89%A9%E5%B1%95%E4%B8%89%E9%87%8D-DH%EF%BC%89"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 X3DH（扩展三重 DH）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-%E5%A4%9A%E6%96%B9-DH"><span class="toc-number">8.0.6.</span> <span class="toc-text">7.6 多方 DH</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Forward-Secrecy%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 前向保密（Forward Secrecy）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%9C%A8%E7%8E%B0%E4%BB%A3%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">10.</span> <span class="toc-text">9. 在现代协议中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-TLS-HTTPS"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 TLS &#x2F; HTTPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-SSH%EF%BC%88Secure-Shell%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 SSH（Secure Shell）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-IPsec-IKE%EF%BC%88Internet-Key-Exchange%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 IPsec &#x2F; IKE（Internet Key Exchange）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-Signal-WhatsApp-iMessage"><span class="toc-number">10.0.4.</span> <span class="toc-text">9.4 Signal &#x2F; WhatsApp &#x2F; iMessage</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-WireGuard-VPN"><span class="toc-number">10.0.5.</span> <span class="toc-text">9.5 WireGuard VPN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-6-%E5%85%B6%E4%BB%96"><span class="toc-number">10.0.6.</span> <span class="toc-text">9.6 其他</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E4%B8%8E-RSA-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">11.</span> <span class="toc-text">10. 与 RSA 的比较</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">12.</span> <span class="toc-text">11. 量子计算的威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%A8%81%E8%83%81%E7%A8%8B%E5%BA%A6"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 威胁程度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E8%B6%85%E5%A5%87%E5%BC%82%E5%90%8C%E6%BA%90%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%EF%BC%88SIDH-SIKE%EF%BC%89"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 超奇异同源密钥交换（SIDH&#x2F;SIKE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%90%8E%E9%87%8F%E5%AD%90%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 后量子替代方案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">13.</span> <span class="toc-text">12. 实现注意事项与最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%8F%82%E6%95%B0%E9%80%89%E5%8F%96"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 参数选取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E7%A7%81%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 私钥管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%85%AC%E9%92%A5%E9%AA%8C%E8%AF%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 公钥验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E7%BB%93%E5%90%88%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 结合身份认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E7%A6%81%E7%94%A8%E5%BC%B1%E9%85%8D%E7%BD%AE"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 禁用弱配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Diffie–Hellman key exchange
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-04-19T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-04-20</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p><em>Diffie–Hellman 密钥交换：原理、数学与现代应用, 一文读懂公钥密码学的奠基性协议</em></p>
+</blockquote>
+<hr>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2">背景与历史</a></li>
+<li><a href="#2-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%E7%94%A8%E9%A2%9C%E8%89%B2%E7%B1%BB%E6%AF%94%E7%90%86%E8%A7%A3">核心思想：用颜色类比理解</a></li>
+<li><a href="#3-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80">数学基础</a><ul>
+<li>3.1 <a href="#31-%E6%A8%A1%E5%B9%82%E8%BF%90%E7%AE%97">模幂运算</a></li>
+<li>3.2 <a href="#32-%E7%A6%BB%E6%95%A3%E5%AF%B9%E6%95%B0%E9%97%AE%E9%A2%98">离散对数问题</a></li>
+<li>3.3 <a href="#33-diffiehellman-%E9%97%AE%E9%A2%98dhp">Diffie–Hellman 问题（DHP）</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%8D%8F%E8%AE%AE%E6%AD%A5%E9%AA%A4%E8%AF%A6%E8%A7%A3">协议步骤详解</a><ul>
+<li>4.1 <a href="#41-%E5%85%AC%E5%85%B1%E5%8F%82%E6%95%B0%E7%9A%84%E9%80%89%E5%8F%96">公共参数的选取</a></li>
+<li>4.2 <a href="#42-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%E6%B5%81%E7%A8%8B">密钥交换流程</a></li>
+<li>4.3 <a href="#43-%E5%85%B7%E4%BD%93%E6%95%B0%E5%80%BC%E7%A4%BA%E4%BE%8B">具体数值示例</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90">安全性分析</a><ul>
+<li>5.1 <a href="#51-%E7%AA%83%E5%90%AC%E8%80%85%E8%83%BD%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88">窃听者能看到什么？</a></li>
+<li>5.2 <a href="#52-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9A%BE%E4%BB%A5%E7%A0%B4%E8%A7%A3">为什么难以破解？</a></li>
+<li>5.3 <a href="#53-%E7%BE%A4%E7%9A%84%E9%80%89%E5%8F%96%E5%AF%B9%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E5%BD%B1%E5%93%8D">群的选取对安全性的影响</a></li>
+</ul>
+</li>
+<li><a href="#6-%E4%B8%BB%E8%A6%81%E6%94%BB%E5%87%BB%E5%90%91%E9%87%8F">主要攻击向量</a><ul>
+<li>6.1 <a href="#61-%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BBmitm">中间人攻击（MitM）</a></li>
+<li>6.2 <a href="#62-logjam-%E6%94%BB%E5%87%BB">Logjam 攻击</a></li>
+<li>6.3 <a href="#63-%E5%B0%8F%E5%AD%90%E7%BE%A4%E6%94%BB%E5%87%BB">小子群攻击</a></li>
+</ul>
+</li>
+<li><a href="#7-%E9%87%8D%E8%A6%81%E5%8F%98%E4%BD%93%E4%B8%8E%E6%89%A9%E5%B1%95">重要变体与扩展</a><ul>
+<li>7.1 <a href="#71-%E4%B8%B4%E6%97%B6-dhephemeral-dh--dhe">临时 DH（Ephemeral DH &#x2F; DHE）</a></li>
+<li>7.2 <a href="#72-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF-dhecdhecdhe">椭圆曲线 DH（ECDH &#x2F; ECDHE）</a></li>
+<li>7.3 <a href="#73-%E5%AF%86%E7%A0%81%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86pake">密码认证密钥协商（PAKE）</a></li>
+<li>7.4 <a href="#74-station-to-station-%E5%8D%8F%E8%AE%AEsts">Station-to-Station 协议（STS）</a></li>
+<li>7.5 <a href="#75-x3dh%E6%89%A9%E5%B1%95%E4%B8%89%E9%87%8D-dh">X3DH（扩展三重 DH）</a></li>
+<li>7.6 <a href="#76-%E5%A4%9A%E6%96%B9-dh">多方 DH</a></li>
+</ul>
+</li>
+<li><a href="#8-%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86forward-secrecy">前向保密（Forward Secrecy）</a></li>
+<li><a href="#9-%E5%9C%A8%E7%8E%B0%E4%BB%A3%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">在现代协议中的应用</a></li>
+<li><a href="#10-%E4%B8%8E-rsa-%E7%9A%84%E6%AF%94%E8%BE%83">与 RSA 的比较</a></li>
+<li><a href="#11-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6">量子计算的威胁与后量子密码学</a></li>
+<li><a href="#12-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">实现注意事项与最佳实践</a></li>
+<li><a href="#13-%E6%80%BB%E7%BB%93">总结</a></li>
+</ol>
+<hr>
+<h1 id="1-背景与历史"><a href="#1-背景与历史" class="headerlink" title="1. 背景与历史"></a>1. 背景与历史</h1><p>在 Diffie–Hellman 密钥交换协议出现之前，安全通信面临一个根本性的”鸡和蛋”困境：两个素未谋面的通信方若要加密通信，必须首先通过某种安全渠道（如信使携带纸质密钥列表）交换密钥。这在互联网时代几乎是不可行的。</p>
+<h3 id="1-1-发明背景"><a href="#1-1-发明背景" class="headerlink" title="1.1 发明背景"></a>1.1 发明背景</h3><p>1976 年，Whitfield Diffie 与 Martin Hellman 在 IEEE《信息论汇刊》发表了划时代论文 <strong>“New Directions in Cryptography”</strong> ，首次公开提出了公钥密码学的概念，并给出了第一个实用的密钥交换方案。这一发现彻底改变了密码学的面貌。</p>
+<p>该协议的核心思想实际上由 Hellman 的博士生 <strong>Ralph Merkle</strong> 独立提出（称为”Merkle 谜题”），因此 Hellman 在 2006 年建议将算法更名为 <strong>Diffie–Hellman–Merkle 密钥交换</strong>，以承认 Merkle 的同等贡献。</p>
+<blockquote>
+<p>“该系统此后被称为 Diffie–Hellman 密钥交换。虽然该系统首先由 Diffie 和我在论文中描述，但它是一个公钥分发系统，这一概念由 Merkle 发展，因此如果要与名字关联，应称为’Diffie–Hellman–Merkle 密钥交换’。”<br>—— Martin Hellman, 2006</p>
+</blockquote>
+<h3 id="1-2-独立发现"><a href="#1-2-独立发现" class="headerlink" title="1.2 独立发现"></a>1.2 独立发现</h3><p>鲜为人知的是，英国政府通信总部（<strong>GCHQ</strong>）的 Malcolm J. Williamson 在 1974 年就独立发现了类似方案，但因保密要求一直未能公开。Diffie 和 Hellman 的版本才是首个向公众披露的实现。</p>
+<p>美国专利 <strong>US4200770</strong>（现已过期）记录了该算法，将 Hellman、Diffie 和 Merkle 列为发明人。</p>
+<hr>
+<h1 id="2-核心思想：用颜色类比理解"><a href="#2-核心思想：用颜色类比理解" class="headerlink" title="2. 核心思想：用颜色类比理解"></a>2. 核心思想：用颜色类比理解</h1><p>Diffie–Hellman 协议最直观的类比是<strong>混色实验</strong>。假设 Alice 与 Bob 想在公开信道中商定一个只有他们知道的秘密颜色：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">公共起始色（黄色）</span><br><span class="line">      │</span><br><span class="line">      ├── Alice 选秘密色（红色）→ 混合 → 公开传输（橙色）</span><br><span class="line">      │                                          ↓</span><br><span class="line">      └── Bob 选秘密色（蓝色）→ 混合 → 公开传输（绿色）</span><br><span class="line">                                                 │</span><br><span class="line">Alice 取 Bob 的公开色（绿色）+ 自己的秘密色（红色）→ 棕色</span><br><span class="line">Bob  取 Alice 的公开色（橙色）+ 自己的秘密色（蓝色）→ 棕色</span><br></pre></td></tr></table></figure>
+
+<p>关键在于：<strong>混色容易，分色极难</strong>。即使窃听者 Eve 看到了黄色、橙色、绿色，也无法还原出最终的棕色——因为她不知道 Alice 的红色和 Bob 的蓝色。</p>
+<p>在数学上，”混色”对应<strong>模幂运算</strong>，”分色”对应<strong>离散对数问题</strong>。</p>
+<hr>
+<h1 id="3-数学基础"><a href="#3-数学基础" class="headerlink" title="3. 数学基础"></a>3. 数学基础</h1><h3 id="3-1-模幂运算"><a href="#3-1-模幂运算" class="headerlink" title="3.1 模幂运算"></a>3.1 模幂运算</h3><p>模幂运算是 DH 的核心数学工具。给定底数 $g$、指数 $x$ 和模数 $p$，计算：</p>
+<p>$$g^x \mod p$$</p>
+<p>这个运算使用”快速幂”算法，计算效率很高，时间复杂度为 $O(\log x)$。</p>
+<h3 id="3-2-离散对数问题"><a href="#3-2-离散对数问题" class="headerlink" title="3.2 离散对数问题"></a>3.2 离散对数问题</h3><p><strong>离散对数问题（DLP）</strong>：已知 $g$、$p$ 和 $g^x \mod p$，求 $x$。</p>
+<p>这是一个被认为极难求解的问题。目前已知最优算法是<strong>数域筛法（Number Field Sieve, NFS）</strong>，其时间复杂度是次指数级的，但对于足够大的素数 $p$，计算代价依然难以承受。</p>
+<ul>
+<li>对于 1024 位素数：国家级攻击者或许可以预计算</li>
+<li>对于 2048 位素数：安全性大幅提升，预计算代价约为 1024 位的 $10^9$ 倍</li>
+<li>对于 3072 位或以上：目前认为长期安全</li>
+</ul>
+<h3 id="3-3-Diffie–Hellman-问题（DHP）"><a href="#3-3-Diffie–Hellman-问题（DHP）" class="headerlink" title="3.3 Diffie–Hellman 问题（DHP）"></a>3.3 Diffie–Hellman 问题（DHP）</h3><p><strong>DHP</strong>：已知 $g^x \mod p$ 和 $g^y \mod p$，在不知道 $x$ 或 $y$ 的情况下，求 $g^{xy} \mod p$。</p>
+<p>这是一个与 DLP 密切相关的问题，普遍认为 DHP 的难度不弱于 DLP（在许多群上已被证明近似等价）。DH 密钥交换的安全性正是基于 DHP 的计算困难性假设。</p>
+<hr>
+<h1 id="4-协议步骤详解"><a href="#4-协议步骤详解" class="headerlink" title="4. 协议步骤详解"></a>4. 协议步骤详解</h1><h3 id="4-1-公共参数的选取"><a href="#4-1-公共参数的选取" class="headerlink" title="4.1 公共参数的选取"></a>4.1 公共参数的选取</h3><p>通信双方（通常称为 Alice 和 Bob）首先公开商定两个参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$p$</td>
+<td>一个大素数（模数），实践中通常 ≥ 2048 位</td>
+</tr>
+<tr>
+<td>$g$</td>
+<td>$p$ 的原根（生成元），即满足 $g^k \mod p$ 能遍历 $1$ 到 $p-1$ 的所有整数</td>
+</tr>
+</tbody></table>
+<p>这两个参数可以完全公开传输，知道它们并不危害安全性。</p>
+<h3 id="4-2-密钥交换流程"><a href="#4-2-密钥交换流程" class="headerlink" title="4.2 密钥交换流程"></a>4.2 密钥交换流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Alice                               公开信道                            Bob</span><br><span class="line">  │                                     │                                 │</span><br><span class="line">  │  选择私钥 a（随机，保密）              │   选择私钥 b（随机，保密）          │</span><br><span class="line">  │                                     │                                 │</span><br><span class="line">  │  计算公钥 A = g^a mod p              │   计算公钥 B = g^b mod p         │</span><br><span class="line">  │                                     │                                 │</span><br><span class="line">  │ ────────────── 发送 A ──────────────→│                                 │</span><br><span class="line">  │                                     │←───────────── 发送 B ───────────│</span><br><span class="line">  │                                     │                                 │</span><br><span class="line">  │  计算 s = B^a mod p                  │   计算 s = A^b mod p            │</span><br><span class="line">  │  = (g^b)^a mod p                    │   = (g^a)^b mod p               │</span><br><span class="line">  │  = g^(ab) mod p   ←──── 相等 ──────  │──── g^(ab) mod p                │</span><br><span class="line">  │                                     │                                 │</span><br><span class="line">  │           共享密钥 s = g^(ab) mod p （从未在信道中传输）                  │</span><br></pre></td></tr></table></figure>
+
+<p>数学上成立的原因：</p>
+<p>$$s &#x3D; B^a \mod p &#x3D; (g^b)^a \mod p &#x3D; g^{ab} \mod p$$<br>$$s &#x3D; A^b \mod p &#x3D; (g^a)^b \mod p &#x3D; g^{ab} \mod p$$</p>
+<p>两者相等，因此双方独立计算出同一个共享密钥 $s$，而该值从未直接在信道中传输。</p>
+<h3 id="4-3-具体数值示例"><a href="#4-3-具体数值示例" class="headerlink" title="4.3 具体数值示例"></a>4.3 具体数值示例</h3><p>以下使用小数字演示（实际部署中数字远大于此）：</p>
+<p><strong>公共参数：</strong> $p &#x3D; 23$，$g &#x3D; 5$</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>选择私钥</td>
+<td>$a &#x3D; 6$（保密）</td>
+<td>$b &#x3D; 15$（保密）</td>
+</tr>
+<tr>
+<td>计算公钥</td>
+<td>$A &#x3D; 5^6 \mod 23 &#x3D; 8$</td>
+<td>$B &#x3D; 5^{15} \mod 23 &#x3D; 19$</td>
+</tr>
+<tr>
+<td>交换公钥</td>
+<td>→ 发送 $A &#x3D; 8$</td>
+<td>→ 发送 $B &#x3D; 19$</td>
+</tr>
+<tr>
+<td>计算共享密钥</td>
+<td>$s &#x3D; 19^6 \mod 23 &#x3D; 2$</td>
+<td>$s &#x3D; 8^{15} \mod 23 &#x3D; 2$</td>
+</tr>
+</tbody></table>
+<p><strong>结果：</strong> Alice 和 Bob 各自独立算出了相同的共享密钥 $s &#x3D; 2$。</p>
+<p>攻击者 Eve 看到了 $p&#x3D;23$，$g&#x3D;5$，$A&#x3D;8$，$B&#x3D;19$，但无法轻易还原 $s&#x3D;2$，因为她需要求解离散对数：$5^x \equiv 8 \pmod{23}$，即找出 $x&#x3D;6$。</p>
+<hr>
+<h1 id="5-安全性分析"><a href="#5-安全性分析" class="headerlink" title="5. 安全性分析"></a>5. 安全性分析</h1><h3 id="5-1-窃听者能看到什么？"><a href="#5-1-窃听者能看到什么？" class="headerlink" title="5.1 窃听者能看到什么？"></a>5.1 窃听者能看到什么？</h3><p>攻击者 Eve 在公开信道上可以获得以下信息：</p>
+<ul>
+<li>公共参数：$p$（素数）、$g$（生成元）</li>
+<li>Alice 的公钥：$A &#x3D; g^a \mod p$</li>
+<li>Bob 的公钥：$B &#x3D; g^b \mod p$</li>
+</ul>
+<p>但她<strong>无法</strong>直接获得：</p>
+<ul>
+<li>Alice 的私钥 $a$</li>
+<li>Bob 的私钥 $b$  </li>
+<li>共享密钥 $s &#x3D; g^{ab} \mod p$</li>
+</ul>
+<h3 id="5-2-为什么难以破解？"><a href="#5-2-为什么难以破解？" class="headerlink" title="5.2 为什么难以破解？"></a>5.2 为什么难以破解？</h3><p>Eve 要想破解共享密钥，需要做到以下其中之一：</p>
+<ol>
+<li><strong>求解离散对数</strong>：从 $A &#x3D; g^a \mod p$ 中还原 $a$，再计算 $A^b \mod p$——但离散对数问题被认为计算困难</li>
+<li><strong>直接求解 DHP</strong>：从 $g^a \mod p$ 和 $g^b \mod p$ 推导 $g^{ab} \mod p$——同样被认为极难</li>
+</ol>
+<p>目前没有已知的多项式时间算法能解决这两个问题（在经典计算机上）。</p>
+<h3 id="5-3-群的选取对安全性的影响"><a href="#5-3-群的选取对安全性的影响" class="headerlink" title="5.3 群的选取对安全性的影响"></a>5.3 群的选取对安全性的影响</h3><p>DH 的安全性强烈依赖于所使用的群（Group）的选取：</p>
+<ul>
+<li><strong>群的阶数必须足够大</strong>：若群的阶数小，攻击者可以穷举</li>
+<li><strong>避免使用弱素数</strong>：某些素数存在已知的数学弱点（如光滑素数）</li>
+<li><strong>使用安全素数（Safe Prime）</strong>：形如 $p &#x3D; 2q + 1$（其中 $q$ 也是素数）的素数，可抵抗子群攻击</li>
+<li><strong>推荐密钥长度</strong>：NIST 自 2010 年起建议至少使用 2048 位 DH 参数</li>
+</ul>
+<hr>
+<h1 id="6-主要攻击向量"><a href="#6-主要攻击向量" class="headerlink" title="6. 主要攻击向量"></a>6. 主要攻击向量</h1><h3 id="6-1-中间人攻击（MitM）"><a href="#6-1-中间人攻击（MitM）" class="headerlink" title="6.1 中间人攻击（MitM）"></a>6.1 中间人攻击（MitM）</h3><p>这是 DH 协议最著名的弱点。由于基础 DH 协议<strong>不提供身份认证</strong>，攻击者 Eve 可以冒充双方：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Alice ←──── Eve（伪装成 Bob）────→ Eve（伪装成 Alice）────→ Bob</span><br><span class="line">         建立 DH 密钥 s1             建立 DH 密钥 s2</span><br></pre></td></tr></table></figure>
+
+<p>Eve 与 Alice 建立一个会话密钥，与 Bob 建立另一个，从而可以解密、修改、再加密所有消息。</p>
+<p><strong>解决方案：</strong> 将 DH 与身份认证机制结合，例如：</p>
+<ul>
+<li><strong>数字签名</strong>（Digital Signature）：各方用自己的私钥对公钥或参数签名</li>
+<li><strong>证书体系（PKI）</strong>：使用数字证书验证公钥归属</li>
+<li><strong>密码认证密钥协商（PAKE）</strong>：利用共享密码防止 MitM</li>
+</ul>
+<h3 id="6-2-Logjam-攻击"><a href="#6-2-Logjam-攻击" class="headerlink" title="6.2 Logjam 攻击"></a>6.2 Logjam 攻击</h3><p><strong>Logjam</strong> 是 2015 年 5 月公开披露的一个针对 TLS 协议中 DH 密钥交换的严重漏洞（CVE-2015-4000）。</p>
+<p><strong>攻击原理：</strong></p>
+<p>攻击者利用 TLS 协议的兼容性设计缺陷，执行<strong>降级攻击</strong>：</p>
+<ol>
+<li>中间人拦截客户端连接，将所有密码套件替换为仅含 <code>DHE_EXPORT</code>（512 位导出级）</li>
+<li>服务器被迫使用 512 位弱参数完成 DH 握手</li>
+<li>攻击者利用预计算（基于数域筛法），快速破解 512 位离散对数，还原会话密钥</li>
+<li>此后可解密并篡改所有通信内容</li>
+</ol>
+<p><strong>规模与影响（2015 年数据）：</strong></p>
+<ul>
+<li>8.4% 的全球 Top 100 万 HTTPS 域名存在漏洞</li>
+<li>66% 的 VPN 服务器、26% 的 SSH 服务器使用相同的 1024 位素数</li>
+<li>若某国家级机构预先完成 1024 位素数的预计算，则可被动监听大量互联网流量</li>
+<li>研究人员认为，该攻击模式与 NSA 泄露文件中描述的能力高度吻合</li>
+</ul>
+<p><strong>根本原因：</strong></p>
+<ul>
+<li>上世纪 90 年代美国密码出口管制留下的历史遗产（EXPORT 密码套件）</li>
+<li>大量服务器使用相同的固定素数群，使得预计算可以复用</li>
+<li>TLS 握手中参数选择未被完整签名，导致降级可行</li>
+</ul>
+<p><strong>防御措施：</strong></p>
+<ul>
+<li>禁用所有 <code>DHE_EXPORT</code> 密码套件</li>
+<li>使用 2048 位或更大的自定义 DH 素数群</li>
+<li>迁移至椭圆曲线 Diffie–Hellman（ECDHE）</li>
+<li>客户端拒绝接受小于 1024 位的 DH 参数</li>
+</ul>
+<h3 id="6-3-小子群攻击"><a href="#6-3-小子群攻击" class="headerlink" title="6.3 小子群攻击"></a>6.3 小子群攻击</h3><p>若 DH 使用的群包含小阶子群，攻击者可以构造特殊消息诱使对方在小子群中计算，从而泄露私钥的部分信息。使用安全素数（Safe Prime）或验证收到的公钥是否在正确的子群中，可以防御此类攻击。</p>
+<hr>
+<h1 id="7-重要变体与扩展"><a href="#7-重要变体与扩展" class="headerlink" title="7. 重要变体与扩展"></a>7. 重要变体与扩展</h1><h3 id="7-1-临时-DH（Ephemeral-DH-DHE）"><a href="#7-1-临时-DH（Ephemeral-DH-DHE）" class="headerlink" title="7.1 临时 DH（Ephemeral DH &#x2F; DHE）"></a>7.1 临时 DH（Ephemeral DH &#x2F; DHE）</h3><p><strong>临时 DH</strong> 是指每次会话都生成全新的 DH 密钥对，会话结束后立即销毁私钥。</p>
+<ul>
+<li><strong>优点</strong>：提供<strong>前向保密</strong>（见第 8 节），即使长期密钥泄露也不影响历史会话安全</li>
+<li><strong>开销</strong>：每次连接都需要计算新的密钥对，但由于 DH 密钥对生成计算廉价，这在实践中是可接受的</li>
+<li><strong>应用</strong>：TLS 中的 <code>DHE</code> 密码套件</li>
+</ul>
+<h3 id="7-2-椭圆曲线-DH（ECDH-ECDHE）"><a href="#7-2-椭圆曲线-DH（ECDH-ECDHE）" class="headerlink" title="7.2 椭圆曲线 DH（ECDH &#x2F; ECDHE）"></a>7.2 椭圆曲线 DH（ECDH &#x2F; ECDHE）</h3><p><strong>椭圆曲线 DH（ECDH）</strong> 将 DH 的数学结构从整数模素数的乘法群替换为<strong>椭圆曲线上的点群</strong>。</p>
+<p>椭圆曲线上的”群运算”是点加法，其对应的困难问题是<strong>椭圆曲线离散对数问题（ECDLP）</strong>。</p>
+<p><strong>主要优势：</strong></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>传统 DH</th>
+<th>ECDH</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同等安全级别的密钥长度</td>
+<td>3072 位</td>
+<td>256 位</td>
+</tr>
+<tr>
+<td>计算效率</td>
+<td>较低</td>
+<td>更高</td>
+</tr>
+<tr>
+<td>带宽占用</td>
+<td>较大</td>
+<td>更小</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>通用</td>
+<td>移动端、物联网等资源受限场景</td>
+</tr>
+</tbody></table>
+<p>常用曲线：Curve25519（X25519）、P-256、P-384（NIST 曲线）。</p>
+<p><strong>ECDHE</strong> 是 ECDH 的临时版本，在 TLS 1.3 中成为主要密钥交换算法。</p>
+<h3 id="7-3-密码认证密钥协商（PAKE）"><a href="#7-3-密码认证密钥协商（PAKE）" class="headerlink" title="7.3 密码认证密钥协商（PAKE）"></a>7.3 密码认证密钥协商（PAKE）</h3><p>当通信双方共享一个密码时，可使用 <strong>PAKE（Password-Authenticated Key Exchange）</strong> 协议（如 SRP、SPAKE2）来防止中间人攻击，同时不将密码本身暴露于信道中。</p>
+<h3 id="7-4-Station-to-Station-协议（STS）"><a href="#7-4-Station-to-Station-协议（STS）" class="headerlink" title="7.4 Station-to-Station 协议（STS）"></a>7.4 Station-to-Station 协议（STS）</h3><p>STS 协议在 DH 基础上加入了<strong>数字签名</strong>，使双方可以互相认证，从而防止中间人攻击。这是许多现代认证密钥交换协议的前身。</p>
+<h3 id="7-5-X3DH（扩展三重-DH）"><a href="#7-5-X3DH（扩展三重-DH）" class="headerlink" title="7.5 X3DH（扩展三重 DH）"></a>7.5 X3DH（扩展三重 DH）</h3><p><strong>X3DH</strong> 是 Signal 协议双棘轮算法（Double Ratchet Algorithm）的一部分，用于建立初始共享密钥。</p>
+<p>协议特点：</p>
+<ul>
+<li>工作在椭圆曲线上</li>
+<li>提供<strong>前向保密</strong>和<strong>加密否认性</strong>（Cryptographic Deniability）</li>
+<li>使用 5 个公钥：<ul>
+<li>Alice：身份密钥 $IK_A$、临时密钥 $EK_A$</li>
+<li>Bob：身份密钥 $IK_B$、签名预密钥 $SPK_B$（已签名）、一次性预密钥 $OPK_B$（可选）</li>
+</ul>
+</li>
+<li>Bob 预先将三个公钥发布到服务器，Alice 下载并验证签名后发起交换</li>
+<li>即使 Alice 和 Bob 不同时在线也能工作（异步密钥建立）</li>
+</ul>
+<h3 id="7-6-多方-DH"><a href="#7-6-多方-DH" class="headerlink" title="7.6 多方 DH"></a>7.6 多方 DH</h3><p>DH 协议不限于两方，可以扩展到多方密钥协商。多方 DH 允许 $n$ 个参与者通过 $n-1$ 轮交互建立共享密钥，但效率随参与者增加而降低。</p>
+<hr>
+<h1 id="8-前向保密（Forward-Secrecy）"><a href="#8-前向保密（Forward-Secrecy）" class="headerlink" title="8. 前向保密（Forward Secrecy）"></a>8. 前向保密（Forward Secrecy）</h1><p><strong>前向保密（Perfect Forward Secrecy, PFS）</strong> 是指即使长期密钥（如服务器的 RSA 私钥）在未来被泄露，攻击者也无法借此解密过去捕获的加密流量。</p>
+<p>DH（尤其是临时 DHE&#x2F;ECDHE）天然支持前向保密：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">普通 RSA 密钥交换（无前向保密）：</span><br><span class="line">  会话密钥被服务器长期私钥加密传输</span><br><span class="line">  → 攻击者录制流量 + 日后获得私钥 → 可解密历史流量</span><br><span class="line"></span><br><span class="line">DHE/ECDHE 密钥交换（有前向保密）：</span><br><span class="line">  每次会话生成独立的临时 DH 密钥对</span><br><span class="line">  → 会话结束即销毁私钥</span><br><span class="line">  → 即使服务器主密钥泄露，历史会话密钥无法还原</span><br></pre></td></tr></table></figure>
+
+<p>在 <strong>TLS 1.3</strong> 中，所有握手都强制使用支持前向保密的密钥交换（ECDHE 或 DHE），彻底消除了无前向保密模式。</p>
+<hr>
+<h1 id="9-在现代协议中的应用"><a href="#9-在现代协议中的应用" class="headerlink" title="9. 在现代协议中的应用"></a>9. 在现代协议中的应用</h1><p>DH 及其变体广泛应用于互联网安全协议中：</p>
+<h3 id="9-1-TLS-HTTPS"><a href="#9-1-TLS-HTTPS" class="headerlink" title="9.1 TLS &#x2F; HTTPS"></a>9.1 TLS &#x2F; HTTPS</h3><ul>
+<li>TLS 1.2：支持 RSA、DHE、ECDHE 等多种密钥交换方式</li>
+<li><strong>TLS 1.3</strong>：仅支持 ECDHE 和 DHE，全面强制前向保密</li>
+<li>浏览器访问 HTTPS 网站时，DH 就在后台默默保护着密钥协商过程</li>
+</ul>
+<h3 id="9-2-SSH（Secure-Shell）"><a href="#9-2-SSH（Secure-Shell）" class="headerlink" title="9.2 SSH（Secure Shell）"></a>9.2 SSH（Secure Shell）</h3><ul>
+<li>SSH 使用 DH（或 ECDH）进行初始密钥交换</li>
+<li>现代版 OpenSSH 默认优先使用 ECDHE</li>
+</ul>
+<h3 id="9-3-IPsec-IKE（Internet-Key-Exchange）"><a href="#9-3-IPsec-IKE（Internet-Key-Exchange）" class="headerlink" title="9.3 IPsec &#x2F; IKE（Internet Key Exchange）"></a>9.3 IPsec &#x2F; IKE（Internet Key Exchange）</h3><ul>
+<li>IPsec VPN 使用 IKE 协议进行密钥管理，IKE 内部大量使用 DH</li>
+<li>常用 DH 群：Group 2（1024 位）、Group 14（2048 位）、Group 19&#x2F;20（椭圆曲线）</li>
+</ul>
+<h3 id="9-4-Signal-WhatsApp-iMessage"><a href="#9-4-Signal-WhatsApp-iMessage" class="headerlink" title="9.4 Signal &#x2F; WhatsApp &#x2F; iMessage"></a>9.4 Signal &#x2F; WhatsApp &#x2F; iMessage</h3><ul>
+<li>Signal 协议使用 X3DH + 双棘轮算法</li>
+<li>WhatsApp 基于 Signal 协议构建</li>
+<li>提供端到端加密和前向保密</li>
+</ul>
+<h3 id="9-5-WireGuard-VPN"><a href="#9-5-WireGuard-VPN" class="headerlink" title="9.5 WireGuard VPN"></a>9.5 WireGuard VPN</h3><ul>
+<li>使用 Curve25519（X25519 ECDH）进行密钥交换</li>
+<li>设计极简高效，安全性强</li>
+</ul>
+<h3 id="9-6-其他"><a href="#9-6-其他" class="headerlink" title="9.6 其他"></a>9.6 其他</h3><ul>
+<li><strong>SMTPS</strong>（加密邮件传输）</li>
+<li><strong>FTPS</strong>（加密文件传输）</li>
+<li><strong>DTLS</strong>（基于 UDP 的 TLS，用于 WebRTC、QUIC 等）</li>
+</ul>
+<hr>
+<h1 id="10-与-RSA-的比较"><a href="#10-与-RSA-的比较" class="headerlink" title="10. 与 RSA 的比较"></a>10. 与 RSA 的比较</h1><p>DH 与 RSA 是两种不同目标的密码学工具，常被配合使用：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Diffie–Hellman</th>
+<th>RSA</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主要用途</td>
+<td>密钥协商</td>
+<td>加密 &#x2F; 数字签名</td>
+</tr>
+<tr>
+<td>支持身份认证</td>
+<td>否（需要额外机制）</td>
+<td>是（通过数字证书）</td>
+</tr>
+<tr>
+<td>前向保密</td>
+<td>临时版本支持</td>
+<td>通常不支持</td>
+</tr>
+<tr>
+<td>密钥长度（2048 位安全）</td>
+<td>2048 位素数群</td>
+<td>2048 位 RSA 模数</td>
+</tr>
+<tr>
+<td>效率</td>
+<td>密钥交换快</td>
+<td>加解密相对慢</td>
+</tr>
+<tr>
+<td>典型配合方式</td>
+<td>TLS 中用 DHE&#x2F;ECDHE 交换会话密钥，然后用 AES 等对称加密</td>
+<td>用 RSA 证书认证服务器身份</td>
+</tr>
+</tbody></table>
+<p>在现代 TLS 握手中，两者通常协同工作：RSA 或 ECDSA 负责<strong>身份验证</strong>（通过数字证书），ECDHE 负责<strong>密钥协商</strong>（提供前向保密），最后用协商出的密钥驱动 AES-GCM 等对称加密算法进行<strong>数据加密</strong>。</p>
+<hr>
+<h1 id="11-量子计算的威胁与后量子密码学"><a href="#11-量子计算的威胁与后量子密码学" class="headerlink" title="11. 量子计算的威胁与后量子密码学"></a>11. 量子计算的威胁与后量子密码学</h1><p>量子计算机对 DH 构成根本性威胁：<strong>Shor 算法</strong>可以在多项式时间内求解离散对数问题和整数分解问题，这意味着量子计算机一旦成熟，传统 DH 和 RSA 将全面失效。</p>
+<h3 id="11-1-威胁程度"><a href="#11-1-威胁程度" class="headerlink" title="11.1 威胁程度"></a>11.1 威胁程度</h3><ul>
+<li>目前尚无能破解 2048 位 DH 的实用量子计算机</li>
+<li>但”现在收集，未来解密（Harvest Now, Decrypt Later）”的攻击策略使长期敏感数据已经面临风险</li>
+</ul>
+<h3 id="11-2-超奇异同源密钥交换（SIDH-SIKE）"><a href="#11-2-超奇异同源密钥交换（SIDH-SIKE）" class="headerlink" title="11.2 超奇异同源密钥交换（SIDH&#x2F;SIKE）"></a>11.2 超奇异同源密钥交换（SIDH&#x2F;SIKE）</h3><p>SIDH 曾被认为是 DH 的量子安全替代方案，但 <strong>2022 年 7 月被彻底攻破</strong>，经典计算机上的攻击算法在数小时内即可破解。</p>
+<h3 id="11-3-后量子替代方案"><a href="#11-3-后量子替代方案" class="headerlink" title="11.3 后量子替代方案"></a>11.3 后量子替代方案</h3><p>NIST 于 2022 年完成后量子密码学标准化，推荐：</p>
+<ul>
+<li><strong>ML-KEM（Kyber）</strong>：基于格密码的密钥封装机制，NIST 标准（FIPS 203）</li>
+<li><strong>ML-DSA（Dilithium）</strong>：基于格密码的数字签名，NIST 标准（FIPS 204）</li>
+<li><strong>X25519Kyber768</strong>：混合方案，将 ECDH 与 Kyber 结合，谷歌 Chrome 等主流浏览器已开始部署</li>
+</ul>
+<hr>
+<h1 id="12-实现注意事项与最佳实践"><a href="#12-实现注意事项与最佳实践" class="headerlink" title="12. 实现注意事项与最佳实践"></a>12. 实现注意事项与最佳实践</h1><p>正确实现 DH 协议至关重要，以下是关键注意事项：</p>
+<h3 id="12-1-参数选取"><a href="#12-1-参数选取" class="headerlink" title="12.1 参数选取"></a>12.1 参数选取</h3><ul>
+<li><strong>素数长度</strong>：≥ 2048 位（强烈推荐），传统 1024 位已不安全</li>
+<li><strong>使用安全素数</strong>：优先选择形如 $p &#x3D; 2q + 1$ 的安全素数</li>
+<li><strong>避免复用固定素数</strong>：使用标准的、经过审计的 DH 群（如 RFC 3526 定义的 Oakley Group 14、15）</li>
+<li><strong>最佳选择</strong>：迁移至 ECDHE，使用 Curve25519 或 NIST P-256&#x2F;P-384</li>
+</ul>
+<h3 id="12-2-私钥管理"><a href="#12-2-私钥管理" class="headerlink" title="12.2 私钥管理"></a>12.2 私钥管理</h3><ul>
+<li>私钥必须使用密码学安全的随机数生成器（CSPRNG）生成</li>
+<li>临时密钥使用后立即销毁</li>
+<li>不要在不同会话或用途间复用私钥</li>
+</ul>
+<h3 id="12-3-公钥验证"><a href="#12-3-公钥验证" class="headerlink" title="12.3 公钥验证"></a>12.3 公钥验证</h3><ul>
+<li>收到对方公钥时，验证其是否在正确的子群中（防止小子群攻击）</li>
+<li>必要时验证公钥是否为 $g$ 的合法幂次</li>
+</ul>
+<h3 id="12-4-结合身份认证"><a href="#12-4-结合身份认证" class="headerlink" title="12.4 结合身份认证"></a>12.4 结合身份认证</h3><ul>
+<li>裸 DH 不可单独用于需要身份验证的场景</li>
+<li>必须结合数字签名、证书验证或其他认证机制</li>
+</ul>
+<h3 id="12-5-禁用弱配置"><a href="#12-5-禁用弱配置" class="headerlink" title="12.5 禁用弱配置"></a>12.5 禁用弱配置</h3><ul>
+<li>禁用所有 <code>EXPORT</code> 级密码套件</li>
+<li>禁用 512 位、768 位 DH 参数</li>
+<li>服务器端强制使用 2048 位以上 DH 群</li>
+</ul>
+<hr>
+<h1 id="13-总结"><a href="#13-总结" class="headerlink" title="13. 总结"></a>13. 总结</h1><p>Diffie–Hellman 密钥交换是现代密码学的基石之一，其意义远超技术本身：它第一次证明了两个素未谋面的人可以通过公开信道安全地建立共享秘密，从而催生了整个公钥密码学体系，并最终使互联网加密通信成为可能。</p>
+<p>从 1976 年的论文发表，到如今无处不在的 HTTPS、SSH、VPN、即时通讯加密，DH 的思想持续演化，经历了从传统模幂到椭圆曲线的跨越，也面临着量子计算的新挑战。尽管量子时代终将要求新的替代方案，DH 的核心思想——<strong>利用单向函数的不对称性在公开信道中建立秘密</strong>——仍是密码学思维的永恒遗产。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li>Diffie, W.; Hellman, M. (1976). <strong>“New Directions in Cryptography”</strong>. <em>IEEE Transactions on Information Theory</em>, 22(6), 644–654.</li>
+<li>Wikipedia. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange">Diffie–Hellman key exchange</a></li>
+<li>Wikipedia. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_problem">Diffie–Hellman problem</a></li>
+<li>Wikipedia. <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Logjam_(computer_security)">Logjam (computer security)</a></li>
+<li>Adrian et al. (2015). <strong>“Imperfect Forward Secrecy: How Diffie-Hellman Fails in Practice”</strong>. <em>CCS 2015</em>. <a target="_blank" rel="noopener" href="https://weakdh.org/">weakdh.org</a></li>
+<li>RFC 3526 – More Modular Exponential (MODP) Diffie-Hellman groups for Internet Key Exchange (IKE)</li>
+<li>RFC 2631 – Diffie-Hellman Key Agreement Method</li>
+<li>NIST SP 800-56A – Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography</li>
+<li>NIST FIPS 203 – ML-KEM (Kyber) Post-Quantum Key Encapsulation</li>
+<li>Marlinspike, M. (2016). <strong>“The X3DH Key Agreement Protocol”</strong>. Signal Foundation.</li>
+<li>Cloudflare Blog. <a target="_blank" rel="noopener" href="https://blog.cloudflare.com/logjam-the-latest-tls-vulnerability-explained/">Logjam: the latest TLS vulnerability explained</a></li>
+</ol>
+<hr>
+<p><em>本文整理自 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange">Diffie–Hellman key exchange</a></em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与历史</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%8F%91%E6%98%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 发明背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%8B%AC%E7%AB%8B%E5%8F%91%E7%8E%B0"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 独立发现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%EF%BC%9A%E7%94%A8%E9%A2%9C%E8%89%B2%E7%B1%BB%E6%AF%94%E7%90%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">2. 核心思想：用颜色类比理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">3. 数学基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A8%A1%E5%B9%82%E8%BF%90%E7%AE%97"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 模幂运算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%A6%BB%E6%95%A3%E5%AF%B9%E6%95%B0%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 离散对数问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Diffie%E2%80%93Hellman-%E9%97%AE%E9%A2%98%EF%BC%88DHP%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 Diffie–Hellman 问题（DHP）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8D%8F%E8%AE%AE%E6%AD%A5%E9%AA%A4%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. 协议步骤详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%AC%E5%85%B1%E5%8F%82%E6%95%B0%E7%9A%84%E9%80%89%E5%8F%96"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 公共参数的选取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%E6%B5%81%E7%A8%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 密钥交换流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%85%B7%E4%BD%93%E6%95%B0%E5%80%BC%E7%A4%BA%E4%BE%8B"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 具体数值示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">5. 安全性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%AA%83%E5%90%AC%E8%80%85%E8%83%BD%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 窃听者能看到什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9A%BE%E4%BB%A5%E7%A0%B4%E8%A7%A3%EF%BC%9F"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 为什么难以破解？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%BE%A4%E7%9A%84%E9%80%89%E5%8F%96%E5%AF%B9%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 群的选取对安全性的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E8%A6%81%E6%94%BB%E5%87%BB%E5%90%91%E9%87%8F"><span class="toc-number">7.</span> <span class="toc-text">6. 主要攻击向量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB%EF%BC%88MitM%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 中间人攻击（MitM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Logjam-%E6%94%BB%E5%87%BB"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Logjam 攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B0%8F%E5%AD%90%E7%BE%A4%E6%94%BB%E5%87%BB"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 小子群攻击</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E9%87%8D%E8%A6%81%E5%8F%98%E4%BD%93%E4%B8%8E%E6%89%A9%E5%B1%95"><span class="toc-number">8.</span> <span class="toc-text">7. 重要变体与扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%B4%E6%97%B6-DH%EF%BC%88Ephemeral-DH-DHE%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 临时 DH（Ephemeral DH &#x2F; DHE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF-DH%EF%BC%88ECDH-ECDHE%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 椭圆曲线 DH（ECDH &#x2F; ECDHE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AF%86%E7%A0%81%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%EF%BC%88PAKE%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 密码认证密钥协商（PAKE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Station-to-Station-%E5%8D%8F%E8%AE%AE%EF%BC%88STS%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 Station-to-Station 协议（STS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-X3DH%EF%BC%88%E6%89%A9%E5%B1%95%E4%B8%89%E9%87%8D-DH%EF%BC%89"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 X3DH（扩展三重 DH）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-%E5%A4%9A%E6%96%B9-DH"><span class="toc-number">8.0.6.</span> <span class="toc-text">7.6 多方 DH</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Forward-Secrecy%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 前向保密（Forward Secrecy）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%9C%A8%E7%8E%B0%E4%BB%A3%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">10.</span> <span class="toc-text">9. 在现代协议中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-TLS-HTTPS"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 TLS &#x2F; HTTPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-SSH%EF%BC%88Secure-Shell%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 SSH（Secure Shell）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-IPsec-IKE%EF%BC%88Internet-Key-Exchange%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 IPsec &#x2F; IKE（Internet Key Exchange）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-Signal-WhatsApp-iMessage"><span class="toc-number">10.0.4.</span> <span class="toc-text">9.4 Signal &#x2F; WhatsApp &#x2F; iMessage</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-WireGuard-VPN"><span class="toc-number">10.0.5.</span> <span class="toc-text">9.5 WireGuard VPN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-6-%E5%85%B6%E4%BB%96"><span class="toc-number">10.0.6.</span> <span class="toc-text">9.6 其他</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E4%B8%8E-RSA-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">11.</span> <span class="toc-text">10. 与 RSA 的比较</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E7%9A%84%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">12.</span> <span class="toc-text">11. 量子计算的威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%A8%81%E8%83%81%E7%A8%8B%E5%BA%A6"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 威胁程度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E8%B6%85%E5%A5%87%E5%BC%82%E5%90%8C%E6%BA%90%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2%EF%BC%88SIDH-SIKE%EF%BC%89"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 超奇异同源密钥交换（SIDH&#x2F;SIKE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%90%8E%E9%87%8F%E5%AD%90%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 后量子替代方案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">13.</span> <span class="toc-text">12. 实现注意事项与最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%8F%82%E6%95%B0%E9%80%89%E5%8F%96"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 参数选取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E7%A7%81%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 私钥管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%85%AC%E9%92%A5%E9%AA%8C%E8%AF%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 公钥验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E7%BB%93%E5%90%88%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 结合身份认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E7%A6%81%E7%94%A8%E5%BC%B1%E9%85%8D%E7%BD%AE"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 禁用弱配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&text=Diffie–Hellman key exchange"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&is_video=false&description=Diffie–Hellman key exchange"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Diffie–Hellman key exchange&body=Check out this article: http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&title=Diffie–Hellman key exchange"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&name=Diffie–Hellman key exchange&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/04/20/cryptology/3.diffie-hellman-key-exchange/&t=Diffie–Hellman key exchange"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
