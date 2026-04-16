@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 TCP 简介 三次握手（Three-Way Handshake） TCP Fast Open（TFO） 拥塞控制与拥塞避免 流量控制（Flow Control） 窗口扩展（Window Scaling） 慢启动（Slow-Start） 慢启动重启（Slow-Start Restart） 拥塞避免（Congestion Avoidance） 比例速率降低（PRR）   带宽时延积（BDP） 队">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP 核心原理">
+<meta property="og:url" content="http://example.com/2020/03/14/HPN/2.tcp-building-blocks/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 TCP 简介 三次握手（Three-Way Handshake） TCP Fast Open（TFO） 拥塞控制与拥塞避免 流量控制（Flow Control） 窗口扩展（Window Scaling） 慢启动（Slow-Start） 慢启动重启（Slow-Start Restart） 拥塞避免（Congestion Avoidance） 比例速率降低（PRR）   带宽时延积（BDP） 队">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-03-14T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-16T04:11:35.721Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="高性能网络">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>TCP 核心原理</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/18/HPN/3.udp-building-blocks/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&text=TCP 核心原理"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&is_video=false&description=TCP 核心原理"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=TCP 核心原理&body=Check out this article: http://example.com/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&name=TCP 核心原理&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&t=TCP 核心原理"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-TCP-%E7%AE%80%E4%BB%8B"><span class="toc-number">2.</span> <span class="toc-text">1. TCP 简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%EF%BC%88Three-Way-Handshake%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. 三次握手（Three-Way Handshake）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D"><span class="toc-number">3.0.1.</span> <span class="toc-text">性能影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-TCP-Fast-Open%EF%BC%88TFO%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. TCP Fast Open（TFO）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TFO-%E7%9A%84%E9%99%90%E5%88%B6"><span class="toc-number">4.0.1.</span> <span class="toc-text">TFO 的限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-number">4.0.2.</span> <span class="toc-text">启用条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%88%E6%9E%9C"><span class="toc-number">4.0.3.</span> <span class="toc-text">效果</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D"><span class="toc-number">5.</span> <span class="toc-text">4. 拥塞控制与拥塞避免</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%EF%BC%88Flow-Control%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 流量控制（Flow Control）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E6%89%A9%E5%B1%95%EF%BC%88Window-Scaling%EF%BC%8CRFC-1323%EF%BC%89"><span class="toc-number">5.0.1.1.</span> <span class="toc-text">窗口扩展（Window Scaling，RFC 1323）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%85%A2%E5%90%AF%E5%8A%A8%EF%BC%88Slow-Start%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 慢启动（Slow-Start）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%85%A2%E5%90%AF%E5%8A%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">慢启动的工作原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%85%A2%E5%90%AF%E5%8A%A8%E7%9A%84%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">慢启动的性能影响</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%85%A2%E5%90%AF%E5%8A%A8%E9%87%8D%E5%90%AF%EF%BC%88Slow-Start-Restart%EF%BC%8CSSR%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 慢启动重启（Slow-Start Restart，SSR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D%EF%BC%88Congestion-Avoidance%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 拥塞避免（Congestion Avoidance）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%AF%94%E4%BE%8B%E9%80%9F%E7%8E%87%E9%99%8D%E4%BD%8E%EF%BC%88Proportional-Rate-Reduction%EF%BC%8CPRR%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 比例速率降低（Proportional Rate Reduction，PRR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B8%A6%E5%AE%BD%E6%97%B6%E5%BB%B6%E7%A7%AF%EF%BC%88BDP%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 带宽时延积（BDP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">6.0.1.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.0.2.</span> <span class="toc-text">计算示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%93%B6%E9%A2%88%E5%8E%9F%E5%9B%A0"><span class="toc-number">6.0.3.</span> <span class="toc-text">常见瓶颈原因</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%98%9F%E5%A4%B4%E9%98%BB%E5%A1%9E%EF%BC%88Head-of-Line-Blocking%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 队头阻塞（Head-of-Line Blocking）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D"><span class="toc-number">7.0.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E6%9C%89%E6%97%B6%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84"><span class="toc-number">7.0.2.</span> <span class="toc-text">丢包有时是合理的</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-TCP-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">7. TCP 性能优化实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE%E8%B0%83%E4%BC%98"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 服务器配置调优</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%BA%94%E7%94%A8%E5%B1%82%E8%A1%8C%E4%B8%BA%E8%B0%83%E4%BC%98"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 应用层行为调优</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%B8%85%E5%8D%95"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 性能优化清单</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        TCP 核心原理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-14T02:44:19.000Z" class="dt-published" itemprop="datePublished">2020-03-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BD%E7%BD%91%E7%BB%9C/" rel="tag">高性能网络</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-tcp-%E7%AE%80%E4%BB%8B">TCP 简介</a></li>
+<li><a href="#2-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8Bthree-way-handshake">三次握手（Three-Way Handshake）</a></li>
+<li><a href="#3-tcp-fast-opentfo">TCP Fast Open（TFO）</a></li>
+<li><a href="#4-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D">拥塞控制与拥塞避免</a><ul>
+<li>流量控制（Flow Control）</li>
+<li>窗口扩展（Window Scaling）</li>
+<li>慢启动（Slow-Start）</li>
+<li>慢启动重启（Slow-Start Restart）</li>
+<li>拥塞避免（Congestion Avoidance）</li>
+<li>比例速率降低（PRR）</li>
+</ul>
+</li>
+<li><a href="#5-%E5%B8%A6%E5%AE%BD%E6%97%B6%E5%BB%B6%E7%A7%AFbdp">带宽时延积（BDP）</a></li>
+<li><a href="#6-%E9%98%9F%E5%A4%B4%E9%98%BB%E5%A1%9Ehead-of-line-blocking">队头阻塞（Head-of-Line Blocking）</a></li>
+<li><a href="#7-tcp-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5">TCP 性能优化实践</a></li>
+</ol>
+<hr>
+<h1 id="1-TCP-简介"><a href="#1-TCP-简介" class="headerlink" title="1. TCP 简介"></a>1. TCP 简介</h1><p>互联网的核心由两个协议构成：<strong>IP（Internet Protocol）</strong> 负责主机间的路由与寻址，<strong>TCP（Transmission Control Protocol）</strong> 则在不可靠的信道上提供可靠网络传输的抽象层。</p>
+<p>TCP&#x2F;IP 协议组（也称 Internet Protocol Suite）由 Vint Cerf 和 Bob Kahn 于 1974 年在论文《A Protocol for Packet Network Intercommunication》中首次提出。经多次修订后，1981 年 v4 规范被拆分为两个独立的 RFC 正式发布：</p>
+<ul>
+<li><strong>RFC 791</strong> — Internet Protocol</li>
+<li><strong>RFC 793</strong> — Transmission Control Protocol</li>
+</ul>
+<blockquote>
+<p><strong>小知识：</strong> IPv4 中的”4”正是来自 TCP&#x2F;IP 协议的第 4 版，因为最初两个协议是耦合在一起的，v4 才正式将它们分开。IPv6 之所以跳过了 v5，是因为 v5 已被另一个实验性协议 Internet Stream Protocol（ST）占用，而该协议从未普及。</p>
+</blockquote>
+<p>TCP 为应用层屏蔽了网络通信的大部分复杂性，包括：</p>
+<ul>
+<li>丢包重传</li>
+<li>有序交付</li>
+<li>拥塞控制与拥塞避免</li>
+<li>数据完整性校验</li>
+</ul>
+<p><strong>关键特性：</strong> TCP 保证发送端发送的所有字节与接收端收到的字节完全一致，且顺序相同。因此，TCP 是为<strong>准确传输</strong>而优化的，而非为<strong>及时传输</strong>。这一特性在优化 Web 性能时会带来一定挑战。</p>
+<p>尽管 HTTP 标准并不强制要求使用 TCP 作为传输协议，但实践中互联网上所有 HTTP 流量都通过 TCP 传输，因为它提供了大量开箱即用的强大特性。</p>
+<hr>
+<h1 id="2-三次握手（Three-Way-Handshake）"><a href="#2-三次握手（Three-Way-Handshake）" class="headerlink" title="2. 三次握手（Three-Way Handshake）"></a>2. 三次握手（Three-Way Handshake）</h1><p><strong>所有 TCP 连接都从三次握手开始。</strong> 在客户端或服务端交换任何应用数据之前，双方必须协商起始报文序号及其他连接参数（序号从双方各自随机选取，出于安全考虑）。</p>
+<p>握手过程如下：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SYN</strong></td>
+<td>客户端 → 服务端</td>
+<td>客户端随机选择序号 <code>x</code>，发送 SYN 包（可附带额外 TCP 标志和选项）</td>
+</tr>
+<tr>
+<td><strong>SYN-ACK</strong></td>
+<td>服务端 → 客户端</td>
+<td>服务端将 <code>x</code> 加一，随机选择自己的序号 <code>y</code>，附加标志和选项后发送响应</td>
+</tr>
+<tr>
+<td><strong>ACK</strong></td>
+<td>客户端 → 服务端</td>
+<td>客户端将 <code>x</code> 和 <code>y</code> 各加一，发送最后的 ACK 包，完成握手</td>
+</tr>
+</tbody></table>
+<p>握手完成后，应用数据才可以开始在客户端和服务端之间流动：客户端可以在发送 ACK 包后立即发送数据，而服务端必须等收到 ACK 后才能发送数据。</p>
+<h3 id="性能影响"><a href="#性能影响" class="headerlink" title="性能影响"></a>性能影响</h3><p><strong>每一个新 TCP 连接在传输任何应用数据之前，都要经历一个完整的往返时延（RTT）。</strong></p>
+<p>以纽约客户端连接伦敦服务器为例，通过光纤链路建立新 TCP 连接的三次握手最少需要 <strong>56 毫秒</strong>（单程 28ms，往返一次）。这里带宽不是决定因素，延迟完全由传播时间决定。</p>
+<blockquote>
+<p>三次握手带来的延迟使得创建新 TCP 连接代价高昂，这也是<strong>连接复用</strong>对所有 TCP 应用来说都是关键优化手段的核心原因。</p>
+</blockquote>
+<hr>
+<h1 id="3-TCP-Fast-Open（TFO）"><a href="#3-TCP-Fast-Open（TFO）" class="headerlink" title="3. TCP Fast Open（TFO）"></a>3. TCP Fast Open（TFO）</h1><p>加载一个网页通常需要从数十个不同主机获取数百个资源，这意味着浏览器可能需要建立数十个新 TCP 连接，每个都要承受握手开销，在慢速移动网络上尤为明显。</p>
+<p><strong>TCP Fast Open（TFO）</strong> 旨在通过允许在 SYN 包中直接携带数据，消除新 TCP 连接的延迟惩罚。</p>
+<h3 id="TFO-的限制"><a href="#TFO-的限制" class="headerlink" title="TFO 的限制"></a>TFO 的限制</h3><ul>
+<li>SYN 包中数据负载有最大大小限制</li>
+<li>仅支持特定类型的 HTTP 请求</li>
+<li>依赖加密 Cookie，<strong>仅对重复连接有效</strong></li>
+</ul>
+<h3 id="启用条件"><a href="#启用条件" class="headerlink" title="启用条件"></a>启用条件</h3><ul>
+<li>服务端：Linux kernel v4.1+</li>
+<li>客户端：Linux，或 iOS 9+ &#x2F; macOS 10.11+</li>
+<li>应用层需显式启用对应 socket 标志</li>
+</ul>
+<h3 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h3><p>Google 的研究表明，TFO 可以：</p>
+<ul>
+<li>降低 HTTP 事务网络延迟约 <strong>15%</strong></li>
+<li>整体页面加载时间平均降低超过 <strong>10%</strong></li>
+<li>在高延迟场景下最高可降低 <strong>40%</strong></li>
+</ul>
+<hr>
+<h1 id="4-拥塞控制与拥塞避免"><a href="#4-拥塞控制与拥塞避免" class="headerlink" title="4. 拥塞控制与拥塞避免"></a>4. 拥塞控制与拥塞避免</h1><p>1984 年，John Nagle 在 RFC 896 中记录了一种被称为”<strong>拥塞崩溃（congestion collapse）</strong>“的现象：当网络节点间带宽不对称时，一旦往返时延超过最大重传间隔，主机就会不断向网络注入同一数据报的副本，最终导致网络陷入严重故障。</p>
+<p>1986 年，随着网络节点数量（5000+）和多样性的增长，一系列拥塞崩溃事件席卷整个 ARPANET，在某些情况下网络容量下降了 1000 倍，变得几乎无法使用。</p>
+<p>为此，TCP 引入了多种机制来控制双向数据发送速率：<strong>流量控制、拥塞控制、拥塞避免</strong>。</p>
+<hr>
+<h3 id="4-1-流量控制（Flow-Control）"><a href="#4-1-流量控制（Flow-Control）" class="headerlink" title="4.1 流量控制（Flow Control）"></a>4.1 流量控制（Flow Control）</h3><p>流量控制防止发送方以接收方无法处理的速率淹没接收方，接收方可能正忙、负载过重，或只愿分配固定大小的缓冲区。</p>
+<p><strong>实现机制：</strong> TCP 连接的每一方都会通告自己的<strong>接收窗口（rwnd）</strong>，表示当前可用缓冲区大小。</p>
+<ul>
+<li>连接建立时，双方使用系统默认值初始化 rwnd</li>
+<li>若某一方跟不上数据速率，它会通告更小的窗口；若窗口降至 0，则视为信号，通知发送方暂停发送</li>
+<li>每个 ACK 包都携带最新的 rwnd 值，双方据此动态调整数据流速</li>
+</ul>
+<h4 id="窗口扩展（Window-Scaling，RFC-1323）"><a href="#窗口扩展（Window-Scaling，RFC-1323）" class="headerlink" title="窗口扩展（Window Scaling，RFC 1323）"></a>窗口扩展（Window Scaling，RFC 1323）</h4><p>原始 TCP 规范为接收窗口分配了 16 位，上限为 <strong>65,535 字节（约 64 KB）</strong>，在高带宽时延积网络中往往不够用。</p>
+<p>RFC 1323 引入了 <strong>TCP 窗口扩展选项</strong>，允许将最大接收窗口提升至 <strong>1 GB</strong>。该选项在三次握手期间协商，携带一个值表示未来 ACK 中 16 位窗口字段的左移位数。</p>
+<p>目前所有主流平台默认启用窗口扩展，但部分中间节点（路由器、防火墙）可能重写甚至剥离该选项。</p>
+<p><strong>Linux 检查与启用命令：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前设置</span></span><br><span class="line">sysctl net.ipv4.tcp_window_scaling</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启用窗口扩展</span></span><br><span class="line">sysctl -w net.ipv4.tcp_window_scaling=1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-2-慢启动（Slow-Start）"><a href="#4-2-慢启动（Slow-Start）" class="headerlink" title="4.2 慢启动（Slow-Start）"></a>4.2 慢启动（Slow-Start）</h3><p>流量控制解决了发送方淹没接收方的问题，但没有解决淹没底层网络的问题。连接建立之初，双方都不知道可用带宽，需要一种机制来估算并适应不断变化的网络状况。</p>
+<p>1988 年，Van Jacobson 和 Michael J. Karels 提出了四个算法：<strong>慢启动、拥塞避免、快速重传、快速恢复</strong>，这些算法很快成为 TCP 规范的强制组成部分，被普遍认为正是这些更新防止了 80 至 90 年代互联网的崩溃。</p>
+<h4 id="慢启动的工作原理"><a href="#慢启动的工作原理" class="headerlink" title="慢启动的工作原理"></a>慢启动的工作原理</h4><p>TCP 为每个连接维护一个<strong>拥塞窗口（cwnd）</strong> 变量（私有，不通告给对方），规定了在收到 ACK 之前最多可以在途发送的数据量。</p>
+<p><strong>实际在途数据上限 &#x3D; min(rwnd, cwnd)</strong></p>
+<p>慢启动的初始 cwnd 值演化历程：</p>
+<ul>
+<li>最初：1 个网络段</li>
+<li>RFC 2581（1999 年）：4 个段</li>
+<li><strong>RFC 6928（2013 年）：10 个段（当前标准）</strong></li>
+</ul>
+<p><strong>算法逻辑：</strong></p>
+<ul>
+<li>每收到一个 ACK，cwnd 增加一个段（即每个 RTT 内窗口翻倍）</li>
+<li>这也是为何该阶段被称为”<strong>指数增长</strong>“阶段</li>
+<li>直到超出接收方流控窗口、系统配置的拥塞阈值（ssthresh），或发生丢包</li>
+</ul>
+<h4 id="慢启动的性能影响"><a href="#慢启动的性能影响" class="headerlink" title="慢启动的性能影响"></a>慢启动的性能影响</h4><p>以纽约客户端从伦敦服务器获取 64 KB 文件为例（RTT &#x3D; 56ms，初始 cwnd &#x3D; 10）：</p>
+<p><strong>新连接（含三次握手 + 慢启动）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">0ms    客户端发送 SYN</span><br><span class="line">28ms   服务端回复 SYN-ACK</span><br><span class="line">56ms   客户端 ACK + 发送 HTTP GET</span><br><span class="line">84ms   服务端收到请求</span><br><span class="line">124ms  服务端发送 10 个 TCP 段（初始 cwnd）</span><br><span class="line">152ms  客户端确认，服务端 cwnd 增至 20</span><br><span class="line">180ms  服务端发送 20 个 TCP 段</span><br><span class="line">208ms  客户端确认，服务端 cwnd 继续增长</span><br><span class="line">236ms  服务端发送剩余 15 个段</span><br><span class="line">264ms  客户端收到全部数据</span><br></pre></td></tr></table></figure>
+
+<p><strong>总计：264ms</strong></p>
+<p><strong>复用已有连接（无握手，cwnd 已增长）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0ms    客户端发送 HTTP 请求</span><br><span class="line">28ms   服务端收到请求</span><br><span class="line">68ms   服务端一次性发送全部 45 个段</span><br><span class="line">96ms   客户端收到全部数据</span><br></pre></td></tr></table></figure>
+
+<p><strong>总计：96ms，性能提升 275%！</strong></p>
+<p>这个对比清楚地表明：5 Mbps 的带宽对新连接的启动阶段毫无影响，<strong>延迟和拥塞窗口大小才是限制因素</strong>。</p>
+<blockquote>
+<p>对于短促的 HTTP 请求，数据传输往往在达到最大窗口之前就结束了，因此大量 Web 应用的性能实际上受限于服务端和客户端之间的 RTT，而非带宽。</p>
+</blockquote>
+<hr>
+<h3 id="4-3-慢启动重启（Slow-Start-Restart，SSR）"><a href="#4-3-慢启动重启（Slow-Start-Restart，SSR）" class="headerlink" title="4.3 慢启动重启（Slow-Start Restart，SSR）"></a>4.3 慢启动重启（Slow-Start Restart，SSR）</h3><p>TCP 还实现了<strong>慢启动重启</strong>机制：连接空闲一段时间后，拥塞窗口会被重置为保守的默认值。原理很简单，网络状况可能在连接空闲期间发生变化。</p>
+<p>然而，SSR 会对存在周期性突发传输的长连接性能产生显著影响。<strong>建议在服务器上禁用 SSR</strong> 以提升长连接 HTTP 性能。</p>
+<p><strong>Linux 检查与禁用命令：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前设置</span></span><br><span class="line">sysctl net.ipv4.tcp_slow_start_after_idle</span><br><span class="line"></span><br><span class="line"><span class="comment"># 禁用 SSR</span></span><br><span class="line">sysctl -w net.ipv4.tcp_slow_start_after_idle=0</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-4-拥塞避免（Congestion-Avoidance）"><a href="#4-4-拥塞避免（Congestion-Avoidance）" class="headerlink" title="4.4 拥塞避免（Congestion Avoidance）"></a>4.4 拥塞避免（Congestion Avoidance）</h3><p>TCP 将<strong>丢包</strong>视为网络拥塞的反馈信号，不是”是否会发生”，而是”何时发生”的问题。</p>
+<p>慢启动以保守窗口初始化连接，每个 RTT 翻倍，直到超出 rwnd、ssthresh，或发生丢包。此时拥塞避免算法接管：</p>
+<ul>
+<li><strong>原始 AIMD 算法（Multiplicative Decrease and Additive Increase）：</strong> 发生丢包时将 cwnd 减半，然后每个 RTT 线性增加固定量</li>
+<li>TCP 吞吐量曲线呈现锯齿状，正是拥塞控制和拥塞避免算法调整 cwnd 的结果</li>
+</ul>
+<p>目前主流 TCP 拥塞控制实现包括：TCP Tahoe、TCP Reno、TCP Vegas、TCP New Reno、TCP BIC、<strong>TCP CUBIC（Linux 默认）</strong>、Compound TCP（Windows 默认）等。</p>
+<hr>
+<h3 id="4-5-比例速率降低（Proportional-Rate-Reduction，PRR）"><a href="#4-5-比例速率降低（Proportional-Rate-Reduction，PRR）" class="headerlink" title="4.5 比例速率降低（Proportional Rate Reduction，PRR）"></a>4.5 比例速率降低（Proportional Rate Reduction，PRR）</h3><p>原始 AIMD 算法在丢包后过于保守。<strong>PRR（RFC 6937）</strong> 是 Google 开发的新算法，目标是在丢包后更快恢复：</p>
+<ul>
+<li>相比 AIMD，有丢包的连接平均延迟降低 <strong>3%–10%</strong></li>
+<li><strong>已成为 Linux 3.2+ 内核的默认拥塞避免算法</strong></li>
+</ul>
+<hr>
+<h1 id="5-带宽时延积（BDP）"><a href="#5-带宽时延积（BDP）" class="headerlink" title="5. 带宽时延积（BDP）"></a>5. 带宽时延积（BDP）</h1><p>TCP 内置的拥塞控制机制带来了另一个重要性能含义：<strong>最优的发送&#x2F;接收窗口大小必须根据 RTT 和目标数据速率动态调整。</strong></p>
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><blockquote>
+<p><strong>带宽时延积（Bandwidth-Delay Product，BDP）：</strong> 数据链路容量与端到端延迟的乘积，即任意时刻网络中未被确认的最大在途数据量。</p>
+</blockquote>
+<p>若发送方或接收方频繁等待 ACK，数据流中就会出现间隙，限制连接的最大吞吐量。解决方法是将窗口大小调整到恰好足够大，使任意一方都能持续发送数据，直到更早数据包的 ACK 返回为止。</p>
+<h3 id="计算示例"><a href="#计算示例" class="headerlink" title="计算示例"></a>计算示例</h3><p><strong>场景 1：</strong> cwnd &#x3D; rwnd &#x3D; 16 KB，RTT &#x3D; 100ms</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">最大吞吐量 = 16 KB × 8 / 0.1s = 1.31 Mbps</span><br></pre></td></tr></table></figure>
+
+<p>无论实际带宽多大，该 TCP 连接都无法突破 1.31 Mbps！</p>
+<p><strong>场景 2：</strong> 目标饱和 10 Mbps 链路，RTT &#x3D; 100ms</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">最小窗口 = 10 Mbps × 0.1s / 8 = 122.1 KB</span><br></pre></td></tr></table></figure>
+
+<p>这超过了不启用窗口扩展时的 64 KB 上限。<strong>务必确认窗口扩展已开启！</strong></p>
+<h3 id="常见瓶颈原因"><a href="#常见瓶颈原因" class="headerlink" title="常见瓶颈原因"></a>常见瓶颈原因</h3><ul>
+<li>接收方饱和，通告的 rwnd 较小</li>
+<li>网络状况差、丢包率高，导致 cwnd 被频繁重置</li>
+<li>中间节点的流量整形（traffic shaping）限制了吞吐量</li>
+</ul>
+<blockquote>
+<p><strong>注意：</strong> BDP 限制同样存在于本地局域网（LAN）中。要在 1ms RTT 的环境下实现 1 Gbit&#x2F;s，同样需要至少 122 KB 的拥塞窗口。</p>
+</blockquote>
+<hr>
+<h1 id="6-队头阻塞（Head-of-Line-Blocking）"><a href="#6-队头阻塞（Head-of-Line-Blocking）" class="headerlink" title="6. 队头阻塞（Head-of-Line Blocking）"></a>6. 队头阻塞（Head-of-Line Blocking）</h1><p>TCP 为所有报文分配唯一的序列号，并要求按序交付。<strong>一旦某个包在传输途中丢失，后续所有包都必须在接收方的 TCP 缓冲区中等待，直到丢失的包被重传并到达。</strong></p>
+<p>应用层对 TCP 的重传和缓冲队列一无所知，只是在读取 socket 数据时感受到延迟，这就是 <strong>TCP 队头阻塞（HOL Blocking）</strong>。</p>
+<h3 id="影响"><a href="#影响" class="headerlink" title="影响"></a>影响</h3><ul>
+<li>HOL 阻塞使应用层无需处理报文重排和重组，简化了代码</li>
+<li>但代价是引入了<strong>不可预测的延迟抖动（jitter）</strong>，对实时应用影响较大</li>
+<li>部分应用不需要可靠传输或有序交付（如音频、视频、游戏状态更新），TCP 无法满足这类需求</li>
+</ul>
+<h3 id="丢包有时是合理的"><a href="#丢包有时是合理的" class="headerlink" title="丢包有时是合理的"></a>丢包有时是合理的</h3><p>对于 TCP 来说，丢包是必要的，它是反馈机制，帮助双方调整发送速率以避免网络过载。</p>
+<p>对于能容忍丢包的应用（音频、视频、实时游戏），更适合使用 <strong>UDP</strong> 作为传输层（如 WebRTC 即以 UDP 为基础传输协议）：</p>
+<ul>
+<li>音频丢一个包，编解码器可以插入短暂停顿继续处理后续包，用户可能察觉不到</li>
+<li>游戏状态更新如果已有 T 时刻的包，T-1 时刻的包就可以丢弃，不必等待</li>
+</ul>
+<hr>
+<h1 id="7-TCP-性能优化实践"><a href="#7-TCP-性能优化实践" class="headerlink" title="7. TCP 性能优化实践"></a>7. TCP 性能优化实践</h1><h3 id="7-1-服务器配置调优"><a href="#7-1-服务器配置调优" class="headerlink" title="7.1 服务器配置调优"></a>7.1 服务器配置调优</h3><p>在调整各种缓冲区和超时参数之前，最好的起点是<strong>将主机升级到最新系统版本</strong>，这是TCP 最佳实践和底层算法持续演进，大多数改进仅在最新内核中可用。</p>
+<p>关键配置项：</p>
+<table>
+<thead>
+<tr>
+<th>优化项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>增大初始拥塞窗口</strong></td>
+<td>设置为 RFC 6928 的 10 段（Linux kernel 2.6.39+ 默认，建议升级至 3.2+）</td>
+</tr>
+<tr>
+<td><strong>禁用空闲后慢启动重启</strong></td>
+<td>改善周期性突发传输的长连接性能</td>
+</tr>
+<tr>
+<td><strong>启用窗口扩展（RFC 1323）</strong></td>
+<td>提升高延迟连接的吞吐量上限</td>
+</tr>
+<tr>
+<td><strong>启用 TCP Fast Open</strong></td>
+<td>在特定场景下允许在 SYN 包中携带应用数据（需客户端和服务端同时支持）</td>
+</tr>
+</tbody></table>
+<p>Linux 诊断工具：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有打开 socket 的连接统计信息</span></span><br><span class="line">ss --options --extended --memory --processes --info</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-应用层行为调优"><a href="#7-2-应用层行为调优" class="headerlink" title="7.2 应用层行为调优"></a>7.2 应用层行为调优</h3><p>即便 TCP 本身已调优至最佳状态，应用对连接的使用方式仍会产生更大影响：</p>
+<ul>
+<li><strong>减少传输数据量：</strong> 没有任何优化比”不发送”更快；消除不必要的资源传输</li>
+<li><strong>缩短物理距离：</strong> 比特的传播速度无法加快，但可以通过 CDN、地理分布的服务器让数据更靠近用户</li>
+<li><strong>复用 TCP 连接：</strong> 避免每次请求都重新经历三次握手和慢启动阶段</li>
+</ul>
+<h3 id="7-3-性能优化清单"><a href="#7-3-性能优化清单" class="headerlink" title="7.3 性能优化清单"></a>7.3 性能优化清单</h3><ul>
+<li><input disabled="" type="checkbox"> 将服务器内核升级到最新版本</li>
+<li><input disabled="" type="checkbox"> 确认初始拥塞窗口（cwnd）设置为 10 段</li>
+<li><input disabled="" type="checkbox"> 确认窗口扩展（Window Scaling）已启用</li>
+<li><input disabled="" type="checkbox"> 禁用空闲后慢启动重启（Slow-Start after Idle）</li>
+<li><input disabled="" type="checkbox"> 评估是否可以启用 TCP Fast Open</li>
+<li><input disabled="" type="checkbox"> 消除冗余数据传输</li>
+<li><input disabled="" type="checkbox"> 对传输数据进行压缩</li>
+<li><input disabled="" type="checkbox"> 将服务器部署在靠近用户的位置以减少 RTT</li>
+<li><input disabled="" type="checkbox"> 尽可能复用 TCP 连接</li>
+<li><input disabled="" type="checkbox"> 参考 <a target="_blank" rel="noopener" href="https://hpbn.co/http-tcp">TCP Tuning for HTTP</a> 文档中的建议</li>
+</ul>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>TCP 是一个自适应协议，设计上对所有网络对等方公平，并尽可能高效利用底层网络。理解其核心机制是构建高性能 Web 应用的必要前提。</p>
+<p>以下四条核心原理贯穿始终，无论 TCP 算法如何演化，其性能影响始终不变：</p>
+<ol>
+<li><strong>TCP 三次握手引入一个完整 RTT 的延迟</strong></li>
+<li><strong>慢启动应用于每一个新连接</strong></li>
+<li><strong>TCP 流量控制和拥塞控制调节所有连接的吞吐量</strong></li>
+<li><strong>TCP 吞吐量由当前拥塞窗口大小决定</strong></li>
+</ol>
+<p>在现代高速网络中，TCP 连接的数据传输速率往往受限于收发双方之间的 RTT。带宽在持续增长，而延迟受光速限制已接近物理上限。<strong>大多数情况下，延迟而非带宽才是 TCP 的瓶颈。</strong></p>
+<hr>
+<blockquote>
+<p><strong>参考来源：</strong> <a target="_blank" rel="noopener" href="https://hpbn.co/building-blocks-of-tcp/">Building Blocks of TCP</a></p>
+</blockquote>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-TCP-%E7%AE%80%E4%BB%8B"><span class="toc-number">2.</span> <span class="toc-text">1. TCP 简介</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%EF%BC%88Three-Way-Handshake%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. 三次握手（Three-Way Handshake）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D"><span class="toc-number">3.0.1.</span> <span class="toc-text">性能影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-TCP-Fast-Open%EF%BC%88TFO%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. TCP Fast Open（TFO）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TFO-%E7%9A%84%E9%99%90%E5%88%B6"><span class="toc-number">4.0.1.</span> <span class="toc-text">TFO 的限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-number">4.0.2.</span> <span class="toc-text">启用条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%88%E6%9E%9C"><span class="toc-number">4.0.3.</span> <span class="toc-text">效果</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D"><span class="toc-number">5.</span> <span class="toc-text">4. 拥塞控制与拥塞避免</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%EF%BC%88Flow-Control%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 流量控制（Flow Control）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AA%97%E5%8F%A3%E6%89%A9%E5%B1%95%EF%BC%88Window-Scaling%EF%BC%8CRFC-1323%EF%BC%89"><span class="toc-number">5.0.1.1.</span> <span class="toc-text">窗口扩展（Window Scaling，RFC 1323）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%85%A2%E5%90%AF%E5%8A%A8%EF%BC%88Slow-Start%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 慢启动（Slow-Start）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%85%A2%E5%90%AF%E5%8A%A8%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">慢启动的工作原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%85%A2%E5%90%AF%E5%8A%A8%E7%9A%84%E6%80%A7%E8%83%BD%E5%BD%B1%E5%93%8D"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">慢启动的性能影响</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%85%A2%E5%90%AF%E5%8A%A8%E9%87%8D%E5%90%AF%EF%BC%88Slow-Start-Restart%EF%BC%8CSSR%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 慢启动重启（Slow-Start Restart，SSR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%8B%A5%E5%A1%9E%E9%81%BF%E5%85%8D%EF%BC%88Congestion-Avoidance%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 拥塞避免（Congestion Avoidance）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%AF%94%E4%BE%8B%E9%80%9F%E7%8E%87%E9%99%8D%E4%BD%8E%EF%BC%88Proportional-Rate-Reduction%EF%BC%8CPRR%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 比例速率降低（Proportional Rate Reduction，PRR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B8%A6%E5%AE%BD%E6%97%B6%E5%BB%B6%E7%A7%AF%EF%BC%88BDP%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 带宽时延积（BDP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">6.0.1.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.0.2.</span> <span class="toc-text">计算示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%93%B6%E9%A2%88%E5%8E%9F%E5%9B%A0"><span class="toc-number">6.0.3.</span> <span class="toc-text">常见瓶颈原因</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%98%9F%E5%A4%B4%E9%98%BB%E5%A1%9E%EF%BC%88Head-of-Line-Blocking%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 队头阻塞（Head-of-Line Blocking）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D"><span class="toc-number">7.0.1.</span> <span class="toc-text">影响</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E6%9C%89%E6%97%B6%E6%98%AF%E5%90%88%E7%90%86%E7%9A%84"><span class="toc-number">7.0.2.</span> <span class="toc-text">丢包有时是合理的</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-TCP-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">7. TCP 性能优化实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE%E8%B0%83%E4%BC%98"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 服务器配置调优</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%BA%94%E7%94%A8%E5%B1%82%E8%A1%8C%E4%B8%BA%E8%B0%83%E4%BC%98"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 应用层行为调优</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%B8%85%E5%8D%95"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 性能优化清单</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&text=TCP 核心原理"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&is_video=false&description=TCP 核心原理"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=TCP 核心原理&body=Check out this article: http://example.com/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&title=TCP 核心原理"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&name=TCP 核心原理&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/14/HPN/2.tcp-building-blocks/&t=TCP 核心原理"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

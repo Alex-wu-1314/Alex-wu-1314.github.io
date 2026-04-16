@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本文探讨了决定网络性能的两大核心要素：延迟与带宽。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="延迟与带宽">
+<meta property="og:url" content="http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="本文探讨了决定网络性能的两大核心要素：延迟与带宽。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-03-01T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-16T06:46:45.604Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="高性能网络">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>延迟与带宽</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&text=延迟与带宽"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&is_video=false&description=延迟与带宽"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=延迟与带宽&body=Check out this article: http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&name=延迟与带宽&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&t=延迟与带宽"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E9%80%9F%E5%BA%A6%E6%98%AF%E4%B8%80%E7%A7%8D%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">1.</span> <span class="toc-text">1. 速度是一种核心特性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%B8%A6%E5%AE%BD-vs-%E5%BB%B6%E8%BF%9F"><span class="toc-number">2.</span> <span class="toc-text">2. 带宽 vs. 延迟</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%89%A9%E7%90%86%E6%9E%81%E9%99%90%E4%B8%8E%E4%BC%A0%E6%92%AD%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.</span> <span class="toc-text">3. 物理极限与传播延迟</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BB%B6%E8%BF%9F%E7%9A%84%E5%9B%9B%E4%B8%AA%E6%88%90%E5%88%86"><span class="toc-number">4.</span> <span class="toc-text">4. 延迟的四个成分</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E2%80%9C%E6%9C%80%E5%90%8E%E4%B8%80%E5%85%AC%E9%87%8C%E2%80%9D"><span class="toc-number">5.</span> <span class="toc-text">5. “最后一公里”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%A0%B8%E5%BF%83%E7%BD%91%E4%B8%8E%E7%BD%91%E7%BB%9C%E8%BE%B9%E7%BC%98%EF%BC%9A%E5%B8%A6%E5%AE%BD%E7%9A%84%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87"><span class="toc-number">6.</span> <span class="toc-text">6. 核心网与网络边缘：带宽的分布不均</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%B6%85%E8%B6%8A%E5%B8%A6%E5%AE%BD%E7%9A%84%E6%80%A7%E8%83%BD%E6%80%9D%E7%BB%B4"><span class="toc-number">7.</span> <span class="toc-text">7. 超越带宽的性能思维</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        延迟与带宽
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-03-01T02:44:19.000Z" class="dt-published" itemprop="datePublished">2020-03-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BD%E7%BD%91%E7%BB%9C/" rel="tag">高性能网络</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>本文探讨了决定网络性能的两大核心要素：<strong>延迟与带宽</strong>。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以满足用户对高速交互的迫切需求。</p>
+<h1 id="1-速度是一种核心特性"><a href="#1-速度是一种核心特性" class="headerlink" title="1. 速度是一种核心特性"></a>1. 速度是一种核心特性</h1><p>在现代 <strong>Web 性能优化（WPO）</strong> 领域，速度不再仅仅是一个技术参数，它被视为一项核心的产品特性。互联网业务的成败往往取决于毫秒间的差异。</p>
+<p>根据行业实证研究，更快的站点会直接带来以下收益：</p>
+<ul>
+<li>**更高的参与度 (Engagement)**： 响应敏捷的界面能留住用户的注意力。</li>
+<li>**更强的留存率 (Retention)**： 减少等待感是培养用户忠诚度的基石。</li>
+<li>**更出色的转化率 (Conversions)**： 极速的体验能显著消除用户下单时的心理摩擦。</li>
+</ul>
+<p>要构建这种“快”，我们必须关注网络性能的两个支柱：带宽 (Bandwidth) 与 延迟 (Latency)。</p>
+<p>想象一根水管。带宽是水管的直径，决定了单位时间内能流过多少水；而延迟是水滴从进入水管到从另一头流出所需的时间。即便你换了一根巨大的“工业级水管”，如果水管跨越了半个地球，第一滴水流出的时间依然无法缩减。</p>
+<hr>
+<h1 id="2-带宽-vs-延迟"><a href="#2-带宽-vs-延迟" class="headerlink" title="2. 带宽 vs. 延迟"></a>2. 带宽 vs. 延迟</h1><p>虽然大众习惯用“网速”概括一切，但在底层架构中，带宽与延迟遵循着截然不同的演进逻辑。</p>
+<table>
+<thead>
+<tr>
+<th>维度名称</th>
+<th>定义（底层逻辑）</th>
+<th>核心影响因素</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>带宽 (Bandwidth)</td>
+<td>通信路径在单位时间内最大吞吐量。</td>
+<td>链路速率、硬件技术（WDM）、物理介质。</td>
+</tr>
+<tr>
+<td>延迟 (Latency)</td>
+<td>数据包从源端到目的地被接收的总时长。</td>
+<td>物理距离、传播介质、路由器处理效率。</td>
+</tr>
+</tbody></table>
+<p>即便你的宽带升级到了 100Mbps 甚至更高，访问数千公里外的服务器时仍会有明显的滞后。这是因为带宽解决的是“宽度”问题，而延迟受制于“物理位移”。你可以花钱买更宽的链路，但你买不到超越物理极限的速度。</p>
+<hr>
+<h1 id="3-物理极限与传播延迟"><a href="#3-物理极限与传播延迟" class="headerlink" title="3. 物理极限与传播延迟"></a>3. 物理极限与传播延迟</h1><p>爱因斯坦的狭义相对论规定了信息的传播极限。虽然光在真空中速度极快（约 300,000 km&#x2F;s），但当它进入光纤介质时，会受到折射率 (Refractive Index) 的束缚。</p>
+<p>目前光纤的折射率约为 1.5，这意味着光在光纤中的速度仅为真空中的 2&#x2F;3，即约 200,000,000 m&#x2F;s。这一物理限制决定了传播延迟存在一个无法逾越的“天花板”。</p>
+<table>
+<thead>
+<tr>
+<th>路线名称</th>
+<th>光纤单程耗时</th>
+<th>光纤往返时间 (RTT)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>纽约到旧金山</td>
+<td>21 ms</td>
+<td>42 ms</td>
+</tr>
+<tr>
+<td>纽约到伦敦</td>
+<td>28 ms</td>
+<td>56 ms</td>
+</tr>
+<tr>
+<td>纽约到悉尼</td>
+<td>80 ms</td>
+<td>160 ms</td>
+</tr>
+<tr>
+<td>赤道周长</td>
+<td>200 ms</td>
+<td>400 ms</td>
+</tr>
+</tbody></table>
+<p><strong>延迟的价值</strong>： 这种物理极限带来的每一毫秒都价值连城。2015 年推出的 Hibernia Express 海底光缆项目耗资超过 3 亿美元，其核心目的仅是为了通过优化路径，将纽约与伦敦之间的往返延迟降低约 5 毫秒。在金融高频交易领域，这意味着每节省一毫秒，就对应着超过 6000 万美元的投资价值。</p>
+<hr>
+<h1 id="4-延迟的四个成分"><a href="#4-延迟的四个成分" class="headerlink" title="4. 延迟的四个成分"></a>4. 延迟的四个成分</h1><p>数据包的“旅程时间”是由以下四种相互独立的延迟累加而成的：</p>
+<ol>
+<li><strong>传播延迟 (Propagation delay)</strong> ：信号在介质中穿行的时间。<ul>
+<li>优化潜力： 极低。除非缩短物理距离或改变介质，否则无法突破光速极限。</li>
+</ul>
+</li>
+<li><strong>传输延迟 (Transmission delay)</strong> ：将数据包的所有比特流推入链路所需的时间。<ul>
+<li>优化潜力： 高。增加带宽可以直接缩短这个过程。</li>
+</ul>
+</li>
+<li><strong>处理延迟 (Processing delay)</strong> ：路由器检查包头、校验错误及决定转发路径的时间。<ul>
+<li>优化潜力： 中。随着现代路由器硬件化处理，该项延迟已显著降低。</li>
+</ul>
+</li>
+<li><strong>排队延迟 (Queuing delay)</strong> ：流量拥塞时，数据包在缓冲区等待的时间。<ul>
+<li>优化潜力： 变数极大。需警惕 <strong>缓存膨胀 (Bufferbloat)</strong> 现象，某些路由器配置过大缓冲区，虽减少了丢包，却让 TCP 拥塞控制失效，引入了巨大的不确定延迟。</li>
+</ul>
+</li>
+</ol>
+<p>避开“比特&#x2F;字节”换算陷阱：这是一个经典的初学者误区：ISP 售卖的带宽单位是 bits (小写 b)，而电脑显示的下载速度通常是 Bytes (大写 B)。 案例： 将一个 10MB 的文件推入 1Mbps 的链路，需要 80 秒 而非 10 秒。因为 1 Byte &#x3D; 8 bits，计算传输延迟时切记要进行 8 倍换算。</p>
+<hr>
+<h1 id="5-“最后一公里”"><a href="#5-“最后一公里”" class="headerlink" title="5. “最后一公里”"></a>5. “最后一公里”</h1><p>讽刺的是，数据包跨越海洋往往不是最慢的，最严重的“摩擦”往往发生在离你最近的地方：最后一公里 (Last-Mile)。</p>
+<p>为了让你的电脑联网，ISP 需要在社区布线、聚合信号并转发到本地路由节点。根据 FCC 数据，这一环节产生的延迟范围很大：</p>
+<ul>
+<li>光纤 (Fiber)： 10-20 ms</li>
+<li>电缆 (Cable)： 15-40 ms</li>
+<li>DSL： 30-65 ms</li>
+</ul>
+<p>你可以通过 traceroute 命令观察到这一现象。例如，一个从加州桑尼维尔发往谷歌服务器的数据包，可能在附近的奥克兰和圣何塞之间来回跳转（Zigzag），导致在数据包还没离开本州前，就已经消耗了 18ms。这种拓扑结构上的低效，其耗时甚至足以让数据包横穿大半个美国。</p>
+<hr>
+<h1 id="6-核心网与网络边缘：带宽的分布不均"><a href="#6-核心网与网络边缘：带宽的分布不均" class="headerlink" title="6. 核心网与网络边缘：带宽的分布不均"></a>6. 核心网与网络边缘：带宽的分布不均</h1><p>互联网的带宽分布极不均衡。核心骨干网利用光纤和波分复用 (WDM) 技术，单根光纤的理论带宽已突破 70 Tbit&#x2F;s。</p>
+<p>然而，网络的“边缘”（即用户端）则是另一番景象。根据 Akamai 数据，全球平均带宽仅为 5.1 Mbps。瓶颈始终存在于边缘：</p>
+<ul>
+<li>核心网：每秒移动数百 Tbit。</li>
+<li>网络边缘：全球平均 5.1 Mbps，韩国（20.5 Mbps）和美国（12.6 Mbps）虽领先，但依然有限。</li>
+</ul>
+<p>综合方案：既然无法让光跑得更快，就让数据离用户更近。 内容分发网络 (CDN) 的核心逻辑就是通过地理上的分布式部署，绕过传播延迟的物理限制。</p>
+<p>提升应用性能的三个关键策略：</p>
+<ol>
+<li>减少往返次数： 优化协议，减少“握手”和数据交换的频次。</li>
+<li>利用 CDN： 战略性缩短物理距离。</li>
+<li>隐藏延迟： 通过浏览器缓存和预取（Pre-fetching）技术，在用户还没感觉到延迟前就完成数据准备。</li>
+</ol>
+<hr>
+<h1 id="7-超越带宽的性能思维"><a href="#7-超越带宽的性能思维" class="headerlink" title="7. 超越带宽的性能思维"></a>7. 超越带宽的性能思维</h1><p>在带宽日益廉价的今天，我们要清醒地认识到：延迟而非带宽，才是当前大多数网站的性能瓶颈。</p>
+<p>带宽的增加受经济学和工程学驱动，可以通过砸钱、堆硬件实现线性增长；而延迟的缩减受制于物理定律，存在不可逾越的鸿沟。理解了“带宽是经济，延迟是物理”，才能真正掌握 Web 性能优化的核心。</p>
+<blockquote>
+<p><strong>参考来源：</strong> <a target="_blank" rel="noopener" href="https://hpbn.co/primer-on-latency-and-bandwidth/">Primer on Latency and Bandwidth</a>  </p>
+</blockquote>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E9%80%9F%E5%BA%A6%E6%98%AF%E4%B8%80%E7%A7%8D%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">1.</span> <span class="toc-text">1. 速度是一种核心特性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%B8%A6%E5%AE%BD-vs-%E5%BB%B6%E8%BF%9F"><span class="toc-number">2.</span> <span class="toc-text">2. 带宽 vs. 延迟</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%89%A9%E7%90%86%E6%9E%81%E9%99%90%E4%B8%8E%E4%BC%A0%E6%92%AD%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.</span> <span class="toc-text">3. 物理极限与传播延迟</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BB%B6%E8%BF%9F%E7%9A%84%E5%9B%9B%E4%B8%AA%E6%88%90%E5%88%86"><span class="toc-number">4.</span> <span class="toc-text">4. 延迟的四个成分</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E2%80%9C%E6%9C%80%E5%90%8E%E4%B8%80%E5%85%AC%E9%87%8C%E2%80%9D"><span class="toc-number">5.</span> <span class="toc-text">5. “最后一公里”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%A0%B8%E5%BF%83%E7%BD%91%E4%B8%8E%E7%BD%91%E7%BB%9C%E8%BE%B9%E7%BC%98%EF%BC%9A%E5%B8%A6%E5%AE%BD%E7%9A%84%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87"><span class="toc-number">6.</span> <span class="toc-text">6. 核心网与网络边缘：带宽的分布不均</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%B6%85%E8%B6%8A%E5%B8%A6%E5%AE%BD%E7%9A%84%E6%80%A7%E8%83%BD%E6%80%9D%E7%BB%B4"><span class="toc-number">7.</span> <span class="toc-text">7. 超越带宽的性能思维</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&text=延迟与带宽"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&is_video=false&description=延迟与带宽"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=延迟与带宽&body=Check out this article: http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&title=延迟与带宽"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&name=延迟与带宽&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/&t=延迟与带宽"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
