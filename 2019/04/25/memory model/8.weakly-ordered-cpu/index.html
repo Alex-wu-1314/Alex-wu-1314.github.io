@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="原文：This Is Why They Call It a Weakly-Ordered CPU — Jeff Preshing，2012     背景：内存重排序与弱序 CPU在写无锁（lock-free）编程的博客系列中，Jeff Preshing 长期讨论诸如 acquire&#x2F;release 语义、弱序 CPU 等话题。然而，这些概念讲起来再透彻，也不如一个活生生的实验更有说服力">
+<meta property="og:type" content="article">
+<meta property="og:title" content="弱序 CPU 的内存重排：一次亲手验证的实验">
+<meta property="og:url" content="http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="原文：This Is Why They Call It a Weakly-Ordered CPU — Jeff Preshing，2012     背景：内存重排序与弱序 CPU在写无锁（lock-free）编程的博客系列中，Jeff Preshing 长期讨论诸如 acquire&#x2F;release 语义、弱序 CPU 等话题。然而，这些概念讲起来再透彻，也不如一个活生生的实验更有说服力">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-04-25T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-18T09:33:26.154Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="内存模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>弱序 CPU 的内存重排：一次亲手验证的实验</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/05/01/memory%20model/9.release-acquire-reordering-deadlock/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/04/10/memory%20model/7.weak-vs-strong-memory-models/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&text=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&is_video=false&description=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=弱序 CPU 的内存重排：一次亲手验证的实验&body=Check out this article: http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&name=弱序 CPU 的内存重排：一次亲手验证的实验&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&t=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E5%86%85%E5%AD%98%E9%87%8D%E6%8E%92%E5%BA%8F%E4%B8%8E%E5%BC%B1%E5%BA%8F-CPU"><span class="toc-number">1.</span> <span class="toc-text">背景：内存重排序与弱序 CPU</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">实验设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E6%A0%87"><span class="toc-number">2.0.1.</span> <span class="toc-text">实验目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E8%A1%8C%E4%B8%BA"><span class="toc-number">2.0.2.</span> <span class="toc-text">线程行为</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">互斥锁的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">3.0.1.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%94%81"><span class="toc-number">3.0.2.</span> <span class="toc-text">加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E9%94%81"><span class="toc-number">3.0.3.</span> <span class="toc-text">解锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AE%9E%E9%AA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8%E9%94%99%E8%AF%AF%E7%9A%84%E5%86%85%E5%AD%98%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">核心实验：使用错误的内存序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%85%E6%84%8F%E2%80%9D%E6%90%9E%E7%A0%B4%E5%9D%8F%E2%80%9D"><span class="toc-number">4.0.1.</span> <span class="toc-text">故意”搞破坏”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9C%8B%E7%9C%8B%E7%BC%96%E8%AF%91%E5%99%A8%E7%94%9F%E6%88%90%E7%9A%84-ARM-%E6%B1%87%E7%BC%96"><span class="toc-number">4.0.2.</span> <span class="toc-text">看看编译器生成的 ARM 汇编</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%EF%BC%9A%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%EF%BC%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">实验结果：数据丢失！</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%99%E8%AF%AF%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">错误根因分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%EF%BC%9A%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8-Acquire-Release-%E8%AF%AD%E4%B9%89"><span class="toc-number">6.</span> <span class="toc-text">修复：正确使用 Acquire&#x2F;Release 语义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%90%8E%E7%9A%84-ARM-%E6%B1%87%E7%BC%96"><span class="toc-number">6.0.1.</span> <span class="toc-text">修复后的 ARM 汇编</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%90%8E%E7%9A%84%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">6.0.2.</span> <span class="toc-text">修复后的实验结果</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E8%AE%A8%E8%AE%BA"><span class="toc-number">7.</span> <span class="toc-text">延伸讨论</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8-x86-64-%E4%B8%8A%E7%9C%8B%E4%B8%8D%E5%88%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">为什么在 x86&#x2F;64 上看不到这个问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%BA%E5%BA%8F%E4%B8%8E%E5%BC%B1%E5%BA%8F%E6%9E%B6%E6%9E%84%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">7.0.2.</span> <span class="toc-text">强序与弱序架构的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E6%A0%B8%E8%AE%BE%E5%A4%87%E4%B8%8A%E4%B8%8D%E4%BC%9A%E5%87%BA%E7%8E%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">7.0.3.</span> <span class="toc-text">单核设备上不会出现这个问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#acquire-release-%E7%9A%84%E7%9B%B4%E8%A7%89%E7%90%86%E8%A7%A3%EF%BC%9A%E6%BA%90%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%E7%B1%BB%E6%AF%94"><span class="toc-number">7.0.4.</span> <span class="toc-text">acquire&#x2F;release 的直觉理解：源代码管理类比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E8%B5%84%E6%BA%90"><span class="toc-number">8.</span> <span class="toc-text">实验代码资源</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">10.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        弱序 CPU 的内存重排：一次亲手验证的实验
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-04-25T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-04-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" rel="tag">内存模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p>原文：<a target="_blank" rel="noopener" href="https://preshing.com/20121019/this-is-why-they-call-it-a-weakly-ordered-cpu/">This Is Why They Call It a Weakly-Ordered CPU</a> — Jeff Preshing，2012  </p>
+</blockquote>
+<hr>
+<h1 id="背景：内存重排序与弱序-CPU"><a href="#背景：内存重排序与弱序-CPU" class="headerlink" title="背景：内存重排序与弱序 CPU"></a>背景：内存重排序与弱序 CPU</h1><p>在写无锁（lock-free）编程的博客系列中，Jeff Preshing 长期讨论诸如 <strong>acquire&#x2F;release 语义</strong>、<strong>弱序 CPU</strong> 等话题。然而，这些概念讲起来再透彻，也不如一个活生生的实验更有说服力。</p>
+<p>所谓”弱序 CPU”（weakly-ordered CPU），其最核心的特征是：</p>
+<blockquote>
+<p><strong>一个 CPU 核心对共享内存的写入顺序，在另一个 CPU 核心看来可能是不同的顺序。</strong></p>
+</blockquote>
+<p>换句话说，如果核心 A 先写了变量 X，再写了变量 Y，核心 B 可能会先看到 Y 的新值，再看到 X 的新值——与写入顺序相反。</p>
+<p>对于我们日常开发中最常用的 <strong>x86&#x2F;64 架构</strong>（Intel 和 AMD 的绝大多数桌面和笔记本处理器），在普通应用场景下并不存在这个问题，因为 x86&#x2F;64 是<strong>强序（strongly-ordered）</strong>的：一个核心的写入序列，所有其他核心都能以相同的顺序观察到。</p>
+<p>因此，要想亲眼见到内存重排序的效果，我们需要一颗<strong>弱序多核设备</strong>。作者选择的是他口袋里的 <strong>iPhone 4S</strong>，它搭载了一颗<strong>双核 ARM 处理器</strong>，而 ARM 架构正是弱序的。</p>
+<hr>
+<h1 id="实验设计"><a href="#实验设计" class="headerlink" title="实验设计"></a>实验设计</h1><h3 id="实验目标"><a href="#实验目标" class="headerlink" title="实验目标"></a>实验目标</h3><p>实验的核心对象是一个受互斥锁保护的共享整数 <code>sharedValue</code>。实验流程如下：</p>
+<ol>
+<li>启动两个线程；</li>
+<li>每个线程独立运行，直到它将 <code>sharedValue</code> 累加了 <strong>10,000,000 次</strong>；</li>
+<li>理论上，两个线程各加 1000 万次，最终结果应当是 <strong>20,000,000</strong>。</li>
+</ol>
+<h3 id="线程行为"><a href="#线程行为" class="headerlink" title="线程行为"></a>线程行为</h3><p>线程并<strong>不</strong>阻塞等待互斥锁，而是：</p>
+<ul>
+<li>做随机量的”忙等”（busy work，即无用的 CPU 空转）；</li>
+<li>在随机时刻<strong>尝试</strong>加锁；</li>
+<li>如果加锁成功，则对 <code>sharedValue</code> 加 1，然后解锁，计数器 +1；</li>
+<li>如果加锁失败，就继续做忙等，然后再试。</li>
+</ul>
+<p>伪代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">count = 0</span><br><span class="line">while count &lt; 10_000_000:</span><br><span class="line">    do_random_amount_of_busy_work()</span><br><span class="line">    if try_lock_mutex():</span><br><span class="line">        // 加锁成功</span><br><span class="line">        sharedValue += 1</span><br><span class="line">        unlock_mutex()</span><br><span class="line">        count += 1</span><br></pre></td></tr></table></figure>
+
+<p>这种设计使得两个线程几乎都在各自的 CPU 核心上满负荷运行，互斥锁的竞争非常激烈。重要的是，<strong>内存重排发生的可能性在两线程”擦肩而过”的瞬间最高</strong>，即一个线程刚释放锁，另一个线程正好试图获取锁的那一刻。</p>
+<hr>
+<h1 id="互斥锁的实现"><a href="#互斥锁的实现" class="headerlink" title="互斥锁的实现"></a>互斥锁的实现</h1><p>互斥锁是一个<strong>概念</strong>，有无数种实现方式。我们完全可以用语言标准库提供的 <code>std::mutex</code>，一切都会正确运行，但那样就没什么好展示的了。</p>
+<p>这里自己实现一个极简的互斥锁，然后<strong>故意破坏它</strong>，以展示弱序硬件带来的后果。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>互斥锁由一个整数 <code>flag</code> 表示：</p>
+<ul>
+<li><code>flag == 0</code>：锁未被持有（空闲）；</li>
+<li><code>flag == 1</code>：锁已被持有（占用）。</li>
+</ul>
+<p>在 C++11 中，将 <code>flag</code> 声明为原子类型 <code>atomic&lt;int&gt;</code>，以保证 CAS（Compare-And-Swap）操作的原子性。</p>
+<h3 id="加锁"><a href="#加锁" class="headerlink" title="加锁"></a>加锁</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 尝试将 flag 从 0 改为 1（原子操作）</span></span><br><span class="line"><span class="keyword">if</span> (flag.<span class="built_in">compare_exchange_strong</span>(<span class="number">0</span>, <span class="number">1</span>, memory_order_acquire))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 加锁成功</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了 <code>memory_order_acquire</code> 内存序约束，表示<strong>获取语义（acquire semantics）</strong>：保证在此操作之后的所有读写，不会被重排到此操作之前——从而确保我们能看到上一个持有锁的线程所做的最新修改。</p>
+<h3 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flag.<span class="built_in">store</span>(<span class="number">0</span>, memory_order_release);</span><br></pre></td></tr></table></figure>
+
+<p>解锁使用 <code>memory_order_release</code>，表示<strong>释放语义（release semantics）</strong>：保证在此操作之前的所有读写，不会被重排到此操作之后——从而确保我们对 <code>sharedValue</code> 的修改在释放锁之前已经对外可见。</p>
+<p><strong>Acquire 和 Release 必须成对使用</strong>，才能保证共享数据从一个线程安全地传递到另一个线程。</p>
+<hr>
+<h1 id="核心实验：使用错误的内存序"><a href="#核心实验：使用错误的内存序" class="headerlink" title="核心实验：使用错误的内存序"></a>核心实验：使用错误的内存序</h1><h3 id="故意”搞破坏”"><a href="#故意”搞破坏”" class="headerlink" title="故意”搞破坏”"></a>故意”搞破坏”</h3><p>现在，我们将两处内存序约束都改为 <code>memory_order_relaxed</code>（最宽松，不施加任何内存序约束）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">IncrementSharedValue10000000Times</span><span class="params">(RandomDelay&amp; randomDelay)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (count &lt; <span class="number">10000000</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        randomDelay.<span class="built_in">doBusyWork</span>();</span><br><span class="line">        <span class="type">int</span> expected = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (flag.<span class="built_in">compare_exchange_strong</span>(expected, <span class="number">1</span>, memory_order_relaxed))  <span class="comment">// 注意：relaxed</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// 加锁成功</span></span><br><span class="line">            sharedValue++;</span><br><span class="line">            flag.<span class="built_in">store</span>(<span class="number">0</span>, memory_order_relaxed);  <span class="comment">// 注意：relaxed</span></span><br><span class="line">            count++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="看看编译器生成的-ARM-汇编"><a href="#看看编译器生成的-ARM-汇编" class="headerlink" title="看看编译器生成的 ARM 汇编"></a>看看编译器生成的 ARM 汇编</h3><p>在 Xcode 中检查编译器为此段代码生成的 ARM 汇编，核心片段大致如下（ARMv7）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">; --- 尝试加锁 (compare-and-swap) ---</span><br><span class="line">ldrex   r0, [r6]</span><br><span class="line">cmp     r0, #0</span><br><span class="line">strexeq r1, r5, [r6]</span><br><span class="line">cmpeq   r1, #0</span><br><span class="line">bne     ...</span><br><span class="line"></span><br><span class="line">; --- 执行 sharedValue++ ---</span><br><span class="line">ldr.w   r0, [r11]</span><br><span class="line">add     r0, #1</span><br><span class="line">str.w   r0, [r11]</span><br><span class="line"></span><br><span class="line">; --- 解锁：将 flag 置回 0 ---</span><br><span class="line">str     r5, [r6]</span><br></pre></td></tr></table></figure>
+
+<p>值得注意的是：<strong>编译器并没有对这些操作进行重排</strong>，即使 <code>memory_order_relaxed</code> 在语义上允许它这么做（编译器在这里”走运了”，选择了不重排）。汇编指令的顺序与 C++ 源代码的逻辑顺序完全一致。</p>
+<h3 id="实验结果：数据丢失！"><a href="#实验结果：数据丢失！" class="headerlink" title="实验结果：数据丢失！"></a>实验结果：数据丢失！</h3><p>将这个程序部署到 iPhone 4S 上，循环运行，每轮打印 <code>sharedValue</code> 的最终值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sharedValue = 19871765</span><br><span class="line">sharedValue = 19933353</span><br><span class="line">sharedValue = 19890305</span><br><span class="line">sharedValue = 19931322</span><br><span class="line">sharedValue = 19869218</span><br><span class="line">sharedValue = 19922011</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p><strong>结果始终小于 20,000,000！</strong> 两个线程各自执行了 1000 万次累加，汇编指令顺序与 C++ 代码意图完全吻合——但最终结果仍然是错误的。</p>
+<p>这正是 <strong>CPU 的内存重排序</strong>造成的。</p>
+<hr>
+<h1 id="错误根因分析"><a href="#错误根因分析" class="headerlink" title="错误根因分析"></a>错误根因分析</h1><p>以一种可能的重排为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">str.w   r0, [r11]   ; 写入 sharedValue（到内存缓冲区，尚未对外可见）</span><br><span class="line">str     r5, [r6]    ; 写入 flag = 0（解锁，对外可见）</span><br><span class="line">; ← 此时另一个核心看到了 flag=0，进入临界区</span><br><span class="line">; ← 但 sharedValue 的新值尚未传播到该核心！</span><br><span class="line">; ← 两个核心同时对 sharedValue 进行累加，其中一次覆盖了另一次</span><br></pre></td></tr></table></figure>
+
+<p>CPU 核心可以将 <code>sharedValue</code> 的写入<strong>延迟</strong>（保留在本地写入缓冲区中），而 <code>flag</code> 的写入已经全局可见。这就意味着：<strong>互斥锁被释放的时候，受保护的数据修改还没来得及传播出去</strong>。另一个线程此时进入临界区，读取的是旧值，然后写入的是基于旧值的新值，相当于上一次的修改被<strong>静默覆盖</strong>了，最终计数永远不会到达 20,000,000。</p>
+<p>这就是”弱序”的直观含义：<strong>解锁操作可能在数据写入操作之前，就对其他核心可见了</strong>。</p>
+<hr>
+<h1 id="修复：正确使用-Acquire-Release-语义"><a href="#修复：正确使用-Acquire-Release-语义" class="headerlink" title="修复：正确使用 Acquire&#x2F;Release 语义"></a>修复：正确使用 Acquire&#x2F;Release 语义</h1><p>将内存序约束还原为正确值：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">IncrementSharedValue10000000Times</span><span class="params">(RandomDelay&amp; randomDelay)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (count &lt; <span class="number">10000000</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        randomDelay.<span class="built_in">doBusyWork</span>();</span><br><span class="line">        <span class="type">int</span> expected = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (flag.<span class="built_in">compare_exchange_strong</span>(expected, <span class="number">1</span>, memory_order_acquire))  <span class="comment">// acquire</span></span><br><span class="line">        &#123;</span><br><span class="line">            sharedValue++;</span><br><span class="line">            flag.<span class="built_in">store</span>(<span class="number">0</span>, memory_order_release);  <span class="comment">// release</span></span><br><span class="line">            count++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="修复后的-ARM-汇编"><a href="#修复后的-ARM-汇编" class="headerlink" title="修复后的 ARM 汇编"></a>修复后的 ARM 汇编</h3><p>编译器此时会插入 <code>dmb ish</code>（Data Memory Barrier）指令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">; --- 加锁 (带 acquire 语义) ---</span><br><span class="line">ldrex   r0, [r6]</span><br><span class="line">cmp     r0, #0</span><br><span class="line">strexeq r1, r5, [r6]</span><br><span class="line">cmpeq   r1, #0</span><br><span class="line">bne     ...</span><br><span class="line">dmb     ish          ; ← 内存屏障：acquire</span><br><span class="line"></span><br><span class="line">; --- sharedValue++ ---</span><br><span class="line">ldr.w   r0, [r11]</span><br><span class="line">add     r0, #1</span><br><span class="line">str.w   r0, [r11]</span><br><span class="line"></span><br><span class="line">; --- 解锁 (带 release 语义) ---</span><br><span class="line">dmb     ish          ; ← 内存屏障：release</span><br><span class="line">str     r5, [r6]</span><br></pre></td></tr></table></figure>
+
+<p><code>dmb ish</code> 是 ARMv7 中的全系统数据内存屏障指令，确保屏障之前的所有内存操作对其他核心全部可见后，才允许屏障之后的操作执行（或反之）。它在功能上类似 PowerPC 上的 <code>lwsync</code>，提供 acquire&#x2F;release 所需的全部屏障语义。</p>
+<blockquote>
+<p><strong>注</strong>：在 ARMv8（AArch64）上，这一机制得到了进一步优化。<code>casab</code>（Compare And Swap, Acquire, Byte）和 <code>stlrb</code>（Store-Release Register, Byte）等指令直接将 acquire&#x2F;release 语义编码进指令本身，无需额外的 <code>dmb</code> 指令。</p>
+</blockquote>
+<h3 id="修复后的实验结果"><a href="#修复后的实验结果" class="headerlink" title="修复后的实验结果"></a>修复后的实验结果</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sharedValue = 20000000</span><br><span class="line">sharedValue = 20000000</span><br><span class="line">sharedValue = 20000000</span><br><span class="line">sharedValue = 20000000</span><br><span class="line">sharedValue = 20000000</span><br><span class="line">sharedValue = 20000000</span><br></pre></td></tr></table></figure>
+
+<p>每次都是精确的 20,000,000。自制的互斥锁终于能够正确保护 <code>sharedValue</code>，确保每次解锁时，所有修改都被安全地传递给下一个持有锁的线程。</p>
+<hr>
+<h1 id="延伸讨论"><a href="#延伸讨论" class="headerlink" title="延伸讨论"></a>延伸讨论</h1><h3 id="为什么在-x86-64-上看不到这个问题？"><a href="#为什么在-x86-64-上看不到这个问题？" class="headerlink" title="为什么在 x86&#x2F;64 上看不到这个问题？"></a>为什么在 x86&#x2F;64 上看不到这个问题？</h3><p>将同一份带有错误内存序（<code>memory_order_relaxed</code>）的程序，在 x86&#x2F;64 机器上运行（即使是多核），结果仍然是正确的 20,000,000。</p>
+<p>原因在于 x86&#x2F;64 是<strong>强序架构（Total Store Order, TSO）</strong>：所有核心观察到的写入顺序与实际写入顺序一致（除了 StoreLoad 重排这一个例外）。在 x86&#x2F;64 上，<code>store</code> 和 <code>store</code> 之间不会发生重排，因此上面那种”解锁先于数据写入可见”的情况根本不会出现。</p>
+<p>这带来了一个危险的假象：</p>
+<blockquote>
+<p>你的代码在 x86&#x2F;64 上运行完全正确，但实际上使用了错误的内存序。一旦移植到 ARM 或 PowerPC 等弱序平台，就会出现难以复现的数据竞争 bug。</p>
+</blockquote>
+<h3 id="强序与弱序架构的对比"><a href="#强序与弱序架构的对比" class="headerlink" title="强序与弱序架构的对比"></a>强序与弱序架构的对比</h3><table>
+<thead>
+<tr>
+<th>架构</th>
+<th>内存模型</th>
+<th>典型平台</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>x86 &#x2F; x86-64</td>
+<td>强序（TSO）</td>
+<td>桌面PC、服务器</td>
+</tr>
+<tr>
+<td>ARM（AArch32&#x2F;AArch64）</td>
+<td>弱序</td>
+<td>手机、平板、Apple Silicon</td>
+</tr>
+<tr>
+<td>PowerPC</td>
+<td>弱序</td>
+<td>Xbox 360、部分服务器</td>
+</tr>
+<tr>
+<td>Itanium (IA-64)</td>
+<td>弱序</td>
+<td>HP 服务器</td>
+</tr>
+<tr>
+<td>Alpha</td>
+<td>弱序（最极端）</td>
+<td>已退出历史舞台，但深刻影响了 C++11 内存模型</td>
+</tr>
+</tbody></table>
+<p>C++11&#x2F;C11 的原子操作内存模型正是按照”<strong>尽可能弱</strong>“的原则设计的，原因是这样能在强序平台上以零开销使用，同时在弱序平台上只在必要时插入屏障。</p>
+<h3 id="单核设备上不会出现这个问题"><a href="#单核设备上不会出现这个问题" class="headerlink" title="单核设备上不会出现这个问题"></a>单核设备上不会出现这个问题</h3><p>文中特别指出：将同一个程序（带错误内存序）放到 <strong>iPhone 3GS 或第一代 iPad</strong>（均为 ARMv7 但只有<strong>单核</strong>）上运行，结果同样是正确的 20,000,000。</p>
+<p>这是因为内存重排序在单核场景下是不可见的——CPU 乱序执行时遵守”<strong>不改变单线程程序行为</strong>“这一铁律，两个线程实际上交替运行在同一颗核心上，重排的写入结果对该核心自身永远是一致的。</p>
+<h3 id="acquire-release-的直觉理解：源代码管理类比"><a href="#acquire-release-的直觉理解：源代码管理类比" class="headerlink" title="acquire&#x2F;release 的直觉理解：源代码管理类比"></a>acquire&#x2F;release 的直觉理解：源代码管理类比</h3><p>一个理解 acquire&#x2F;release 的好方法是将其类比为分布式源代码管理（如 Git）：</p>
+<ul>
+<li>每个 CPU 核心就像一台有本地工作区的工作站；</li>
+<li><code>sharedValue</code> 和 <code>flag</code> 是远端仓库中的文件；</li>
+<li>每个核心都有这些文件的<strong>本地副本</strong>，不一定是最新的；</li>
+<li><strong>Release</strong>（解锁）&#x3D; <code>git push</code>，将本地所有修改推送到远端；</li>
+<li><strong>Acquire</strong>（加锁）&#x3D; <code>git pull</code>，从远端拉取所有最新修改。</li>
+</ul>
+<p>如果解锁时不执行”push”（缺少 release 语义），那么 <code>sharedValue</code> 的修改就还留在本地，其他核心”pull”时拿不到——这正是实验中数据丢失的本质原因。</p>
+<hr>
+<h1 id="实验代码资源"><a href="#实验代码资源" class="headerlink" title="实验代码资源"></a>实验代码资源</h1><ul>
+<li>原始 C++11 实验代码由 Jeff Preshing 发布在 GitHub 上；</li>
+<li>有人将实验移植为 <strong>Rust 版本</strong>，在 Apple M1 上复现了相同的现象，详见：<a target="_blank" rel="noopener" href="https://github.com/masklinn/weakly-ordered">masklinn&#x2F;weakly-ordered</a>。</li>
+</ul>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><table>
+<thead>
+<tr>
+<th>关键点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>弱序 CPU 的本质</td>
+<td>一个核心的写入顺序，在另一个核心看来可能不同</td>
+</tr>
+<tr>
+<td>典型弱序架构</td>
+<td>ARM、PowerPC、Itanium</td>
+</tr>
+<tr>
+<td>典型强序架构</td>
+<td>x86&#x2F;x86-64（仅有 StoreLoad 一种重排例外）</td>
+</tr>
+<tr>
+<td>内存重排的两个层次</td>
+<td>编译期重排（编译器优化）+ 运行期重排（CPU 乱序执行）</td>
+</tr>
+<tr>
+<td>解决方案</td>
+<td>正确使用 acquire&#x2F;release 语义；在需要的地方插入内存屏障</td>
+</tr>
+<tr>
+<td>危险陷阱</td>
+<td>在 x86 上测试通过 ≠ 在 ARM 上也正确；弱序 bug 在强序平台上天然被掩盖</td>
+</tr>
+<tr>
+<td>C++11 标准的意义</td>
+<td>提供了跨平台统一的原子操作接口，屏蔽了不同架构的差异</td>
+</tr>
+</tbody></table>
+<p>内存重排序是多核编程中最难以察觉的陷阱之一。它在单线程程序中永远不可见，在强序平台上经常被掩盖，只有在弱序多核设备上才会赤裸裸地暴露出来。正确理解并使用 acquire&#x2F;release 语义，是写出正确无锁代码的基础。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20121019/this-is-why-they-call-it-a-weakly-ordered-cpu/">This Is Why They Call It a Weakly-Ordered CPU</a> — Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20120913/acquire-and-release-semantics/">Acquire and Release Semantics</a> — Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20120930/weak-vs-strong-memory-models/">Weak vs. Strong Memory Models</a> — Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20120515/memory-reordering-caught-in-the-act/">Memory Reordering Caught in the Act</a> — Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20120710/memory-barriers-are-like-source-control-operations/">Memory Barriers Are Like Source Control Operations</a> — Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/masklinn/weakly-ordered">Rust 复现版本：masklinn&#x2F;weakly-ordered</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.arm.com/documentation/102336/latest/Memory-ordering">ARM Developer: Memory Systems, Ordering, and Barriers</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E5%86%85%E5%AD%98%E9%87%8D%E6%8E%92%E5%BA%8F%E4%B8%8E%E5%BC%B1%E5%BA%8F-CPU"><span class="toc-number">1.</span> <span class="toc-text">背景：内存重排序与弱序 CPU</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">实验设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%9B%AE%E6%A0%87"><span class="toc-number">2.0.1.</span> <span class="toc-text">实验目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E8%A1%8C%E4%B8%BA"><span class="toc-number">2.0.2.</span> <span class="toc-text">线程行为</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">互斥锁的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">3.0.1.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%94%81"><span class="toc-number">3.0.2.</span> <span class="toc-text">加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E9%94%81"><span class="toc-number">3.0.3.</span> <span class="toc-text">解锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AE%9E%E9%AA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8%E9%94%99%E8%AF%AF%E7%9A%84%E5%86%85%E5%AD%98%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">核心实验：使用错误的内存序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%85%E6%84%8F%E2%80%9D%E6%90%9E%E7%A0%B4%E5%9D%8F%E2%80%9D"><span class="toc-number">4.0.1.</span> <span class="toc-text">故意”搞破坏”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9C%8B%E7%9C%8B%E7%BC%96%E8%AF%91%E5%99%A8%E7%94%9F%E6%88%90%E7%9A%84-ARM-%E6%B1%87%E7%BC%96"><span class="toc-number">4.0.2.</span> <span class="toc-text">看看编译器生成的 ARM 汇编</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%EF%BC%9A%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%EF%BC%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">实验结果：数据丢失！</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%94%99%E8%AF%AF%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">错误根因分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%EF%BC%9A%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8-Acquire-Release-%E8%AF%AD%E4%B9%89"><span class="toc-number">6.</span> <span class="toc-text">修复：正确使用 Acquire&#x2F;Release 语义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%90%8E%E7%9A%84-ARM-%E6%B1%87%E7%BC%96"><span class="toc-number">6.0.1.</span> <span class="toc-text">修复后的 ARM 汇编</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%90%8E%E7%9A%84%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">6.0.2.</span> <span class="toc-text">修复后的实验结果</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E8%AE%A8%E8%AE%BA"><span class="toc-number">7.</span> <span class="toc-text">延伸讨论</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8-x86-64-%E4%B8%8A%E7%9C%8B%E4%B8%8D%E5%88%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">为什么在 x86&#x2F;64 上看不到这个问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%BA%E5%BA%8F%E4%B8%8E%E5%BC%B1%E5%BA%8F%E6%9E%B6%E6%9E%84%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">7.0.2.</span> <span class="toc-text">强序与弱序架构的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E6%A0%B8%E8%AE%BE%E5%A4%87%E4%B8%8A%E4%B8%8D%E4%BC%9A%E5%87%BA%E7%8E%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">7.0.3.</span> <span class="toc-text">单核设备上不会出现这个问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#acquire-release-%E7%9A%84%E7%9B%B4%E8%A7%89%E7%90%86%E8%A7%A3%EF%BC%9A%E6%BA%90%E4%BB%A3%E7%A0%81%E7%AE%A1%E7%90%86%E7%B1%BB%E6%AF%94"><span class="toc-number">7.0.4.</span> <span class="toc-text">acquire&#x2F;release 的直觉理解：源代码管理类比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BB%A3%E7%A0%81%E8%B5%84%E6%BA%90"><span class="toc-number">8.</span> <span class="toc-text">实验代码资源</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">10.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&text=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&is_video=false&description=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=弱序 CPU 的内存重排：一次亲手验证的实验&body=Check out this article: http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&title=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&name=弱序 CPU 的内存重排：一次亲手验证的实验&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/04/25/memory%20model/8.weakly-ordered-cpu/&t=弱序 CPU 的内存重排：一次亲手验证的实验"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

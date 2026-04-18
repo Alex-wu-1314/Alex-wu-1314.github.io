@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本文介绍原子操作的局限性、Compare-and-Swap（CAS）的核心原理，以及如何在 RCU 模式和无锁链表中实际应用这些技术。   目录 问题背景：并发写大型数据结构的挑战 理论基础：Compare-and-Exchange（CAS） 应用一：RCU 模式（读-拷贝-更新） 应用二：CAS 与无锁链表 已知陷阱：ABA 问题 技术对比与选型建议 总结   1. 问题背景：并发写大型数据结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="无锁并发编程：CAS 操作与 RCU 模式解析">
+<meta property="og:url" content="http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="本文介绍原子操作的局限性、Compare-and-Swap（CAS）的核心原理，以及如何在 RCU 模式和无锁链表中实际应用这些技术。   目录 问题背景：并发写大型数据结构的挑战 理论基础：Compare-and-Exchange（CAS） 应用一：RCU 模式（读-拷贝-更新） 应用二：CAS 与无锁链表 已知陷阱：ABA 问题 技术对比与选型建议 总结   1. 问题背景：并发写大型数据结">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-06-02T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-18T10:39:53.244Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="内存模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>无锁并发编程：CAS 操作与 RCU 模式解析</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/06/15/consistency%20model/1.Consistency%20Model/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/05/10/memory%20model/10.cpp11_memory_model_and_atomic/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&text=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&is_video=false&description=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=无锁并发编程：CAS 操作与 RCU 模式解析&body=Check out this article: http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&name=无锁并发编程：CAS 操作与 RCU 模式解析&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&t=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF%EF%BC%9A%E5%B9%B6%E5%8F%91%E5%86%99%E5%A4%A7%E5%9E%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%9A%84%E6%8C%91%E6%88%98"><span class="toc-number">2.</span> <span class="toc-text">1. 问题背景：并发写大型数据结构的挑战</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80%EF%BC%9ACompare-and-Exchange%EF%BC%88CAS%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. 理论基础：Compare-and-Exchange（CAS）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%BA%94%E7%94%A8%E4%B8%80%EF%BC%9ARCU-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%AF%BB-%E6%8B%B7%E8%B4%9D-%E6%9B%B4%E6%96%B0%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. 应用一：RCU 模式（读-拷贝-更新）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 核心思想与工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%86%99%E8%80%85%E7%9A%84%E6%9B%B4%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 写者的更新流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%BD%E9%99%90%E6%9C%9F%E6%9C%BA%E5%88%B6%EF%BC%9A%E4%BD%95%E6%97%B6%E5%AE%89%E5%85%A8%E5%9B%9E%E6%94%B6%E6%97%A7%E6%95%B0%E6%8D%AE"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 宽限期机制：何时安全回收旧数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Linux-%E5%86%85%E6%A0%B8%E7%9A%84%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 Linux 内核的具体实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 代码示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-RCU-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 RCU 的优缺点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BA%94%E7%94%A8%E4%BA%8C%EF%BC%9ACAS-%E4%B8%8E%E6%97%A0%E9%94%81%E9%93%BE%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">4. 应用二：CAS 与无锁链表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%97%AE%E9%A2%98%E6%A0%B9%E6%BA%90%EF%BC%9A%E9%93%BE%E8%A1%A8%E6%93%8D%E4%BD%9C%E7%9A%84%E9%9D%9E%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 问题根源：链表操作的非原子性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-CAS-%E8%A7%A3%E6%B3%95%EF%BC%9A%E5%8E%9F%E5%AD%90%E6%8F%92%E5%85%A5%E4%B8%8E%E5%BC%B9%E5%87%BA"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 CAS 解法：原子插入与弹出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%EF%BC%9A%E6%97%A0%E9%94%81%E5%AF%B9%E8%B1%A1%E6%B1%A0"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 实际应用：无锁对象池</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B7%B2%E7%9F%A5%E9%99%B7%E9%98%B1%EF%BC%9AABA-%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">5. 已知陷阱：ABA 问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">6. 技术对比与选型建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">7. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">9.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        无锁并发编程：CAS 操作与 RCU 模式解析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-06-02T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-06-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" rel="tag">内存模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p>本文介绍原子操作的局限性、Compare-and-Swap（CAS）的核心原理，以及如何在 RCU 模式和无锁链表中实际应用这些技术。</p>
+</blockquote>
+<hr>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF%E5%B9%B6%E5%8F%91%E5%86%99%E5%A4%A7%E5%9E%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%9A%84%E6%8C%91%E6%88%98">问题背景：并发写大型数据结构的挑战</a></li>
+<li><a href="#2-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80compare-and-exchangecas">理论基础：Compare-and-Exchange（CAS）</a></li>
+<li><a href="#3-%E5%BA%94%E7%94%A8%E4%B8%80rcu-%E6%A8%A1%E5%BC%8F%E8%AF%BB-%E6%8B%B7%E8%B4%9D-%E6%9B%B4%E6%96%B0">应用一：RCU 模式（读-拷贝-更新）</a></li>
+<li><a href="#4-%E5%BA%94%E7%94%A8%E4%BA%8Ccas-%E4%B8%8E%E6%97%A0%E9%94%81%E9%93%BE%E8%A1%A8">应用二：CAS 与无锁链表</a></li>
+<li><a href="#5-%E5%B7%B2%E7%9F%A5%E9%99%B7%E9%98%B1aba-%E9%97%AE%E9%A2%98">已知陷阱：ABA 问题</a></li>
+<li><a href="#6-%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE">技术对比与选型建议</a></li>
+<li><a href="#7-%E6%80%BB%E7%BB%93">总结</a></li>
+</ol>
+<hr>
+<h1 id="1-问题背景：并发写大型数据结构的挑战"><a href="#1-问题背景：并发写大型数据结构的挑战" class="headerlink" title="1. 问题背景：并发写大型数据结构的挑战"></a>1. 问题背景：并发写大型数据结构的挑战</h1><p>现代 CPU 提供的原子操作（如 <code>load</code>、<code>store</code>、<code>CAS</code> 等）通常只保证对<strong>单个内存字（word）</strong> 的操作是原子的。在 64 位系统上，这个”字”的大小是 8 字节。</p>
+<p>这意味着：</p>
+<ul>
+<li>你<strong>无法</strong>直接原子地读写一个包含多个字段的大型结构体（例如几百字节的配置对象）。</li>
+<li>如果强行对大对象做非原子操作，在多线程环境下会出现<strong>数据撕裂（data tearing）</strong> 或状态不一致。</li>
+</ul>
+<p><strong>核心解题思路</strong>：既然不能原子地修改整个大对象，就只原子地修改<strong>指向它的指针（或索引）</strong>。所有线程通过这个共享指针访问当前数据，而指针本身只有 8 字节，可以被原子地读取和更新。</p>
+<p>这一思路衍生出两类经典模式：</p>
+<ul>
+<li><strong>RCU（Read-Copy-Update）</strong>：适用于”一个全局指针指向大型配置&#x2F;数据结构”的场景，以极低代价支持大量并发读者。</li>
+<li><strong>无锁链表</strong>：适用于需要原子地修改数据结构拓扑（插入&#x2F;删除节点）的场景，如对象池的空闲链表。</li>
+</ul>
+<p>两者都依赖同一个底层原语：<strong>Compare-and-Exchange（CAS）</strong>。</p>
+<hr>
+<h1 id="2-理论基础：Compare-and-Exchange（CAS）"><a href="#2-理论基础：Compare-and-Exchange（CAS）" class="headerlink" title="2. 理论基础：Compare-and-Exchange（CAS）"></a>2. 理论基础：Compare-and-Exchange（CAS）</h1><p>CAS（Compare-and-Swap &#x2F; Compare-and-Exchange）是无锁编程的基础原语，其语义如下：</p>
+<blockquote>
+<p><strong>“如果内存地址中的当前值等于预期值（expected），则将其原子地更新为新值（desired），并返回 <code>true</code>；否则不做任何修改，返回 <code>false</code>，并将 expected 更新为当前实际值。”</strong></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 语义等价的伪代码（实际由 CPU 以原子方式执行）</span></span><br><span class="line"><span class="type">bool</span> <span class="title function_">CAS</span><span class="params">(T* ptr, T* expected, T desired)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (*ptr == *expected) &#123;</span><br><span class="line">        *ptr = desired;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        *expected = *ptr;  <span class="comment">// 将实际值回写给调用者，便于下次重试</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CAS 的核心价值在于：<strong>它将”读-判断-写”三步合并为一个不可分割的原子操作</strong>，消除了并发窗口中的竞态条件。</p>
+<p>典型用法是配合<strong>重试循环（retry loop）</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">T old_val, new_val;</span><br><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    old_val = <span class="type">atomic_load</span>(ptr);     <span class="comment">// 读取当前值</span></span><br><span class="line">    new_val = compute(old_val);     <span class="comment">// 基于旧值计算新值</span></span><br><span class="line">    <span class="comment">// 只有当 ptr 的值仍然是 old_val 时，才将其更新为 new_val</span></span><br><span class="line">&#125; <span class="keyword">while</span> (!CAS(ptr, &amp;old_val, new_val));</span><br></pre></td></tr></table></figure>
+
+<p>如果 CAS 失败（说明另一个线程抢先修改了 <code>ptr</code>），则重新读取最新值并重试，直到成功为止。这种”乐观并发”策略在低竞争场景下性能极高，在高竞争场景下会产生重试开销。</p>
+<hr>
+<h1 id="3-应用一：RCU-模式（读-拷贝-更新）"><a href="#3-应用一：RCU-模式（读-拷贝-更新）" class="headerlink" title="3. 应用一：RCU 模式（读-拷贝-更新）"></a>3. 应用一：RCU 模式（读-拷贝-更新）</h1><p>RCU（Read-Copy-Update）是一种高性能无锁同步机制，由 Paul E. McKenney 引入 Linux 内核，专为<strong>读多写少</strong>的并发场景设计，是内核中处理共享链表、路由表、设备驱动配置等数据结构的关键技术。</p>
+<h3 id="3-1-核心思想与工作流程"><a href="#3-1-核心思想与工作流程" class="headerlink" title="3.1 核心思想与工作流程"></a>3.1 核心思想与工作流程</h3><p>RCU 的工作流程分为三步：</p>
+<ol>
+<li><strong>Read（读）</strong>：读者无锁、无原子操作地直接通过全局指针访问共享数据，开销接近于零。</li>
+<li><strong>Copy（拷贝）</strong>：写者不直接修改原数据，而是在<strong>另一个内存位置创建一份完整副本</strong>。</li>
+<li><strong>Update（更新）</strong>：在副本上完成修改后，<strong>原子地切换全局指针</strong>指向新数据，令后续读者看到新版本。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">初始状态：</span><br><span class="line">  global_ptr ──────────────────► [ 配置 A（当前版本）]</span><br><span class="line">                                         ▲</span><br><span class="line">                               多个读者持有此指针</span><br><span class="line"></span><br><span class="line">写者切换后：</span><br><span class="line">  global_ptr ──────────────────────────────────► [ 配置 B（新版本）]</span><br><span class="line"></span><br><span class="line">  仍有读者持有旧指针 ──► [ 配置 A（旧版本，宽限期后回收）]</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键约束</strong>：旧数据不能在指针切换后立即释放。必须等待所有可能仍持有旧指针的读者完成访问，才能安全回收。这一等待过程称为<strong>宽限期（Grace Period）</strong>。</p>
+<h3 id="3-2-写者的更新流程"><a href="#3-2-写者的更新流程" class="headerlink" title="3.2 写者的更新流程"></a>3.2 写者的更新流程</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 全局配置指针（原子类型）</span></span><br><span class="line"><span class="keyword">_Atomic</span>(<span class="keyword">struct</span> config*) global_config;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">updater</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">config</span>* <span class="title">old_cfg</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">config</span>* <span class="title">new_cfg</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">// 1. 读取当前配置指针</span></span><br><span class="line">        old_cfg = <span class="type">atomic_load</span>(&amp;global_config);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 分配新配置并拷贝（在本地操作，不影响任何读者）</span></span><br><span class="line">        new_cfg = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> config));</span><br><span class="line">        *new_cfg = *old_cfg;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 在副本上修改</span></span><br><span class="line">        new_cfg-&gt;some_field = <span class="number">42</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4. 原子地尝试替换全局指针</span></span><br><span class="line">        <span class="comment">//    若 CAS 失败（另一写者抢先更新），释放本次副本并重试</span></span><br><span class="line">        <span class="keyword">if</span> (!atomic_compare_exchange_strong(&amp;global_config, &amp;old_cfg, new_cfg)) &#123;</span><br><span class="line">            <span class="built_in">free</span>(new_cfg);</span><br><span class="line">            new_cfg = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> (new_cfg == <span class="literal">NULL</span>);  <span class="comment">// CAS 失败则重试</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. CAS 成功：old_cfg 需延迟回收（不能立即 free！）</span></span><br><span class="line">    schedule_deferred_free(old_cfg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读者路径极其简洁，没有任何锁或原子写操作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">reader</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 原子读取指针后直接使用，无需加锁</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">config</span>* <span class="title">cfg</span> =</span> <span class="type">atomic_load</span>(&amp;global_config);</span><br><span class="line">    use(cfg-&gt;field1);</span><br><span class="line">    use(cfg-&gt;field2);</span><br><span class="line">    <span class="comment">// 即使 global_config 在此期间已被更新，cfg 指向的内存仍然有效</span></span><br><span class="line">    <span class="comment">// （旧内存要等宽限期结束才会被释放）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-宽限期机制：何时安全回收旧数据"><a href="#3-3-宽限期机制：何时安全回收旧数据" class="headerlink" title="3.3 宽限期机制：何时安全回收旧数据"></a>3.3 宽限期机制：何时安全回收旧数据</h3><p>宽限期是 RCU 设计的核心难题：系统需要确认<strong>所有 CPU 上的活跃读者都已退出读临界区</strong>，才能安全释放旧数据。</p>
+<p>Linux 内核采用<strong>静默点（Quiescent State）</strong>来检测：当一个 CPU 发生以下事件时，可以确定它不再持有任何 RCU 读临界区：</p>
+<ul>
+<li><strong>上下文切换</strong>（context switch）</li>
+<li><strong>切换到用户态执行</strong></li>
+<li><strong>进入 CPU 空闲状态</strong>（idle）</li>
+</ul>
+<p>一旦<strong>所有 CPU 都至少经历了一次静默点</strong>，则宽限期结束，注册的回调函数（即内存释放）可以安全执行。</p>
+<p>在大型多核系统（1000+ CPU）中，Linux 采用<strong>分层树状结构（Tree RCU）</strong>来高效汇总各 CPU 的静默状态，避免在单一全局变量上产生同步瓶颈。</p>
+<h3 id="3-4-Linux-内核的具体实现"><a href="#3-4-Linux-内核的具体实现" class="headerlink" title="3.4 Linux 内核的具体实现"></a>3.4 Linux 内核的具体实现</h3><p>Linux 内核提供了完整的 RCU API：</p>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rcu_read_lock()</code></td>
+<td>进入 RCU 读临界区。在不可抢占内核中可能仅为编译器屏障；在可抢占内核中会记录状态，阻止该 CPU 上报静默点。</td>
+</tr>
+<tr>
+<td><code>rcu_read_unlock()</code></td>
+<td>退出 RCU 读临界区。</td>
+</tr>
+<tr>
+<td><code>rcu_dereference(ptr)</code></td>
+<td>安全读取 RCU 保护的指针，插入数据依赖屏障，防止 CPU 将指针解引用乱序提前到指针加载之前。</td>
+</tr>
+<tr>
+<td><code>rcu_assign_pointer(ptr, new)</code></td>
+<td>安全发布新指针，插入写内存屏障，确保新数据的所有初始化对读者可见后，指针才对外可见。</td>
+</tr>
+<tr>
+<td><code>synchronize_rcu()</code></td>
+<td><strong>同步</strong>等待宽限期结束（阻塞写者线程，直到所有已开始的读者退出临界区）。</td>
+</tr>
+<tr>
+<td><code>call_rcu(head, callback)</code></td>
+<td><strong>异步</strong>注册回调，宽限期结束后由 RCU 子系统自动调用（不阻塞调用者）。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>rcu_dereference()</code> 与 <code>rcu_assign_pointer()</code> 必须配对使用，前者保证读端安全加载，后者保证写端安全发布，共同构成 RCU 的内存序保证。</p>
+</blockquote>
+<h3 id="3-5-代码示例"><a href="#3-5-代码示例" class="headerlink" title="3.5 代码示例"></a>3.5 代码示例</h3><p><strong>从链表中删除节点（阻塞式回收）：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将节点 p 从链表中逻辑摘除（修改前驱节点的指针，不 free）</span></span><br><span class="line">list_del_rcu(&amp;p-&gt;<span class="built_in">list</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 阻塞等待：直到所有在 list_del_rcu 之前开始的读者都已退出临界区</span></span><br><span class="line">synchronize_rcu();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 现在可以安全释放</span></span><br><span class="line">kfree(p);</span><br></pre></td></tr></table></figure>
+
+<p><strong>从链表中删除节点（异步回收，不阻塞写者）：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">list_del_rcu(&amp;p-&gt;<span class="built_in">list</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册回调：宽限期结束后 RCU 子系统自动调用 free_node_callback</span></span><br><span class="line">call_rcu(&amp;p-&gt;rcu_head, free_node_callback);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写者函数立即返回，回收工作在后台完成</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>读者安全访问链表：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rcu_read_lock();</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">my_node</span>* <span class="title">node</span> =</span> rcu_dereference(global_list_head);</span><br><span class="line"><span class="keyword">if</span> (node)</span><br><span class="line">    process(node-&gt;data);</span><br><span class="line">rcu_read_unlock();</span><br><span class="line"><span class="comment">// 退出临界区后不得再使用 node（其内存可能在宽限期后被释放）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-6-RCU-的优缺点"><a href="#3-6-RCU-的优缺点" class="headerlink" title="3.6 RCU 的优缺点"></a>3.6 RCU 的优缺点</h3><p><strong>优点：</strong></p>
+<ul>
+<li>读者路径<strong>零锁、零原子写操作</strong>，读延迟极低，可线性扩展到任意核心数</li>
+<li>无死锁风险，读者永远不会被写者阻塞</li>
+<li>适合实时系统，读延迟低且可预测</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>写者开销较大（需拷贝副本 + 延迟回收）</li>
+<li>新旧数据短暂共存，内存占用暂时增加</li>
+<li>仅适用于<strong>通过指针访问的动态数据结构</strong>（不适用于原地修改的场景）</li>
+<li>实现复杂，调试困难</li>
+</ul>
+<hr>
+<h1 id="4-应用二：CAS-与无锁链表"><a href="#4-应用二：CAS-与无锁链表" class="headerlink" title="4. 应用二：CAS 与无锁链表"></a>4. 应用二：CAS 与无锁链表</h1><p>除了 RCU 的”指针切换”模式，CAS 还可以用来直接<strong>原子地修改链表的拓扑结构本身</strong>，例如向链表头部插入或弹出节点。这在无锁对象池（lock-free object pool）中极为常见。</p>
+<h3 id="4-1-问题根源：链表操作的非原子性"><a href="#4-1-问题根源：链表操作的非原子性" class="headerlink" title="4.1 问题根源：链表操作的非原子性"></a>4.1 问题根源：链表操作的非原子性</h3><p>考虑向链表头部插入新节点的朴素实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误的非原子实现（存在竞态条件）</span></span><br><span class="line">Node* new_node = get_free_node();</span><br><span class="line">new_node-&gt;next = head;    <span class="comment">// 步骤 1：新节点指向当前头</span></span><br><span class="line">head = new_node;          <span class="comment">// 步骤 2：更新头指针 ← 非原子！</span></span><br></pre></td></tr></table></figure>
+
+<p>步骤 1 和步骤 2 之间存在一个<strong>竞争窗口</strong>。若另一线程在此期间修改了 <code>head</code>，步骤 2 的赋值会直接覆盖那次修改，导致<strong>链表节点丢失</strong>或<strong>链表结构损坏</strong>。</p>
+<h3 id="4-2-CAS-解法：原子插入与弹出"><a href="#4-2-CAS-解法：原子插入与弹出" class="headerlink" title="4.2 CAS 解法：原子插入与弹出"></a>4.2 CAS 解法：原子插入与弹出</h3><p><strong>插入节点到链表头部：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ✅ 使用 CAS 的无锁插入</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">push</span><span class="params">(Node** head, Node* new_node)</span> &#123;</span><br><span class="line">    Node* current_head;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        current_head = <span class="type">atomic_load</span>(head);  <span class="comment">// 1. 读取当前头</span></span><br><span class="line">        new_node-&gt;next = current_head;     <span class="comment">// 2. 新节点指向它</span></span><br><span class="line">        <span class="comment">// 3. 仅当 head 仍等于 current_head 时，原子地将 head 改为 new_node</span></span><br><span class="line">        <span class="comment">//    否则说明有其他线程已修改 head，循环重试</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (!atomic_compare_exchange_strong(head, &amp;current_head, new_node));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>从链表头部弹出节点：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ✅ 使用 CAS 的无锁弹出</span></span><br><span class="line">Node* <span class="title function_">pop</span><span class="params">(Node** head)</span> &#123;</span><br><span class="line">    Node* old_head;</span><br><span class="line">    Node* new_head;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        old_head = <span class="type">atomic_load</span>(head);</span><br><span class="line">        <span class="keyword">if</span> (old_head == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;  <span class="comment">// 链表为空</span></span><br><span class="line">        new_head = old_head-&gt;next;</span><br><span class="line">        <span class="comment">// 仅当 head 仍等于 old_head 时，原子地将 head 改为 new_head</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (!atomic_compare_exchange_strong(head, &amp;old_head, new_head));</span><br><span class="line">    <span class="keyword">return</span> old_head;  <span class="comment">// 返回弹出的节点供调用者使用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么这是正确的？</strong></p>
+<p>若在准备期间 <code>head</code> 被另一线程改为 <code>Y</code>，则 <code>CAS(head, X, new_node)</code> 因 <code>*head != X</code> 而失败。循环重新读取最新的 <code>head</code>，重新设置 <code>new_node-&gt;next</code>，再次尝试。最终只有一个线程能成功提交；失败的线程仅是重试，不会破坏数据结构。</p>
+<h3 id="4-3-实际应用：无锁对象池"><a href="#4-3-实际应用：无锁对象池" class="headerlink" title="4.3 实际应用：无锁对象池"></a>4.3 实际应用：无锁对象池</h3><p>无锁对象池在高性能系统（游戏引擎、网络服务器、内存分配器）中广泛使用，通过维护一个空闲节点链表，避免频繁调用 <code>malloc</code>&#x2F;<code>free</code> 的开销：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Node</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Node</span>* <span class="title">next</span>;</span></span><br><span class="line">    MyObject     data;</span><br><span class="line">&#125; Node;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 空闲链表头指针（原子类型）</span></span><br><span class="line"><span class="keyword">_Atomic</span>(Node*) free_list = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 归还对象：将节点插入空闲链表头部</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">pool_release</span><span class="params">(Node* node)</span> &#123;</span><br><span class="line">    Node* old_head;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        old_head = <span class="type">atomic_load</span>(&amp;free_list);</span><br><span class="line">        node-&gt;next = old_head;</span><br><span class="line">    &#125; <span class="keyword">while</span> (!atomic_compare_exchange_strong(&amp;free_list, &amp;old_head, node));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取对象：从空闲链表头部取出节点</span></span><br><span class="line">Node* <span class="title function_">pool_acquire</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    Node* old_head;</span><br><span class="line">    Node* new_head;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        old_head = <span class="type">atomic_load</span>(&amp;free_list);</span><br><span class="line">        <span class="keyword">if</span> (old_head == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;  <span class="comment">// 池已耗尽</span></span><br><span class="line">        new_head = old_head-&gt;next;</span><br><span class="line">    &#125; <span class="keyword">while</span> (!atomic_compare_exchange_strong(&amp;free_list, &amp;old_head, new_head));</span><br><span class="line">    <span class="keyword">return</span> old_head;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两个操作都<strong>无需互斥锁</strong>，避免了锁竞争和上下文切换的开销。在低竞争场景下，性能显著优于加锁版本。</p>
+<hr>
+<h1 id="5-已知陷阱：ABA-问题"><a href="#5-已知陷阱：ABA-问题" class="headerlink" title="5. 已知陷阱：ABA 问题"></a>5. 已知陷阱：ABA 问题</h1><p>使用 CAS 操作无锁链表时，存在一个经典陷阱——<strong>ABA 问题</strong>。基础 CAS 只比较值是否相等，无法区分”值一直未变”和”值变过又变回来了”这两种情况。</p>
+<p><strong>问题场景：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">初始状态：head → A → B → C</span><br><span class="line"></span><br><span class="line">1. 线程 T1 读取 head = A，准备执行 pop（将 head 改为 A-&gt;next = B）。</span><br><span class="line">2. T1 被调度挂起。</span><br><span class="line">3. 线程 T2 弹出 A，再弹出 B（B 被回收或重用于其他目的）。</span><br><span class="line">4. T2 将 A 重新插入链表头部。此时 head = A，但 A-&gt;next 已不再是 B。</span><br><span class="line">5. T1 恢复执行，CAS 检查 head == A 成立，成功将 head 改为旧的 B 地址。</span><br><span class="line">6. 结果：head 指向了已被回收/重用的节点 B，链表损坏。</span><br></pre></td></tr></table></figure>
+
+<p><strong>常见解决方案：</strong></p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>原理</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>带版本号的指针（Tagged Pointer）</strong></td>
+<td>将指针的部分位用作版本计数器，每次修改递增；CAS 同时比较地址和版本号</td>
+<td>实现简单，但在 32 位平台上可用位有限</td>
+</tr>
+<tr>
+<td><strong>Hazard Pointer（危险指针）</strong></td>
+<td>每个线程访问节点前先声明”持有”该指针；回收系统释放前扫描所有危险指针，跳过仍在使用的节点</td>
+<td>通用，无 ABA 问题，实现较复杂</td>
+</tr>
+<tr>
+<td><strong>Epoch-Based Reclamation（基于时代的回收）</strong></td>
+<td>将内存释放推迟到没有任何线程引用旧数据的时代（epoch）之后，与 RCU 宽限期思想相通</td>
+<td>适合读多写少场景，与 RCU 思路一致</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>在实践中，建议优先使用经过充分验证的无锁库（如 C++ 的 <code>libcds</code>、<code>folly::AtomicLinkedList</code>），而非自行实现以规避这类陷阱。</p>
+</blockquote>
+<hr>
+<h1 id="6-技术对比与选型建议"><a href="#6-技术对比与选型建议" class="headerlink" title="6. 技术对比与选型建议"></a>6. 技术对比与选型建议</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>互斥锁（Mutex）</th>
+<th>CAS 自旋重试</th>
+<th>RCU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>读性能</strong></td>
+<td>中（每次读都需获取锁）</td>
+<td>高（单次原子读）</td>
+<td><strong>极高</strong>（无任何同步开销）</td>
+</tr>
+<tr>
+<td><strong>写性能</strong></td>
+<td>中</td>
+<td>中（低竞争时高，高竞争时因重试而下降）</td>
+<td>低（拷贝副本 + 延迟回收）</td>
+</tr>
+<tr>
+<td><strong>实现复杂度</strong></td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td><strong>死锁风险</strong></td>
+<td>有</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>内存开销</strong></td>
+<td>低</td>
+<td>低</td>
+<td>暂时较高（新旧版本共存）</td>
+</tr>
+<tr>
+<td><strong>适用数据规模</strong></td>
+<td>任意</td>
+<td>单指针&#x2F;小结构</td>
+<td>通过指针访问的动态结构</td>
+</tr>
+<tr>
+<td><strong>典型场景</strong></td>
+<td>通用临界区保护</td>
+<td>计数器、标志位、无锁栈&#x2F;对象池</td>
+<td>配置热更新、路由表、内核数据结构</td>
+</tr>
+</tbody></table>
+<p><strong>选型建议：</strong></p>
+<ul>
+<li><strong>写多读少</strong> → 互斥锁，简单可靠</li>
+<li><strong>低竞争的短临界区</strong>（计数器、状态位、对象池） → CAS 原子操作</li>
+<li><strong>读远多于写</strong>（配置对象、路由表、订阅列表） → RCU</li>
+<li><strong>对象频繁分配&#x2F;回收</strong> → 无锁对象池（CAS 链表）</li>
+<li><strong>不确定时</strong> → 先用互斥锁，通过 profiling 确认瓶颈后再引入无锁结构</li>
+</ul>
+<hr>
+<h1 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h1><p>本文围绕一个核心问题展开：<strong>如何在不使用互斥锁的情况下，安全地在多线程间共享和更新数据结构？</strong></p>
+<p>关键结论如下：</p>
+<ol>
+<li><strong>原子操作只能覆盖自然字长</strong>：大型结构必须通过原子指针间接访问，而非试图原子地修改整个结构体。</li>
+<li><strong>CAS 是无锁编程的基础原语</strong>：它将”读-判断-写”合并为不可分割的原子操作，通过重试循环应对竞争失败，保证”只有当我看到的仍是旧值时，我才提交修改”。</li>
+<li><strong>RCU 将读写路径彻底分离</strong>：读者以接近零的开销访问数据；写者拷贝副本后用 CAS 原子切换指针；通过宽限期机制安全延迟释放旧数据，实现极低且可预测的读延迟。</li>
+<li><strong>CAS 无锁链表</strong>支撑了无锁栈、无锁对象池等高性能数据结构，在低竞争场景下性能优于加锁方案。</li>
+<li><strong>ABA 问题是无锁编程的固有陷阱</strong>：需根据场景选择版本号指针、Hazard Pointer 或 Epoch-Based Reclamation 加以应对。</li>
+</ol>
+<p>这些技术共同构成了现代高性能并发系统（Linux 内核、数据库引擎、网络服务器、游戏引擎）底层的基石。理解它们的原理，有助于在正确的场景做出正确的设计选择，而不是无差别地追求”无锁”。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li>Paul E. McKenney, <em><a target="_blank" rel="noopener" href="https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html">Is Parallel Programming Hard, And, If So, What Can You Do About It?</a></em></li>
+<li>Linux Kernel Documentation: <a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/RCU/rcu.html">RCU Concepts</a></li>
+<li>Maged M. Michael &amp; Michael L. Scott, <em>Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue Algorithms</em> (1996)</li>
+<li>Herb Sutter, <em><a target="_blank" rel="noopener" href="https://www.drdobbs.com/lock-free-code-a-false-sense-of-security/184401540">Lock-Free Code: A False Sense of Security</a></em></li>
+<li>Anthony Williams, <em>C++ Concurrency in Action</em>, 2nd Edition (2019)</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF%EF%BC%9A%E5%B9%B6%E5%8F%91%E5%86%99%E5%A4%A7%E5%9E%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%9A%84%E6%8C%91%E6%88%98"><span class="toc-number">2.</span> <span class="toc-text">1. 问题背景：并发写大型数据结构的挑战</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80%EF%BC%9ACompare-and-Exchange%EF%BC%88CAS%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. 理论基础：Compare-and-Exchange（CAS）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%BA%94%E7%94%A8%E4%B8%80%EF%BC%9ARCU-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%AF%BB-%E6%8B%B7%E8%B4%9D-%E6%9B%B4%E6%96%B0%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. 应用一：RCU 模式（读-拷贝-更新）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 核心思想与工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%86%99%E8%80%85%E7%9A%84%E6%9B%B4%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 写者的更新流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%BD%E9%99%90%E6%9C%9F%E6%9C%BA%E5%88%B6%EF%BC%9A%E4%BD%95%E6%97%B6%E5%AE%89%E5%85%A8%E5%9B%9E%E6%94%B6%E6%97%A7%E6%95%B0%E6%8D%AE"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 宽限期机制：何时安全回收旧数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Linux-%E5%86%85%E6%A0%B8%E7%9A%84%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 Linux 内核的具体实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 代码示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-RCU-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 RCU 的优缺点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BA%94%E7%94%A8%E4%BA%8C%EF%BC%9ACAS-%E4%B8%8E%E6%97%A0%E9%94%81%E9%93%BE%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">4. 应用二：CAS 与无锁链表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%97%AE%E9%A2%98%E6%A0%B9%E6%BA%90%EF%BC%9A%E9%93%BE%E8%A1%A8%E6%93%8D%E4%BD%9C%E7%9A%84%E9%9D%9E%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 问题根源：链表操作的非原子性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-CAS-%E8%A7%A3%E6%B3%95%EF%BC%9A%E5%8E%9F%E5%AD%90%E6%8F%92%E5%85%A5%E4%B8%8E%E5%BC%B9%E5%87%BA"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 CAS 解法：原子插入与弹出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%EF%BC%9A%E6%97%A0%E9%94%81%E5%AF%B9%E8%B1%A1%E6%B1%A0"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 实际应用：无锁对象池</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B7%B2%E7%9F%A5%E9%99%B7%E9%98%B1%EF%BC%9AABA-%E9%97%AE%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">5. 已知陷阱：ABA 问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">6. 技术对比与选型建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">7. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">9.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&text=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&is_video=false&description=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=无锁并发编程：CAS 操作与 RCU 模式解析&body=Check out this article: http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&title=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&name=无锁并发编程：CAS 操作与 RCU 模式解析&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/06/02/memory%20model/11.lock-free-cas-rcu/&t=无锁并发编程：CAS 操作与 RCU 模式解析"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="背景：为什么需要内存序？在多核或多处理器环境中编写无锁代码时，一个常见的错误假设是：代码按照书写顺序执行，其他核心也会以相同顺序看到内存变化。 然而现实并非如此。编译器和 CPU 都可能对内存操作进行重排序（reordering），以提升执行效率。在单线程程序中，这种重排序是透明无害的；但在多线程环境下，如果没有显式的内存序约束，就可能导致难以复现的并发 Bug。 Acquire 语义和 Rele">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Acquire 与 Release 语义：多核编程的内存序基础">
+<meta property="og:url" content="http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="背景：为什么需要内存序？在多核或多处理器环境中编写无锁代码时，一个常见的错误假设是：代码按照书写顺序执行，其他核心也会以相同顺序看到内存变化。 然而现实并非如此。编译器和 CPU 都可能对内存操作进行重排序（reordering），以提升执行效率。在单线程程序中，这种重排序是透明无害的；但在多线程环境下，如果没有显式的内存序约束，就可能导致难以复现的并发 Bug。 Acquire 语义和 Rele">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-04-03T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-18T03:35:19.434Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="内存模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Acquire 与 Release 语义：多核编程的内存序基础</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/04/10/memory%20model/7.weak-vs-strong-memory-models/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/03/29/memory%20model/5.memory-barriers-like-source-control/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&text=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&is_video=false&description=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Acquire 与 Release 语义：多核编程的内存序基础&body=Check out this article: http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&name=Acquire 与 Release 语义：多核编程的内存序基础&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&t=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E5%AD%98%E5%BA%8F%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">背景：为什么需要内存序？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E5%AE%9A%E4%B9%89"><span class="toc-number">2.</span> <span class="toc-text">核心概念定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Acquire-%E8%AF%AD%E4%B9%89%EF%BC%88%E8%AF%BB%E5%B1%8F%E9%9A%9C%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">Acquire 语义（读屏障）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Release-%E8%AF%AD%E4%B9%89%EF%BC%88%E5%86%99%E5%B1%8F%E9%9A%9C%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">Release 语义（写屏障）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E8%80%85%E9%85%8D%E5%90%88%E4%BD%BF%E7%94%A8"><span class="toc-number">2.0.3.</span> <span class="toc-text">两者配合使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%A8%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E7%B1%BB%E5%9E%8B%E6%9D%A5%E7%90%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">用内存屏障类型来理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#C-11-%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">C++11 中的实现方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8-atomic-thread-fence"><span class="toc-number">4.0.1.</span> <span class="toc-text">方式一：使用 atomic_thread_fence</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E7%9B%B4%E6%8E%A5%E5%9C%A8%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E4%B8%8A%E6%8C%87%E5%AE%9A%E5%86%85%E5%AD%98%E5%BA%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">方式二：直接在原子操作上指定内存序（推荐）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%84%E5%B9%B3%E5%8F%B0%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="toc-number">5.</span> <span class="toc-text">各平台的实现细节</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%8B%AC%E7%AB%8B-Fence-%E4%B8%8E%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E4%B8%8A%E7%9A%84%E8%AF%AD%E4%B9%89%EF%BC%9A%E6%9C%89%E4%BD%95%E4%B8%8D%E5%90%8C%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">独立 Fence 与原子操作上的语义：有何不同？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">7.</span> <span class="toc-text">常见误区</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">9.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Acquire 与 Release 语义：多核编程的内存序基础
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-04-03T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-04-03</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" rel="tag">内存模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="背景：为什么需要内存序？"><a href="#背景：为什么需要内存序？" class="headerlink" title="背景：为什么需要内存序？"></a>背景：为什么需要内存序？</h1><p>在多核或多处理器环境中编写无锁代码时，一个常见的错误假设是：<strong>代码按照书写顺序执行，其他核心也会以相同顺序看到内存变化</strong>。</p>
+<p>然而现实并非如此。编译器和 CPU 都可能对内存操作进行重排序（reordering），以提升执行效率。在单线程程序中，这种重排序是透明无害的；但在多线程环境下，如果没有显式的内存序约束，就可能导致难以复现的并发 Bug。</p>
+<p><strong>Acquire 语义</strong>和 <strong>Release 语义</strong>，正是解决这一问题的核心工具。</p>
+<hr>
+<h1 id="核心概念定义"><a href="#核心概念定义" class="headerlink" title="核心概念定义"></a>核心概念定义</h1><h3 id="Acquire-语义（读屏障）"><a href="#Acquire-语义（读屏障）" class="headerlink" title="Acquire 语义（读屏障）"></a>Acquire 语义（读屏障）</h3><blockquote>
+<p>Acquire 语义只能作用于<strong>从共享内存读取</strong>的操作（包括 load 或 read-modify-write）。<br>该操作被称为 <strong>read-acquire</strong>。</p>
+</blockquote>
+<p><strong>效果</strong>：阻止 read-acquire 操作与其<strong>之后</strong>的任何读写操作发生重排序。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Thread A（消费者）</span><br><span class="line"></span><br><span class="line">[read-acquire: Ready]</span><br><span class="line">    ↕ 以下操作不可上移到此行之前</span><br><span class="line">[read: Value]</span><br><span class="line">[read: Data]</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>换句话说，一旦 read-acquire 完成，它之后的所有内存访问都能”看到”其他线程在对应 write-release 之前写入的数据。</p>
+<hr>
+<h3 id="Release-语义（写屏障）"><a href="#Release-语义（写屏障）" class="headerlink" title="Release 语义（写屏障）"></a>Release 语义（写屏障）</h3><blockquote>
+<p>Release 语义只能作用于<strong>向共享内存写入</strong>的操作（包括 store 或 read-modify-write）。<br>该操作被称为 <strong>write-release</strong>。</p>
+</blockquote>
+<p><strong>效果</strong>：阻止 write-release 操作与其<strong>之前</strong>的任何读写操作发生重排序。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Thread B（生产者）</span><br><span class="line"></span><br><span class="line">[write: Value]</span><br><span class="line">[write: Data]</span><br><span class="line">...</span><br><span class="line">    ↕ 以上操作不可下移到此行之后</span><br><span class="line">[write-release: Ready]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="两者配合使用"><a href="#两者配合使用" class="headerlink" title="两者配合使用"></a>两者配合使用</h3><p>Acquire 和 Release 语义<strong>必须成对使用</strong>，才能保证共享数据从一个线程完整传递到另一个线程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">生产者线程                       消费者线程</span><br><span class="line">───────────────────────         ───────────────────────</span><br><span class="line">write Value = 42</span><br><span class="line">write Data = ...</span><br><span class="line">[write-release: Ready = 1]  →   [read-acquire: Ready == 1]</span><br><span class="line">                                read Value  // 一定能看到 42</span><br><span class="line">                                read Data   // 一定能看到最新值</span><br></pre></td></tr></table></figure>
+
+<p>这里的关键变量 <code>Ready</code> 必须是原子操作，且两端必须分别使用 release&#x2F;acquire 语义，才能形成正确的<strong>同步关系（synchronizes-with）</strong>。</p>
+<hr>
+<h1 id="用内存屏障类型来理解"><a href="#用内存屏障类型来理解" class="headerlink" title="用内存屏障类型来理解"></a>用内存屏障类型来理解</h1><p>在内存屏障模型中，有四种基本类型：<code>#LoadLoad</code>、<code>#LoadStore</code>、<code>#StoreLoad</code>、<code>#StoreStore</code>。</p>
+<ul>
+<li><strong>Acquire 语义</strong> &#x3D; <code>#LoadLoad</code> + <code>#LoadStore</code>（放置在 read-acquire 之后）</li>
+<li><strong>Release 语义</strong> &#x3D; <code>#LoadStore</code> + <code>#StoreStore</code>（放置在 write-release 之前）</li>
+</ul>
+<p>注意：两者都不包含 <code>#StoreLoad</code> 屏障。这意味着 write-release 后紧跟一个 read-acquire，这两个操作之间是<strong>允许被重排序的</strong>。</p>
+<hr>
+<h1 id="C-11-中的实现方式"><a href="#C-11-中的实现方式" class="headerlink" title="C++11 中的实现方式"></a>C++11 中的实现方式</h1><h3 id="方式一：使用-atomic-thread-fence"><a href="#方式一：使用-atomic-thread-fence" class="headerlink" title="方式一：使用 atomic_thread_fence"></a>方式一：使用 <code>atomic_thread_fence</code></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> Value;</span><br><span class="line"><span class="function">atomic&lt;<span class="type">int</span>&gt; <span class="title">Ready</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生产者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">producer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Value = <span class="number">42</span>;</span><br><span class="line">    <span class="built_in">atomic_thread_fence</span>(memory_order_release);  <span class="comment">// Release 屏障</span></span><br><span class="line">    Ready.<span class="built_in">store</span>(<span class="number">1</span>, memory_order_relaxed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">consumer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (Ready.<span class="built_in">load</span>(memory_order_relaxed) == <span class="number">0</span>) &#123;&#125;  <span class="comment">// 自旋等待</span></span><br><span class="line">    <span class="built_in">atomic_thread_fence</span>(memory_order_acquire);         <span class="comment">// Acquire 屏障</span></span><br><span class="line">    <span class="built_in">assert</span>(Value == <span class="number">42</span>);  <span class="comment">// 保证能看到 42</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式二：直接在原子操作上指定内存序（推荐）"><a href="#方式二：直接在原子操作上指定内存序（推荐）" class="headerlink" title="方式二：直接在原子操作上指定内存序（推荐）"></a>方式二：直接在原子操作上指定内存序（推荐）</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> Value;</span><br><span class="line"><span class="function">atomic&lt;<span class="type">int</span>&gt; <span class="title">Ready</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生产者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">producer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Value = <span class="number">42</span>;</span><br><span class="line">    Ready.<span class="built_in">store</span>(<span class="number">1</span>, memory_order_release);  <span class="comment">// write-release</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">consumer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (Ready.<span class="built_in">load</span>(memory_order_acquire) == <span class="number">0</span>) &#123;&#125;  <span class="comment">// read-acquire</span></span><br><span class="line">    <span class="built_in">assert</span>(Value == <span class="number">42</span>);  <span class="comment">// 保证能看到 42</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方式二将屏障语义”融入”到原子操作本身，更为简洁且语义更精确。</p>
+<hr>
+<h1 id="各平台的实现细节"><a href="#各平台的实现细节" class="headerlink" title="各平台的实现细节"></a>各平台的实现细节</h1><p>不同 CPU 架构对 Acquire&#x2F;Release 语义的实现成本差异很大：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>Acquire 实现</th>
+<th>Release 实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>x86&#x2F;64</strong></td>
+<td>编译器屏障（几乎免费）</td>
+<td>编译器屏障（几乎免费）</td>
+</tr>
+<tr>
+<td><strong>ARM</strong></td>
+<td><code>dmb ish</code> 指令</td>
+<td><code>dmb ish</code> 指令</td>
+</tr>
+<tr>
+<td><strong>PowerPC</strong></td>
+<td><code>lwsync</code> 指令</td>
+<td><code>lwsync</code> 指令</td>
+</tr>
+</tbody></table>
+<p>x86&#x2F;64 是<strong>强内存序（strongly-ordered）</strong>架构：每次 load 隐含 acquire 语义，每次 store 隐含 release 语义。这也是为什么某些在 x86 上运行正常的无锁代码，放到 ARM 或 PowerPC 上就会出问题——<strong>正确性不应依赖具体平台的强序保证</strong>。</p>
+<hr>
+<h1 id="独立-Fence-与原子操作上的语义：有何不同？"><a href="#独立-Fence-与原子操作上的语义：有何不同？" class="headerlink" title="独立 Fence 与原子操作上的语义：有何不同？"></a>独立 Fence 与原子操作上的语义：有何不同？</h1><ul>
+<li><p><code>store(1, memory_order_release)</code> 仅阻止前面的操作越过该 store 本身，这个约束只针对这个store操作本身。换句话说，编译器&#x2F;CPU 不能把前面的操作“越过”这个 store，但 如果后面还有其他 store，前面的操作可能被重排到那些后面的 store 之前，只要不越过当前这个 release store。</p>
+<p>  举例说明：</p>
+  <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="number">42</span>;                          <span class="comment">// (1)</span></span><br><span class="line">x.<span class="built_in">store</span>(<span class="number">1</span>, memory_order_release); <span class="comment">// (2) ← release store</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">1</span>, memory_order_relaxed); <span class="comment">// (3)</span></span><br></pre></td></tr></table></figure>
+
+<p>  (1) 不能重排到 (2) 之后，但 (1) 可以 重排到 (3) 之前或之后？</p>
+<p>  → 实际上，因为 (1) 不能越过 (2)，而 (2) 在 (3) 之前，所以 (1) 也不会出现在 (3) 之后。</p>
+<p>  → 但如果 (3) 是另一个线程中的操作，或者编译器&#x2F;CPU 有更多自由度时，情况会不同。</p>
+<p>  关键在于：release store 只“锚定”自己，不保护后续的 relaxed 操作。</p>
+<p>  即：(1) 对 Thread 2 是可见的（因为 release-acquire 同步），但 (3) 是 relaxed，不参与同步，所以即使 Thread 2 看到 x&#x3D;&#x3D;1，也不能保证看到 y&#x3D;&#x3D;1。同步关系不会延伸到 relaxed 操作。</p>
+</li>
+<li><p><code>atomic_thread_fence(memory_order_release)</code> 则阻止前面的操作越过其<strong>后的所有 store</strong>。</p>
+<p>  它的语义是（根据 C++ 标准）：所有在栅栏 之前的 内存操作（包括非原子、relaxed 原子等），都不能被重排到 栅栏之后的任何 release 操作（或写操作） 之后。</p>
+<p>  但更重要的是 编译器和硬件层面的排序约束：所有在 fence 之前的读写操作，都不能越过 fence 后面的任何写操作（store）。</p>
+<p>  示例对比：</p>
+  <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="number">42</span>;                                    <span class="comment">// (1)</span></span><br><span class="line">std::<span class="built_in">atomic_thread_fence</span>(memory_order_release); <span class="comment">// (2)</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">1</span>, memory_order_relaxed);          <span class="comment">// (3)</span></span><br></pre></td></tr></table></figure>
+<p>  (1) 不能被重排到 (3) 之后！即使 (3) 是 relaxed，fence 也阻止前面的操作越过其后的任何 store。</p>
+<p>  这就是你引述的核心：atomic_thread_fence(memory_order_release) 阻止前面的操作越过其后的所有 store，而不仅仅是某一个 store。</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>形式</th>
+<th>作用范围</th>
+<th>限制强度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>x.store(..., release)</code></td>
+<td>仅约束该 store 本身</td>
+<td>较弱：只防止前面的操作越过 这个 store</td>
+</tr>
+<tr>
+<td><code>atomic_thread_fence(release)</code></td>
+<td>约束 fence 之后的所有 store</td>
+<td>更强：前面的操作不能越过 任何后续 store</td>
+</tr>
+</tbody></table>
+<p>在实现 DCLP（双重检查锁定）等模式时，这一区别至关重要。独立 fence 语义更强，但也可能是一种性能悲观化（performance pessimization），应根据实际需求选择。</p>
+<hr>
+<h1 id="常见误区"><a href="#常见误区" class="headerlink" title="常见误区"></a>常见误区</h1><ol>
+<li><p><strong>误以为 x86 上不需要内存序约束</strong>：x86 的强序特性是硬件行为，C++11 的内存模型是软件规范。即使在 x86 上省略约束”碰巧正确”，放到 ARM 设备上就可能崩溃。</p>
+</li>
+<li><p><strong>混淆 Acquire&#x2F;Release 与 <code>seq_cst</code></strong> ：<code>memory_order_seq_cst</code> 提供最强保证，但代价是跨核通信开销。Acquire&#x2F;Release 是在性能和正确性之间取得平衡的选择。</p>
+</li>
+<li><p><strong>单独使用 release 或 acquire</strong>：两者必须配对使用，才能形成有效的 synchronizes-with 关系，单方面使用没有意义。</p>
+</li>
+<li><p><strong>将 Release 语义用于 load，或将 Acquire 语义用于 store</strong>：Release 只适用于写操作，Acquire 只适用于读操作，反过来是无效的。</p>
+</li>
+</ol>
+<hr>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>作用对象</th>
+<th>防止重排方向</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Acquire 语义</strong></td>
+<td>读操作（load）</td>
+<td>之后的读写不可上移</td>
+<td>获取锁、读取共享数据</td>
+</tr>
+<tr>
+<td><strong>Release 语义</strong></td>
+<td>写操作（store）</td>
+<td>之前的读写不可下移</td>
+<td>释放锁、发布共享数据</td>
+</tr>
+</tbody></table>
+<p>Acquire 和 Release 语义是无锁编程的基石。理解它们，不仅能帮助你写出跨平台正确的并发代码，也能让你在性能与正确性之间做出合理权衡——而不是盲目地使用 <code>memory_order_seq_cst</code> 了事。</p>
+<hr>
+<h1 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20130823/the-synchronizes-with-relation/">The Synchronizes-With Relation</a> — happens-before 与 synchronizes-with 的形式化定义</li>
+</ul>
+<hr>
+<p><em>原始参考：Jeff Preshing, “Acquire and Release Semantics”, preshing.com, 2012</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E5%AD%98%E5%BA%8F%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">背景：为什么需要内存序？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E5%AE%9A%E4%B9%89"><span class="toc-number">2.</span> <span class="toc-text">核心概念定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Acquire-%E8%AF%AD%E4%B9%89%EF%BC%88%E8%AF%BB%E5%B1%8F%E9%9A%9C%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">Acquire 语义（读屏障）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Release-%E8%AF%AD%E4%B9%89%EF%BC%88%E5%86%99%E5%B1%8F%E9%9A%9C%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">Release 语义（写屏障）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E8%80%85%E9%85%8D%E5%90%88%E4%BD%BF%E7%94%A8"><span class="toc-number">2.0.3.</span> <span class="toc-text">两者配合使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%A8%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E7%B1%BB%E5%9E%8B%E6%9D%A5%E7%90%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">用内存屏障类型来理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#C-11-%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">C++11 中的实现方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8-atomic-thread-fence"><span class="toc-number">4.0.1.</span> <span class="toc-text">方式一：使用 atomic_thread_fence</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E7%9B%B4%E6%8E%A5%E5%9C%A8%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E4%B8%8A%E6%8C%87%E5%AE%9A%E5%86%85%E5%AD%98%E5%BA%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">方式二：直接在原子操作上指定内存序（推荐）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%84%E5%B9%B3%E5%8F%B0%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="toc-number">5.</span> <span class="toc-text">各平台的实现细节</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%8B%AC%E7%AB%8B-Fence-%E4%B8%8E%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E4%B8%8A%E7%9A%84%E8%AF%AD%E4%B9%89%EF%BC%9A%E6%9C%89%E4%BD%95%E4%B8%8D%E5%90%8C%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">独立 Fence 与原子操作上的语义：有何不同？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">7.</span> <span class="toc-text">常见误区</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">9.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&text=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&is_video=false&description=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Acquire 与 Release 语义：多核编程的内存序基础&body=Check out this article: http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&title=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&name=Acquire 与 Release 语义：多核编程的内存序基础&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/04/03/memory%20model/6.acquire-and-release-semantics/&t=Acquire 与 Release 语义：多核编程的内存序基础"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="并发编程是现代软件工程中最难掌握的领域之一，很多 bug 不是逻辑错误，而是对底层执行机制的误解造成的。指令重排序（Instruction Reordering）通常是一切混乱的根源。   1. 一个令人困惑的问题你写下这样的代码： 123456789101112&#x2F;&#x2F; 共享变量（假设两个线程均可访问）int data &#x3D; 0;int flag &#x3D; 0;&#x2F;&#x2F; 线程 1data &#x3D; 42;   &#x2F;&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="指令重排序：你的代码并不总按你写的顺序执行">
+<meta property="og:url" content="http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="并发编程是现代软件工程中最难掌握的领域之一，很多 bug 不是逻辑错误，而是对底层执行机制的误解造成的。指令重排序（Instruction Reordering）通常是一切混乱的根源。   1. 一个令人困惑的问题你写下这样的代码： 123456789101112&#x2F;&#x2F; 共享变量（假设两个线程均可访问）int data &#x3D; 0;int flag &#x3D; 0;&#x2F;&#x2F; 线程 1data &#x3D; 42;   &#x2F;&#x2F;">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-01-09T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-17T03:26:07.359Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="内存模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>指令重排序：你的代码并不总按你写的顺序执行</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/01/20/memory%20model/2.memory-models-explained/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&text=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&is_video=false&description=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=指令重排序：你的代码并不总按你写的顺序执行&body=Check out this article: http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&name=指令重排序：你的代码并不总按你写的顺序执行&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&t=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%80%E4%B8%AA%E4%BB%A4%E4%BA%BA%E5%9B%B0%E6%83%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">1. 一个令人困惑的问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">2. 什么是指令重排序？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%9F%E6%80%A7%E8%83%BD%E6%98%AF%E6%A0%B9%E6%9C%AC%E9%A9%B1%E5%8A%A8%E5%8A%9B"><span class="toc-number">3.</span> <span class="toc-text">3. 为什么要重排序？性能是根本驱动力</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%85%85%E5%88%86%E5%88%A9%E7%94%A8-CPU-%E6%89%A7%E8%A1%8C%E5%8D%95%E5%85%83"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 充分利用 CPU 执行单元</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%9A%90%E8%97%8F%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 隐藏内存访问延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E8%AF%91%E5%99%A8%E7%9A%84%E9%9D%99%E6%80%81%E4%BC%98%E5%8C%96"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 编译器的静态优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8D%95%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%EF%BC%8C%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%8D%B1%E9%99%A9"><span class="toc-number">4.</span> <span class="toc-text">4. 单线程安全，多线程危险</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E7%BA%BF%E7%A8%8B%E6%B2%A1%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 为什么单线程没问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E2%80%9D%E5%8F%AF%E8%A7%81%E6%80%A7%E2%80%9D%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 多线程的”可见性”问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%9B%9B%E7%A7%8D%E9%87%8D%E6%8E%92%E5%BA%8F%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.</span> <span class="toc-text">5. 四种重排序类型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%B7%B1%E5%85%A5%E7%A1%AC%E4%BB%B6%EF%BC%9AStore-Buffer-%E4%B8%8E-Invalidate-Queue"><span class="toc-number">6.</span> <span class="toc-text">6. 深入硬件：Store Buffer 与 Invalidate Queue</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Store-Buffer%EF%BC%88%E5%86%99%E7%BC%93%E5%86%B2%E5%8C%BA%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 Store Buffer（写缓冲区）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Invalidate-Queue%EF%BC%88%E6%97%A0%E6%95%88%E5%8C%96%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 Invalidate Queue（无效化队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-MESI-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">6.0.3.</span> <span class="toc-text">6.3 MESI 协议与缓存一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%BC%96%E8%AF%91%E5%99%A8%E9%87%8D%E6%8E%92%E5%BA%8F%E7%9A%84%E5%85%B7%E4%BD%93%E6%A1%88%E4%BE%8B"><span class="toc-number">7.</span> <span class="toc-text">7. 编译器重排序的具体案例</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Happens-Before%EF%BC%9A%E6%8F%8F%E8%BF%B0%E9%A1%BA%E5%BA%8F%E4%BF%9D%E8%AF%81%E7%9A%84%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80"><span class="toc-number">8.</span> <span class="toc-text">8. Happens-Before：描述顺序保证的形式语言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%AE%9A%E4%B9%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%93%AA%E4%BA%9B%E6%93%8D%E4%BD%9C%E5%BB%BA%E7%AB%8B-Happens-Before-%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 哪些操作建立 Happens-Before 关系？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%9B%9E%E5%88%B0%E6%9C%80%E5%88%9D%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-number">8.0.3.</span> <span class="toc-text">8.3 回到最初的例子</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%BC%BA%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B-vs-%E5%BC%B1%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">9.</span> <span class="toc-text">9. 强内存模型 vs 弱内存模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%9Ax86-x86-64"><span class="toc-number">9.0.1.</span> <span class="toc-text">9.1 强内存模型：x86&#x2F;x86-64</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%BC%B1%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%9AARM-PowerPC-RISC-V"><span class="toc-number">9.0.2.</span> <span class="toc-text">9.2 弱内存模型：ARM &#x2F; PowerPC &#x2F; RISC-V</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%AF%B9%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">9.0.3.</span> <span class="toc-text">9.3 对程序员的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%A6%82%E4%BD%95%E5%86%99%E5%87%BA%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BB%A3%E7%A0%81%EF%BC%9F"><span class="toc-number">10.</span> <span class="toc-text">10. 如何写出正确的多线程代码？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E4%BA%92%E6%96%A5%E9%94%81%EF%BC%88Mutex-Lock%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">10.1 互斥锁（Mutex &#x2F; Lock）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88Atomic-Operations%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">10.2 原子操作（Atomic Operations）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%EF%BC%88Memory-Barrier-Fence%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">10.3 内存屏障（Memory Barrier &#x2F; Fence）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.0.4.</span> <span class="toc-text">10.4 选择建议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%BB%BA%E7%AB%8B%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%BF%83%E6%99%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">11.</span> <span class="toc-text">11. 总结：建立正确的心智模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        指令重排序：你的代码并不总按你写的顺序执行
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-01-09T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-01-09</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" rel="tag">内存模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p>并发编程是现代软件工程中最难掌握的领域之一，很多 bug 不是逻辑错误，而是对底层执行机制的误解造成的。<strong>指令重排序</strong>（Instruction Reordering）通常是一切混乱的根源。</p>
+</blockquote>
+<hr>
+<h1 id="1-一个令人困惑的问题"><a href="#1-一个令人困惑的问题" class="headerlink" title="1. 一个令人困惑的问题"></a>1. 一个令人困惑的问题</h1><p>你写下这样的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 共享变量（假设两个线程均可访问）</span></span><br><span class="line"><span class="type">int</span> data = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> flag = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 1</span></span><br><span class="line">data = <span class="number">42</span>;   <span class="comment">// 步骤 1：写入数据</span></span><br><span class="line">flag = <span class="number">1</span>;    <span class="comment">// 步骤 2：设置标志</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 2</span></span><br><span class="line"><span class="keyword">if</span> (flag == <span class="number">1</span>) &#123;     <span class="comment">// 步骤 3：检查标志</span></span><br><span class="line">    print(data);     <span class="comment">// 步骤 4：读取数据，期望打印 42</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直觉上，如果线程 2 看到 <code>flag == 1</code>，那么 <code>data</code> 一定已经是 <code>42</code> 了，因为线程 1 先写了 <code>data</code>，再写了 <code>flag</code>。</p>
+<p><strong>但现实中，这段代码可能打印出 <code>0</code>。</strong></p>
+<p>这不是编译器的 bug，也不是 CPU 的故障，而是<strong>指令重排序</strong>（Instruction Reordering）这一核心机制的正常表现。理解它，是迈向正确并发编程的第一步。</p>
+<hr>
+<h1 id="2-什么是指令重排序？"><a href="#2-什么是指令重排序？" class="headerlink" title="2. 什么是指令重排序？"></a>2. 什么是指令重排序？</h1><p><strong>指令重排序</strong>是指程序中指令的实际执行顺序，与你在源代码中书写的顺序不同。</p>
+<p>这种重排序发生在两个层面：</p>
+<table>
+<thead>
+<tr>
+<th>层面</th>
+<th>发生时机</th>
+<th>执行者</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>编译器重排序</strong></td>
+<td>编译期</td>
+<td>编译器（GCC、Clang、MSVC 等）</td>
+</tr>
+<tr>
+<td><strong>CPU 重排序（乱序执行）</strong></td>
+<td>运行期</td>
+<td>处理器硬件</td>
+</tr>
+</tbody></table>
+<p>两种重排序都是<strong>对程序员透明</strong>的优化，在<strong>单线程</strong>程序中，它们不会改变程序的可见行为。然而，一旦涉及<strong>多线程共享内存</strong>，这些隐形的重排序就会埋下难以察觉的 bug。</p>
+<hr>
+<h1 id="3-为什么要重排序？性能是根本驱动力"><a href="#3-为什么要重排序？性能是根本驱动力" class="headerlink" title="3. 为什么要重排序？性能是根本驱动力"></a>3. 为什么要重排序？性能是根本驱动力</h1><h3 id="3-1-充分利用-CPU-执行单元"><a href="#3-1-充分利用-CPU-执行单元" class="headerlink" title="3.1 充分利用 CPU 执行单元"></a>3.1 充分利用 CPU 执行单元</h3><p>现代 CPU 拥有多个独立的执行单元（ALU、FPU、Load&#x2F;Store 单元等），它们可以并行运作。若两条指令之间没有数据依赖，CPU 会同时发射并执行它们。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a = b + c;  <span class="comment">// 指令 1：使用 ALU</span></span><br><span class="line">x = y + z;  <span class="comment">// 指令 2：与指令 1 无依赖，可并行执行</span></span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>a</code> 和 <code>x</code> 互不相关，CPU 可以在不同执行单元上同时处理两条指令，而不是顺序等待。这种技术叫<strong>指令级并行（ILP, Instruction-Level Parallelism）</strong>，是超标量处理器的核心能力。</p>
+<h3 id="3-2-隐藏内存访问延迟"><a href="#3-2-隐藏内存访问延迟" class="headerlink" title="3.2 隐藏内存访问延迟"></a>3.2 隐藏内存访问延迟</h3><p>访问内存（RAM）比 CPU 执行指令慢几个数量级。当一条指令需要等待内存数据时，CPU 不会空转，它会提前执行后续的<strong>独立指令</strong>，把等待时间”填满”。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x = <span class="number">1</span>;              <span class="comment">// 指令 1：写寄存器，极快</span></span><br><span class="line">y = load_from_mem; <span class="comment">// 指令 2：内存访问，需要数百个时钟周期</span></span><br><span class="line">z = <span class="number">2</span>;              <span class="comment">// 指令 3：与指令 2 无依赖，可先执行</span></span><br></pre></td></tr></table></figure>
+
+<p>在等待指令 2 的内存数据返回期间，CPU 会先执行指令 3，避免流水线停顿（Pipeline Stall）。</p>
+<h3 id="3-3-编译器的静态优化"><a href="#3-3-编译器的静态优化" class="headerlink" title="3.3 编译器的静态优化"></a>3.3 编译器的静态优化</h3><p>编译器在生成机器码时，会对指令序列进行静态分析和重新调度，以获得更好的指令级并行度。常见优化包括：</p>
+<p><strong>循环不变量外提（Loop-Invariant Code Motion）：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 优化前</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">5</span> * <span class="number">2</span>;          <span class="comment">// 每次循环都在重复计算</span></span><br><span class="line">    <span class="type">int</span> c = <span class="number">5</span> * <span class="number">2</span>;          <span class="comment">// 相同的重复计算</span></span><br><span class="line">    <span class="built_in">array</span>[i] = a + i + c;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译器优化后（等价语义）</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">10</span>;  <span class="comment">// 提到循环外，只计算一次</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">    <span class="built_in">array</span>[i] = a + i + a;  <span class="comment">// 重用计算结果</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>寄存器缓存（Register Caching）：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 编译器可能将多次内存读取优化为寄存器复用</span></span><br><span class="line"><span class="comment">// 从程序员角度看是&quot;读了两次内存&quot;，实际只读一次</span></span><br><span class="line"><span class="type">int</span> val = shared_var;</span><br><span class="line"><span class="comment">// ... 一些无关代码 ...</span></span><br><span class="line"><span class="type">int</span> val2 = shared_var;  <span class="comment">// 编译器可能直接用寄存器中的旧值</span></span><br></pre></td></tr></table></figure>
+
+<p>这个优化在单线程中完全正确，但在多线程场景下，另一个线程可能已经修改了 <code>shared_var</code>，导致读到过时的值。</p>
+<hr>
+<h1 id="4-单线程安全，多线程危险"><a href="#4-单线程安全，多线程危险" class="headerlink" title="4. 单线程安全，多线程危险"></a>4. 单线程安全，多线程危险</h1><h3 id="4-1-为什么单线程没问题？"><a href="#4-1-为什么单线程没问题？" class="headerlink" title="4.1 为什么单线程没问题？"></a>4.1 为什么单线程没问题？</h3><p>即便执行顺序被重排，CPU 和编译器都会严格保证：<strong>对于同一个线程，程序的可见行为与按源码顺序执行完全一致。</strong></p>
+<p>这通过以下机制实现：</p>
+<ul>
+<li><strong>数据依赖追踪</strong>：若指令 B 依赖指令 A 的结果，A 绝不会被移到 B 之后。</li>
+<li><strong>重排序缓冲区（ROB, Reorder Buffer）</strong>：CPU 内部用 ROB 追踪指令的原始程序顺序，保证结果按序提交（Commit），对外呈现一致的状态。</li>
+</ul>
+<p>例如，下面的代码中，<code>b = a + 1</code> 依赖于 <code>a = 5</code> 的结果，编译器和 CPU 绝不会把 <code>b</code> 的赋值移到 <code>a</code> 之前：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="number">5</span>;       <span class="comment">// 指令 1</span></span><br><span class="line">b = a + <span class="number">1</span>;   <span class="comment">// 指令 2：依赖指令 1，不可重排</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-多线程的”可见性”问题"><a href="#4-2-多线程的”可见性”问题" class="headerlink" title="4.2 多线程的”可见性”问题"></a>4.2 多线程的”可见性”问题</h3><p>然而，在多核场景下，每个核心有自己的寄存器和多级缓存（L1&#x2F;L2&#x2F;L3）。一个核心对内存的写操作，不会立刻对其他核心可见。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Thread 1 (Core 0)                Thread 2 (Core 1)</span><br><span class="line">─────────────────                ─────────────────</span><br><span class="line">data = 42  ─────────────────────────────────────────────────────────► Core 1 看到？</span><br><span class="line">flag = 1   ─────────────────────────────────────────────────────────► Core 1 看到？</span><br><span class="line"></span><br><span class="line">// Core 0 将 data=42 写入 Store Buffer</span><br><span class="line">// Core 0 将 flag=1  写入 Store Buffer</span><br><span class="line">// Store Buffer 中的写操作尚未刷新到缓存/内存</span><br><span class="line">// Core 1 可能先看到 flag=1（若 flag 的 Store Buffer 先刷新）</span><br><span class="line">// 但 Core 1 此时读到的 data 仍是 0</span><br></pre></td></tr></table></figure>
+
+<p>这就是开头例子中”打印 0”的根本原因：<strong>写操作对其他核心的可见顺序，可能与写操作的实际执行顺序不同。</strong></p>
+<hr>
+<h1 id="5-四种重排序类型"><a href="#5-四种重排序类型" class="headerlink" title="5. 四种重排序类型"></a>5. 四种重排序类型</h1><p>从内存操作（Load&#x2F;Store）的角度，重排序可以分为四种类型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+<th>是否常见</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>LoadLoad</strong></td>
+<td>后续读取被移到前一个读取之前</td>
+<td>弱序架构常见（ARM）</td>
+</tr>
+<tr>
+<td><strong>StoreStore</strong></td>
+<td>后续写入被移到前一个写入之前</td>
+<td>弱序架构常见（ARM）</td>
+</tr>
+<tr>
+<td><strong>LoadStore</strong></td>
+<td>读取被移到后续写入之后</td>
+<td>罕见</td>
+</tr>
+<tr>
+<td><strong>StoreLoad</strong></td>
+<td>写入被移到后续读取之后</td>
+<td><strong>最常见，x86 也可能发生</strong></td>
+</tr>
+</tbody></table>
+<p>以 <strong>StoreStore 重排序</strong>为例（对应本文开头的例子）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 程序顺序</span></span><br><span class="line">data = <span class="number">42</span>;   <span class="comment">// Store 1</span></span><br><span class="line">flag = <span class="number">1</span>;    <span class="comment">// Store 2</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// CPU 或编译器可能的实际执行顺序：</span></span><br><span class="line">flag = <span class="number">1</span>;    <span class="comment">// Store 2（先执行/先对外可见）</span></span><br><span class="line">data = <span class="number">42</span>;   <span class="comment">// Store 1（后执行/后对外可见）</span></span><br></pre></td></tr></table></figure>
+
+<p>如果 Thread 2 在两次 Store 之间读取，就会看到 <code>flag=1</code> 但 <code>data=0</code>。</p>
+<hr>
+<h1 id="6-深入硬件：Store-Buffer-与-Invalidate-Queue"><a href="#6-深入硬件：Store-Buffer-与-Invalidate-Queue" class="headerlink" title="6. 深入硬件：Store Buffer 与 Invalidate Queue"></a>6. 深入硬件：Store Buffer 与 Invalidate Queue</h1><p>为什么 CPU 会发生这样的重排序？背后有具体的硬件原因。</p>
+<h3 id="6-1-Store-Buffer（写缓冲区）"><a href="#6-1-Store-Buffer（写缓冲区）" class="headerlink" title="6.1 Store Buffer（写缓冲区）"></a>6.1 Store Buffer（写缓冲区）</h3><p>在多核处理器中，当一个核心写入某个缓存行（Cache Line），若该缓存行当前处于 <strong>Invalid</strong> 状态，核心需要先向其他核心发送”无效化请求”（Invalidate），等所有核心确认后，才能完成写入。</p>
+<p>这个等待过程非常耗时。为了避免 CPU 空转，引入了 <strong>Store Buffer</strong>：</p>
+<ul>
+<li>核心把写操作先放入 Store Buffer，<strong>立即继续执行后续指令</strong>。</li>
+<li>Store Buffer 中的写操作在收到其他核心的确认后，再异步写入缓存。</li>
+</ul>
+<p><strong>关键点</strong>：Store Buffer 只对本核心可见。其他核心看不到 Store Buffer 中尚未刷入缓存的写操作。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Core 0 执行 data = 42：</span><br><span class="line">  → 写入 Store Buffer（本地可见）</span><br><span class="line">  → 发出 Invalidate 请求给 Core 1</span><br><span class="line">  → 继续执行 flag = 1（不等待 Core 1 的 Ack）</span><br><span class="line">  → flag = 1 也进入 Store Buffer</span><br><span class="line"></span><br><span class="line">Core 1 此时读取：</span><br><span class="line">  → 还没收到 data=42 的 Invalidate，其缓存中 data 仍为 0</span><br><span class="line">  → 可能先看到 flag=1（如果 flag 的 Invalidate 先到达）</span><br><span class="line">  → 读到 data=0！</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-Invalidate-Queue（无效化队列）"><a href="#6-2-Invalidate-Queue（无效化队列）" class="headerlink" title="6.2 Invalidate Queue（无效化队列）"></a>6.2 Invalidate Queue（无效化队列）</h3><p>另一端，当 Core 1 收到 Invalidate 消息时，为了快速返回 ACK（让 Core 0 尽早继续执行），Core 1 会将 Invalidate 消息放入 <strong>Invalidate Queue</strong>，先回复 ACK，再慢慢处理失效操作。</p>
+<p>这意味着：<strong>Core 1 可能已经 ACK 了某个缓存行的失效请求，但本地缓存中该缓存行仍然有效（持有过时数据）</strong>，直到 Invalidate Queue 中的条目被处理。</p>
+<h3 id="6-3-MESI-协议与缓存一致性"><a href="#6-3-MESI-协议与缓存一致性" class="headerlink" title="6.3 MESI 协议与缓存一致性"></a>6.3 MESI 协议与缓存一致性</h3><p>多核 CPU 通过 <strong>MESI 协议</strong>（Modified &#x2F; Exclusive &#x2F; Shared &#x2F; Invalid）来维护缓存一致性：</p>
+<ul>
+<li><strong>Modified（M）</strong>：该缓存行仅存在于本核心，且已被修改，与主内存不一致。</li>
+<li><strong>Exclusive（E）</strong>：该缓存行仅存在于本核心，未被修改，与主内存一致。</li>
+<li><strong>Shared（S）</strong>：该缓存行存在于多个核心的缓存中，均为只读。</li>
+<li><strong>Invalid（I）</strong>：该缓存行无效，不可使用。</li>
+</ul>
+<p>MESI 保证了<strong>缓存一致性（Cache Coherence）</strong>，对同一内存地址的操作最终是一致的。但<strong>缓存一致性 ≠ 内存一致性（Memory Consistency）</strong>。MESI 不保证跨地址的操作顺序，而 Store Buffer 和 Invalidate Queue 的存在，使得不同核心观察到的<strong>操作顺序</strong>可能大相径庭。</p>
+<blockquote>
+<p><strong>一句话总结</strong>：MESI 解决”看到哪个值”的问题，内存模型解决”按什么顺序看到”的问题。</p>
+</blockquote>
+<hr>
+<h1 id="7-编译器重排序的具体案例"><a href="#7-编译器重排序的具体案例" class="headerlink" title="7. 编译器重排序的具体案例"></a>7. 编译器重排序的具体案例</h1><p>让我们看一个真实的编译器重排序案例（C++，GCC -O2）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="keyword">volatile</span> <span class="type">int</span> now_serving;  <span class="comment">// 锁变量</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> shared_value;          <span class="comment">// 共享数据</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">compute</span><span class="params">(<span class="type">int</span> a)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">memory_reorder</span><span class="params">(<span class="type">int</span> ticket, <span class="type">int</span> a)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 等待锁</span></span><br><span class="line">    <span class="keyword">while</span> (now_serving != ticket);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 临界区：先更新数据，再释放锁</span></span><br><span class="line">    shared_value = <span class="built_in">compute</span>(a);  <span class="comment">// 步骤 1：更新共享数据</span></span><br><span class="line">    now_serving = ticket + <span class="number">1</span>;   <span class="comment">// 步骤 2：释放锁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序员的意图：先完成临界区内的数据更新，再释放锁。</p>
+<p>但 GCC -O2 编译后的汇编顺序可能是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">; ... 等待锁 ...</span><br><span class="line">call compute(int)       ; 计算结果存入 eax</span><br><span class="line">inc ebx                 ; ticket + 1</span><br><span class="line">mov [now_serving], ebx  ; 释放锁 ← 被提前了！</span><br><span class="line">mov [shared_value], eax ; 更新数据 ← 被推迟了！</span><br></pre></td></tr></table></figure>
+
+<p><strong>编译器把”释放锁”的操作提到了”更新共享数据”之前！</strong> 从编译器角度看，这两条指令没有数据依赖，调换顺序对单线程语义无影响。但对多线程来说，这意味着：另一个线程拿到锁后，读取的 <code>shared_value</code> 还是旧值。</p>
+<p>解决方案是插入<strong>编译器屏障（Compiler Barrier）</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memory_reorder</span><span class="params">(<span class="type">int</span> ticket, <span class="type">int</span> a)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (now_serving != ticket);</span><br><span class="line"></span><br><span class="line">    shared_value = <span class="built_in">compute</span>(a);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 编译器屏障：禁止屏障两侧的指令跨越此点重排</span></span><br><span class="line">    <span class="function"><span class="keyword">asm</span> <span class="title">volatile</span><span class="params">(<span class="string">&quot;&quot;</span> : : : <span class="string">&quot;memory&quot;</span>)</span></span>;</span><br><span class="line">    </span><br><span class="line">    now_serving = ticket + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个”空”的内联汇编指令不产生任何机器码，但告诉编译器：<strong>屏障之前的内存写操作不能被移到屏障之后</strong>。</p>
+<hr>
+<h1 id="8-Happens-Before：描述顺序保证的形式语言"><a href="#8-Happens-Before：描述顺序保证的形式语言" class="headerlink" title="8. Happens-Before：描述顺序保证的形式语言"></a>8. Happens-Before：描述顺序保证的形式语言</h1><p>在讨论并发正确性时，计算机科学家用 <strong>Happens-Before（先行发生）</strong> 关系来精确描述操作的顺序保证。</p>
+<h3 id="8-1-定义"><a href="#8-1-定义" class="headerlink" title="8.1 定义"></a>8.1 定义</h3><blockquote>
+<p>若操作 A <strong>happens-before</strong> 操作 B，则 A 的内存效果在 B 执行前对执行 B 的线程完全可见。</p>
+</blockquote>
+<p>这是一个<strong>偏序关系</strong>（Partial Order），满足传递性：若 A happens-before B，且 B happens-before C，则 A happens-before C。</p>
+<p>注意：<strong>Happens-before 不等于实际的时间先后顺序</strong>。它是一个关于可见性的承诺，而非物理时间的约束。</p>
+<h3 id="8-2-哪些操作建立-Happens-Before-关系？"><a href="#8-2-哪些操作建立-Happens-Before-关系？" class="headerlink" title="8.2 哪些操作建立 Happens-Before 关系？"></a>8.2 哪些操作建立 Happens-Before 关系？</h3><p>以 Java 内存模型（JMM）为例，以下操作天然建立 happens-before 关系：</p>
+<table>
+<thead>
+<tr>
+<th>规则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>程序顺序规则</strong></td>
+<td>同一线程内，前面的操作 happens-before 后面的操作</td>
+</tr>
+<tr>
+<td><strong>volatile 变量规则</strong></td>
+<td>对 volatile 变量的写 happens-before 后续对同一变量的读</td>
+</tr>
+<tr>
+<td><strong>锁规则</strong></td>
+<td>unlock 操作 happens-before 后续对同一锁的 lock 操作</td>
+</tr>
+<tr>
+<td><strong>线程启动规则</strong></td>
+<td><code>Thread.start()</code> happens-before 被启动线程的任何操作</td>
+</tr>
+<tr>
+<td><strong>线程终止规则</strong></td>
+<td>线程中的所有操作 happens-before 其他线程检测到该线程终止</td>
+</tr>
+<tr>
+<td><strong>传递性</strong></td>
+<td>若 A hb B 且 B hb C，则 A hb C</td>
+</tr>
+</tbody></table>
+<h3 id="8-3-回到最初的例子"><a href="#8-3-回到最初的例子" class="headerlink" title="8.3 回到最初的例子"></a>8.3 回到最初的例子</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 volatile 修复开头的例子（Java）</span></span><br><span class="line"><span class="keyword">volatile</span> <span class="type">int</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">data</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 1</span></span><br><span class="line">data = <span class="number">42</span>;   <span class="comment">// 步骤 1</span></span><br><span class="line">flag = <span class="number">1</span>;    <span class="comment">// 步骤 2：volatile 写</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 2</span></span><br><span class="line"><span class="keyword">if</span> (flag == <span class="number">1</span>) &#123;     <span class="comment">// 步骤 3：volatile 读</span></span><br><span class="line">    print(data);     <span class="comment">// 步骤 4</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于 <code>flag</code> 是 volatile：</p>
+<ul>
+<li>步骤 1 happens-before 步骤 2（程序顺序规则）</li>
+<li>步骤 2 happens-before 步骤 3（volatile 变量规则）</li>
+<li>步骤 3 happens-before 步骤 4（程序顺序规则）</li>
+<li>由传递性：步骤 1 happens-before 步骤 4</li>
+</ul>
+<p>这保证了线程 2 若看到 <code>flag == 1</code>，必然能看到 <code>data == 42</code>。</p>
+<hr>
+<h1 id="9-强内存模型-vs-弱内存模型"><a href="#9-强内存模型-vs-弱内存模型" class="headerlink" title="9. 强内存模型 vs 弱内存模型"></a>9. 强内存模型 vs 弱内存模型</h1><p>不同 CPU 架构对重排序的限制程度不同，形成了<strong>强内存模型</strong>和<strong>弱内存模型</strong>之分：</p>
+<h3 id="9-1-强内存模型：x86-x86-64"><a href="#9-1-强内存模型：x86-x86-64" class="headerlink" title="9.1 强内存模型：x86&#x2F;x86-64"></a>9.1 强内存模型：x86&#x2F;x86-64</h3><p>x86 架构实现了相对严格的 <strong>TSO（Total Store Order）</strong> 模型：</p>
+<ul>
+<li>允许 <strong>StoreLoad 重排序</strong>（写操作可以在后续读操作之后对外可见）</li>
+<li>禁止 LoadLoad、StoreStore、LoadStore 重排序</li>
+<li>Store Buffer 的存在是 StoreLoad 重排序的硬件根源</li>
+</ul>
+<h3 id="9-2-弱内存模型：ARM-PowerPC-RISC-V"><a href="#9-2-弱内存模型：ARM-PowerPC-RISC-V" class="headerlink" title="9.2 弱内存模型：ARM &#x2F; PowerPC &#x2F; RISC-V"></a>9.2 弱内存模型：ARM &#x2F; PowerPC &#x2F; RISC-V</h3><p>ARM 架构采用弱内存模型，允许几乎所有类型的重排序（LoadLoad、StoreStore、LoadStore、StoreLoad），默认只保证对<strong>同一地址</strong>操作的一致性。</p>
+<p>这意味着在 ARM 上正确运行的并发代码，需要更多的内存屏障指令，开销也更高。但也正因如此，ARM 在不需要同步的路径上可以做更激进的优化。</p>
+<h3 id="9-3-对程序员的影响"><a href="#9-3-对程序员的影响" class="headerlink" title="9.3 对程序员的影响"></a>9.3 对程序员的影响</h3><table>
+<thead>
+<tr>
+<th>架构</th>
+<th>默认保证</th>
+<th>需要屏障的场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>x86-64</td>
+<td>较强（TSO）</td>
+<td>主要是 StoreLoad 场景</td>
+</tr>
+<tr>
+<td>ARM &#x2F; RISC-V</td>
+<td>较弱</td>
+<td>几乎所有跨线程共享内存操作</td>
+</tr>
+<tr>
+<td>Java &#x2F; C++ 标准</td>
+<td>由语言内存模型定义</td>
+<td>使用 volatile &#x2F; atomic 保证</td>
+</tr>
+</tbody></table>
+<p>好消息是：现代编程语言（Java、C++11 起、Go、Rust）都提供了<strong>语言级别的内存模型</strong>，通过 <code>volatile</code>、<code>atomic</code>、<code>mutex</code> 等抽象，屏蔽了底层架构差异。程序员只需正确使用这些工具，编译器会自动在需要的地方插入屏障。</p>
+<hr>
+<h1 id="10-如何写出正确的多线程代码？"><a href="#10-如何写出正确的多线程代码？" class="headerlink" title="10. 如何写出正确的多线程代码？"></a>10. 如何写出正确的多线程代码？</h1><p>了解了重排序的本质后，解决方案就清晰了：需要使用<strong>同步工具</strong>来建立 happens-before 关系，明确约束操作的可见性与顺序。</p>
+<h3 id="10-1-互斥锁（Mutex-Lock）"><a href="#10-1-互斥锁（Mutex-Lock）" class="headerlink" title="10.1 互斥锁（Mutex &#x2F; Lock）"></a>10.1 互斥锁（Mutex &#x2F; Lock）</h3><p>最经典的同步原语。持有锁期间的所有操作，对下一个获取同一把锁的线程完全可见。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">std::mutex mtx;</span><br><span class="line"><span class="type">int</span> data = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> flag = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 1</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lock</span><span class="params">(mtx)</span></span>;</span><br><span class="line">    data = <span class="number">42</span>;</span><br><span class="line">    flag = <span class="number">1</span>;</span><br><span class="line">&#125;  <span class="comment">// 释放锁，所有写操作对下一个获取锁的线程可见</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 2</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lock</span><span class="params">(mtx)</span></span>;</span><br><span class="line">    <span class="keyword">if</span> (flag == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="built_in">print</span>(data);  <span class="comment">// 保证看到 42</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-原子操作（Atomic-Operations）"><a href="#10-2-原子操作（Atomic-Operations）" class="headerlink" title="10.2 原子操作（Atomic Operations）"></a>10.2 原子操作（Atomic Operations）</h3><p>原子操作保证操作的不可分割性，同时可以指定内存顺序语义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">flag</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"><span class="type">int</span> data = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 1</span></span><br><span class="line">data = <span class="number">42</span>;</span><br><span class="line">flag.<span class="built_in">store</span>(<span class="number">1</span>, std::memory_order_release);  <span class="comment">// Release 语义</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 2</span></span><br><span class="line"><span class="keyword">if</span> (flag.<span class="built_in">load</span>(std::memory_order_acquire) == <span class="number">1</span>) &#123;  <span class="comment">// Acquire 语义</span></span><br><span class="line">    <span class="built_in">print</span>(data);  <span class="comment">// 保证看到 42</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Release-Acquire</code> 语义：</p>
+<ul>
+<li><strong>Release（store）</strong>：该操作之前的所有内存写入，对执行对应 Acquire 操作的线程可见。</li>
+<li><strong>Acquire（load）</strong>：该操作之后的所有内存读取，能看到对应 Release 操作之前的写入。</li>
+</ul>
+<h3 id="10-3-内存屏障（Memory-Barrier-Fence）"><a href="#10-3-内存屏障（Memory-Barrier-Fence）" class="headerlink" title="10.3 内存屏障（Memory Barrier &#x2F; Fence）"></a>10.3 内存屏障（Memory Barrier &#x2F; Fence）</h3><p>内存屏障是最底层的同步工具，直接控制 CPU 和编译器的重排序行为：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 全屏障：屏障前的所有写操作对其他线程可见，</span></span><br><span class="line"><span class="comment">// 且屏障后的读操作不会读到屏障前的过时值</span></span><br><span class="line">std::<span class="built_in">atomic_thread_fence</span>(std::memory_order_seq_cst);</span><br></pre></td></tr></table></figure>
+
+<p>在 Linux 内核中，常见的屏障宏包括：</p>
+<ul>
+<li><code>smp_rmb()</code>：读屏障，防止 LoadLoad 重排序</li>
+<li><code>smp_wmb()</code>：写屏障，防止 StoreStore 重排序</li>
+<li><code>smp_mb()</code>：全屏障，防止所有类型重排序</li>
+</ul>
+<h3 id="10-4-选择建议"><a href="#10-4-选择建议" class="headerlink" title="10.4 选择建议"></a>10.4 选择建议</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">需要同步 → 优先使用高层抽象（mutex、channel）</span><br><span class="line">  ↓ 性能瓶颈</span><br><span class="line">  使用 atomic + Release/Acquire 语义</span><br><span class="line">  ↓ 极致性能场景（如无锁数据结构）</span><br><span class="line">  使用 Relaxed atomic + 显式 fence</span><br><span class="line">  ↓ 系统级编程（内核、驱动）</span><br><span class="line">  直接使用内存屏障指令</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-总结：建立正确的心智模型"><a href="#11-总结：建立正确的心智模型" class="headerlink" title="11. 总结：建立正确的心智模型"></a>11. 总结：建立正确的心智模型</h1><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>关键认知</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>指令重排序</strong></td>
+<td>编译器和 CPU 均会重排序，目的是性能优化</td>
+</tr>
+<tr>
+<td><strong>单线程安全</strong></td>
+<td>重排序不改变单线程的可见行为（数据依赖保证）</td>
+</tr>
+<tr>
+<td><strong>多线程危险</strong></td>
+<td>重排序会破坏线程间的可见性假设</td>
+</tr>
+<tr>
+<td><strong>Store Buffer</strong></td>
+<td>CPU 写缓冲区，使写操作延迟对其他核可见，是 StoreLoad 重排序的硬件来源</td>
+</tr>
+<tr>
+<td><strong>Invalidate Queue</strong></td>
+<td>失效队列，使缓存失效操作被延迟处理，导致读到过时值</td>
+</tr>
+<tr>
+<td><strong>MESI 协议</strong></td>
+<td>保证缓存一致性（Coherence），但不保证操作顺序（Consistency）</td>
+</tr>
+<tr>
+<td><strong>Happens-Before</strong></td>
+<td>描述操作间可见性保证的形式化工具</td>
+</tr>
+<tr>
+<td><strong>内存模型</strong></td>
+<td>语言&#x2F;硬件对”重排序边界”的规范，程序员与系统的契约</td>
+</tr>
+</tbody></table>
+<p><strong>核心原则</strong>：</p>
+<blockquote>
+<p><strong>任何对共享内存的并发访问（至少一个写操作），都必须通过同步机制来建立明确的 happens-before 关系。否则，程序行为是未定义的。</strong></p>
+</blockquote>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://dev.to/sachin_tolay_052a7e539e57/instruction-reordering-your-code-doesnt-always-run-in-the-order-you-wrote-it-bb8">Instruction Reordering: Your Code Doesn’t Always Run in the Order You Wrote It</a> - Sachin Tolay, DEV Community</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20120625/memory-ordering-at-compile-time/">Memory Ordering at Compile Time</a> - Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/20130702/the-happens-before-relation/">The Happens-Before Relation</a> - Jeff Preshing</li>
+<li><a target="_blank" rel="noopener" href="https://www.internalpointers.com/post/understanding-memory-ordering">Understanding Memory Reordering</a> - Internal Pointers</li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Memory_ordering">Memory Ordering - Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/MESI_protocol">MESI Protocol - Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html">JSR 133 Java Memory Model FAQ</a> - William Pugh</li>
+<li><a target="_blank" rel="noopener" href="https://research.swtch.com/plmm">Programming Language Memory Models</a> - Russ Cox</li>
+<li><a target="_blank" rel="noopener" href="https://coffeebeforearch.github.io/2020/11/21/compiler-memory-ordering.html">Compiler Memory Re-Ordering</a> - CoffeeBeforeArch</li>
+<li><a target="_blank" rel="noopener" href="https://fgiesen.wordpress.com/2014/07/07/cache-coherency/">Cache Coherency Primer</a> - Fabian Giesen</li>
+</ol>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%80%E4%B8%AA%E4%BB%A4%E4%BA%BA%E5%9B%B0%E6%83%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">1. 一个令人困惑的问题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%BB%80%E4%B9%88%E6%98%AF%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">2. 什么是指令重排序？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%9F%E6%80%A7%E8%83%BD%E6%98%AF%E6%A0%B9%E6%9C%AC%E9%A9%B1%E5%8A%A8%E5%8A%9B"><span class="toc-number">3.</span> <span class="toc-text">3. 为什么要重排序？性能是根本驱动力</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%85%85%E5%88%86%E5%88%A9%E7%94%A8-CPU-%E6%89%A7%E8%A1%8C%E5%8D%95%E5%85%83"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 充分利用 CPU 执行单元</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%9A%90%E8%97%8F%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 隐藏内存访问延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E8%AF%91%E5%99%A8%E7%9A%84%E9%9D%99%E6%80%81%E4%BC%98%E5%8C%96"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 编译器的静态优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8D%95%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%EF%BC%8C%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%8D%B1%E9%99%A9"><span class="toc-number">4.</span> <span class="toc-text">4. 单线程安全，多线程危险</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E7%BA%BF%E7%A8%8B%E6%B2%A1%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 为什么单线程没问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E2%80%9D%E5%8F%AF%E8%A7%81%E6%80%A7%E2%80%9D%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 多线程的”可见性”问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%9B%9B%E7%A7%8D%E9%87%8D%E6%8E%92%E5%BA%8F%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.</span> <span class="toc-text">5. 四种重排序类型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%B7%B1%E5%85%A5%E7%A1%AC%E4%BB%B6%EF%BC%9AStore-Buffer-%E4%B8%8E-Invalidate-Queue"><span class="toc-number">6.</span> <span class="toc-text">6. 深入硬件：Store Buffer 与 Invalidate Queue</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Store-Buffer%EF%BC%88%E5%86%99%E7%BC%93%E5%86%B2%E5%8C%BA%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 Store Buffer（写缓冲区）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Invalidate-Queue%EF%BC%88%E6%97%A0%E6%95%88%E5%8C%96%E9%98%9F%E5%88%97%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 Invalidate Queue（无效化队列）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-MESI-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">6.0.3.</span> <span class="toc-text">6.3 MESI 协议与缓存一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%BC%96%E8%AF%91%E5%99%A8%E9%87%8D%E6%8E%92%E5%BA%8F%E7%9A%84%E5%85%B7%E4%BD%93%E6%A1%88%E4%BE%8B"><span class="toc-number">7.</span> <span class="toc-text">7. 编译器重排序的具体案例</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Happens-Before%EF%BC%9A%E6%8F%8F%E8%BF%B0%E9%A1%BA%E5%BA%8F%E4%BF%9D%E8%AF%81%E7%9A%84%E5%BD%A2%E5%BC%8F%E8%AF%AD%E8%A8%80"><span class="toc-number">8.</span> <span class="toc-text">8. Happens-Before：描述顺序保证的形式语言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%AE%9A%E4%B9%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%93%AA%E4%BA%9B%E6%93%8D%E4%BD%9C%E5%BB%BA%E7%AB%8B-Happens-Before-%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 哪些操作建立 Happens-Before 关系？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%9B%9E%E5%88%B0%E6%9C%80%E5%88%9D%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-number">8.0.3.</span> <span class="toc-text">8.3 回到最初的例子</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%BC%BA%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B-vs-%E5%BC%B1%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">9.</span> <span class="toc-text">9. 强内存模型 vs 弱内存模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%9Ax86-x86-64"><span class="toc-number">9.0.1.</span> <span class="toc-text">9.1 强内存模型：x86&#x2F;x86-64</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%BC%B1%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%9AARM-PowerPC-RISC-V"><span class="toc-number">9.0.2.</span> <span class="toc-text">9.2 弱内存模型：ARM &#x2F; PowerPC &#x2F; RISC-V</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%AF%B9%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">9.0.3.</span> <span class="toc-text">9.3 对程序员的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%A6%82%E4%BD%95%E5%86%99%E5%87%BA%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BB%A3%E7%A0%81%EF%BC%9F"><span class="toc-number">10.</span> <span class="toc-text">10. 如何写出正确的多线程代码？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E4%BA%92%E6%96%A5%E9%94%81%EF%BC%88Mutex-Lock%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">10.1 互斥锁（Mutex &#x2F; Lock）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88Atomic-Operations%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">10.2 原子操作（Atomic Operations）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%EF%BC%88Memory-Barrier-Fence%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">10.3 内存屏障（Memory Barrier &#x2F; Fence）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.0.4.</span> <span class="toc-text">10.4 选择建议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%BB%BA%E7%AB%8B%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%BF%83%E6%99%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">11.</span> <span class="toc-text">11. 总结：建立正确的心智模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&text=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&is_video=false&description=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=指令重排序：你的代码并不总按你写的顺序执行&body=Check out this article: http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&title=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&name=指令重排序：你的代码并不总按你写的顺序执行&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/01/09/memory%20model/1.memory-model-instruction-reordering/&t=指令重排序：你的代码并不总按你写的顺序执行"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

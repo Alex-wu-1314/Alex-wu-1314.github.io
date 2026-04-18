@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 什么是无锁编程？ 一个常见的误区 核心技术概览 原子操作 Compare-And-Swap（CAS）循环 ABA 问题 顺序一致性 内存重排序 内存屏障与 Acquire&#x2F;Release 语义   各概念之间的关系 实践中的无锁代码示例（C++11） 常见陷阱与注意事项 总结   什么是无锁编程？很多人把”无锁编程”简单理解为”不使用 mutex 的编程”，这个说法只说对了一部分。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="无锁编程：核心概念与技术全解">
+<meta property="og:url" content="http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 什么是无锁编程？ 一个常见的误区 核心技术概览 原子操作 Compare-And-Swap（CAS）循环 ABA 问题 顺序一致性 内存重排序 内存屏障与 Acquire&#x2F;Release 语义   各概念之间的关系 实践中的无锁代码示例（C++11） 常见陷阱与注意事项 总结   什么是无锁编程？很多人把”无锁编程”简单理解为”不使用 mutex 的编程”，这个说法只说对了一部分。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-03-05T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-18T01:37:04.528Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="内存模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>无锁编程：核心概念与技术全解</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/03/16/memory%20model/4.memory-ordering-at-compile-time/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/01/20/memory%20model/2.memory-models-explained/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&text=无锁编程：核心概念与技术全解"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&is_video=false&description=无锁编程：核心概念与技术全解"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=无锁编程：核心概念与技术全解&body=Check out this article: http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&name=无锁编程：核心概念与技术全解&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&t=无锁编程：核心概念与技术全解"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%97%A0%E9%94%81%E7%BC%96%E7%A8%8B%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是无锁编程？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E4%BC%A0%E7%BB%9F%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.1.</span> <span class="toc-text">与传统互斥锁的对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%B8%B8%E8%A7%81%E7%9A%84%E8%AF%AF%E5%8C%BA"><span class="toc-number">3.</span> <span class="toc-text">一个常见的误区</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E6%A6%82%E8%A7%88"><span class="toc-number">4.</span> <span class="toc-text">核心技术概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88Atomic-Operations%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">1. 原子操作（Atomic Operations）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Compare-And-Swap%EF%BC%88CAS%EF%BC%89%E5%BE%AA%E7%8E%AF"><span class="toc-number">4.0.2.</span> <span class="toc-text">2. Compare-And-Swap（CAS）循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-ABA-%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.3.</span> <span class="toc-text">3. ABA 问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%88Sequential-Consistency%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">4. 顺序一致性（Sequential Consistency）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%86%85%E5%AD%98%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%88Memory-Reordering%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">5. 内存重排序（Memory Reordering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E4%B8%8E-Acquire-Release-%E8%AF%AD%E4%B9%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">6. 内存屏障与 Acquire&#x2F;Release 语义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%84%E6%A6%82%E5%BF%B5%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">5.</span> <span class="toc-text">各概念之间的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%EF%BC%88C-11%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">实践中的无锁代码示例（C++11）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%99%B7%E9%98%B1%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">7.</span> <span class="toc-text">常见陷阱与注意事项</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">9.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        无锁编程：核心概念与技术全解
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-03-05T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-03-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" rel="tag">内存模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%97%A0%E9%94%81%E7%BC%96%E7%A8%8B">什么是无锁编程？</a></li>
+<li><a href="#%E4%B8%80%E4%B8%AA%E5%B8%B8%E8%A7%81%E7%9A%84%E8%AF%AF%E5%8C%BA">一个常见的误区</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E6%A6%82%E8%A7%88">核心技术概览</a><ul>
+<li><a href="#1-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9Catomic-operations">原子操作</a></li>
+<li><a href="#2-compare-and-swap-cas-%E5%BE%AA%E7%8E%AF">Compare-And-Swap（CAS）循环</a></li>
+<li><a href="#3-aba-%E9%97%AE%E9%A2%98">ABA 问题</a></li>
+<li><a href="#4-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7sequential-consistency">顺序一致性</a></li>
+<li><a href="#5-%E5%86%85%E5%AD%98%E9%87%8D%E6%8E%92%E5%BA%8Fmemory-reordering">内存重排序</a></li>
+<li><a href="#6-%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E4%B8%8E-acquirerelease-%E8%AF%AD%E4%B9%89">内存屏障与 Acquire&#x2F;Release 语义</a></li>
+</ul>
+</li>
+<li><a href="#%E5%90%84%E6%A6%82%E5%BF%B5%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB">各概念之间的关系</a></li>
+<li><a href="#%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8Bc11">实践中的无锁代码示例（C++11）</a></li>
+<li><a href="#%E5%B8%B8%E8%A7%81%E9%99%B7%E9%98%B1%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">常见陷阱与注意事项</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+<hr>
+<h1 id="什么是无锁编程？"><a href="#什么是无锁编程？" class="headerlink" title="什么是无锁编程？"></a>什么是无锁编程？</h1><p>很多人把”无锁编程”简单理解为”不使用 mutex 的编程”，这个说法只说对了一部分。</p>
+<p>根据学术界的通用定义，<strong>无锁（lock-free）是对一段代码的性质描述，而不是对其实现方式的描述</strong>。一段代码被称为无锁，是指它满足以下条件：</p>
+<blockquote>
+<p><strong>在多个线程并发执行这段代码时，无论线程调度器如何调度（甚至是”恶意”调度），整个系统作为一个整体总能在有限步骤内取得进展（make progress）。</strong></p>
+</blockquote>
+<p>这里的关键是”<strong>系统整体</strong>始终能够推进”，而不是”<strong>某一个特定线程</strong>一定能推进”。</p>
+<p>注意，”lock-free”中的 “lock” 并不是专指 mutex，而是泛指任何可能导致整个应用程序卡死的情况，包括死锁（deadlock）、活锁（livelock），甚至是由于线程调度策略导致某些线程永久无法执行的场景。</p>
+<h3 id="与传统互斥锁的对比"><a href="#与传统互斥锁的对比" class="headerlink" title="与传统互斥锁的对比"></a>与传统互斥锁的对比</h3><p>使用 mutex 的代码天然<strong>不是</strong>无锁的。原因很简单：假设某个线程持有了 mutex，如果调度器永远不再调度该线程，其他所有等待该锁的线程将被永久阻塞。</p>
+<p>相比之下，无锁代码即使某个线程被挂起，其他线程也可以独立推进，不会受到影响。</p>
+<hr>
+<h1 id="一个常见的误区"><a href="#一个常见的误区" class="headerlink" title="一个常见的误区"></a>一个常见的误区</h1><p>下面是一个不包含 mutex 但<strong>仍然不是无锁</strong>的反例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 两个线程共享 x，且互相等待对方</span></span><br><span class="line"><span class="keyword">while</span> (x == <span class="number">0</span>) &#123;</span><br><span class="line">    x = <span class="number">1</span> - x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两个线程可能轮流将 <code>x</code> 在 0 和 1 之间反复切换，陷入活锁，系统整体无法取得进展。尽管这段代码没有 mutex，但它<strong>不满足</strong>无锁的定义。</p>
+<hr>
+<h1 id="核心技术概览"><a href="#核心技术概览" class="headerlink" title="核心技术概览"></a>核心技术概览</h1><p>当你尝试写出满足无锁定义的代码时，一套相关技术会自然而然地浮现出来：原子操作、内存屏障、ABA 问题的处理……这些并非可以随意选用的独立工具，而是相互关联的知识体系。</p>
+<p>下面逐一介绍这些核心概念。</p>
+<hr>
+<h3 id="1-原子操作（Atomic-Operations）"><a href="#1-原子操作（Atomic-Operations）" class="headerlink" title="1. 原子操作（Atomic Operations）"></a>1. 原子操作（Atomic Operations）</h3><p><strong>原子操作</strong>是指在内存上执行的、从外部看来不可分割的操作：没有任何线程能观察到该操作”执行了一半”的中间状态。</p>
+<p>在现代处理器上，许多操作天然就是原子的，例如对已对齐的简单类型（<code>int</code>、指针等）进行的读写操作。</p>
+<p>更重要的是 <strong>读-改-写（Read-Modify-Write, RMW）</strong> 原子操作，它允许以原子方式完成更复杂的事务。当多个线程同时对同一地址执行 RMW 操作时，它们会依次串行执行，互不干扰。常见的 RMW 操作包括：</p>
+<ul>
+<li><code>fetch_add</code>（原子加法）</li>
+<li><code>exchange</code>（原子交换）</li>
+<li><code>compare_exchange</code>（比较并交换，即 CAS）</li>
+</ul>
+<p>在 C++11 中，<code>std::atomic&lt;T&gt;</code> 提供了全套原子操作的标准接口，如下面这个<code>fetch_add</code> 函数就是其中之一。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原子自增，多线程安全</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    counter.<span class="built_in">fetch_add</span>(<span class="number">1</span>, std::memory_order_relaxed);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用规则</strong>：任何时候，若两个线程并发访问同一共享变量，且其中至少一个线程执行写操作，则两个线程都<strong>必须</strong>使用原子操作。否则，就会产生 C++11 标准所称的”数据竞争（data race）”，其后果是未定义行为（undefined behavior）——根本原因在于，非原子操作可能导致”撕裂读&#x2F;写（torn read&#x2F;write）”。</p>
+<hr>
+<h3 id="2-Compare-And-Swap（CAS）循环"><a href="#2-Compare-And-Swap（CAS）循环" class="headerlink" title="2. Compare-And-Swap（CAS）循环"></a>2. Compare-And-Swap（CAS）循环</h3><p>CAS 是无锁编程中最核心、最常用的模式。其伪代码逻辑如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">compare_and_swap(addr, expected, new_value):</span><br><span class="line">    if *addr == expected:</span><br><span class="line">        *addr = new_value</span><br><span class="line">        return true</span><br><span class="line">    else:</span><br><span class="line">        return false</span><br></pre></td></tr></table></figure>
+
+<p>CAS 操作是原子的：它检查内存中的当前值，仅当其与预期值相符时才更新，整个过程不可被打断。</p>
+<p><strong>CAS 循环</strong>的经典用法（以无锁自增为例）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">atomic_int</span> x = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">lock_free_increment</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> expected = atomic_load_explicit(&amp;x, memory_order_relaxed);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!atomic_compare_exchange_weak_explicit(</span><br><span class="line">                &amp;x, </span><br><span class="line">                &amp;expected, </span><br><span class="line">                expected + <span class="number">1</span>, </span><br><span class="line">                memory_order_relaxed, </span><br><span class="line">                memory_order_relaxed)) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 如果失败，expected 会被底层函数自动更新为 x 的当前值</span></span><br><span class="line">        <span class="comment">// 循环继续，使用更新后的 expected 重新尝试</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CAS 循环的优势在于它<strong>天然支持多写者</strong>：即使多个线程同时竞争，也只有一个线程的 CAS 能成功，失败的线程会读取最新值后重试，整个系统始终能够取得进展。</p>
+<hr>
+<h3 id="3-ABA-问题"><a href="#3-ABA-问题" class="headerlink" title="3. ABA 问题"></a>3. ABA 问题</h3><p>CAS 的一个经典陷阱是 <strong>ABA 问题</strong>：</p>
+<ol>
+<li>线程 1 读取共享变量值为 <code>A</code></li>
+<li>线程 2 将其修改为 <code>B</code>，又修改回 <code>A</code></li>
+<li>线程 1 执行 CAS，发现值仍为 <code>A</code>，以为没有变化，CAS 成功</li>
+</ol>
+<p>但实际上，共享状态已经被中间修改过了，线程 1 的 CAS 是基于过期的假设做出的。在链表等数据结构中，这可能导致严重的逻辑错误。</p>
+<p><strong>典型的无锁链表的ABA删除操作</strong></p>
+<p>假设有一个无锁单向链表，我们要删除头节点：</p>
+<ul>
+<li>初始状态：head → A → B → C</li>
+<li>线程 1 执行删除：<ul>
+<li>读取 head &#x3D; &amp;A</li>
+<li>准备执行 CAS：将 head 从 &amp;A 改为 &amp;B</li>
+</ul>
+</li>
+</ul>
+<p>但在 CAS 执行前：</p>
+<ul>
+<li>线程 2 删除了节点 A（head → B → C）</li>
+<li>节点 A 被释放回内存池</li>
+<li>线程 3 插入一个新节点，恰好分配到原来 A 的内存地址（即新节点也叫 “A”，地址仍为 &amp;A），此时链表变成：head → A（新）→ …</li>
+</ul>
+<p>然后线程 1 执行 CAS：</p>
+<ul>
+<li>它看到 head &#x3D;&#x3D; &amp;A（但这是新的 A！）</li>
+<li>CAS 成功，将 head 设置为 &amp;B</li>
+<li>结果：新插入的节点 A 被跳过，甚至可能造成链表断裂、内存泄漏或访问已释放内存！</li>
+</ul>
+<p><strong>常见解决方案</strong>：</p>
+<ul>
+<li>使用带版本号的 CAS（tagged pointer &#x2F; stamped reference）：将指针与一个单调递增的版本号打包，每次修改都增加版本号，即使值回到 <code>A</code>，版本号也不同。</li>
+<li>使用支持双倍宽度 CAS（DWCAS）的硬件指令，如 x86 的 <code>cmpxchg16b</code>。</li>
+</ul>
+<hr>
+<h3 id="4-顺序一致性（Sequential-Consistency）"><a href="#4-顺序一致性（Sequential-Consistency）" class="headerlink" title="4. 顺序一致性（Sequential Consistency）"></a>4. 顺序一致性（Sequential Consistency）</h3><p><strong>顺序一致性</strong>是一种内存模型，其含义是：所有线程对内存操作的观察顺序，与程序源代码中的顺序完全一致，且所有线程就这个全局顺序达成一致。</p>
+<p>在顺序一致模型下，不会出现令人费解的内存重排序问题，程序的行为就像所有操作都按照代码顺序、在单处理器上串行执行一样。</p>
+<p>在 C++11 中，使用默认内存序（<code>memory_order_seq_cst</code>）的原子操作会保证顺序一致性：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(<span class="number">0</span>)</span>, <span class="title">b</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 1</span></span><br><span class="line">a.<span class="built_in">store</span>(<span class="number">1</span>);           <span class="comment">// 默认 seq_cst</span></span><br><span class="line"><span class="type">int</span> r1 = b.<span class="built_in">load</span>();    <span class="comment">// 默认 seq_cst</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 线程 2</span></span><br><span class="line">b.<span class="built_in">store</span>(<span class="number">1</span>);</span><br><span class="line"><span class="type">int</span> r2 = a.<span class="built_in">load</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 seq_cst 下，r1 = r2 = 0 的情况不可能发生</span></span><br></pre></td></tr></table></figure>
+
+<p>顺序一致性的代价是编译器会在幕后插入额外的内存屏障指令，这可能带来性能开销。<strong>对于性能敏感的无锁代码，通常需要更精细地控制内存序。</strong></p>
+<hr>
+<h3 id="5-内存重排序（Memory-Reordering）"><a href="#5-内存重排序（Memory-Reordering）" class="headerlink" title="5. 内存重排序（Memory Reordering）"></a>5. 内存重排序（Memory Reordering）</h3><p>这是理解无锁编程最难、也最容易被忽视的部分。</p>
+<p><strong>内存重排序</strong>是指：代码中的内存操作，在实际执行时（或对其他线程可见时）的顺序，可能与源代码中写的顺序不同。这种重排序有两个来源：</p>
+<p><strong>编译器重排序</strong>：编译器在优化时，可能调整指令顺序以提高效率，只要在单线程语义下结果等价即可。</p>
+<p><strong>处理器重排序</strong>：现代多核 CPU 出于性能原因（如乱序执行、写缓冲区等），可能以不同于程序顺序的方式对内存操作进行调度，使得其他核心以不同的顺序观察到这些操作的结果。</p>
+<p>在单线程代码或使用了 mutex 的多线程代码中，这些重排序通常不可见（mutex 的实现中已包含必要的内存屏障）。但在无锁代码中，重排序的影响会暴露出来，可能导致极难复现的 bug。</p>
+<p>x86&#x2F;x64 架构拥有较强的内存模型（strong memory model），大多数情况下不会出现处理器重排序。而 ARM、PowerPC 等架构是弱序（weakly-ordered）的，在多核设备（如手机）上可能明显地观察到重排序效果。</p>
+<hr>
+<h3 id="6-内存屏障与-Acquire-Release-语义"><a href="#6-内存屏障与-Acquire-Release-语义" class="headerlink" title="6. 内存屏障与 Acquire&#x2F;Release 语义"></a>6. 内存屏障与 Acquire&#x2F;Release 语义</h3><p>为了在多处理器环境下防止内存重排序，需要使用<strong>内存屏障（Memory Barrier &#x2F; Memory Fence）</strong>。内存屏障分为以下几类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>#LoadLoad</code></td>
+<td>屏障前的 load 必须在屏障后的 load 之前完成</td>
+</tr>
+<tr>
+<td><code>#LoadStore</code></td>
+<td>屏障前的 load 必须在屏障后的 store 之前完成</td>
+</tr>
+<tr>
+<td><code>#StoreStore</code></td>
+<td>屏障前的 store 必须在屏障后的 store 之前完成</td>
+</tr>
+<tr>
+<td><code>#StoreLoad</code></td>
+<td>屏障前的 store 必须在屏障后的 load 之前完成（开销最大）</td>
+</tr>
+</tbody></table>
+<p>在实际编程中，更常用的抽象是 <strong>Acquire&#x2F;Release 语义</strong>：</p>
+<ul>
+<li><strong>Acquire 语义</strong>（读取时使用）：屏障后的所有读写操作，不能被重排序到该操作之前。</li>
+<li><strong>Release 语义</strong>（写入时使用）：屏障前的所有读写操作，不能被重排序到该操作之后。</li>
+</ul>
+<p>这对语义可以可靠地在线程间传递信息：一个线程通过 release 写入，另一个线程通过 acquire 读取，就能保证写线程在 release 之前的所有修改，对读线程在 acquire 之后的操作都可见。</p>
+<p><strong>错误或缺失的 acquire&#x2F;release 语义，是无锁编程中最常见的错误类型。</strong></p>
+<p>C++11 示例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">std::atomic&lt;<span class="type">bool</span>&gt; <span class="title">ready</span><span class="params">(<span class="literal">false</span>)</span></span>;</span><br><span class="line"><span class="type">int</span> data = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生产者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">producer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    data = <span class="number">42</span>;                                    <span class="comment">// 普通写</span></span><br><span class="line">    ready.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_release); <span class="comment">// release 写</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者线程</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">consumer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!ready.<span class="built_in">load</span>(std::memory_order_acquire)) &#123;&#125; <span class="comment">// acquire 读</span></span><br><span class="line">    <span class="comment">// 此处 data == 42 有保障</span></span><br><span class="line">    <span class="built_in">assert</span>(data == <span class="number">42</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="各概念之间的关系"><a href="#各概念之间的关系" class="headerlink" title="各概念之间的关系"></a>各概念之间的关系</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">你正在做无锁编程？</span><br><span class="line">        │</span><br><span class="line">        ├── 是否有多个写者？</span><br><span class="line">        │       │</span><br><span class="line">        │       ├── 是 → 你可能需要原子 RMW 指令（如 compare-and-swap）</span><br><span class="line">        │       │           │</span><br><span class="line">        │       │           └── 是否有 CAS 循环？</span><br><span class="line">        │       │                   │</span><br><span class="line">        │       │                   └── 是 → 小心 ABA 问题</span><br><span class="line">        │       │</span><br><span class="line">        │       └── 否 → （单写者）可仅用原子 load/store</span><br><span class="line">        │</span><br><span class="line">        └── 是否运行在多核 / 对称多处理器系统？</span><br><span class="line">                │</span><br><span class="line">                ├── 是 → 是否需要顺序一致性（sequential consistency）？</span><br><span class="line">                │       │</span><br><span class="line">                │       ├── 是 → 使用默认原子类型（如 C++11 的 memory_order_seq_cst）</span><br><span class="line">                │       │           （实现简单，但可能有性能开销）</span><br><span class="line">                │       │</span><br><span class="line">                │       └── 否 → 你可能需要显式内存序控制</span><br><span class="line">                │                   │</span><br><span class="line">                │                   └── 是否只有生产者-消费者模型？</span><br><span class="line">                │                           │</span><br><span class="line">                │                           ├── 是 → acquire 和 release 语义通常足够</span><br><span class="line">                │                           │</span><br><span class="line">                │                           └── 否 → 可能需要 full memory fence（全局内存屏障）</span><br><span class="line">                │</span><br><span class="line">                └── 否 → （单核系统）</span><br><span class="line">                        │</span><br><span class="line">                        └── 程序是否使用多线程？</span><br><span class="line">                                │</span><br><span class="line">                                ├── 否 → （单线程）无并发，无需任何同步或内存序控制</span><br><span class="line">                                │</span><br><span class="line">                                └── 是 → （单核多线程）</span><br><span class="line">                                        │</span><br><span class="line">                                        └── 是否对共享数据使用了正确的同步？</span><br><span class="line">                                                │</span><br><span class="line">                                                ├── 是 → 若使用默认 seq_cst 原子操作，</span><br><span class="line">                                                │         通常可避免问题；</span><br><span class="line">                                                │         若使用 relaxed 原子，</span><br><span class="line">                                                │         仍需注意编译器重排。</span><br><span class="line">                                                │</span><br><span class="line">                                                └── 否 → （例如直接读写非原子共享变量）</span><br><span class="line">                                                        │</span><br><span class="line">                                                        └── 存在数据竞争，行为未定义！</span><br><span class="line">                                                            即使在单核上也可能出错。</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="实践中的无锁代码示例（C-11）"><a href="#实践中的无锁代码示例（C-11）" class="headerlink" title="实践中的无锁代码示例（C++11）"></a>实践中的无锁代码示例（C++11）</h1><p>下面是一个线程安全的无锁单向链表栈（Treiber Stack）的简化实现，综合运用了上述概念：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LockFreeStack</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">        T value;</span><br><span class="line">        Node* next;</span><br><span class="line">        <span class="built_in">Node</span>(T v) : <span class="built_in">value</span>(v), <span class="built_in">next</span>(<span class="literal">nullptr</span>) &#123;&#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    std::atomic&lt;Node*&gt; head_&#123;<span class="literal">nullptr</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(T value)</span> </span>&#123;</span><br><span class="line">        Node* new_node = <span class="keyword">new</span> <span class="built_in">Node</span>(value);</span><br><span class="line">        <span class="comment">// CAS 循环，处理多写者竞争</span></span><br><span class="line">        new_node-&gt;next = head_.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line">        <span class="keyword">while</span> (!head_.<span class="built_in">compare_exchange_weak</span>(</span><br><span class="line">                   new_node-&gt;next,</span><br><span class="line">                   new_node,</span><br><span class="line">                   std::memory_order_release,   <span class="comment">// 发布新节点</span></span><br><span class="line">                   std::memory_order_relaxed)) &#123;</span><br><span class="line">            <span class="comment">// CAS 失败时，new_node-&gt;next 已被更新，继续重试</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">(T&amp; result)</span> </span>&#123;</span><br><span class="line">        Node* old_head = head_.<span class="built_in">load</span>(std::memory_order_acquire); <span class="comment">// 获取头节点</span></span><br><span class="line">        <span class="keyword">while</span> (old_head &amp;&amp; !head_.<span class="built_in">compare_exchange_weak</span>(</span><br><span class="line">                                old_head,</span><br><span class="line">                                old_head-&gt;next,</span><br><span class="line">                                std::memory_order_acquire,</span><br><span class="line">                                std::memory_order_relaxed)) &#123;</span><br><span class="line">            <span class="comment">// 重试</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (old_head) &#123;</span><br><span class="line">            result = old_head-&gt;value;</span><br><span class="line">            <span class="keyword">delete</span> old_head; <span class="comment">// 注意：完整实现中需要延迟回收（hazard pointer 等）</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：上述 <code>pop</code> 实现存在 ABA 问题和内存安全隐患，完整的无锁数据结构需要使用 Hazard Pointer 或 RCU 等内存回收机制。</p>
+</blockquote>
+<hr>
+<h1 id="常见陷阱与注意事项"><a href="#常见陷阱与注意事项" class="headerlink" title="常见陷阱与注意事项"></a>常见陷阱与注意事项</h1><p><strong>1. 无锁 ≠ 无等待（Wait-Free）</strong><br>无锁（lock-free）保证系统整体能推进，但某个特定线程可能因 CAS 反复失败而一直重试。”无等待”（wait-free）是更强的保证，要求每个线程都能在有限步骤内完成操作，但实现成本更高。</p>
+<p><strong>2. 谨慎使用 <code>memory_order_relaxed</code></strong><br>relaxed 语义不提供任何顺序保证，仅保证操作本身的原子性。只有在确认操作间没有依赖关系时（如独立的计数器）才应使用。</p>
+<p><strong>3. 性能不一定比锁高</strong><br>无锁编程的价值在于消除死锁、提高在高竞争场景下的吞吐量，但在低竞争场景下，mutex 的性能可能更好，而且代码更易于维护。<strong>先做性能分析，再考虑无锁化。</strong></p>
+<p><strong>4. 难以验证正确性</strong><br>无锁代码中的 bug 往往与时序相关，极难复现和调试。可以使用 <a target="_blank" rel="noopener" href="https://github.com/dvyukov/relacy">Relacy Race Detector</a> 等工具进行形式化验证和压力测试。</p>
+<p><strong>5. 优先使用标准库中已有的无锁结构</strong><br>在自己动手实现之前，优先考虑 <code>std::atomic</code>、并发库中已验证的数据结构，以及 Intel TBB、Folly 等成熟的并发库。</p>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>无锁编程是一个精密而复杂的领域，其核心知识体系可以总结如下：</p>
+<ul>
+<li><strong>无锁的本质</strong>是一种系统级的进展性保证，而非简单地”不用锁”</li>
+<li><strong>原子操作</strong>是无锁编程的基础，确保内存操作的不可分割性</li>
+<li><strong>CAS 循环</strong>是支持多写者的核心模式，需警惕 ABA 问题</li>
+<li><strong>内存重排序</strong>是多核环境下无锁编程最隐蔽的挑战</li>
+<li><strong>Acquire&#x2F;Release 语义</strong>是在线程间可靠传递信息的关键工具</li>
+<li><strong>顺序一致性</strong>提供了最强的保证，但有性能代价；acquire&#x2F;release 是更精细的折中方案</li>
+</ul>
+<p>理解这些概念之间的层次关系，是写出正确、高效的无锁代码的前提。</p>
+<hr>
+<h1 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://preshing.com/">Preshing on Programming</a> — Jeff Preshing 的系列博文，是目前最系统的无锁编程入门资源</li>
+<li><a target="_blank" rel="noopener" href="https://www.manning.com/books/c-plus-plus-concurrency-in-action">C++ Concurrency in Action</a> — Anthony Williams 著，涵盖 C++11 原子库的权威指南</li>
+<li><a target="_blank" rel="noopener" href="https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-370591-4">The Art of Multiprocessor Programming</a> — Herlihy &amp; Shavit 著，无锁算法的学术经典（注意：书中大多数示例假设顺序一致性）</li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=A8eCGOqgvH4">Herb Sutter: Atomic Weapons</a> — CppCon 演讲，深入讲解 C++ 内存模型</li>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/dxtecharts/lockless-programming">Lockless Programming Considerations</a> — Bruce Dawson 的 Xbox 360 无锁编程指南</li>
+</ul>
+<hr>
+<p><em>本文整理自 Jeff Preshing 的 <a target="_blank" rel="noopener" href="https://preshing.com/20120612/an-introduction-to-lock-free-programming/">An Introduction to Lock-Free Programming</a>（2012），并结合相关资料进行了扩展与补充。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%97%A0%E9%94%81%E7%BC%96%E7%A8%8B%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么是无锁编程？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E4%BC%A0%E7%BB%9F%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.1.</span> <span class="toc-text">与传统互斥锁的对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%B8%B8%E8%A7%81%E7%9A%84%E8%AF%AF%E5%8C%BA"><span class="toc-number">3.</span> <span class="toc-text">一个常见的误区</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E6%A6%82%E8%A7%88"><span class="toc-number">4.</span> <span class="toc-text">核心技术概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88Atomic-Operations%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">1. 原子操作（Atomic Operations）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Compare-And-Swap%EF%BC%88CAS%EF%BC%89%E5%BE%AA%E7%8E%AF"><span class="toc-number">4.0.2.</span> <span class="toc-text">2. Compare-And-Swap（CAS）循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-ABA-%E9%97%AE%E9%A2%98"><span class="toc-number">4.0.3.</span> <span class="toc-text">3. ABA 问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%88Sequential-Consistency%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">4. 顺序一致性（Sequential Consistency）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%86%85%E5%AD%98%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%88Memory-Reordering%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">5. 内存重排序（Memory Reordering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E4%B8%8E-Acquire-Release-%E8%AF%AD%E4%B9%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">6. 内存屏障与 Acquire&#x2F;Release 语义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%84%E6%A6%82%E5%BF%B5%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">5.</span> <span class="toc-text">各概念之间的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%EF%BC%88C-11%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">实践中的无锁代码示例（C++11）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%99%B7%E9%98%B1%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">7.</span> <span class="toc-text">常见陷阱与注意事项</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">9.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&text=无锁编程：核心概念与技术全解"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&is_video=false&description=无锁编程：核心概念与技术全解"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=无锁编程：核心概念与技术全解&body=Check out this article: http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&title=无锁编程：核心概念与技术全解"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&name=无锁编程：核心概念与技术全解&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/03/05/memory%20model/3.lock-free-programming-intro/&t=无锁编程：核心概念与技术全解"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

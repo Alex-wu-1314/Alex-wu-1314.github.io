@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="1. 一致性模型作为“程序员契约”在多处理器系统或分布式计算的环境中，内存操作的结果并不总是直观的。为了让系统的行为变得可预测，引入了一致性模型 (Consistency Model) 的概念。 核心定义： 一致性模型定义了程序员与系统（如分布式共享内存系统或分布式数据库）之间的一种契约（Contract）。系统承诺：如果程序员遵循特定的操作规则，系统将保证内存操作的结果是连贯且可预测的。 这种契">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机科学中的一致性模型">
+<meta property="og:url" content="http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="1. 一致性模型作为“程序员契约”在多处理器系统或分布式计算的环境中，内存操作的结果并不总是直观的。为了让系统的行为变得可预测，引入了一致性模型 (Consistency Model) 的概念。 核心定义： 一致性模型定义了程序员与系统（如分布式共享内存系统或分布式数据库）之间的一种契约（Contract）。系统承诺：如果程序员遵循特定的操作规则，系统将保证内存操作的结果是连贯且可预测的。 这种契">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-06-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-18T01:05:20.604Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="一致性模型">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>计算机科学中的一致性模型</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/06/25/consistency%20model/2.%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E%E5%9B%A0%E6%9E%9C%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/06/02/memory%20model/11.lock-free-cas-rcu/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&text=计算机科学中的一致性模型"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&is_video=false&description=计算机科学中的一致性模型"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=计算机科学中的一致性模型&body=Check out this article: http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&name=计算机科学中的一致性模型&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&t=计算机科学中的一致性模型"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B%E4%BD%9C%E4%B8%BA%E2%80%9C%E7%A8%8B%E5%BA%8F%E5%91%98%E5%A5%91%E7%BA%A6%E2%80%9D"><span class="toc-number">1.</span> <span class="toc-text">1. 一致性模型作为“程序员契约”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Consistency-vs-Coherence"><span class="toc-number">2.</span> <span class="toc-text">2. Consistency vs. Coherence</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%BC%BA%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">3. 强一致性模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A5%E8%8B%9B%E4%B8%80%E8%87%B4%E6%80%A7-Strict-Consistency"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 严苛一致性 (Strict Consistency)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BA%BF%E6%80%A7%E4%B8%80%E8%87%B4%E6%80%A7-Linearizability"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 线性一致性 (Linearizability)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7-Sequential-Consistency"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 顺序一致性 (Sequential Consistency)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BC%B1%E4%B8%80%E8%87%B4%E6%80%A7%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="toc-number">4.</span> <span class="toc-text">4. 弱一致性的路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%A0%E6%9E%9C%E4%B8%80%E8%87%B4%E6%80%A7-Causal-Consistency"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 因果一致性 (Causal Consistency)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-FIFO-PRAM-%E4%B8%80%E8%87%B4%E6%80%A7-%E2%80%94%E2%80%94-%E5%8D%95%E4%BA%BA%E5%A4%9A%E4%BB%BB%E5%8A%A1"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 FIFO &#x2F; PRAM 一致性 —— 单人多任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%BC%B1%E4%B8%80%E8%87%B4%E6%80%A7-Weak-Consistency-%E2%80%94%E2%80%94-%E5%AE%9A%E6%9C%9F%E5%90%8C%E6%AD%A5"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 弱一致性 (Weak Consistency) —— 定期同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E9%87%8A%E6%94%BE-%E8%BF%9B%E5%85%A5%E4%B8%80%E8%87%B4%E6%80%A7-Release-Entry-Consistency-%E2%80%94%E2%80%94-%E5%8A%9E%E5%85%AC%E5%AE%A4%E9%92%A5%E5%8C%99"><span class="toc-number">4.0.4.</span> <span class="toc-text">4.4 释放&#x2F;进入一致性 (Release&#x2F;Entry Consistency) —— 办公室钥匙</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E4%BC%9A%E8%AF%9D%E4%BF%9D%E8%AF%81-Session-Guarantees"><span class="toc-number">4.0.5.</span> <span class="toc-text">4.5 会话保证 (Session Guarantees)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E%E5%BC%B1%E6%A8%A1%E5%9E%8B%EF%BC%9A%E6%80%A7%E8%83%BD%E4%B8%8E%E4%BB%A3%E4%BB%B7%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">5.</span> <span class="toc-text">5. 最终一致性与弱模型：性能与代价的权衡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E6%A8%A1%E5%9E%8B%EF%BC%9F%EF%BC%88CAP-%E5%AE%9A%E7%90%86%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 为什么会有这么多模型？（CAP 定理）</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        计算机科学中的一致性模型
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-06-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-06-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B/" rel="tag">一致性模型</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="1-一致性模型作为“程序员契约”"><a href="#1-一致性模型作为“程序员契约”" class="headerlink" title="1. 一致性模型作为“程序员契约”"></a>1. 一致性模型作为“程序员契约”</h1><p>在多处理器系统或分布式计算的环境中，内存操作的结果并不总是直观的。为了让系统的行为变得可预测，引入了一致性模型 (Consistency Model) 的概念。</p>
+<p>核心定义： 一致性模型定义了程序员与系统（如分布式共享内存系统或分布式数据库）之间的一种契约（Contract）。系统承诺：如果程序员遵循特定的操作规则，系统将保证内存操作的结果是连贯且可预测的。</p>
+<p>这种契约的核心价值在于可预测性。我们可以通过一个具体的例子来理解：假设数据行 X 同时复制在节点 M 和节点 N 上。</p>
+<ul>
+<li>客户端 A 向节点 M 写入数据 X。</li>
+<li>一段时间 t 后，客户端 B 从节点 N 读取数据 X。</li>
+</ul>
+<p>此时，一致性模型决定了客户端 B 是否能看到 A 的写入。如果没有这个契约，程序员将无法判断读取结果的有效性。这种 predictability 让开发者无需深陷底层硬件或网络的复杂性，只需按规则办事。然而，当涉及多个处理器交叉操作多个变量时，简单的契约便会因为性能与正确性的博弈而变得异常复杂。</p>
+<hr>
+<h1 id="2-Consistency-vs-Coherence"><a href="#2-Consistency-vs-Coherence" class="headerlink" title="2. Consistency vs. Coherence"></a>2. Consistency vs. Coherence</h1><p>在系统架构中，这两个术语经常被混淆。需要从定义维度和分类方法两个层面进行梳理。</p>
+<p>首先，可以通过下表对比两者的核心差异：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Coherence</th>
+<th>Consistency</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>定义 (Definition)</td>
+<td>确保所有处理器对单一内存位置的写入顺序达成共识。</td>
+<td>规定跨多个内存位置的操作在所有进程眼中表现出的顺序。</td>
+</tr>
+<tr>
+<td>关注对象 (Focus)</td>
+<td>维护单一变量&#x2F;位置的全局排序 (Global Ordering)。</td>
+<td>多个位置的操作编排与逻辑可见顺序。</td>
+</tr>
+<tr>
+<td>应用场景 (Scope)</td>
+<td>缓存系统或无缓存系统，解决“大家看到的 X 是否一致”。</td>
+<td>分布式共享内存、数据库，解决“操作 A 是否在操作 B 之前”。</td>
+</tr>
+</tbody></table>
+<p>此外，学术界通常从两个视角来对这些模型进行分类：</p>
+<ol>
+<li>Issue Method：描述进程在发出操作请求时受到的限制（例如：在前一个操作完成前不允许发出下一个）。</li>
+<li>View Method：定义进程所能看到的内存操作的最终可见顺序。</li>
+</ol>
+<p>Coherence是关于“某个变量的一致视图”，而Consistency则是关于“跨多个位置的操作编排”。为了追求极致的性能，系统设计者通常会放宽这些限制，这就引出了不同强度的模型选择。</p>
+<hr>
+<h1 id="3-强一致性模型"><a href="#3-强一致性模型" class="headerlink" title="3. 强一致性模型"></a>3. 强一致性模型</h1><p>强一致性模型为程序员提供了最直观、最接近单机串行执行的体验，但其物理实现成本极高。</p>
+<h3 id="3-1-严苛一致性-Strict-Consistency"><a href="#3-1-严苛一致性-Strict-Consistency" class="headerlink" title="3.1 严苛一致性 (Strict Consistency)"></a>3.1 严苛一致性 (Strict Consistency)</h3><p>这是强度最高的模型，要求任何写入必须瞬时被所有处理器看到。</p>
+<ul>
+<li><p>比喻： 就像一个同步的心灵感应。双胞胎中的一个学会了一个单词，另一个在同一微秒内也立刻懂了。</p>
+</li>
+<li><p>物理局限性： 这仅能作为一个“思想实验”。根据物理定律，信息传递的速度不能超过光速，瞬时的信息交换在现实中是无法实现的。因此，它更多用于形式化研究，而非工程实践。</p>
+</li>
+</ul>
+<h3 id="3-2-线性一致性-Linearizability"><a href="#3-2-线性一致性-Linearizability" class="headerlink" title="3.2 线性一致性 (Linearizability)"></a>3.2 线性一致性 (Linearizability)</h3><p>操作在发起和结束之间的某个时刻原子化生效，一旦写入完成，之后任何读取都必须是新值。</p>
+<ul>
+<li>比喻：就像一个物理黑板。你在上面写了一个字，写完的那一刻，教室里所有人看黑板，看到的都是那个字。</li>
+</ul>
+<h3 id="3-3-顺序一致性-Sequential-Consistency"><a href="#3-3-顺序一致性-Sequential-Consistency" class="headerlink" title="3.3 顺序一致性 (Sequential Consistency)"></a>3.3 顺序一致性 (Sequential Consistency)</h3><p>由 Lamport 在 1979 年提出，是强一致性在实际系统中的重要基石。根据 Adve 和 Gharachorloo (1996) 的定义，实现顺序一致性必须满足两个核心要求：</p>
+<ol>
+<li>程序顺序 (Program Order)：每个进程发出的内存请求必须严格遵循其程序定义的顺序。</li>
+<li>写入原子性 (Write Atomicity)：所有内存请求必须像在一个单一的 FIFO 队列中排队执行一样，对所有处理器可见。</li>
+</ol>
+<ul>
+<li>比喻： 就像看同一场电影的直播。虽然由于网络延迟，你看到的画面可能比现场晚了1秒，但你和所有观众看到的剧情顺序（先开枪再倒地）是完全一样的。</li>
+</ul>
+<p>顺序一致性通过让操作看起来是“原子执行”的，提供了一个符合直觉的逻辑模型。但必须警惕： 顺序一致性并不意味着执行结果是确定性的。由于不同处理器间的操作交织（Interleaving）顺序在每次运行时可能不同，相同的程序可能会产生不同的结果。</p>
+<hr>
+<h1 id="4-弱一致性的路径"><a href="#4-弱一致性的路径" class="headerlink" title="4. 弱一致性的路径"></a>4. 弱一致性的路径</h1><p>随着系统规模扩大，维持强一致性的实时同步成本（如 Linearizability 所要求的）变得不可接受，因此引入了对逻辑关系的考量。</p>
+<h3 id="4-1-因果一致性-Causal-Consistency"><a href="#4-1-因果一致性-Causal-Consistency" class="headerlink" title="4.1 因果一致性 (Causal Consistency)"></a>4.1 因果一致性 (Causal Consistency)</h3><p>这种模型对操作进行了分类，区分“因果相关”与“并发”操作。</p>
+<ul>
+<li><p>核心规则： 只有具有因果相关的写入操作，才必须被所有进程以相同的顺序看到。</p>
+</li>
+<li><p>特性： 两个没有因果关系的并发写入，在不同的机器上看到的顺序可以不同。这显著提升了系统的并发处理能力。</p>
+</li>
+<li><p>比喻： 就像社交媒体的评论区。你必须先看到“提问”，才能看到针对这个提问的“回答”。但两个互不相干的人发的动态，谁先谁后显示并不重要。</p>
+</li>
+</ul>
+<h3 id="4-2-FIFO-PRAM-一致性-——-单人多任务"><a href="#4-2-FIFO-PRAM-一致性-——-单人多任务" class="headerlink" title="4.2 FIFO &#x2F; PRAM 一致性 —— 单人多任务"></a>4.2 FIFO &#x2F; PRAM 一致性 —— 单人多任务</h3><p>解释： 保证来自同一个进程的写操作是按序可见的，但不同进程间的写操作顺序不做保证。</p>
+<p>比喻： 银行排队。你在1号窗口办了两件事，大家都会看到你先存钱后取钱；但你和2号窗口那个人的动作顺序，大家看到的可能各不相同。</p>
+<h3 id="4-3-弱一致性-Weak-Consistency-——-定期同步"><a href="#4-3-弱一致性-Weak-Consistency-——-定期同步" class="headerlink" title="4.3 弱一致性 (Weak Consistency) —— 定期同步"></a>4.3 弱一致性 (Weak Consistency) —— 定期同步</h3><p>解释： 只在遇到“同步信号”（同步变量）时才保证一致性，平时数据可能是乱的。</p>
+<p>比喻： 公司周会。平时各部门各忙各的，数据不一致没关系；周一开会（Sync）时，大家才把进度同步对齐。</p>
+<h3 id="4-4-释放-进入一致性-Release-Entry-Consistency-——-办公室钥匙"><a href="#4-4-释放-进入一致性-Release-Entry-Consistency-——-办公室钥匙" class="headerlink" title="4.4 释放&#x2F;进入一致性 (Release&#x2F;Entry Consistency) —— 办公室钥匙"></a>4.4 释放&#x2F;进入一致性 (Release&#x2F;Entry Consistency) —— 办公室钥匙</h3><p>解释： 只有在你获得锁（Entry）或释放锁（Release）时才进行数据同步。</p>
+<p>比喻： 共享文档锁。只有当你点击“编辑”获取了权限（Entry），系统才把最新的文档传给你；当你点“保存并退出”（Release），系统才把你的改动推给别人。</p>
+<h3 id="4-5-会话保证-Session-Guarantees"><a href="#4-5-会话保证-Session-Guarantees" class="headerlink" title="4.5 会话保证 (Session Guarantees)"></a>4.5 会话保证 (Session Guarantees)</h3><p>这属于客户端中心 (Client-centric) 的一致性模型，主要关注单一客户端在与分布式系统交互（即一个“会话”）时的逻辑连贯性：</p>
+<ol>
+<li>单调读 (Monotonic Reads)：读取到某值后，后续读取绝不会返回比它更旧的值。<br>解释： 用户读到了某个版本的数据后，之后再读不能读到更旧的版本</li>
+<li>单调写 (Monotonic Writes)：同一进程的写操作必须按其发出顺序完成。<br>解释： 用户发出的多次写操作必须按发出的顺序生效。</li>
+<li>读己之所写 (Read-your-writes)：进程写入一个值后，随后的读操作一定能看到该值。<br>解释： 用户修改了数据后，立刻刷新页面必须能看到自己的修改。</li>
+<li>写跟随读 (Writes-follows-reads)：随后的写操作必须基于之前读到的最新值进行。<br>简单来说，你的“新动作”必须建立在你“刚看到的现实”之上。</li>
+</ol>
+<p>这些保证确保了即便后端数据仍在同步，个体用户感受到的数据流依然是逻辑自洽的。</p>
+<hr>
+<h1 id="5-最终一致性与弱模型：性能与代价的权衡"><a href="#5-最终一致性与弱模型：性能与代价的权衡" class="headerlink" title="5. 最终一致性与弱模型：性能与代价的权衡"></a>5. 最终一致性与弱模型：性能与代价的权衡</h1><p>在追求高可用性的分布式系统中，最终一致性 (Eventual Consistency) 是最常见的选择。</p>
+<ul>
+<li><p>定义： 在没有新更新发生的情况下，经过足够长的时间，所有副本最终都会达到一致状态。</p>
+</li>
+<li><p>放宽（Relaxation）的维度： 为了压榨性能，弱模型会放宽顺序要求，常见的优化动机包括：</p>
+<ul>
+<li>放宽“写后读” (Write-to-Read) 顺序： 这是为了隐藏写入延迟，允许处理器在写入尚未传播完成时就执行后续的读操作。</li>
+<li>放宽“写后写” (Write-to-Write) 顺序： 允许对不同位置的写入进行重排，以优化流水线效率。</li>
+</ul>
+</li>
+<li><p>比喻： 就像离线文档协作。大家各自改自己的，虽然此时大家看到的版本不同，但只要同步一下，最后大家都会拿到包含所有修改的最终版本。</p>
+</li>
+</ul>
+<p>核心见解： 在弱一致性环境下，硬件或底层系统实际上“关闭”了自动的一致性维护。此时，维护契约的责任从硬件转移到了程序员身上。程序员必须通过手动插入<strong>同步原语（如内存屏障 Fence 或锁 Locks）</strong>来显式地划定边界，确保关键路径上的顺序正确性。</p>
+<hr>
+<h1 id="6-为什么会有这么多模型？（CAP-定理）"><a href="#6-为什么会有这么多模型？（CAP-定理）" class="headerlink" title="6. 为什么会有这么多模型？（CAP 定理）"></a>6. 为什么会有这么多模型？（CAP 定理）</h1><p>在分布式领域有一个著名的 CAP 定理：</p>
+<p>C (Consistency) 一致性</p>
+<p>A (Availability) 可用性</p>
+<p>P (Partition Tolerance) 分区容错性</p>
+<p>系统无法同时完美满足这三点。如果你追求强一致性（线性一致性），当网络出现波动时，系统为了保证不出错，往往必须拒绝服务，从而牺牲可用性。因此，现代互联网架构往往选择降低一致性要求（如采用最终一致性），以换取极高的响应速度和 24 小时不间断的可用性。</p>
+<p>理解一致性模型，本质上是在理解一套关于权衡的“连续谱”：模型越强，编程越容易，但系统性能与扩展性越差；模型越弱，系统性能越高，但编程复杂度与非直觉行为激增。</p>
+<p>以下是本文涵盖的主要模型及其核心特征：</p>
+<ol>
+<li>顺序一致性 (Sequential Consistency) -&gt; 关键词：原子性（符合直觉但非确定性）。</li>
+<li>因果一致性 (Causal Consistency) -&gt; 关键词：逻辑顺序（区分因果与并发）。</li>
+<li>会话一致性 (Session Guarantees) -&gt; 关键词：用户体验（客户端中心的一致性）。</li>
+<li>最终一致性 (Eventual Consistency) -&gt; 关键词：高可用（BASE 理论的基石）。</li>
+</ol>
+<p>More info: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Consistency_model">Consistency model</a></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B%E4%BD%9C%E4%B8%BA%E2%80%9C%E7%A8%8B%E5%BA%8F%E5%91%98%E5%A5%91%E7%BA%A6%E2%80%9D"><span class="toc-number">1.</span> <span class="toc-text">1. 一致性模型作为“程序员契约”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Consistency-vs-Coherence"><span class="toc-number">2.</span> <span class="toc-text">2. Consistency vs. Coherence</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%BC%BA%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">3. 强一致性模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A5%E8%8B%9B%E4%B8%80%E8%87%B4%E6%80%A7-Strict-Consistency"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 严苛一致性 (Strict Consistency)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BA%BF%E6%80%A7%E4%B8%80%E8%87%B4%E6%80%A7-Linearizability"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 线性一致性 (Linearizability)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7-Sequential-Consistency"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 顺序一致性 (Sequential Consistency)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BC%B1%E4%B8%80%E8%87%B4%E6%80%A7%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="toc-number">4.</span> <span class="toc-text">4. 弱一致性的路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%A0%E6%9E%9C%E4%B8%80%E8%87%B4%E6%80%A7-Causal-Consistency"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 因果一致性 (Causal Consistency)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-FIFO-PRAM-%E4%B8%80%E8%87%B4%E6%80%A7-%E2%80%94%E2%80%94-%E5%8D%95%E4%BA%BA%E5%A4%9A%E4%BB%BB%E5%8A%A1"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 FIFO &#x2F; PRAM 一致性 —— 单人多任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%BC%B1%E4%B8%80%E8%87%B4%E6%80%A7-Weak-Consistency-%E2%80%94%E2%80%94-%E5%AE%9A%E6%9C%9F%E5%90%8C%E6%AD%A5"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 弱一致性 (Weak Consistency) —— 定期同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E9%87%8A%E6%94%BE-%E8%BF%9B%E5%85%A5%E4%B8%80%E8%87%B4%E6%80%A7-Release-Entry-Consistency-%E2%80%94%E2%80%94-%E5%8A%9E%E5%85%AC%E5%AE%A4%E9%92%A5%E5%8C%99"><span class="toc-number">4.0.4.</span> <span class="toc-text">4.4 释放&#x2F;进入一致性 (Release&#x2F;Entry Consistency) —— 办公室钥匙</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E4%BC%9A%E8%AF%9D%E4%BF%9D%E8%AF%81-Session-Guarantees"><span class="toc-number">4.0.5.</span> <span class="toc-text">4.5 会话保证 (Session Guarantees)</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E%E5%BC%B1%E6%A8%A1%E5%9E%8B%EF%BC%9A%E6%80%A7%E8%83%BD%E4%B8%8E%E4%BB%A3%E4%BB%B7%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">5.</span> <span class="toc-text">5. 最终一致性与弱模型：性能与代价的权衡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9A%E6%A8%A1%E5%9E%8B%EF%BC%9F%EF%BC%88CAP-%E5%AE%9A%E7%90%86%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 为什么会有这么多模型？（CAP 定理）</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&text=计算机科学中的一致性模型"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&is_video=false&description=计算机科学中的一致性模型"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=计算机科学中的一致性模型&body=Check out this article: http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&title=计算机科学中的一致性模型"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&name=计算机科学中的一致性模型&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/06/15/consistency%20model/1.Consistency%20Model/&t=计算机科学中的一致性模型"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
