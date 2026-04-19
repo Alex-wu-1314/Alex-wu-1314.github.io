@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述 核心概念与定义 工作原理 前向保密的价值与局限 弱完美前向保密（Wpfs） 非交互式前向保密 协议与实现 在 TLS 中的应用 主流平台的采用情况 历史沿革 总结 参考资料   概述在密码学领域，前向保密（Forward Secrecy，FS），也称为完美前向保密（Perfect Forward Secrecy，PFS），是特定密钥协商协议的一种安全属性。它能够保证：即使用于会话密钥交">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前向保密（Forward Secrecy）">
+<meta property="og:url" content="http://example.com/2021/07/01/cryptology/9.forward-secrecy/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述 核心概念与定义 工作原理 前向保密的价值与局限 弱完美前向保密（Wpfs） 非交互式前向保密 协议与实现 在 TLS 中的应用 主流平台的采用情况 历史沿革 总结 参考资料   概述在密码学领域，前向保密（Forward Secrecy，FS），也称为完美前向保密（Perfect Forward Secrecy，PFS），是特定密钥协商协议的一种安全属性。它能够保证：即使用于会话密钥交">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-06-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-19T12:08:48.572Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>前向保密（Forward Secrecy）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/07/22/cryptology/10.public_key_cryptography/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/07/01/cryptology/9.forward-secrecy/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&text=前向保密（Forward Secrecy）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&is_video=false&description=前向保密（Forward Secrecy）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=前向保密（Forward Secrecy）&body=Check out this article: http://example.com/2021/07/01/cryptology/9.forward-secrecy/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&name=前向保密（Forward Secrecy）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&t=前向保密（Forward Secrecy）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">核心概念与定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">基本定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E5%B8%B8%E8%A7%84%E5%8A%A0%E5%AF%86%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.0.2.</span> <span class="toc-text">与常规加密的区别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B3%E6%97%B6%E9%80%9A%E8%AE%AF%E7%9A%84%E5%81%87%E8%AE%BE%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">即时通讯的假设示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E4%BF%9D%E8%AF%81"><span class="toc-number">4.0.2.</span> <span class="toc-text">关键保证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%B4%E6%97%B6-Diffie-Hellman-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2"><span class="toc-number">4.0.3.</span> <span class="toc-text">临时 Diffie-Hellman 密钥交换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E7%9A%84%E4%BB%B7%E5%80%BC%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">前向保密的价值与局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%B7%E5%80%BC"><span class="toc-number">5.0.1.</span> <span class="toc-text">价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">5.0.2.</span> <span class="toc-text">局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%B1%E5%AE%8C%E7%BE%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Wpfs%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">弱完美前向保密（Wpfs）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86"><span class="toc-number">7.</span> <span class="toc-text">非交互式前向保密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF"><span class="toc-number">7.0.1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E9%9D%A2%E4%B8%B4%E7%9A%84%E7%89%B9%E6%AE%8A%E5%A8%81%E8%83%81"><span class="toc-number">7.0.2.</span> <span class="toc-text">非交互式前向保密面临的特殊威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E8%B7%AF%E5%BE%84"><span class="toc-number">7.0.3.</span> <span class="toc-text">两种实现路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="toc-number">8.</span> <span class="toc-text">协议与实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9C%A8-TLS-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">在 TLS 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E7%9A%84-TLS-%E5%AF%86%E7%A0%81%E5%A5%97%E4%BB%B6"><span class="toc-number">9.0.1.</span> <span class="toc-text">支持前向保密的 TLS 密码套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TLS-%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B"><span class="toc-number">9.0.2.</span> <span class="toc-text">TLS 版本演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSSL-%E7%9A%84%E6%94%AF%E6%8C%81"><span class="toc-number">9.0.3.</span> <span class="toc-text">OpenSSL 的支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BB%E6%B5%81%E5%B9%B3%E5%8F%B0%E7%9A%84%E9%87%87%E7%94%A8%E6%83%85%E5%86%B5"><span class="toc-number">10.</span> <span class="toc-text">主流平台的采用情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%92%E8%81%94%E7%BD%91%E6%95%B4%E4%BD%93%E9%87%87%E7%94%A8%E7%8E%87"><span class="toc-number">10.0.1.</span> <span class="toc-text">互联网整体采用率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%B9%B3%E5%8F%B0%E9%87%87%E7%94%A8%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">10.0.2.</span> <span class="toc-text">主要平台采用时间线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Signal-%E5%BA%94%E7%94%A8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Signal 应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">11.</span> <span class="toc-text">历史沿革</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        前向保密（Forward Secrecy）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-06-30T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-07-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E6%A6%82%E8%BF%B0">概述</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%AE%9A%E4%B9%89">核心概念与定义</a></li>
+<li><a href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li><a href="#%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E7%9A%84%E4%BB%B7%E5%80%BC%E4%B8%8E%E5%B1%80%E9%99%90">前向保密的价值与局限</a></li>
+<li><a href="#%E5%BC%B1%E5%AE%8C%E7%BE%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86wpfs">弱完美前向保密（Wpfs）</a></li>
+<li><a href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86">非交互式前向保密</a></li>
+<li><a href="#%E5%8D%8F%E8%AE%AE%E4%B8%8E%E5%AE%9E%E7%8E%B0">协议与实现</a></li>
+<li><a href="#%E5%9C%A8-tls-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">在 TLS 中的应用</a></li>
+<li><a href="#%E4%B8%BB%E6%B5%81%E5%B9%B3%E5%8F%B0%E7%9A%84%E9%87%87%E7%94%A8%E6%83%85%E5%86%B5">主流平台的采用情况</a></li>
+<li><a href="#%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9">历史沿革</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ol>
+<hr>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>在密码学领域，<strong>前向保密</strong>（Forward Secrecy，FS），也称为<strong>完美前向保密</strong>（Perfect Forward Secrecy，PFS），是特定密钥协商协议的一种安全属性。它能够保证：即使用于会话密钥交换的长期密钥在未来遭到泄露，过去的会话密钥也不会受到威胁，从而将损失控制在最小范围。</p>
+<p>在 TLS 协议中，长期密钥通常是服务器的私钥。前向保密通过为每次会话生成唯一的临时会话密钥，使得单个会话密钥的泄露不会影响其他任何会话的数据安全。</p>
+<hr>
+<h1 id="核心概念与定义"><a href="#核心概念与定义" class="headerlink" title="核心概念与定义"></a>核心概念与定义</h1><h3 id="基本定义"><a href="#基本定义" class="headerlink" title="基本定义"></a>基本定义</h3><p>前向保密的核心思想是：<strong>过去的通信内容，不应因未来的密钥泄露而暴露</strong>。</p>
+<p>一个加密系统具备前向保密属性，意味着：在会话初始化阶段的密钥协商过程中，即使对密钥交换的明文数据进行检查，也无法还原出用于加密后续会话内容的密钥。</p>
+<p>具体来说，前向保密需满足两个条件：</p>
+<ol>
+<li><strong>每次会话使用唯一的会话密钥</strong>：单个会话密钥的泄露，不影响其他会话的数据。</li>
+<li><strong>长期密钥的泄露不影响历史会话密钥的安全性</strong>：这是前向保密区别于普通”每次会话独立密钥”方案的关键。</li>
+</ol>
+<h3 id="与常规加密的区别"><a href="#与常规加密的区别" class="headerlink" title="与常规加密的区别"></a>与常规加密的区别</h3><p>在不使用前向保密的传统 TLS 场景中（如基于 RSA 的密钥交换），客户端用服务器公钥加密预主密钥并发送给服务器。若攻击者：</p>
+<ol>
+<li>持续录制所有加密流量；</li>
+<li>在未来某一时刻获取了服务器私钥（无论通过黑客攻击、司法命令还是其他手段）；</li>
+</ol>
+<p>那么攻击者便可以解密所有历史录制的流量。</p>
+<p>而使用前向保密后，每次会话的密钥是临时生成的、独立的，不依赖长期私钥，历史流量因此得到保护。</p>
+<hr>
+<h1 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h1><h3 id="即时通讯的假设示例"><a href="#即时通讯的假设示例" class="headerlink" title="即时通讯的假设示例"></a>即时通讯的假设示例</h3><p>以下是一个使用前向保密的简化即时通讯协议示例：</p>
+<p><strong>步骤 1 — 生成长期密钥（仅执行一次）</strong></p>
+<ul>
+<li>Alice 和 Bob 各自生成一对长期的非对称公私钥对；</li>
+<li>双方通过当面核对或已认证的信道验证各自公钥指纹，确认公钥的真实归属。</li>
+</ul>
+<p><strong>步骤 2 — 临时会话密钥协商（每条消息前执行）</strong></p>
+<ul>
+<li>双方使用 Diffie-Hellman 等密钥交换算法协商出一个临时（ephemeral）会话密钥；</li>
+<li>步骤 1 中的长期密钥仅用于在此过程中相互认证身份，而非直接参与加密。</li>
+</ul>
+<p><strong>步骤 3 — 加密发送消息</strong></p>
+<ul>
+<li>Alice 使用步骤 2 协商的会话密钥，通过对称加密算法对消息进行加密并发送给 Bob。</li>
+</ul>
+<p><strong>步骤 4 — 解密消息</strong></p>
+<ul>
+<li>Bob 使用同一会话密钥解密消息。</li>
+</ul>
+<p><strong>步骤 5 — 重复执行</strong></p>
+<ul>
+<li>每发送一条新消息，从步骤 2 重新开始，生成新的会话密钥；</li>
+<li>步骤 1 只执行一次，长期密钥不会被用于加密消息本身。</li>
+</ul>
+<h3 id="关键保证"><a href="#关键保证" class="headerlink" title="关键保证"></a>关键保证</h3><ul>
+<li>若某次迭代（步骤 2）中生成的临时密钥被攻击者获取，也只会影响该单条消息；</li>
+<li>若步骤 1 中的长期私钥被泄露，历史消息依然安全（但攻击者此后可以冒充 Alice 或 Bob 进行通信）。</li>
+</ul>
+<h3 id="临时-Diffie-Hellman-密钥交换"><a href="#临时-Diffie-Hellman-密钥交换" class="headerlink" title="临时 Diffie-Hellman 密钥交换"></a>临时 Diffie-Hellman 密钥交换</h3><p>前向保密通常依赖<strong>临时 Diffie-Hellman 密钥交换</strong>（Ephemeral Diffie-Hellman，DHE）来实现。流程要点：</p>
+<ul>
+<li>每次会话中，服务器和客户端各自生成临时的 DH 密钥对；</li>
+<li>临时私钥在会话结束后立即销毁，不被持久化存储；</li>
+<li>服务器通常使用长期签名密钥对临时公钥进行签名，以证明其合法性。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：若攻击者通过窃取或司法命令获得了这个用于签名的长期静态密钥，则可以对客户端和服务器分别冒充对方，实施经典的中间人攻击（MITM）。</p>
+</blockquote>
+<hr>
+<h1 id="前向保密的价值与局限"><a href="#前向保密的价值与局限" class="headerlink" title="前向保密的价值与局限"></a>前向保密的价值与局限</h1><h3 id="价值"><a href="#价值" class="headerlink" title="价值"></a>价值</h3><p><strong>1. 保护历史通信</strong></p>
+<p>前向保密的核心价值在于保护过去的通信记录。攻击者即使在未来获取了长期密钥，也无法追溯解密历史流量。</p>
+<p><strong>2. 降低密钥泄露的动机与危害</strong></p>
+<p>若攻击者获取了长期密钥，但此次泄露随后被发现并撤销了相关密钥，那么在一个使用前向保密的系统中，泄露造成的信息量相对有限。</p>
+<p><strong>3. 抵御”现在收集，以后解密”攻击（Harvest Now, Decrypt Later）</strong></p>
+<p>没有前向保密的情况下，攻击者可以大量录制加密流量，等待未来算法被破解或量子计算机出现后再行解密。前向保密能显著提高此类攻击的成本和难度。</p>
+<h3 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h3><p><strong>1. 对假设能力的依赖</strong></p>
+<p>前向保密的有效性依赖于对攻击者能力的特定假设：</p>
+<ul>
+<li>攻击者仅能”读取”设备上的长期密钥，而不能修改设备上的会话密钥生成方式；</li>
+<li>若攻击者能够使随机数生成器变得可预测（如 NSA 后门事件中的 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Dual_Elliptic_Curve_Deterministic_Random_Bit_Generator">Dual EC DRBG</a>），则历史流量仍受保护，但未来流量将全部暴露。</li>
+</ul>
+<p><strong>2. 无法对抗密码分析</strong></p>
+<p>前向保密只保护密钥，不保护加密算法本身。如果底层密码算法被攻破（例如量子计算机使得离散对数问题可在多项式时间内求解），攻击者仍可能解密历史密文。</p>
+<p><strong>3. 主动中间人攻击</strong></p>
+<p>前向保密对于仅被动收集流量的攻击者效果显著，但若攻击者能主动实施中间人攻击，前向保密的保护范围则受到限制。</p>
+<p><strong>4. 计算开销</strong></p>
+<p>使用临时 Diffie-Hellman（DHE&#x2F;ECDHE）比静态 RSA 密钥交换需要更多计算资源。OpenSSL 使用椭圆曲线 Diffie-Hellman 实现前向保密时，首次握手的计算开销约增加 **15%**。</p>
+<hr>
+<h1 id="弱完美前向保密（Wpfs）"><a href="#弱完美前向保密（Wpfs）" class="headerlink" title="弱完美前向保密（Wpfs）"></a>弱完美前向保密（Wpfs）</h1><p><strong>弱完美前向保密</strong>（Weak Perfect Forward Secrecy，Wpfs）是由 Hugo Krawczyk 于 2005 年提出的一个较弱的安全属性变体：</p>
+<ul>
+<li>当代理的长期密钥被泄露时，<strong>仅在攻击者未主动介入的会话中</strong>，过去已建立的会话密钥的机密性才能得到保障；</li>
+<li>与之对比，完整的（完美）前向保密要求即使在攻击者曾主动干预（如尝试中间人攻击）的会话中，历史会话密钥依然安全。</li>
+</ul>
+<p>这一区别明确了”完美”前向保密的更强安全承诺。</p>
+<hr>
+<h1 id="非交互式前向保密"><a href="#非交互式前向保密" class="headerlink" title="非交互式前向保密"></a>非交互式前向保密</h1><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>大多数密钥交换协议是<strong>交互式的</strong>，需要双方实时来回通信。但某些应用场景希望发送方在接收方不在线时也能发送数据（如存储转发消息系统），这催生了对<strong>非交互式</strong>（或称异步、零往返时延，0-RTT）前向保密的研究。</p>
+<p>非交互式前向保密自 1996 年以来便被认为是值得追求的特性，但同时实现”前向保密 + 非交互 + 防重放攻击”三者曾被认为不可能，后续研究证明这三者可以同时达成。</p>
+<h3 id="非交互式前向保密面临的特殊威胁"><a href="#非交互式前向保密面临的特殊威胁" class="headerlink" title="非交互式前向保密面临的特殊威胁"></a>非交互式前向保密面临的特殊威胁</h3><p><strong>1. 消息抑制攻击（Message Suppression Attack）</strong></p>
+<p>攻击者控制网络，存储拦截的消息而不转发给接收方。由于接收方从未收到消息，相应私钥可能不会被销毁，一旦私钥被攻击者获取，便可解密被拦截的消息。主动定期销毁私钥可以缓解但不能完全消除此风险。</p>
+<p><strong>2. 恶意密钥耗尽攻击（Malicious Key Exhaustion Attack）</strong></p>
+<p>攻击者向接收方发送大量消息，耗尽其私钥材料，迫使协议在”拒绝服务”和”放弃前向保密”之间二选一。</p>
+<h3 id="两种实现路径"><a href="#两种实现路径" class="headerlink" title="两种实现路径"></a>两种实现路径</h3><p><strong>路径一：预计算密钥（Pre-computed Keys）</strong></p>
+<ul>
+<li>提前生成大量密钥对，将公钥分发出去；</li>
+<li>收到使用某公钥加密的消息后，销毁对应私钥；</li>
+<li>代表实现：<strong>Signal 协议</strong>。</li>
+</ul>
+<p><strong>路径二：可打孔加密（Puncturable Encryption）</strong></p>
+<ul>
+<li>接收方收到消息后，以特定方式修改私钥，使新私钥无法解密该消息，但公钥保持不变；</li>
+<li>Ross J. Anderson 于 1997 年非正式描述了这一方案；</li>
+<li>Green &amp; Miers 于 2015 年正式定义，利用了<strong>层次身份基加密</strong>（Hierarchical Identity-Based Encryption）和<strong>基于属性的加密</strong>（Attribute-Based Encryption）；</li>
+<li>实验表明将可打孔加密应用于 QUIC 协议的 0-RTT 前向安全握手时，资源消耗显著增加，但不至于使其不可实际使用。</li>
+</ul>
+<hr>
+<h1 id="协议与实现"><a href="#协议与实现" class="headerlink" title="协议与实现"></a>协议与实现</h1><p>前向保密已在多种主流协议中得到支持或成为强制要求：</p>
+<table>
+<thead>
+<tr>
+<th>协议&#x2F;系统</th>
+<th>支持情况</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SSH</strong></td>
+<td>原生支持前向保密</td>
+</tr>
+<tr>
+<td><strong>IPsec</strong></td>
+<td>作为可选特性支持（RFC 2412）</td>
+</tr>
+<tr>
+<td><strong>TLS 1.2</strong></td>
+<td>支持 DHE&#x2F;ECDHE 密码套件</td>
+</tr>
+<tr>
+<td><strong>TLS 1.3</strong></td>
+<td>强制要求前向保密，移除了不支持前向保密的 RSA 密钥交换</td>
+</tr>
+<tr>
+<td><strong>Off-the-Record Messaging（OTR）</strong></td>
+<td>支持前向保密，同时支持可否认加密</td>
+</tr>
+<tr>
+<td><strong>OMEMO</strong></td>
+<td>支持前向保密，额外支持多用户功能</td>
+</tr>
+<tr>
+<td><strong>Signal 协议</strong></td>
+<td>使用双棘轮算法（Double Ratchet Algorithm）实现前向保密</td>
+</tr>
+<tr>
+<td><strong>WPA Personal（WPA2）</strong></td>
+<td>不支持前向保密</td>
+</tr>
+<tr>
+<td><strong>WPA3</strong></td>
+<td>新增对前向保密的支持</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="在-TLS-中的应用"><a href="#在-TLS-中的应用" class="headerlink" title="在 TLS 中的应用"></a>在 TLS 中的应用</h1><h3 id="支持前向保密的-TLS-密码套件"><a href="#支持前向保密的-TLS-密码套件" class="headerlink" title="支持前向保密的 TLS 密码套件"></a>支持前向保密的 TLS 密码套件</h3><p>TLS 中，以下密码套件基于 Diffie-Hellman 或椭圆曲线 Diffie-Hellman 密钥交换，因而提供前向保密：</p>
+<ul>
+<li><strong>DHE-RSA</strong>：临时 Diffie-Hellman + RSA 认证</li>
+<li><strong>DHE-DSA</strong>：临时 Diffie-Hellman + DSA 认证</li>
+<li><strong>ECDHE-RSA</strong>：临时椭圆曲线 Diffie-Hellman + RSA 认证</li>
+<li><strong>ECDHE-ECDSA</strong>：临时椭圆曲线 Diffie-Hellman + ECDSA 认证</li>
+</ul>
+<h3 id="TLS-版本演进"><a href="#TLS-版本演进" class="headerlink" title="TLS 版本演进"></a>TLS 版本演进</h3><ul>
+<li><strong>TLS 1.2 及以前</strong>：理论上自 SSLv3 起便可使用前向保密，但许多实现并未默认启用，或仅以较低强度的加密提供。</li>
+<li><strong>TLS 1.3（2018 年 8 月发布）</strong>：移除了 RSA 密钥交换，将 Diffie-Hellman（具备前向保密）作为唯一的密钥交换算法，同时完全移除了不支持前向保密的密码套件。</li>
+</ul>
+<h3 id="OpenSSL-的支持"><a href="#OpenSSL-的支持" class="headerlink" title="OpenSSL 的支持"></a>OpenSSL 的支持</h3><p>OpenSSL 自 <strong>1.0 版本</strong>起，通过椭圆曲线 Diffie-Hellman 支持前向保密，初次握手的计算开销约增加 15%。</p>
+<hr>
+<h1 id="主流平台的采用情况"><a href="#主流平台的采用情况" class="headerlink" title="主流平台的采用情况"></a>主流平台的采用情况</h1><h3 id="互联网整体采用率"><a href="#互联网整体采用率" class="headerlink" title="互联网整体采用率"></a>互联网整体采用率</h3><ul>
+<li><strong>2014 年 5 月</strong>：Facebook 调查显示，在支持 STARTTLS 的服务器中，74% 同时提供前向保密。</li>
+<li><strong>2019 年 2 月</strong>：受调查的 Web 服务器中，<strong>96.6%</strong> 支持某种形式的前向保密，<strong>52.1%</strong> 将对大多数浏览器使用前向保密。</li>
+<li><strong>2024 年 5 月</strong>：现代浏览器访问的网站中，<strong>92.6%</strong> 支持前向保密，仅 <strong>0.3%</strong> 完全不支持前向保密。</li>
+</ul>
+<h3 id="主要平台采用时间线"><a href="#主要平台采用时间线" class="headerlink" title="主要平台采用时间线"></a>主要平台采用时间线</h3><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>平台</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2011 年底</td>
+<td>Google</td>
+<td>为 Gmail、Google Docs、加密搜索等服务默认启用 TLS 前向保密</td>
+</tr>
+<tr>
+<td>2013 年 11 月</td>
+<td>Wikimedia 基金会</td>
+<td>开始为所有旗下 Wiki（包括维基百科）提供前向保密</td>
+</tr>
+<tr>
+<td>2014 年 7 月</td>
+<td>Wikimedia 基金会</td>
+<td>全面提供前向保密</td>
+</tr>
+<tr>
+<td>2018 年 8 月</td>
+<td>Wikimedia 基金会</td>
+<td>强制要求前向保密，成为 Alexa 全球前 50 名中唯一仅提供前向保密密码套件的网站</td>
+</tr>
+<tr>
+<td>2016 年 WWDC</td>
+<td>Apple</td>
+<td>宣布所有 iOS 应用须使用 App Transport Security（ATS），强制要求提供前向保密的加密套件</td>
+</tr>
+<tr>
+<td>2017 年 1 月 1 日</td>
+<td>Apple</td>
+<td>ATS 成为所有 App Store 应用的强制要求</td>
+</tr>
+</tbody></table>
+<h3 id="Signal-应用"><a href="#Signal-应用" class="headerlink" title="Signal 应用"></a>Signal 应用</h3><p>Signal 即时通讯应用在其协议中引入了前向保密，这也是其与基于 PGP 的传统消息协议的显著区别之一。Signal 协议使用<strong>双棘轮算法（Double Ratchet Algorithm）</strong>实现前向保密。</p>
+<hr>
+<h1 id="历史沿革"><a href="#历史沿革" class="headerlink" title="历史沿革"></a>历史沿革</h1><table>
+<thead>
+<tr>
+<th>年份</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1990 年</strong></td>
+<td>C. G. Günther 在其论文《一种基于身份的密钥交换协议》中首次提出”完美前向保密”一词</td>
+</tr>
+<tr>
+<td><strong>1992 年</strong></td>
+<td>Whitfield Diffie、Paul van Oorschot、Michael James Wiener 在论文《认证与认证密钥交换》中进一步阐述该概念，用于描述 Station-to-Station 协议的安全属性</td>
+</tr>
+<tr>
+<td><strong>1996 年</strong></td>
+<td>David P. Jablon 将前向保密概念扩展应用到基于密码的密钥协商协议</td>
+</tr>
+<tr>
+<td><strong>2000 年</strong></td>
+<td>IEEE 批准 IEEE 1363 标准，确立了各类标准密钥协商方案的单方和双方前向保密属性</td>
+</tr>
+<tr>
+<td><strong>2005 年</strong></td>
+<td>Hugo Krawczyk 提出”弱完美前向保密（Wpfs）”概念，明确区分强弱两种前向保密定义</td>
+</tr>
+<tr>
+<td><strong>2015 年</strong></td>
+<td>Green &amp; Miers 正式提出基于可打孔加密的非交互式前向保密方案</td>
+</tr>
+<tr>
+<td><strong>2018 年</strong></td>
+<td>TLS 1.3 发布，强制要求前向保密，彻底移除不具备前向保密属性的密码套件</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>前向保密是现代密码学和网络安全的重要基石，其核心价值在于：</p>
+<ol>
+<li><strong>时间解耦</strong>：将过去通信的安全性与未来密钥泄露的风险解耦。</li>
+<li><strong>缩小攻击面</strong>：单次密钥泄露的影响范围被限定在单次会话。</li>
+<li><strong>应对大规模监控</strong>：使”现在收集、以后解密”的攻击策略代价极高。</li>
+</ol>
+<p>随着 TLS 1.3 的普及、WPA3 的推广以及 Apple ATS 的强制要求，前向保密正在从”可选特性”演变为行业标准。然而，前向保密并非万能，它无法对抗底层算法被密码分析攻破的场景，在量子计算时代的安全性仍需结合后量子密码学（Post-Quantum Cryptography）共同考量。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Forward_secrecy">Wikipedia - Forward secrecy</a></li>
+<li>Günther, C. G. (1990). <em>An identity-based key-exchange protocol</em>. EUROCRYPT ‘89.</li>
+<li>Diffie, W., van Oorschot, P. C., &amp; Wiener, M. J. (1992). <a target="_blank" rel="noopener" href="http://www.scs.carleton.ca/~paulv/papers/sts-final.pdf">Authentication and Authenticated Key Exchanges</a>. <em>Designs, Codes and Cryptography</em>, 2(2), 107–125.</li>
+<li>Krawczyk, H. (2005). <em>Perfect Forward Secrecy</em>. Encyclopedia of Cryptography and Security.</li>
+<li>Boyd, C., &amp; Gellert, K. (2021). <a target="_blank" rel="noopener" href="https://academic.oup.com/comjnl/article/64/4/639/5896207">A Modern View on Forward Security</a>. <em>The Computer Journal</em>, 64(4), 639–652.</li>
+<li>Green, M., &amp; Miers, I. (2015). <em>Forward Secure Asynchronous Messaging from Puncturable Encryption</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://standards.ieee.org/ieee/1363/2049/">IEEE 1363-2000</a>: IEEE Standard Specifications for Public-Key Cryptography.</li>
+<li><a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc8446">TLS 1.3 RFC 8446</a></li>
+<li><a target="_blank" rel="noopener" href="https://signal.org/docs/specifications/doubleratchet/">Signal Protocol - Double Ratchet Algorithm</a></li>
+<li><a target="_blank" rel="noopener" href="https://phabricator.wikimedia.org/phame/post/view/111/wikipedia_goes_100_forward_secret/">Wikipedia goes 100% Forward Secret - Wikimedia</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">核心概念与定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">基本定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E5%B8%B8%E8%A7%84%E5%8A%A0%E5%AF%86%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.0.2.</span> <span class="toc-text">与常规加密的区别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B3%E6%97%B6%E9%80%9A%E8%AE%AF%E7%9A%84%E5%81%87%E8%AE%BE%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">即时通讯的假设示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E4%BF%9D%E8%AF%81"><span class="toc-number">4.0.2.</span> <span class="toc-text">关键保证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%B4%E6%97%B6-Diffie-Hellman-%E5%AF%86%E9%92%A5%E4%BA%A4%E6%8D%A2"><span class="toc-number">4.0.3.</span> <span class="toc-text">临时 Diffie-Hellman 密钥交换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E7%9A%84%E4%BB%B7%E5%80%BC%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">前向保密的价值与局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%B7%E5%80%BC"><span class="toc-number">5.0.1.</span> <span class="toc-text">价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">5.0.2.</span> <span class="toc-text">局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%B1%E5%AE%8C%E7%BE%8E%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%EF%BC%88Wpfs%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">弱完美前向保密（Wpfs）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86"><span class="toc-number">7.</span> <span class="toc-text">非交互式前向保密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF"><span class="toc-number">7.0.1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E9%9D%A2%E4%B8%B4%E7%9A%84%E7%89%B9%E6%AE%8A%E5%A8%81%E8%83%81"><span class="toc-number">7.0.2.</span> <span class="toc-text">非交互式前向保密面临的特殊威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E8%B7%AF%E5%BE%84"><span class="toc-number">7.0.3.</span> <span class="toc-text">两种实现路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="toc-number">8.</span> <span class="toc-text">协议与实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9C%A8-TLS-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">在 TLS 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E5%89%8D%E5%90%91%E4%BF%9D%E5%AF%86%E7%9A%84-TLS-%E5%AF%86%E7%A0%81%E5%A5%97%E4%BB%B6"><span class="toc-number">9.0.1.</span> <span class="toc-text">支持前向保密的 TLS 密码套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TLS-%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B"><span class="toc-number">9.0.2.</span> <span class="toc-text">TLS 版本演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSSL-%E7%9A%84%E6%94%AF%E6%8C%81"><span class="toc-number">9.0.3.</span> <span class="toc-text">OpenSSL 的支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BB%E6%B5%81%E5%B9%B3%E5%8F%B0%E7%9A%84%E9%87%87%E7%94%A8%E6%83%85%E5%86%B5"><span class="toc-number">10.</span> <span class="toc-text">主流平台的采用情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%92%E8%81%94%E7%BD%91%E6%95%B4%E4%BD%93%E9%87%87%E7%94%A8%E7%8E%87"><span class="toc-number">10.0.1.</span> <span class="toc-text">互联网整体采用率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%B9%B3%E5%8F%B0%E9%87%87%E7%94%A8%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">10.0.2.</span> <span class="toc-text">主要平台采用时间线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Signal-%E5%BA%94%E7%94%A8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Signal 应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">11.</span> <span class="toc-text">历史沿革</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/07/01/cryptology/9.forward-secrecy/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&text=前向保密（Forward Secrecy）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&is_video=false&description=前向保密（Forward Secrecy）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=前向保密（Forward Secrecy）&body=Check out this article: http://example.com/2021/07/01/cryptology/9.forward-secrecy/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&title=前向保密（Forward Secrecy）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&name=前向保密（Forward Secrecy）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/07/01/cryptology/9.forward-secrecy/&t=前向保密（Forward Secrecy）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

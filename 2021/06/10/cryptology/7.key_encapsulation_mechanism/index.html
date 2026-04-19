@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述 三大核心算法 正确性与失败处理 安全性定义：IND-CCA KEM 与 DEM 的组合：混合公钥加密 KEM 与公钥加密方案的关系 KEM 在认证密钥协商中的应用 典型 KEM 构造 RSA-KEM Elgamal-KEM &#x2F; DH-KEM ML-KEM（后量子）   KEM 组合器（KEM Combiner） 标准化现状   1. 概述在密码学中，密钥封装机制（Key En">
+<meta property="og:type" content="article">
+<meta property="og:title" content="密钥封装机制（Key Encapsulation Mechanism，KEM）">
+<meta property="og:url" content="http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述 三大核心算法 正确性与失败处理 安全性定义：IND-CCA KEM 与 DEM 的组合：混合公钥加密 KEM 与公钥加密方案的关系 KEM 在认证密钥协商中的应用 典型 KEM 构造 RSA-KEM Elgamal-KEM &#x2F; DH-KEM ML-KEM（后量子）   KEM 组合器（KEM Combiner） 标准化现状   1. 概述在密码学中，密钥封装机制（Key En">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-06-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-19T12:08:31.996Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>密钥封装机制（Key Encapsulation Mechanism，KEM）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/05/25/cryptology/6.digital_signature/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&text=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&is_video=false&description=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=密钥封装机制（Key Encapsulation Mechanism，KEM）&body=Check out this article: http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&name=密钥封装机制（Key Encapsulation Mechanism，KEM）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&t=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%89%E5%A4%A7%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">2. 三大核心算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%B8%8E%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 正确性与失败处理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E6%80%A7%E5%AE%9A%E4%B9%89%EF%BC%9AIND-CCA"><span class="toc-number">5.</span> <span class="toc-text">4. 安全性定义：IND-CCA</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-KEM-%E4%B8%8E-DEM-%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%9A%E6%B7%B7%E5%90%88%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">6.</span> <span class="toc-text">5. KEM 与 DEM 的组合：混合公钥加密</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-KEM-%E4%B8%8E%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.</span> <span class="toc-text">6. KEM 与公钥加密方案的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-KEM-%E5%9C%A8%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">7. KEM 在认证密钥协商中的应用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%85%B8%E5%9E%8B-KEM-%E6%9E%84%E9%80%A0"><span class="toc-number">9.</span> <span class="toc-text">8. 典型 KEM 构造</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-RSA-KEM"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 RSA-KEM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Elgamal-KEM-DH-KEM"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Elgamal-KEM &#x2F; DH-KEM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-ML-KEM%EF%BC%88%E5%90%8E%E9%87%8F%E5%AD%90%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 ML-KEM（后量子）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-KEM-%E7%BB%84%E5%90%88%E5%99%A8%EF%BC%88KEM-Combiner%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. KEM 组合器（KEM Combiner）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%A0%87%E5%87%86%E5%8C%96%E7%8E%B0%E7%8A%B6"><span class="toc-number">11.</span> <span class="toc-text">10. 标准化现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">12.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        密钥封装机制（Key Encapsulation Mechanism，KEM）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-06-09T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-06-10</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">概述</a></li>
+<li><a href="#2-%E4%B8%89%E5%A4%A7%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95">三大核心算法</a></li>
+<li><a href="#3-%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%B8%8E%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86">正确性与失败处理</a></li>
+<li><a href="#4-%E5%AE%89%E5%85%A8%E6%80%A7%E5%AE%9A%E4%B9%89ind-cca">安全性定义：IND-CCA</a></li>
+<li><a href="#5-kem-%E4%B8%8E-dem-%E7%9A%84%E7%BB%84%E5%90%88%E6%B7%B7%E5%90%88%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86">KEM 与 DEM 的组合：混合公钥加密</a></li>
+<li><a href="#6-kem-%E4%B8%8E%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88%E7%9A%84%E5%85%B3%E7%B3%BB">KEM 与公钥加密方案的关系</a></li>
+<li><a href="#7-kem-%E5%9C%A8%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">KEM 在认证密钥协商中的应用</a></li>
+<li><a href="#8-%E5%85%B8%E5%9E%8B-kem-%E6%9E%84%E9%80%A0">典型 KEM 构造</a><ul>
+<li><a href="#81-rsa-kem">RSA-KEM</a></li>
+<li><a href="#82-elgamal-kem--dh-kem">Elgamal-KEM &#x2F; DH-KEM</a></li>
+<li><a href="#83-ml-kem%E5%90%8E%E9%87%8F%E5%AD%90">ML-KEM（后量子）</a></li>
+</ul>
+</li>
+<li><a href="#9-kem-%E7%BB%84%E5%90%88%E5%99%A8kem-combiner">KEM 组合器（KEM Combiner）</a></li>
+<li><a href="#10-%E6%A0%87%E5%87%86%E5%8C%96%E7%8E%B0%E7%8A%B6">标准化现状</a></li>
+</ol>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>在密码学中，<strong>密钥封装机制</strong>（Key Encapsulation Mechanism，简称 <strong>KEM</strong>）是一种公钥密码体制，它允许发送方生成一个短的随机密钥，并以保密的方式将其传输给接收方，即使存在窃听者或中间人攻击也能保持安全。现代公钥加密标准（如 NIST FIPS 203、RFC 9180 HPKE）通常都以 KEM 为基础构建。</p>
+<p>KEM 的核心思想是：</p>
+<ul>
+<li><strong>发送方</strong>知道接收方的公钥，通过封装算法（Encapsulation）同时生成一个短的随机密钥 $K$ 及其对应的封装密文 $C$；</li>
+<li><strong>接收方</strong>知道对应的私钥，通过解封装算法（Decapsulation）从封装密文 $C$ 中恢复出相同的随机密钥 $K$；</li>
+<li><strong>任何不知道私钥的人</strong>无法从封装密文中获得关于密钥的任何信息，即使他们已经窃听了通信或向接收方提交了其他封装以研究接收方的反应。</li>
+</ul>
+<p>KEM 与传统公钥加密方案的核心区别在于：传统公钥加密方案允许发送方从某个消息空间中选择任意消息进行加密，而 KEM 则由算法本身为发送方随机生成一个短密钥。这使得 KEM 比完整的公钥加密方案更容易设计和安全性分析。</p>
+<hr>
+<h1 id="2-三大核心算法"><a href="#2-三大核心算法" class="headerlink" title="2. 三大核心算法"></a>2. 三大核心算法</h1><p>一个 KEM 由以下三个算法组成：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>符号</th>
+<th>输入</th>
+<th>输出</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>密钥生成（Key Generation）</td>
+<td>$\text{Gen}()$</td>
+<td>无</td>
+<td>公钥 $pk$、私钥 $sk$</td>
+</tr>
+<tr>
+<td>封装（Encapsulation）</td>
+<td>$\text{Encap}(pk)$</td>
+<td>公钥 $pk$</td>
+<td>随机密钥 $K$、封装密文 $C$</td>
+</tr>
+<tr>
+<td>解封装（Decapsulation）</td>
+<td>$\text{Decap}(sk, C)$</td>
+<td>私钥 $sk$、封装密文 $C$</td>
+<td>密钥 $K$，或失败符号 $\bot$</td>
+</tr>
+</tbody></table>
+<p><strong>关于密钥长度：</strong></p>
+<ul>
+<li>在理论密码学的渐近分析框架下，算法是关于安全参数 $\lambda$ 的概率多项式时间算法，密钥长度是安全参数的函数。</li>
+<li>在实际密码学中，每种算法通常使用固定长度的密钥。例如：<ul>
+<li><strong>ML-KEM</strong> 固定使用 256 位密钥；</li>
+<li><strong>RFC 9180</strong> 中的算法根据配置使用 256、384 或 512 位密钥；</li>
+<li>任意长度的密钥可通过密钥派生函数（KDF）从 $K$ 进一步派生。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1 id="3-正确性与失败处理"><a href="#3-正确性与失败处理" class="headerlink" title="3. 正确性与失败处理"></a>3. 正确性与失败处理</h1><p><strong>正确性</strong>：KEM 是正确的（Correct），当且仅当对于任意由 $\text{Gen}()$ 生成的密钥对 $(pk, sk)$，以高概率满足：</p>
+<p>$$\text{Decap}(sk, C) &#x3D; K \quad \text{其中} \quad (K, C) \leftarrow \text{Encap}(pk)$$</p>
+<p><strong>解封装失败</strong>发生在以下场景：输入的封装密文 $C$ 并非由合法的 $\text{Encap}$ 产生，而是被篡改或恶意构造。KEM 处理失败有两种方式：</p>
+<ul>
+<li><strong>显式拒绝（Explicit Rejection）</strong>：当解封装失败时，返回特殊的失败符号（如错误码或异常），明确告知调用方解封装失败。</li>
+<li><strong>隐式拒绝（Implicit Rejection）</strong>：当解封装失败时，不返回失败符号，而是返回一个由私钥 $sk$ 和密文 $C$ 伪随机派生的随机密钥。这种方式可以防止攻击者通过观察是否失败来获得额外信息，ML-KEM 采用此方式。</li>
+</ul>
+<hr>
+<h1 id="4-安全性定义：IND-CCA"><a href="#4-安全性定义：IND-CCA" class="headerlink" title="4. 安全性定义：IND-CCA"></a>4. 安全性定义：IND-CCA</h1><p>KEM 的安全性通过<strong>自适应选择密文攻击下的不可区分性</strong>（Indistinguishability under Adaptive Chosen-Ciphertext Attack，<strong>IND-CCA</strong>）来量化。直观上，IND-CCA 衡量的是：攻击者在获得一个随机密钥 $K$ 和一个封装密文 $C^*$ 之后，能否区分 $K$ 是由 $C^*$ 封装的密钥，还是一个独立随机选取的密钥——即攻击者的能力是否超过掷硬币猜测。</p>
+<p><strong>IND-CCA 游戏流程如下：</strong></p>
+<ol>
+<li>运行 $\text{Gen}()$ 生成密钥对 $(pk, sk)$；</li>
+<li>将公钥 $pk$ 公开给攻击者；</li>
+<li>攻击者可以向解封装预言机查询任意封装密文（<strong>自适应选择密文查询阶段 1</strong>）；</li>
+<li>运行 $\text{Encap}(pk)$ 随机生成挑战密钥 $K_0$ 和封装密文 $C^*$，同时独立随机生成另一个密钥 $K_1$；</li>
+<li>抛一枚公平硬币，得到结果 $b \in {0, 1}$；</li>
+<li>将挑战对 $(K_b, C^*)$ 公开给攻击者；</li>
+<li>攻击者可以继续查询解封装预言机，但不能查询 $C^*$（<strong>自适应选择密文查询阶段 2</strong>）；</li>
+<li>攻击者输出猜测 $b’$，若 $b’ &#x3D; b$ 则赢得游戏。</li>
+</ol>
+<p>攻击者的 <strong>IND-CCA 优势</strong>定义为：</p>
+<p>$$\text{Adv}^{\text{IND-CCA}} &#x3D; \left| \Pr[b’ &#x3D; b] - \frac{1}{2} \right|$$</p>
+<p>即攻击者正确区分封装密钥与随机密钥的概率超过公平猜测的部分。一个安全的 KEM 要求此优势对于任何高效攻击者都可忽略不计。</p>
+<hr>
+<h1 id="5-KEM-与-DEM-的组合：混合公钥加密"><a href="#5-KEM-与-DEM-的组合：混合公钥加密" class="headerlink" title="5. KEM 与 DEM 的组合：混合公钥加密"></a>5. KEM 与 DEM 的组合：混合公钥加密</h1><p>KEM 本身只解决了密钥传输问题，要加密任意长度的消息，需要将 KEM 与<strong>数据封装机制</strong>（Data Encapsulation Mechanism，<strong>DEM</strong>）组合，构成<strong>混合公钥加密</strong>（Hybrid Public-Key Encryption，HPKE）方案。</p>
+<p>DEM 即一个对称认证加密方案，其安全要求是对单条发送方加密消息的选择密文攻击下的不可区分性（IND-CCA for a single message）。</p>
+<p><strong>混合加密方案的构造：</strong></p>
+<p>给定安全的 KEM（算法 $\text{Gen}&#x2F;\text{Encap}&#x2F;\text{Decap}$）和安全的 DEM $E$：</p>
+<p><strong>加密</strong>（发送方对消息 $m$ 用公钥 $pk$ 加密）：</p>
+<ol>
+<li>运行 $\text{Encap}(pk)$，得到随机密钥 $K$ 及封装密文 $C_1$；</li>
+<li>用 $K$ 作为对称密钥，对消息 $m$ 进行认证加密，得到密文 $C_2 \leftarrow E_K(m)$；</li>
+<li>发送密文对 $(C_1, C_2)$。</li>
+</ol>
+<p><strong>解密</strong>（接收方用私钥 $sk$ 解密）：</p>
+<ol>
+<li>运行 $\text{Decap}(sk, C_1)$，恢复密钥 $K$，若失败则中止；</li>
+<li>用 $K$ 解密 $C_2$，恢复消息 $m$，若失败则中止。</li>
+</ol>
+<p><strong>安全性结论</strong>：只要 KEM 满足 IND-CCA，且 DEM 对单条消息满足 IND-CCA，则该混合加密方案整体满足公钥设定下的 IND-CCA。</p>
+<blockquote>
+<p><strong>重要提示</strong>：上述匿名公钥加密方案不提供发送方认证——任何持有公钥的人都可以向接收方发送消息。若需要证明发送方身份，必须配合数字签名等机制。此外，<strong>必须使用认证加密</strong>（而非仅提供 IND-CPA 安全的加密）；若使用未认证的加密，攻击者可以在传输过程中选择性地篡改密文，不仅在技术上违反 IND-CCA，还可能在实践中危及机密性（参见 EFAIL 攻击）。</p>
+</blockquote>
+<hr>
+<h1 id="6-KEM-与公钥加密方案的关系"><a href="#6-KEM-与公钥加密方案的关系" class="headerlink" title="6. KEM 与公钥加密方案的关系"></a>6. KEM 与公钥加密方案的关系</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>传统公钥加密（PKE）</th>
+<th>KEM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发送方的角色</td>
+<td>选择任意消息加密</td>
+<td>随机生成短密钥</td>
+</tr>
+<tr>
+<td>消息长度</td>
+<td>受限（如 RSA 通常仅适合加密短消息）</td>
+<td>输出固定长度密钥</td>
+</tr>
+<tr>
+<td>设计与分析难度</td>
+<td>较高（需处理 padding、消息编码等）</td>
+<td>较低（无需 padding，直接派生密钥）</td>
+</tr>
+<tr>
+<td>实际用途</td>
+<td>几乎总是用于加密对称密钥（即退化为 KEM 使用方式）</td>
+<td>直接为混合加密提供对称密钥</td>
+</tr>
+</tbody></table>
+<p>理论上，公钥加密方案可以转换为 KEM（随机选取密钥并加密），但设计安全的 KEM 比设计安全的 PKE 更简单。因此，大多数现代公钥加密标准直接基于 KEM 构建，而非反之。</p>
+<p>典型例子：RSAES-PKCS1-v1_5、RSAES-OAEP、ElGamal 加密在实践中几乎都用于加密短随机密钥（混合加密），而非直接加密任意消息。</p>
+<hr>
+<h1 id="7-KEM-在认证密钥协商中的应用"><a href="#7-KEM-在认证密钥协商中的应用" class="headerlink" title="7. KEM 在认证密钥协商中的应用"></a>7. KEM 在认证密钥协商中的应用</h1><p>KEM 还可用于带<strong>前向安全性</strong>（Forward Secrecy）的认证密钥协商协议，如 TLS：</p>
+<ul>
+<li>客户端和服务端各自生成临时 KEM 密钥对；</li>
+<li>双方交换经签名的封装密文；</li>
+<li>会话结束后立即删除临时私钥。</li>
+</ul>
+<p>这样，即使长期私钥日后泄露，攻击者也无法解密历史会话，实现了前向安全性。</p>
+<hr>
+<h1 id="8-典型-KEM-构造"><a href="#8-典型-KEM-构造" class="headerlink" title="8. 典型 KEM 构造"></a>8. 典型 KEM 构造</h1><p>不同的 KEM 依赖不同的数学难题来保证安全性。以下介绍三种典型构造。</p>
+<h3 id="8-1-RSA-KEM"><a href="#8-1-RSA-KEM" class="headerlink" title="8.1 RSA-KEM"></a>8.1 RSA-KEM</h3><p><strong>背景</strong>：传统 RSA 加密（”教科书 RSA”）因无随机化而完全不安全——同一明文总产生相同密文，无法抵抗已知明文攻击。各种随机化 padding 方案（如 RSAES-PKCS1-v1_5、RSAES-OAEP）试图修复这一问题，但有些已被证明存在漏洞（如 Bleichenbacher 攻击）。</p>
+<p><strong>RSA-KEM 构造</strong>（更简单且具有更紧归约）：</p>
+<ul>
+<li><strong>密钥生成</strong>：生成 $n$ 位半素数 $n &#x3D; pq$，计算 $d &#x3D; e^{-1} \pmod{\lambda(n)}$。公钥为 $(n, e)$，私钥为 $(n, d)$。</li>
+<li><strong>封装</strong> $\text{Encap}(pk)$：<ol>
+<li>均匀随机选取整数 $r \in \mathbb{Z}&#x2F;n\mathbb{Z}$；</li>
+<li>计算封装密文 $C &#x3D; r^e \bmod n$；</li>
+<li>通过密钥派生函数计算密钥 $K &#x3D; \text{KDF}(r)$；</li>
+<li>返回 $(K, C)$。</li>
+</ol>
+</li>
+<li><strong>解封装</strong> $\text{Decap}(sk, C)$：<ol>
+<li>计算 $r &#x3D; C^d \bmod n$；</li>
+<li>返回 $K &#x3D; \text{KDF}(r)$。</li>
+</ol>
+</li>
+</ul>
+<p>RSA-KEM 直接基于 RSA 困难问题（整数因子分解），比 RSAES-OAEP 等 padding 方案具有更紧的安全性归约，且无需复杂的 padding 逻辑。</p>
+<blockquote>
+<p><strong>量子安全性</strong>：RSA 安全性基于整数因子分解的困难性，而运行 Shor 算法的量子计算机可以高效分解大整数，因此 RSA-KEM <strong>不具备量子安全性</strong>。</p>
+</blockquote>
+<h3 id="8-2-Elgamal-KEM-DH-KEM"><a href="#8-2-Elgamal-KEM-DH-KEM" class="headerlink" title="8.2 Elgamal-KEM &#x2F; DH-KEM"></a>8.2 Elgamal-KEM &#x2F; DH-KEM</h3><p><strong>背景</strong>：传统 ElGamal 加密定义在有限域乘法子群上，可以证明对选择密文攻击是不安全的（例如，攻击者可以通过提交变形密文 $(u, 2v)$ 来恢复 $2m$，进而还原 $m$）。此外，ElGamal 加密在椭圆曲线上的推广需要将消息可逆编码为曲线点，增加了复杂性。</p>
+<p><strong>DH-KEM 构造</strong>（也称 Elgamal-KEM）：</p>
+<ul>
+<li><strong>密钥生成</strong>：选取生成元 $g$，随机选取私钥 $x$，计算公钥 $h &#x3D; g^x$。</li>
+<li><strong>封装</strong> $\text{Encap}(pk)$：<ol>
+<li>均匀随机选取 $r$；</li>
+<li>计算 $u &#x3D; g^r$（封装密文）；</li>
+<li>计算 $K &#x3D; \text{KDF}(h^r)$（由共享秘密派生密钥）；</li>
+<li>返回 $(K, u)$。</li>
+</ol>
+</li>
+<li><strong>解封装</strong> $\text{Decap}(sk, u)$：<ol>
+<li>验证 $u$ 在合法子群中，否则返回 $\bot$；</li>
+<li>计算 $K &#x3D; \text{KDF}(u^x)$（因为 $u^x &#x3D; g^{rx} &#x3D; h^r$）；</li>
+<li>返回 $K$。</li>
+</ol>
+</li>
+</ul>
+<p>DH-KEM 与认证加密组合后本质上等价于<strong>集成加密方案（IES&#x2F;ECIES）</strong>。由于 KEM 只需对群元素进行单向哈希（无需可逆消息编码），它可以自然地推广到椭圆曲线群（如 ECIES、RFC 9180 中的 DHKEM(X25519) 等），在相同安全级别下更为紧凑高效。</p>
+<blockquote>
+<p><strong>量子安全性</strong>：DH-KEM 安全性基于离散对数问题，同样易受 Shor 算法攻击，<strong>不具备量子安全性</strong>。</p>
+</blockquote>
+<h3 id="8-3-ML-KEM（后量子）"><a href="#8-3-ML-KEM（后量子）" class="headerlink" title="8.3 ML-KEM（后量子）"></a>8.3 ML-KEM（后量子）</h3><p><strong>ML-KEM</strong>（Module-Lattice-Based KEM）是 NIST 于 2024 年 8 月发布的后量子 KEM 标准（FIPS 203），其安全性基于<strong>模格上的带错误学习问题</strong>（Module Learning With Errors，Module-LWE）的计算困难性。</p>
+<p>该问题目前已被研究数十年，尚未发现量子计算机能够高效求解的算法（即使对具有 Shor 算法能力的量子计算机也不例外）。</p>
+<p>FIPS 203 规定了三个参数集（安全性从低到高，性能从快到慢）：</p>
+<table>
+<thead>
+<tr>
+<th>参数集</th>
+<th>对应安全级别</th>
+<th>密钥&#x2F;密文大小（大致）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ML-KEM-512</td>
+<td>NIST Level 1（≈AES-128）</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>ML-KEM-768</td>
+<td>NIST Level 3（≈AES-192）</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>ML-KEM-1024</td>
+<td>NIST Level 5（≈AES-256）</td>
+<td>较大</td>
+</tr>
+</tbody></table>
+<p>ML-KEM 固定输出 <strong>256 位</strong>的封装密钥，采用<strong>隐式拒绝</strong>处理解封装失败。</p>
+<hr>
+<h1 id="9-KEM-组合器（KEM-Combiner）"><a href="#9-KEM-组合器（KEM-Combiner）" class="headerlink" title="9. KEM 组合器（KEM Combiner）"></a>9. KEM 组合器（KEM Combiner）</h1><p><strong>KEM 组合器</strong>是将两个 KEM（KEM₁ 和 KEM₂）组合成一个新 KEM 的方案，使得只要 KEM₁ 或 KEM₂ 中有任意一个是安全的，组合后的 KEM 就是安全的。</p>
+<p>这种方案的典型应用是构建<strong>量子-经典混合 KEM</strong>：</p>
+<ul>
+<li>将经典 KEM（如基于 X25519 的 DH-KEM）与后量子 KEM（如 ML-KEM）组合；</li>
+<li>若量子计算机未来被证明能破解经典 KEM，后量子 KEM 仍能保障安全；</li>
+<li>若后量子 KEM 未来被发现存在经典漏洞，经典 KEM 仍能提供保护。</li>
+</ul>
+<blockquote>
+<p>注意区分<strong>混合 KEM</strong>（hybrid KEM，指结合量子安全与经典 KEM 的组合器方案）与<strong>混合密码系统</strong>（hybrid cryptosystem，指将公钥密码与对称密码结合的系统），两者是不同的概念。</p>
+</blockquote>
+<p>相关标准：ETSI TS 103 744 提供了量子安全混合密钥交换的技术规范。</p>
+<hr>
+<h1 id="10-标准化现状"><a href="#10-标准化现状" class="headerlink" title="10. 标准化现状"></a>10. 标准化现状</h1><table>
+<thead>
+<tr>
+<th>标准 &#x2F; 规范</th>
+<th>内容</th>
+<th>发布机构</th>
+<th>时间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>FIPS 203</strong></td>
+<td>ML-KEM（后量子 KEM 标准，基于 Module-LWE）</td>
+<td>NIST</td>
+<td>2024-08</td>
+</tr>
+<tr>
+<td><strong>NIST SP 800-227</strong></td>
+<td>KEM 推荐规范（定义、属性与应用）</td>
+<td>NIST</td>
+<td>2025-01（初始草案）</td>
+</tr>
+<tr>
+<td><strong>RFC 9180</strong></td>
+<td>混合公钥加密（HPKE），包含 DHKEM 系列</td>
+<td>IETF&#x2F;IRTF</td>
+<td>2022-02</td>
+</tr>
+<tr>
+<td><strong>RFC 9690</strong></td>
+<td>RSA-KEM 在 CMS 中的使用规范</td>
+<td>IETF</td>
+<td>2025-02</td>
+</tr>
+<tr>
+<td><strong>ISO&#x2F;IEC 18033-2</strong></td>
+<td>公钥加密标准（含 KEM&#x2F;DEM 范式，由 Shoup 提案）</td>
+<td>ISO&#x2F;IEC</td>
+<td>2006-05</td>
+</tr>
+<tr>
+<td><strong>JEP 452</strong></td>
+<td>Java 平台 KEM API 标准（支持 ML-KEM 等）</td>
+<td>OpenJDK</td>
+<td>2023</td>
+</tr>
+<tr>
+<td><strong>ETSI TS 103 744</strong></td>
+<td>量子安全混合密钥交换规范</td>
+<td>ETSI</td>
+<td>2020-12</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ol>
+<li>Galbraith, Steven (2012). <em>Mathematics of Public-Key Cryptography</em>. Cambridge University Press. §23.1.1: The KEM&#x2F;DEM paradigm.</li>
+<li>Shoup, Victor (2000). <a target="_blank" rel="noopener" href="https://link.springer.com/chapter/10.1007/3-540-45539-6_19">“Using Hash Functions as a Hedge against Chosen Ciphertext Attack”</a>. <em>EUROCRYPT 2000</em>.</li>
+<li>Cramer, Ronald; Shoup, Victor (2003). <a target="_blank" rel="noopener" href="https://epubs.siam.org/doi/10.1137/S0097539702403773">“Design and Analysis of Practical Public-Key Encryption Schemes Secure against Adaptive Chosen Ciphertext Attack”</a>. <em>SIAM Journal on Computing</em>.</li>
+<li>NIST (2024). <a target="_blank" rel="noopener" href="https://csrc.nist.gov/pubs/fips/203/final">FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard</a>.</li>
+<li>Barnes, R. et al. (2022). <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc9180">RFC 9180: Hybrid Public Key Encryption</a>. IRTF.</li>
+<li>Dent, Alexander W. (2002). <a target="_blank" rel="noopener" href="https://eprint.iacr.org/2002/174">A Designer’s Guide to KEMs</a>. IACR ePrint.</li>
+<li>Hofheinz, Dennis; Hövelmanns, Kathrin; Kiltz, Eike (2017). <a target="_blank" rel="noopener" href="https://link.springer.com/chapter/10.1007/978-3-319-70500-2_12">“A Modular Analysis of the Fujisaki-Okamoto Transformation”</a>. <em>TCC 2017</em>.</li>
+<li>Shoup, Victor (2001). <a target="_blank" rel="noopener" href="https://eprint.iacr.org/2001/112">A Proposal for an ISO Standard for Public Key Encryption (v2.1)</a>. IACR ePrint.</li>
+<li>Alagic, G. et al. (2025). <a target="_blank" rel="noopener" href="https://csrc.nist.gov/pubs/sp/800/227/ipd">SP 800-227: Recommendations for Key-Encapsulation Mechanisms</a>. NIST.</li>
+<li>Giacon, Federico; Heuer, Felix; Poettering, Bertram (2018). <a target="_blank" rel="noopener" href="https://link.springer.com/chapter/10.1007/978-3-319-76578-5_7">“KEM Combiners”</a>. <em>PKC 2018</em>.</li>
+<li>Housley, R.; Turner, S. (2025). <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc9690">RFC 9690: Use of the RSA-KEM Algorithm in the Cryptographic Message Syntax (CMS)</a>. IETF.</li>
+<li>Bindel, Nina et al. (2019). <a target="_blank" rel="noopener" href="https://link.springer.com/chapter/10.1007/978-3-030-25510-7_12">“Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange”</a>. <em>PQCrypto 2019</em>.</li>
+<li>Poddebniak, Damian et al. (2018). <a target="_blank" rel="noopener" href="https://www.usenix.org/conference/usenixsecurity18/presentation/poddebniak">“Efail: Breaking S&#x2F;MIME and OpenPGP Email Encryption using Exfiltration Channels”</a>. <em>USENIX Security 2018</em>.</li>
+<li>Elgamal, Taher (1984). <a target="_blank" rel="noopener" href="https://link.springer.com/chapter/10.1007/3-540-39568-7_2">“A Public Key Cryptosystem and a Signature Scheme Based on Discrete Logarithms”</a>. <em>CRYPTO 1984</em>.</li>
+<li>Rivest, R.L.; Shamir, A.; Adleman, L. (1978). <a target="_blank" rel="noopener" href="https://people.csail.mit.edu/rivest/Rsapaper.pdf">“A method for obtaining digital signatures and public-key cryptosystems”</a>. <em>Communications of the ACM</em>.</li>
+</ol>
+<hr>
+<p><em>本文整理自 Wikipedia Key encapsulation mechanism 词条及相关密码学标准文献，并结合 NIST FIPS 203、RFC 9180 等标准文献加以补充说明</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%89%E5%A4%A7%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">2. 三大核心算法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%B8%8E%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 正确性与失败处理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E6%80%A7%E5%AE%9A%E4%B9%89%EF%BC%9AIND-CCA"><span class="toc-number">5.</span> <span class="toc-text">4. 安全性定义：IND-CCA</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-KEM-%E4%B8%8E-DEM-%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%9A%E6%B7%B7%E5%90%88%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86"><span class="toc-number">6.</span> <span class="toc-text">5. KEM 与 DEM 的组合：混合公钥加密</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-KEM-%E4%B8%8E%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.</span> <span class="toc-text">6. KEM 与公钥加密方案的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-KEM-%E5%9C%A8%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">7. KEM 在认证密钥协商中的应用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%85%B8%E5%9E%8B-KEM-%E6%9E%84%E9%80%A0"><span class="toc-number">9.</span> <span class="toc-text">8. 典型 KEM 构造</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-RSA-KEM"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 RSA-KEM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Elgamal-KEM-DH-KEM"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Elgamal-KEM &#x2F; DH-KEM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-ML-KEM%EF%BC%88%E5%90%8E%E9%87%8F%E5%AD%90%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 ML-KEM（后量子）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-KEM-%E7%BB%84%E5%90%88%E5%99%A8%EF%BC%88KEM-Combiner%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. KEM 组合器（KEM Combiner）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%A0%87%E5%87%86%E5%8C%96%E7%8E%B0%E7%8A%B6"><span class="toc-number">11.</span> <span class="toc-text">10. 标准化现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">12.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&text=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&is_video=false&description=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=密钥封装机制（Key Encapsulation Mechanism，KEM）&body=Check out this article: http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&title=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&name=密钥封装机制（Key Encapsulation Mechanism，KEM）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/06/10/cryptology/7.key_encapsulation_mechanism/&t=密钥封装机制（Key Encapsulation Mechanism，KEM）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

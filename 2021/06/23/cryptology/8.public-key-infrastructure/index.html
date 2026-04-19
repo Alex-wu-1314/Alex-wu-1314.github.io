@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述 核心目标：CIA 三要素 PKI 的组成结构 证书的撤销机制 信任模型 替代方案 PKI 的历史沿革 PKI 的应用场景 常见 PKI 实现与工具 PKI 面临的挑战与批评 相关协议与标准   一、概述公钥基础设施（Public Key Infrastructure，PKI）是一套用于创建、管理、分发、使用、存储和撤销数字证书，以及管理公钥加密所需的角色、策略、硬件、软件和程序的综合体">
+<meta property="og:type" content="article">
+<meta property="og:title" content="公钥基础设施（PKI）">
+<meta property="og:url" content="http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述 核心目标：CIA 三要素 PKI 的组成结构 证书的撤销机制 信任模型 替代方案 PKI 的历史沿革 PKI 的应用场景 常见 PKI 实现与工具 PKI 面临的挑战与批评 相关协议与标准   一、概述公钥基础设施（Public Key Infrastructure，PKI）是一套用于创建、管理、分发、使用、存储和撤销数字证书，以及管理公钥加密所需的角色、策略、硬件、软件和程序的综合体">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-06-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-19T12:08:39.260Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>公钥基础设施（PKI）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/07/01/cryptology/9.forward-secrecy/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&text=公钥基础设施（PKI）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&is_video=false&description=公钥基础设施（PKI）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=公钥基础设施（PKI）&body=Check out this article: http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&name=公钥基础设施（PKI）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&t=公钥基础设施（PKI）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">一、概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E7%9B%AE%E6%A0%87%EF%BC%9ACIA-%E4%B8%89%E8%A6%81%E7%B4%A0"><span class="toc-number">3.</span> <span class="toc-text">二、核心目标：CIA 三要素</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BF%9D%E5%AF%86%E6%80%A7%EF%BC%88Confidentiality%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 保密性（Confidentiality）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88Integrity%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 完整性（Integrity）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%9C%9F%E5%AE%9E%E6%80%A7%EF%BC%88Authenticity%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 真实性（Authenticity）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81PKI-%E7%9A%84%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">三、PKI 的组成结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AF%81%E4%B9%A6%E9%A2%81%E5%8F%91%E6%9C%BA%E6%9E%84%EF%BC%88Certificate-Authority%EF%BC%8CCA%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 证书颁发机构（Certificate Authority，CA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B3%A8%E5%86%8C%E6%9C%BA%E6%9E%84%EF%BC%88Registration-Authority%EF%BC%8CRA%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 注册机构（Registration Authority，RA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%AA%8C%E8%AF%81%E6%9C%BA%E6%9E%84%EF%BC%88Validation-Authority%EF%BC%8CVA%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 验证机构（Validation Authority，VA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%B8%AD%E5%A4%AE%E7%9B%AE%E5%BD%95%EF%BC%88Central-Directory%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 中央目录（Central Directory）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E8%AF%81%E4%B9%A6%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%EF%BC%88Certificate-Management-System%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 证书管理系统（Certificate Management System）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E8%AF%81%E4%B9%A6%E7%AD%96%E7%95%A5%EF%BC%88Certificate-Policy%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 证书策略（Certificate Policy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%EF%BC%88Digital-Certificate%EF%BC%89"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 数字证书（Digital Certificate）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AF%81%E4%B9%A6%E7%9A%84%E6%92%A4%E9%94%80%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">四、证书的撤销机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%92%A4%E9%94%80%E4%BF%A1%E6%81%AF%E7%9A%84%E5%88%86%E5%8F%91%E6%9D%83%E8%A1%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 撤销信息的分发权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%BB%E8%A6%81%E6%92%A4%E9%94%80%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 主要撤销机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BF%A1%E4%BB%BB%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">五、信任模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-CA-%E4%BF%A1%E4%BB%BB%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 CA 信任模型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CA-%E5%B8%82%E5%9C%BA%E6%A0%BC%E5%B1%80"><span class="toc-number">6.0.1.1.</span> <span class="toc-text">CA 市场格局</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95%EF%BC%88SSO%EF%BC%89%E4%B8%AD%E7%9A%84-CA-%E5%BA%94%E7%94%A8"><span class="toc-number">6.0.1.2.</span> <span class="toc-text">单点登录（SSO）中的 CA 应用</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88"><span class="toc-number">7.</span> <span class="toc-text">六、替代方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BF%A1%E4%BB%BB%E7%BD%91%EF%BC%88Web-of-Trust%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 信任网（Web of Trust）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E7%AE%80%E5%8D%95%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88SPKI%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 简单公钥基础设施（SPKI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8E%BB%E4%B8%AD%E5%BF%83%E5%8C%96%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88DPKI%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 去中心化公钥基础设施（DPKI）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81PKI-%E7%9A%84%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">8.</span> <span class="toc-text">七、PKI 的历史沿革</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%97%A9%E6%9C%9F%E5%8F%91%E7%8E%B0%EF%BC%881969%E5%B9%B4%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 早期发现（1969年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%85%AC%E5%BC%80%E6%8A%AB%E9%9C%B2%E4%B8%8E%E5%A5%A0%E5%9F%BA%EF%BC%881976%E5%B9%B4%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 公开披露与奠基（1976年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AF%86%E7%A0%81%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%8F%91%E5%B1%95"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 密码协议的发展</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%95%86%E4%B8%9A%E5%8C%96%E4%B8%8E%E6%B3%95%E5%BE%8B%E5%8C%96%EF%BC%881990%E5%B9%B4%E4%BB%A3%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 商业化与法律化（1990年代）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%8F%91%E5%B1%95%E6%94%BE%E7%BC%93%E4%B8%8E%E7%8E%B0%E7%8A%B6"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 发展放缓与现状</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81PKI-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">9.</span> <span class="toc-text">八、PKI 的应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8A%A0%E5%AF%86%E9%80%9A%E4%BF%A1"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 加密通信</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 身份认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%AE%89%E5%85%A8%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E5%BC%95%E5%AF%BC"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 安全通信协议引导</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E7%A7%BB%E5%8A%A8%E7%AD%BE%E5%90%8D"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 移动签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E7%89%A9%E8%81%94%E7%BD%91%EF%BC%88IoT%EF%BC%89%E5%AE%89%E5%85%A8"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 物联网（IoT）安全</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%B8%B8%E8%A7%81-PKI-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7"><span class="toc-number">10.</span> <span class="toc-text">九、常见 PKI 实现与工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%80%E6%BA%90%E5%B7%A5%E5%85%B7"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 开源工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Let%E2%80%99s-Encrypt-%E4%B8%8E%E5%85%8D%E8%B4%B9%E8%AF%81%E4%B9%A6"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 Let’s Encrypt 与免费证书</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81PKI-%E9%9D%A2%E4%B8%B4%E7%9A%84%E6%8C%91%E6%88%98%E4%B8%8E%E6%89%B9%E8%AF%84"><span class="toc-number">11.</span> <span class="toc-text">十、PKI 面临的挑战与批评</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%B5%8F%E8%A7%88%E5%99%A8%E9%A2%84%E8%A3%85%E4%B8%AD%E9%97%B4%E8%AF%81%E4%B9%A6%E7%9A%84%E9%A3%8E%E9%99%A9"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 浏览器预装中间证书的风险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8F%AF%E7%94%A8%E6%80%A7%E4%B8%8E%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 可用性与安全性的权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%8D%95%E7%82%B9%E6%95%85%E9%9A%9C"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 单点故障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E7%AE%A1%E7%90%86%E5%A4%8D%E6%9D%82%E6%80%A7"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 管理复杂性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E7%9B%B8%E5%85%B3%E5%8D%8F%E8%AE%AE%E4%B8%8E%E6%A0%87%E5%87%86"><span class="toc-number">12.</span> <span class="toc-text">十一、相关协议与标准</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">13.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        公钥基础设施（PKI）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-06-22T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-06-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E4%B8%80%E6%A6%82%E8%BF%B0">概述</a></li>
+<li><a href="#%E4%BA%8C%E6%A0%B8%E5%BF%83%E7%9B%AE%E6%A0%87cia-%E4%B8%89%E8%A6%81%E7%B4%A0">核心目标：CIA 三要素</a></li>
+<li><a href="#%E4%B8%89pki-%E7%9A%84%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84">PKI 的组成结构</a></li>
+<li><a href="#%E5%9B%9B%E8%AF%81%E4%B9%A6%E7%9A%84%E6%92%A4%E9%94%80%E6%9C%BA%E5%88%B6">证书的撤销机制</a></li>
+<li><a href="#%E4%BA%94%E4%BF%A1%E4%BB%BB%E6%A8%A1%E5%9E%8B">信任模型</a></li>
+<li><a href="#%E5%85%AD%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88">替代方案</a></li>
+<li><a href="#%E4%B8%83pki-%E7%9A%84%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9">PKI 的历史沿革</a></li>
+<li><a href="#%E5%85%ABpki-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">PKI 的应用场景</a></li>
+<li><a href="#%E4%B9%9D%E5%B8%B8%E8%A7%81-pki-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7">常见 PKI 实现与工具</a></li>
+<li><a href="#%E5%8D%81pki-%E9%9D%A2%E4%B8%B4%E7%9A%84%E6%8C%91%E6%88%98%E4%B8%8E%E6%89%B9%E8%AF%84">PKI 面临的挑战与批评</a></li>
+<li><a href="#%E5%8D%81%E4%B8%80%E7%9B%B8%E5%85%B3%E5%8D%8F%E8%AE%AE%E4%B8%8E%E6%A0%87%E5%87%86">相关协议与标准</a></li>
+</ol>
+<hr>
+<h1 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h1><p><strong>公钥基础设施</strong>（Public Key Infrastructure，PKI）是一套用于<strong>创建、管理、分发、使用、存储和撤销数字证书</strong>，以及<strong>管理公钥加密</strong>所需的角色、策略、硬件、软件和程序的综合体系。</p>
+<p>PKI 的核心目的是为一系列网络活动（如电子商务、网络银行和机密邮件）提供<strong>安全的电子信息传输</strong>。在简单密码已不足以完成身份认证的场景下，PKI 能提供更严格的身份证明，并对传输信息进行完整性验证。</p>
+<p>在密码学领域，PKI 是一种将<strong>公钥与实体身份（如个人或组织）绑定</strong>的机制。这种绑定通过证书颁发机构（Certificate Authority，CA）完成注册和证书颁发来实现。根据绑定的保证级别不同，该过程可由自动化系统或人工监督完成。当绑定通过网络进行时，需使用安全的证书注册或证书管理协议（如 CMP）。</p>
+<blockquote>
+<p><strong>关键概念：</strong> 术语”可信第三方”（Trusted Third Party，TTP）也常用于指代证书颁发机构（CA）。在很多场合，PKI 本身也被用作 CA 实现的同义词。</p>
+</blockquote>
+<hr>
+<h1 id="二、核心目标：CIA-三要素"><a href="#二、核心目标：CIA-三要素" class="headerlink" title="二、核心目标：CIA 三要素"></a>二、核心目标：CIA 三要素</h1><p>PKI 提供”信任服务”——即信任实体（人或计算机）的行为或输出。信任服务目标涵盖以下一项或多项能力：</p>
+<h3 id="2-1-保密性（Confidentiality）"><a href="#2-1-保密性（Confidentiality）" class="headerlink" title="2.1 保密性（Confidentiality）"></a>2.1 保密性（Confidentiality）</h3><p>保证任何实体不能恶意或无意地以明文查看数据载荷。数据通过加密变为秘密，即使被读取也呈现为乱码。</p>
+<p>PKI 用于保密性最典型的场景是<strong>传输层安全（TLS）</strong>协议。TLS 保障传输中数据（即传输过程中）的安全。经典示例是：使用网页浏览器通过输入密码登录某个基于互联网的服务网站时，TLS 对该连接进行加密保护。</p>
+<h3 id="2-2-完整性（Integrity）"><a href="#2-2-完整性（Integrity）" class="headerlink" title="2.2 完整性（Integrity）"></a>2.2 完整性（Integrity）</h3><p>保证一旦实体对传输数据进行了任何细微的篡改，该篡改将是显而易见的，因为数据完整性已被破坏。</p>
+<p>通常，防止完整性被破坏（防篡改）并非最重要的，但<strong>一旦完整性被破坏，必须有明确的证据</strong>（可检测篡改）。这是重中之重。</p>
+<h3 id="2-3-真实性（Authenticity）"><a href="#2-3-真实性（Authenticity）" class="headerlink" title="2.3 真实性（Authenticity）"></a>2.3 真实性（Authenticity）</h3><p>保证实体能够：</p>
+<ul>
+<li>确定其所连接的目标是什么（<strong>服务器证书认证</strong>，即连接到 Web 服务器时通常采用的方式）；</li>
+<li>在连接到受保护服务时证明自身的合法性（<strong>客户端证书认证</strong>，例如使用持有数字证书和私钥的智能卡登录时所用方式）。</li>
+</ul>
+<hr>
+<h1 id="三、PKI-的组成结构"><a href="#三、PKI-的组成结构" class="headerlink" title="三、PKI 的组成结构"></a>三、PKI 的组成结构</h1><p>PKI 系统由以下几个关键组成部分构成：</p>
+<h3 id="3-1-证书颁发机构（Certificate-Authority，CA）"><a href="#3-1-证书颁发机构（Certificate-Authority，CA）" class="headerlink" title="3.1 证书颁发机构（Certificate Authority，CA）"></a>3.1 证书颁发机构（Certificate Authority，CA）</h3><p>CA 是 PKI 的核心。其主要职能是<strong>对数字证书进行数字签名并发布</strong>与给定用户绑定的公钥。这一过程使用 CA 自身的私钥完成，因此对用户公钥的信任依赖于对 CA 公钥有效性的信任。</p>
+<p>当 CA 是独立于用户和系统之外的第三方时，也被称为注册机构（Registration Authority，RA）。</p>
+<p><strong>证书颁发机构的层次结构：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">根 CA（Root CA）</span><br><span class="line">    └── 中间 CA（Intermediate CA）</span><br><span class="line">            └── 终端实体证书（End-Entity Certificate）</span><br></pre></td></tr></table></figure>
+
+<p>根 CA 处于信任链的顶端，通常离线保存以防攻击。中间 CA 代表根 CA 颁发证书，这种分层结构降低了根 CA 被攻击的风险。</p>
+<h3 id="3-2-注册机构（Registration-Authority，RA）"><a href="#3-2-注册机构（Registration-Authority，RA）" class="headerlink" title="3.2 注册机构（Registration Authority，RA）"></a>3.2 注册机构（Registration Authority，RA）</h3><p>RA 是 CA 可委托的、用于保证有效正确注册的 PKI 角色，负责<strong>接受数字证书申请并认证发出请求的实体</strong>。</p>
+<p>IETF 的 RFC 3647 对 RA 的定义如下：</p>
+<blockquote>
+<p>负责以下一项或多项功能的实体：对证书申请人进行识别和认证、批准或拒绝证书申请、在特定情况下启动证书撤销或暂停、处理订阅者撤销或暂停其证书的请求、批准或拒绝订阅者续期或重新申请密钥的请求。然而，RA 不签署或颁发证书（即 RA 代表 CA 执行某些任务）。</p>
+</blockquote>
+<p><strong>注意：</strong> RA 没有 CA 的签名权限，只负责管理证书的审核和分发。在 Microsoft PKI 体系中，RA 的功能由 Microsoft 证书服务网站或 Active Directory 证书服务提供；而在 Microsoft 独立 CA 的情况下，RA 功能不存在，因为所有控制程序都基于托管 CA 的系统的管理和访问程序。</p>
+<h3 id="3-3-验证机构（Validation-Authority，VA）"><a href="#3-3-验证机构（Validation-Authority，VA）" class="headerlink" title="3.3 验证机构（Validation Authority，VA）"></a>3.3 验证机构（Validation Authority，VA）</h3><p>第三方验证机构（VA）可以代表 CA 提供实体信息。实体在每个 CA 域内必须根据该实体的相关信息具有唯一可识别性。</p>
+<h3 id="3-4-中央目录（Central-Directory）"><a href="#3-4-中央目录（Central-Directory）" class="headerlink" title="3.4 中央目录（Central Directory）"></a>3.4 中央目录（Central Directory）</h3><p>中央目录是密钥被索引和存储的<strong>安全位置</strong>。</p>
+<h3 id="3-5-证书管理系统（Certificate-Management-System）"><a href="#3-5-证书管理系统（Certificate-Management-System）" class="headerlink" title="3.5 证书管理系统（Certificate Management System）"></a>3.5 证书管理系统（Certificate Management System）</h3><p>该系统负责管理已存储证书的访问权限，以及待颁发证书的交付。</p>
+<h3 id="3-6-证书策略（Certificate-Policy）"><a href="#3-6-证书策略（Certificate-Policy）" class="headerlink" title="3.6 证书策略（Certificate Policy）"></a>3.6 证书策略（Certificate Policy）</h3><p>证书策略阐明了 PKI 对其程序的要求，目的是让外部人员能够分析 PKI 的可信度。</p>
+<h3 id="3-7-数字证书（Digital-Certificate）"><a href="#3-7-数字证书（Digital-Certificate）" class="headerlink" title="3.7 数字证书（Digital Certificate）"></a>3.7 数字证书（Digital Certificate）</h3><p><strong>X.509</strong> 标准定义了最常用的公钥证书格式。数字证书将公钥映射到实体，并由 CA 安全地将这些证书存储于中央存储库中，需要时可撤销。</p>
+<p>一张标准数字证书通常包含：</p>
+<ul>
+<li>证书持有人的可识别信息（姓名、序列号、有效期等）</li>
+<li>公钥副本（用于加密数据和验证数字签名）</li>
+<li>CA 的数字签名（证明证书真实性）</li>
+</ul>
+<hr>
+<h1 id="四、证书的撤销机制"><a href="#四、证书的撤销机制" class="headerlink" title="四、证书的撤销机制"></a>四、证书的撤销机制</h1><p>证书可能在到期之前被撤销，这意味着它不再有效。<strong>如果没有撤销机制，攻击者可以利用被攻击或错误颁发的证书，直到其到期为止</strong>。因此，撤销是公钥基础设施的重要组成部分。</p>
+<p>撤销由颁发证书的 CA 执行，CA 生成经密码认证的撤销声明。</p>
+<h3 id="4-1-撤销信息的分发权衡"><a href="#4-1-撤销信息的分发权衡" class="headerlink" title="4.1 撤销信息的分发权衡"></a>4.1 撤销信息的分发权衡</h3><p>在向客户端分发撤销信息时，存在以下权衡：</p>
+<ul>
+<li><strong>及时性</strong>（发现撤销的时间窗口，即攻击者利用被攻击证书的窗口）</li>
+<li><strong>查询撤销状态的资源消耗</strong></li>
+<li><strong>隐私问题</strong></li>
+</ul>
+<p>当撤销信息不可用（由于意外或攻击）时，客户端必须做出选择：</p>
+<ul>
+<li><strong>硬性失败（fail-hard）</strong>：将证书视为已撤销处理（牺牲可用性）</li>
+<li><strong>软性失败（fail-soft）</strong>：将其视为未撤销处理（允许攻击者绕过撤销）</li>
+</ul>
+<h3 id="4-2-主要撤销机制"><a href="#4-2-主要撤销机制" class="headerlink" title="4.2 主要撤销机制"></a>4.2 主要撤销机制</h3><p>由于撤销检查的成本以及来自可能不可靠的远程服务的可用性影响，<strong>Web 浏览器会限制它们将执行的撤销检查</strong>，并在执行时采取软性失败策略。</p>
+<p><strong>证书撤销列表（CRL）</strong></p>
+<ul>
+<li>CRL 的带宽消耗过高，不适合常规使用。</li>
+</ul>
+<p><strong>在线证书状态协议（OCSP）</strong></p>
+<ul>
+<li>OCSP 存在连接延迟和隐私问题。</li>
+</ul>
+<p><strong>其他方案</strong></p>
+<ul>
+<li>已有其他方案被提出，但尚未成功部署以实现硬性失败检查。</li>
+</ul>
+<blockquote>
+<p>自 2020 年 9 月起，TLS 证书有效期缩短至 <strong>13 个月</strong>。</p>
+</blockquote>
+<hr>
+<h1 id="五、信任模型"><a href="#五、信任模型" class="headerlink" title="五、信任模型"></a>五、信任模型</h1><h3 id="5-1-CA-信任模型"><a href="#5-1-CA-信任模型" class="headerlink" title="5.1 CA 信任模型"></a>5.1 CA 信任模型</h3><p>在这一信任关系模型中，CA 是受信任的第三方，<strong>同时被证书的主体（所有者）和依赖证书的一方信任</strong>。</p>
+<h4 id="CA-市场格局"><a href="#CA-市场格局" class="headerlink" title="CA 市场格局"></a>CA 市场格局</h4><p>根据 2015 年 Netcraft 报告（行业监控活跃 TLS 证书的标准），TLS 生态系统虽然竞争激烈，但主要由少数几家主要 CA 主导：</p>
+<blockquote>
+<p>三家证书颁发机构（Symantec、Sectigo、GoDaddy）占公共 Web 服务器上所有颁发的 TLS 证书的四分之三。</p>
+</blockquote>
+<p>然而，由于证书颁发管理中出现的重大问题，所有主要浏览器从 2017 年开始逐步撤销对 Symantec 颁发证书的信任，并于 2021 年完成。</p>
+<h4 id="单点登录（SSO）中的-CA-应用"><a href="#单点登录（SSO）中的-CA-应用" class="headerlink" title="单点登录（SSO）中的 CA 应用"></a>单点登录（SSO）中的 CA 应用</h4><p>这种方式涉及一个在单点登录系统中充当<strong>离线证书颁发机构</strong>的服务器。SSO 服务器将数字证书颁发到客户端系统，但从不存储它们。用户可以使用临时证书执行程序等操作。这种解决方案通常与基于 X.509 的证书配合使用。</p>
+<hr>
+<h1 id="六、替代方案"><a href="#六、替代方案" class="headerlink" title="六、替代方案"></a>六、替代方案</h1><h3 id="6-1-信任网（Web-of-Trust）"><a href="#6-1-信任网（Web-of-Trust）" class="headerlink" title="6.1 信任网（Web of Trust）"></a>6.1 信任网（Web of Trust）</h3><p><strong>信任网</strong>是公钥信息公开认证问题的替代方法，使用<strong>自签名证书</strong>和对这些证书的第三方证明。</p>
+<p>“信任网”这一单数术语并不意味着存在单一的信任网或共同的信任点，而是指任意数量的潜在不相交”信任网”之一。该方法的实现示例包括：</p>
+<ul>
+<li><strong>PGP</strong>（Pretty Good Privacy）</li>
+<li><strong>GnuPG</strong>（OpenPGP 的实现，PGP 的标准化规范）</li>
+</ul>
+<p>信任网的优点之一（如 PGP 中的实现）是：它可以与域中所有方完全信任的 PKI CA（例如公司内部 CA）互操作，该 CA 作为可信引荐人愿意为证书提供担保。</p>
+<p><strong>信任网的局限性：</strong> PKI 的价值取决于控制证书颁发的标准和实践，引入 PGP 或个人建立的信任网可能会显著降低企业或域的 PKI 实现的可信度。</p>
+<p><strong>Phil Zimmermann 的原始愿景（1992年）：</strong></p>
+<blockquote>
+<p>随着时间推移，你会从其他人那里积累密钥，你可能希望将他们指定为可信引荐人。其他每个人都会各自选择自己的可信引荐人。每个人都会逐渐积累并随着其密钥分发来自其他人的认证签名集合，期望任何收到它的人都会信任其中至少一两个签名。这将导致一个去中心化、容错的所有公钥的信任网络的出现。</p>
+<p>—— PGP 创始人 Phil Zimmermann，1992年，PGP 2.0 版手册</p>
+</blockquote>
+<h3 id="6-2-简单公钥基础设施（SPKI）"><a href="#6-2-简单公钥基础设施（SPKI）" class="headerlink" title="6.2 简单公钥基础设施（SPKI）"></a>6.2 简单公钥基础设施（SPKI）</h3><p>SPKI（Simple Public Key Infrastructure）是克服 X.509 和 PGP 信任网复杂性的三项独立工作的成果。</p>
+<p>SPKI 的主要特点：</p>
+<ul>
+<li><strong>不将用户与人关联</strong>，因为受信任的是密钥，而不是人</li>
+<li><strong>不使用信任概念</strong>，因为验证者同时也是颁发者（SPKI 术语中称为”授权循环”）</li>
+<li>授权是其设计的核心组成部分</li>
+</ul>
+<p>SPKI 特别适合不依赖第三方进行证书授权和证书信息的 PKI 集成，一个典型示例是<strong>办公室中的空气隔离网络（air-gapped network）</strong>。</p>
+<h3 id="6-3-去中心化公钥基础设施（DPKI）"><a href="#6-3-去中心化公钥基础设施（DPKI）" class="headerlink" title="6.3 去中心化公钥基础设施（DPKI）"></a>6.3 去中心化公钥基础设施（DPKI）</h3><p><strong>去中心化标识符（DIDs）</strong>消除了对集中式标识符注册表以及层次化 PKI 中标准密钥管理的集中式证书颁发机构的依赖。</p>
+<p>在 DID 注册表为<strong>分布式账本</strong>的情况下，每个实体可以充当自己的根权威机构。这种架构被称为<strong>去中心化 PKI（DPKI）</strong>。</p>
+<hr>
+<h1 id="七、PKI-的历史沿革"><a href="#七、PKI-的历史沿革" class="headerlink" title="七、PKI 的历史沿革"></a>七、PKI 的历史沿革</h1><h3 id="7-1-早期发现（1969年）"><a href="#7-1-早期发现（1969年）" class="headerlink" title="7.1 早期发现（1969年）"></a>7.1 早期发现（1969年）</h3><p>PKI 的概念和使用最早由英国情报机构 <strong>GCHQ</strong> 的科学家于 1969 年通过 James Ellis 的工作发现。此后，Clifford Cocks 等人在加密算法和密钥分发方面取得了重要发现。</p>
+<p>由于 GCHQ 的工作高度保密，这些研究成果被保密，直到 1990 年代中期才被公开承认。</p>
+<h3 id="7-2-公开披露与奠基（1976年）"><a href="#7-2-公开披露与奠基（1976年）" class="headerlink" title="7.2 公开披露与奠基（1976年）"></a>7.2 公开披露与奠基（1976年）</h3><p>1976 年，Diffie、Hellman、Rivest、Shamir 和 Adleman 公开披露了<strong>安全密钥交换</strong>和<strong>非对称密钥算法</strong>，彻底改变了安全通信的面貌。</p>
+<p>随着高速数字电子通信（互联网及其前身）的进一步发展，用户之间安全通信以及确认通信对方真实身份的需求变得显而易见。</p>
+<h3 id="7-3-密码协议的发展"><a href="#7-3-密码协议的发展" class="headerlink" title="7.3 密码协议的发展"></a>7.3 密码协议的发展</h3><p>随后，各种密码协议被发明和分析，新的密码原语得以有效使用。随着<strong>万维网（WWW）</strong>的发明及其迅速传播，认证和安全通信的需求变得更加迫切——商业原因（如电子商务、通过 Web 浏览器在线访问专有数据库）便已足够充分。</p>
+<p>Taher Elgamal 等人在 <strong>Netscape</strong> 开发了 <strong>SSL 协议</strong>（即 Web URL 中的 “https”），包括密钥建立、服务器认证（v3 之前为单向）等功能，由此为 Web 用户&#x2F;站点建立了 PKI 结构。</p>
+<h3 id="7-4-商业化与法律化（1990年代）"><a href="#7-4-商业化与法律化（1990年代）" class="headerlink" title="7.4 商业化与法律化（1990年代）"></a>7.4 商业化与法律化（1990年代）</h3><p>供应商和企业家看到了巨大的市场潜力，纷纷成立公司并开始推动 PKI 的法律认可和责任保护：</p>
+<ul>
+<li><strong>美国律师协会（ABA）</strong>技术项目发布了对 PKI 运营某些可预见法律方面的广泛分析（参见 ABA 数字签名指南）</li>
+<li>此后不久，多个美国州（犹他州于 1995 年率先）及世界各地的其他司法管辖区开始制定法律和法规</li>
+<li>消费者群体对隐私、访问和责任问题提出了质疑，在某些司法管辖区比其他地区得到了更多重视</li>
+</ul>
+<h3 id="7-5-发展放缓与现状"><a href="#7-5-发展放缓与现状" class="headerlink" title="7.5 发展放缓与现状"></a>7.5 发展放缓与现状</h3><p>到 21 世纪初，底层密码工程明显不易正确部署：</p>
+<ul>
+<li>操作程序（手动或自动）难以正确设计，即使设计正确，执行时也难以达到工程所要求的完美</li>
+<li>现有标准不足</li>
+<li>PKI 供应商找到了市场，但并非 1990 年代中期所设想的那个市场，增长比预期更缓慢，方向也有所不同</li>
+</ul>
+<p><strong>PKI 在政府实施中取得了最大成功</strong>，迄今为止最大的 PKI 实施是美国<strong>国防信息系统局（DISA）</strong>的 PKI 基础设施，用于<strong>通用访问卡（Common Access Cards）</strong>计划。</p>
+<hr>
+<h1 id="八、PKI-的应用场景"><a href="#八、PKI-的应用场景" class="headerlink" title="八、PKI 的应用场景"></a>八、PKI 的应用场景</h1><p>各种类型的 PKI，来自不同供应商，有多种用途，包括提供公钥和用户身份绑定，用于：</p>
+<h3 id="8-1-加密通信"><a href="#8-1-加密通信" class="headerlink" title="8.1 加密通信"></a>8.1 加密通信</h3><ul>
+<li><strong>电子邮件加密与发件人认证</strong>（如 OpenPGP 或 S&#x2F;MIME）</li>
+<li><strong>文档加密与认证</strong>（如 XML Signature 或 XML Encryption 标准，适用于 XML 编码文档）</li>
+</ul>
+<h3 id="8-2-身份认证"><a href="#8-2-身份认证" class="headerlink" title="8.2 身份认证"></a>8.2 身份认证</h3><ul>
+<li><strong>用户对应用程序的认证</strong>（如智能卡登录、通过 SSL&#x2F;TLS 的客户端认证）</li>
+<li>实验性用途包括 Enigform 和 mod_openpgp 项目中的数字签名 HTTP 认证</li>
+</ul>
+<h3 id="8-3-安全通信协议引导"><a href="#8-3-安全通信协议引导" class="headerlink" title="8.3 安全通信协议引导"></a>8.3 安全通信协议引导</h3><ul>
+<li><strong>引导安全通信协议</strong>，如互联网密钥交换（IKE）和 SSL&#x2F;TLS</li>
+<li>在这两种情况下，安全通道（”安全关联”）的初始建立使用非对称密钥（即公钥）方法，而实际通信则使用更快的对称密钥（即密钥）方法</li>
+</ul>
+<h3 id="8-4-移动签名"><a href="#8-4-移动签名" class="headerlink" title="8.4 移动签名"></a>8.4 移动签名</h3><p>移动签名是使用移动设备创建的电子签名，依赖于与位置无关的电信环境中的签名或认证服务。</p>
+<h3 id="8-5-物联网（IoT）安全"><a href="#8-5-物联网（IoT）安全" class="headerlink" title="8.5 物联网（IoT）安全"></a>8.5 物联网（IoT）安全</h3><p>物联网要求相互信任的设备之间进行安全通信。PKI 使设备能够获取和更新 <strong>X.509 证书</strong>，用于在设备之间建立信任并使用 <strong>TLS</strong> 加密通信。</p>
+<hr>
+<h1 id="九、常见-PKI-实现与工具"><a href="#九、常见-PKI-实现与工具" class="headerlink" title="九、常见 PKI 实现与工具"></a>九、常见 PKI 实现与工具</h1><h3 id="9-1-开源工具"><a href="#9-1-开源工具" class="headerlink" title="9.1 开源工具"></a>9.1 开源工具</h3><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>语言</th>
+<th>许可证</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>OpenSSL</strong></td>
+<td>C</td>
+<td>Apache</td>
+<td>PKI 最简单形式的 CA 和工具包，包含在所有主要 Linux 发行版中，可用于构建简单 CA 并 PKI 启用应用程序</td>
+</tr>
+<tr>
+<td><strong>EJBCA</strong></td>
+<td>Java</td>
+<td>LGPL</td>
+<td>全功能企业级 CA 实现，可用于设置内部用途或作为服务的 CA</td>
+</tr>
+<tr>
+<td><strong>XiPKI</strong></td>
+<td>Java</td>
+<td>Apache</td>
+<td>CA 和 OCSP 响应器，支持 SHA-3</td>
+</tr>
+<tr>
+<td><strong>XCA</strong></td>
+<td>-</td>
+<td>-</td>
+<td>图形界面和数据库，使用 OpenSSL 进行底层 PKI 操作</td>
+</tr>
+<tr>
+<td><strong>DogTag</strong></td>
+<td>-</td>
+<td>-</td>
+<td>Fedora Project 开发和维护的全功能 CA</td>
+</tr>
+<tr>
+<td><strong>CFSSL</strong></td>
+<td>Go</td>
+<td>BSD 2-clause</td>
+<td>Cloudflare 开发的开源工具包，用于签署、验证和捆绑 TLS 证书</td>
+</tr>
+<tr>
+<td><strong>Vault</strong></td>
+<td>Go</td>
+<td>MPL 2.0</td>
+<td>HashiCorp 开发的安全管理机密（包括 TLS 证书）的工具</td>
+</tr>
+<tr>
+<td><strong>Boulder</strong></td>
+<td>Go</td>
+<td>-</td>
+<td>基于 ACME 的 CA，是运行 <strong>Let’s Encrypt</strong> 的软件</td>
+</tr>
+</tbody></table>
+<h3 id="9-2-Let’s-Encrypt-与免费证书"><a href="#9-2-Let’s-Encrypt-与免费证书" class="headerlink" title="9.2 Let’s Encrypt 与免费证书"></a>9.2 Let’s Encrypt 与免费证书</h3><p>一些人认为，为通过 SSL&#x2F;TLS 保护网站和通过代码签名保护软件而购买证书对小型企业来说是一项昂贵的工作。然而，<strong>Let’s Encrypt</strong> 等免费替代方案的出现改变了这一现状。</p>
+<p><strong>HTTP&#x2F;2 与 PKI 的强绑定：</strong></p>
+<p>HTTP&#x2F;2 理论上允许不安全连接，但实际上，主要浏览器公司已明确表示只会在 PKI 保护的 TLS 连接上支持该协议。包括 Chrome、Firefox、Opera 和 Edge 在内的 Web 浏览器 HTTP&#x2F;2 实现仅通过 TLS 使用 <strong>ALPN 扩展</strong>支持 HTTP&#x2F;2，这意味着网站所有者为获得 HTTP&#x2F;2 的速度优势，将被迫购买由企业控制的 SSL&#x2F;TLS 证书。</p>
+<hr>
+<h1 id="十、PKI-面临的挑战与批评"><a href="#十、PKI-面临的挑战与批评" class="headerlink" title="十、PKI 面临的挑战与批评"></a>十、PKI 面临的挑战与批评</h1><h3 id="10-1-浏览器预装中间证书的风险"><a href="#10-1-浏览器预装中间证书的风险" class="headerlink" title="10.1 浏览器预装中间证书的风险"></a>10.1 浏览器预装中间证书的风险</h3><p>目前，大多数 Web 浏览器都预装了由证书颁发机构颁发和签署的<strong>中间证书</strong>，这些中间证书由所谓的<strong>根证书</strong>认证的公钥进行认证。这意味着浏览器需要携带大量不同的证书提供商，增加了密钥被攻击的风险。</p>
+<p>当密钥已知被攻击时，可以通过撤销证书来修复，但这种攻击不容易检测，可能是一个巨大的安全漏洞。浏览器必须发布安全补丁来撤销由被攻击的根证书颁发机构颁发的中间证书。</p>
+<h3 id="10-2-可用性与安全性的权衡"><a href="#10-2-可用性与安全性的权衡" class="headerlink" title="10.2 可用性与安全性的权衡"></a>10.2 可用性与安全性的权衡</h3><ul>
+<li>CRL（证书撤销列表）带宽消耗过高</li>
+<li>OCSP 存在连接延迟和隐私泄露问题</li>
+<li>浏览器倾向于软性失败而非硬性失败，为攻击者留下了时间窗口</li>
+</ul>
+<h3 id="10-3-单点故障"><a href="#10-3-单点故障" class="headerlink" title="10.3 单点故障"></a>10.3 单点故障</h3><p>整个 PKI 体系依赖于对根 CA 的信任。一旦某个 CA 被攻击，整个 PKI 的安全性都可能受到影响。Symantec 事件（2017–2021年被主流浏览器逐步撤销信任）就是一个典型案例。</p>
+<h3 id="10-4-管理复杂性"><a href="#10-4-管理复杂性" class="headerlink" title="10.4 管理复杂性"></a>10.4 管理复杂性</h3><p>PKI 的价值取决于控制证书颁发的标准和实践。底层密码工程并不容易正确部署，操作程序难以完美执行。</p>
+<hr>
+<h1 id="十一、相关协议与标准"><a href="#十一、相关协议与标准" class="headerlink" title="十一、相关协议与标准"></a>十一、相关协议与标准</h1><p>PKI 生态系统中涉及众多相关协议与标准：</p>
+<table>
+<thead>
+<tr>
+<th>协议&#x2F;标准</th>
+<th>全称</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>X.509</strong></td>
+<td>-</td>
+<td>最常用的公钥证书格式标准</td>
+</tr>
+<tr>
+<td><strong>CMP</strong></td>
+<td>Certificate Management Protocol</td>
+<td>证书管理协议</td>
+</tr>
+<tr>
+<td><strong>CMC</strong></td>
+<td>Certificate Management over CMS</td>
+<td>基于 CMS 的证书管理</td>
+</tr>
+<tr>
+<td><strong>SCEP</strong></td>
+<td>Simple Certificate Enrollment Protocol</td>
+<td>简单证书注册协议</td>
+</tr>
+<tr>
+<td><strong>EST</strong></td>
+<td>Enrollment over Secure Transport</td>
+<td>通过安全传输进行注册</td>
+</tr>
+<tr>
+<td><strong>ACME</strong></td>
+<td>Automatic Certificate Management Environment</td>
+<td>自动证书管理环境（Let’s Encrypt 使用）</td>
+</tr>
+<tr>
+<td><strong>RPKI</strong></td>
+<td>Resource Public Key Infrastructure</td>
+<td>资源公钥基础设施</td>
+</tr>
+<tr>
+<td><strong>OCSP</strong></td>
+<td>Online Certificate Status Protocol</td>
+<td>在线证书状态协议</td>
+</tr>
+<tr>
+<td><strong>TLS&#x2F;SSL</strong></td>
+<td>Transport Layer Security</td>
+<td>传输层安全协议</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h1><ul>
+<li>Adams, Carlisle; Lloyd, Steve (2003). <em>Understanding PKI: concepts, standards, and deployment considerations</em>. Addison-Wesley Professional. ISBN 978-0-672-32391-1.</li>
+<li>Choudhury, Suranjan; Bhatnagar, Kartik; Haque, Wasim (2002). <em>Public key infrastructure: implementation and design</em>. M&amp;T Books. ISBN 978-0-7645-4879-6.</li>
+<li>Schmeh, Klaus (2003). <em>Cryptography and public key infrastructure on the Internet</em>. Wiley. ISBN 0-470-84745-X.</li>
+<li>IETF RFC 3647: <a target="_blank" rel="noopener" href="https://www.ietf.org/rfc/rfc3647.txt">Internet X.509 Public Key Infrastructure Certificate Policy and Certification Practices Framework</a></li>
+<li>W3C: <a target="_blank" rel="noopener" href="https://www.w3.org/TR/did-core/">Decentralized Identifiers (DIDs)</a></li>
+<li>Sheffer, Yaron; Saint-Andre, Pierre; Fossati, Thomas (2022). <em>Recommendations for Secure Use of TLS and DTLS</em>. RFC 9325.</li>
+</ul>
+<hr>
+<p><em>本文基于 Wikipedia「Public key infrastructure」词条整理，内容结构与细节经过重组。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">一、概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83%E7%9B%AE%E6%A0%87%EF%BC%9ACIA-%E4%B8%89%E8%A6%81%E7%B4%A0"><span class="toc-number">3.</span> <span class="toc-text">二、核心目标：CIA 三要素</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BF%9D%E5%AF%86%E6%80%A7%EF%BC%88Confidentiality%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 保密性（Confidentiality）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88Integrity%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 完整性（Integrity）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%9C%9F%E5%AE%9E%E6%80%A7%EF%BC%88Authenticity%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 真实性（Authenticity）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81PKI-%E7%9A%84%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">三、PKI 的组成结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AF%81%E4%B9%A6%E9%A2%81%E5%8F%91%E6%9C%BA%E6%9E%84%EF%BC%88Certificate-Authority%EF%BC%8CCA%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 证书颁发机构（Certificate Authority，CA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B3%A8%E5%86%8C%E6%9C%BA%E6%9E%84%EF%BC%88Registration-Authority%EF%BC%8CRA%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 注册机构（Registration Authority，RA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%AA%8C%E8%AF%81%E6%9C%BA%E6%9E%84%EF%BC%88Validation-Authority%EF%BC%8CVA%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 验证机构（Validation Authority，VA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%B8%AD%E5%A4%AE%E7%9B%AE%E5%BD%95%EF%BC%88Central-Directory%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 中央目录（Central Directory）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E8%AF%81%E4%B9%A6%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%EF%BC%88Certificate-Management-System%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 证书管理系统（Certificate Management System）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E8%AF%81%E4%B9%A6%E7%AD%96%E7%95%A5%EF%BC%88Certificate-Policy%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 证书策略（Certificate Policy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6%EF%BC%88Digital-Certificate%EF%BC%89"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 数字证书（Digital Certificate）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AF%81%E4%B9%A6%E7%9A%84%E6%92%A4%E9%94%80%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">四、证书的撤销机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%92%A4%E9%94%80%E4%BF%A1%E6%81%AF%E7%9A%84%E5%88%86%E5%8F%91%E6%9D%83%E8%A1%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 撤销信息的分发权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%BB%E8%A6%81%E6%92%A4%E9%94%80%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 主要撤销机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BF%A1%E4%BB%BB%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">五、信任模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-CA-%E4%BF%A1%E4%BB%BB%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 CA 信任模型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CA-%E5%B8%82%E5%9C%BA%E6%A0%BC%E5%B1%80"><span class="toc-number">6.0.1.1.</span> <span class="toc-text">CA 市场格局</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95%EF%BC%88SSO%EF%BC%89%E4%B8%AD%E7%9A%84-CA-%E5%BA%94%E7%94%A8"><span class="toc-number">6.0.1.2.</span> <span class="toc-text">单点登录（SSO）中的 CA 应用</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%A1%88"><span class="toc-number">7.</span> <span class="toc-text">六、替代方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BF%A1%E4%BB%BB%E7%BD%91%EF%BC%88Web-of-Trust%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 信任网（Web of Trust）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E7%AE%80%E5%8D%95%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88SPKI%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 简单公钥基础设施（SPKI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8E%BB%E4%B8%AD%E5%BF%83%E5%8C%96%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88DPKI%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 去中心化公钥基础设施（DPKI）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81PKI-%E7%9A%84%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">8.</span> <span class="toc-text">七、PKI 的历史沿革</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%97%A9%E6%9C%9F%E5%8F%91%E7%8E%B0%EF%BC%881969%E5%B9%B4%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 早期发现（1969年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%85%AC%E5%BC%80%E6%8A%AB%E9%9C%B2%E4%B8%8E%E5%A5%A0%E5%9F%BA%EF%BC%881976%E5%B9%B4%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 公开披露与奠基（1976年）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AF%86%E7%A0%81%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%8F%91%E5%B1%95"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 密码协议的发展</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%95%86%E4%B8%9A%E5%8C%96%E4%B8%8E%E6%B3%95%E5%BE%8B%E5%8C%96%EF%BC%881990%E5%B9%B4%E4%BB%A3%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 商业化与法律化（1990年代）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%8F%91%E5%B1%95%E6%94%BE%E7%BC%93%E4%B8%8E%E7%8E%B0%E7%8A%B6"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 发展放缓与现状</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81PKI-%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">9.</span> <span class="toc-text">八、PKI 的应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8A%A0%E5%AF%86%E9%80%9A%E4%BF%A1"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 加密通信</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 身份认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%AE%89%E5%85%A8%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E5%BC%95%E5%AF%BC"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 安全通信协议引导</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E7%A7%BB%E5%8A%A8%E7%AD%BE%E5%90%8D"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 移动签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E7%89%A9%E8%81%94%E7%BD%91%EF%BC%88IoT%EF%BC%89%E5%AE%89%E5%85%A8"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 物联网（IoT）安全</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%B8%B8%E8%A7%81-PKI-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7"><span class="toc-number">10.</span> <span class="toc-text">九、常见 PKI 实现与工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%80%E6%BA%90%E5%B7%A5%E5%85%B7"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 开源工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Let%E2%80%99s-Encrypt-%E4%B8%8E%E5%85%8D%E8%B4%B9%E8%AF%81%E4%B9%A6"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 Let’s Encrypt 与免费证书</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81PKI-%E9%9D%A2%E4%B8%B4%E7%9A%84%E6%8C%91%E6%88%98%E4%B8%8E%E6%89%B9%E8%AF%84"><span class="toc-number">11.</span> <span class="toc-text">十、PKI 面临的挑战与批评</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%B5%8F%E8%A7%88%E5%99%A8%E9%A2%84%E8%A3%85%E4%B8%AD%E9%97%B4%E8%AF%81%E4%B9%A6%E7%9A%84%E9%A3%8E%E9%99%A9"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 浏览器预装中间证书的风险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8F%AF%E7%94%A8%E6%80%A7%E4%B8%8E%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 可用性与安全性的权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%8D%95%E7%82%B9%E6%95%85%E9%9A%9C"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 单点故障</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E7%AE%A1%E7%90%86%E5%A4%8D%E6%9D%82%E6%80%A7"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 管理复杂性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E7%9B%B8%E5%85%B3%E5%8D%8F%E8%AE%AE%E4%B8%8E%E6%A0%87%E5%87%86"><span class="toc-number">12.</span> <span class="toc-text">十一、相关协议与标准</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">13.</span> <span class="toc-text">延伸阅读</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&text=公钥基础设施（PKI）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&is_video=false&description=公钥基础设施（PKI）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=公钥基础设施（PKI）&body=Check out this article: http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&title=公钥基础设施（PKI）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&name=公钥基础设施（PKI）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/06/23/cryptology/8.public-key-infrastructure/&t=公钥基础设施（PKI）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

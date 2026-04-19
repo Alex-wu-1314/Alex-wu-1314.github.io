@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述 核心概念与基础知识 工作原理 安全属性 历史沿革 主要算法方案 签名方案分类 数字签名 vs 手写签名 公钥基础设施（PKI） 智能卡与硬件实现 法律效力与监管框架 应用场景 攻击模型与安全威胁 量子计算威胁与后量子密码学 数字签名 vs 电子签名 实现注意事项   1. 概述数字签名（Digital Signature） 是一种基于非对称密码学（公钥密码学）的数学方案，用于验证数字消">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Digital Signature">
+<meta property="og:url" content="http://example.com/2021/05/25/cryptology/6.digital_signature/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述 核心概念与基础知识 工作原理 安全属性 历史沿革 主要算法方案 签名方案分类 数字签名 vs 手写签名 公钥基础设施（PKI） 智能卡与硬件实现 法律效力与监管框架 应用场景 攻击模型与安全威胁 量子计算威胁与后量子密码学 数字签名 vs 电子签名 实现注意事项   1. 概述数字签名（Digital Signature） 是一种基于非对称密码学（公钥密码学）的数学方案，用于验证数字消">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-05-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-19T09:40:43.269Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cryptology">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Digital Signature</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/06/10/cryptology/7.key_encapsulation_mechanism/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/05/10/cryptology/5.RSA_cryptosystem/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/05/25/cryptology/6.digital_signature/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&text=Digital Signature"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&is_video=false&description=Digital Signature"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Digital Signature&body=Check out this article: http://example.com/2021/05/25/cryptology/6.digital_signature/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&name=Digital Signature&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/05/25/cryptology/6.digital_signature/&t=Digital Signature"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">3.</span> <span class="toc-text">2. 核心概念与基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0%EF%BC%88Hash-Function%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 哈希函数（Hash Function）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%88%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 非对称密码学（公钥密码学）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88PKI%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 公钥基础设施（PKI）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%AD%BE%E5%90%8D%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 签名流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%AA%8C%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 验证流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E5%B1%9E%E6%80%A7"><span class="toc-number">5.</span> <span class="toc-text">4. 安全属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%EF%BC%88Message-Authentication%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 消息认证（Message Authentication）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88Data-Integrity%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 数据完整性（Data Integrity）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%8D%E5%8F%AF%E6%8A%B5%E8%B5%96%E6%80%A7%EF%BC%88Non-Repudiation%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 不可抵赖性（Non-Repudiation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">6.</span> <span class="toc-text">5. 历史沿革</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E8%A6%81%E7%AE%97%E6%B3%95%E6%96%B9%E6%A1%88"><span class="toc-number">7.</span> <span class="toc-text">6. 主要算法方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RSA-%E7%AD%BE%E5%90%8D"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RSA 签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DSA%EF%BC%88%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DSA（数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-ECDSA%EF%BC%88%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 ECDSA（椭圆曲线数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-EdDSA%EF%BC%88Edwards-%E6%9B%B2%E7%BA%BF%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 EdDSA（Edwards 曲线数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-ElGamal-%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 ElGamal 签名方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-Schnorr-%E7%AD%BE%E5%90%8D"><span class="toc-number">7.0.6.</span> <span class="toc-text">6.6 Schnorr 签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7-BLS-%E7%AD%BE%E5%90%8D%EF%BC%88Boneh-Lynn-Shacham%EF%BC%89"><span class="toc-number">7.0.7.</span> <span class="toc-text">6.7 BLS 签名（Boneh-Lynn-Shacham）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-8-%E5%93%88%E5%B8%8C%E6%A0%91%E7%AD%BE%E5%90%8D%EF%BC%88Merkle-%E7%AD%BE%E5%90%8D%EF%BC%89"><span class="toc-number">7.0.8.</span> <span class="toc-text">6.8 哈希树签名（Merkle 签名）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88%E5%88%86%E7%B1%BB"><span class="toc-number">8.</span> <span class="toc-text">7. 签名方案分类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E6%89%8B%E5%86%99%E7%AD%BE%E5%90%8D"><span class="toc-number">9.</span> <span class="toc-text">8. 数字签名 vs 手写签名</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88PKI%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 公钥基础设施（PKI）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 数字证书</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E8%AF%81%E4%B9%A6%E9%A2%81%E5%8F%91%E6%9C%BA%E6%9E%84%EF%BC%88CA%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 证书颁发机构（CA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-PGP-OpenPGP-%E4%B8%8E%E4%BF%A1%E4%BB%BB%E7%BD%91%E7%BB%9C"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 PGP &#x2F; OpenPGP 与信任网络</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%99%BA%E8%83%BD%E5%8D%A1%E4%B8%8E%E7%A1%AC%E4%BB%B6%E5%AE%9E%E7%8E%B0"><span class="toc-number">11.</span> <span class="toc-text">10. 智能卡与硬件实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%99%BA%E8%83%BD%E5%8D%A1%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">11.0.1.</span> <span class="toc-text">智能卡实现流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E5%9B%A0%E5%AD%90%E8%AE%A4%E8%AF%81"><span class="toc-number">11.0.2.</span> <span class="toc-text">双因子认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">11.0.3.</span> <span class="toc-text">安全注意事项</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%B3%95%E5%BE%8B%E6%95%88%E5%8A%9B%E4%B8%8E%E7%9B%91%E7%AE%A1%E6%A1%86%E6%9E%B6"><span class="toc-number">12.</span> <span class="toc-text">11. 法律效力与监管框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E7%90%83%E7%AB%8B%E6%B3%95%E7%8E%B0%E7%8A%B6"><span class="toc-number">12.0.1.</span> <span class="toc-text">全球立法现状</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%91%E6%88%98"><span class="toc-number">12.0.2.</span> <span class="toc-text">挑战</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WYSIWYS-%E5%8E%9F%E5%88%99"><span class="toc-number">12.0.3.</span> <span class="toc-text">WYSIWYS 原则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">13.</span> <span class="toc-text">12. 应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E8%BD%AF%E4%BB%B6%E5%88%86%E5%8F%91%E4%B8%8E%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 软件分发与代码签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6%E5%AE%89%E5%85%A8"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 电子邮件安全</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-TLS-HTTPS-%E8%AF%81%E4%B9%A6"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 TLS&#x2F;HTTPS 证书</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E6%96%87%E6%A1%A3%E7%AD%BE%E5%90%8D"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 文档签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8E%E5%8A%A0%E5%AF%86%E8%B4%A7%E5%B8%81"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 区块链与加密货币</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E4%B8%8E-PKI"><span class="toc-number">13.0.6.</span> <span class="toc-text">12.6 身份认证与 PKI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-%E6%97%B6%E9%97%B4%E6%88%B3%E6%9C%8D%E5%8A%A1"><span class="toc-number">13.0.7.</span> <span class="toc-text">12.7 时间戳服务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%94%BB%E5%87%BB%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%AE%89%E5%85%A8%E5%A8%81%E8%83%81"><span class="toc-number">14.</span> <span class="toc-text">13. 攻击模型与安全威胁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%BD%A2%E5%BC%8F%E5%8C%96%E5%AE%89%E5%85%A8%E5%AE%9A%E4%B9%89"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 形式化安全定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E7%A7%81%E9%92%A5%E6%B3%84%E9%9C%B2"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 私钥泄露</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%87%8D%E7%94%A8%E6%94%BB%E5%87%BB"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 随机数重用攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E5%AF%86%E7%A0%81%E5%AD%A6%E7%AE%97%E6%B3%95%E5%BC%B1%E7%82%B9"><span class="toc-number">14.0.4.</span> <span class="toc-text">13.4 密码学算法弱点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-PKI-%E4%BF%A1%E4%BB%BB%E9%97%AE%E9%A2%98"><span class="toc-number">14.0.5.</span> <span class="toc-text">13.5 PKI 信任问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">15.</span> <span class="toc-text">14. 量子计算威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E9%87%8F%E5%AD%90%E5%A8%81%E8%83%81"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 量子威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E5%90%8E%E9%87%8F%E5%AD%90%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E6%A0%87%E5%87%86"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 后量子数字签名标准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E5%93%88%E5%B8%8C%E5%9F%BA%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 哈希基签名方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-4-%E9%87%8F%E5%AD%90%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%EF%BC%88QDS%EF%BC%89"><span class="toc-number">15.0.4.</span> <span class="toc-text">14.4 量子数字签名（QDS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E7%94%B5%E5%AD%90%E7%AD%BE%E5%90%8D"><span class="toc-number">16.</span> <span class="toc-text">15. 数字签名 vs 电子签名</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#16-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">17.</span> <span class="toc-text">16. 实现注意事项</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E4%B8%8E%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">18.</span> <span class="toc-text">参考与延伸阅读</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Digital Signature
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-05-24T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-05-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cryptology/" rel="tag">Cryptology</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">概述</a></li>
+<li><a href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86">核心概念与基础知识</a></li>
+<li><a href="#3-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li><a href="#4-%E5%AE%89%E5%85%A8%E5%B1%9E%E6%80%A7">安全属性</a></li>
+<li><a href="#5-%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9">历史沿革</a></li>
+<li><a href="#6-%E4%B8%BB%E8%A6%81%E7%AE%97%E6%B3%95%E6%96%B9%E6%A1%88">主要算法方案</a></li>
+<li><a href="#7-%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88%E5%88%86%E7%B1%BB">签名方案分类</a></li>
+<li><a href="#8-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E6%89%8B%E5%86%99%E7%AD%BE%E5%90%8D">数字签名 vs 手写签名</a></li>
+<li><a href="#9-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BDpki">公钥基础设施（PKI）</a></li>
+<li><a href="#10-%E6%99%BA%E8%83%BD%E5%8D%A1%E4%B8%8E%E7%A1%AC%E4%BB%B6%E5%AE%9E%E7%8E%B0">智能卡与硬件实现</a></li>
+<li><a href="#11-%E6%B3%95%E5%BE%8B%E6%95%88%E5%8A%9B%E4%B8%8E%E7%9B%91%E7%AE%A1%E6%A1%86%E6%9E%B6">法律效力与监管框架</a></li>
+<li><a href="#12-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">应用场景</a></li>
+<li><a href="#13-%E6%94%BB%E5%87%BB%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%AE%89%E5%85%A8%E5%A8%81%E8%83%81">攻击模型与安全威胁</a></li>
+<li><a href="#14-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6">量子计算威胁与后量子密码学</a></li>
+<li><a href="#15-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E7%94%B5%E5%AD%90%E7%AD%BE%E5%90%8D">数字签名 vs 电子签名</a></li>
+<li><a href="#16-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">实现注意事项</a></li>
+</ol>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p><strong>数字签名（Digital Signature）</strong> 是一种基于非对称密码学（公钥密码学）的数学方案，用于验证数字消息或文件的真实性与完整性。一个有效的数字签名能够让接收方确信：该消息确实来自已知的发送方，且在传输过程中未被篡改。</p>
+<p>数字签名广泛应用于以下场景：</p>
+<ul>
+<li><strong>软件分发</strong>（代码签名，防止恶意篡改）</li>
+<li><strong>金融交易</strong>（电子银行、证券交易）</li>
+<li><strong>合同管理</strong>（电子合同、法律文书）</li>
+<li><strong>电子政务</strong>（数字证书、身份认证）</li>
+<li><strong>电子邮件安全</strong>（S&#x2F;MIME、PGP）</li>
+<li><strong>区块链与加密货币</strong>（交易鉴权）</li>
+</ul>
+<p>数字签名在密码学上将电子身份与电子文档绑定，<strong>无法从一份文档复制到另一份文档</strong>，这是其相较于传统手写签名的核心优势之一。</p>
+<hr>
+<h1 id="2-核心概念与基础知识"><a href="#2-核心概念与基础知识" class="headerlink" title="2. 核心概念与基础知识"></a>2. 核心概念与基础知识</h1><p>理解数字签名需要掌握以下几个基础概念：</p>
+<h3 id="2-1-哈希函数（Hash-Function）"><a href="#2-1-哈希函数（Hash-Function）" class="headerlink" title="2.1 哈希函数（Hash Function）"></a>2.1 哈希函数（Hash Function）</h3><p>哈希函数将任意长度的输入数据转换为固定长度的字符串（哈希值&#x2F;摘要）。其关键特性包括：</p>
+<ul>
+<li><strong>单向性</strong>：无法从哈希值反推原始数据</li>
+<li><strong>抗碰撞性</strong>：极难找到两个不同的输入产生相同的哈希值</li>
+<li><strong>确定性</strong>：相同输入始终产生相同输出</li>
+</ul>
+<p>常用哈希算法：SHA-1、SHA-256（SHA-2 家族）、SHA-512、MD5（已不推荐用于安全场景）。</p>
+<h3 id="2-2-非对称密码学（公钥密码学）"><a href="#2-2-非对称密码学（公钥密码学）" class="headerlink" title="2.2 非对称密码学（公钥密码学）"></a>2.2 非对称密码学（公钥密码学）</h3><p>公钥密码学使用<strong>密钥对</strong>系统：</p>
+<ul>
+<li><strong>私钥（Private Key）</strong>：由签名者保密持有，用于生成签名</li>
+<li><strong>公钥（Public Key）</strong>：公开发布，用于验证签名</li>
+</ul>
+<p>两个密钥在数学上相互关联，但无法从公钥推导出私钥（计算不可行）。</p>
+<h3 id="2-3-公钥基础设施（PKI）"><a href="#2-3-公钥基础设施（PKI）" class="headerlink" title="2.3 公钥基础设施（PKI）"></a>2.3 公钥基础设施（PKI）</h3><p>PKI 是确保公钥真实归属于其声明所有者的一套策略、标准与系统体系，包括：证书颁发机构（CA）、数字证书、证书撤销机制等（详见<a href="#9-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BDpki">第9节</a>）。</p>
+<hr>
+<h1 id="3-工作原理"><a href="#3-工作原理" class="headerlink" title="3. 工作原理"></a>3. 工作原理</h1><p>数字签名方案由三个核心算法构成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│                    数字签名三要素                             │</span><br><span class="line">│                                                            │</span><br><span class="line">│  1. 密钥生成算法（Key Generation）                            │</span><br><span class="line">│     → 从候选私钥集合中随机选取私钥                              │</span><br><span class="line">│     → 输出：私钥（signing key）+ 对应公钥（verification key）   │</span><br><span class="line">│                                                            │</span><br><span class="line">│  2. 签名算法（Signing Algorithm）                             │</span><br><span class="line">│     输入：消息 + 私钥                                         │</span><br><span class="line">│     输出：数字签名                                            │</span><br><span class="line">│                                                             │</span><br><span class="line">│  3. 签名验证算法（Verification Algorithm）                    │</span><br><span class="line">│     输入：消息 + 签名 + 公钥                                   │</span><br><span class="line">│     输出：有效 / 无效                                         │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-1-签名流程"><a href="#3-1-签名流程" class="headerlink" title="3.1 签名流程"></a>3.1 签名流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">原始消息</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">[哈希函数] ──→ 消息摘要（固定长度）</span><br><span class="line">                    │</span><br><span class="line">                    ▼</span><br><span class="line">             [用私钥加密/运算] ──→ 数字签名</span><br><span class="line">                    │</span><br><span class="line">                    ▼</span><br><span class="line">         消息 + 数字签名 ──→ 发送给接收方</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-验证流程"><a href="#3-2-验证流程" class="headerlink" title="3.2 验证流程"></a>3.2 验证流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">接收到：消息 + 数字签名</span><br><span class="line">    │</span><br><span class="line">    ├──→ [哈希函数] ──→ 重新计算消息摘要 (H1)</span><br><span class="line">    │</span><br><span class="line">    └──→ [用发送方公钥解密签名] ──→ 提取原始摘要 (H2)</span><br><span class="line">                                         │</span><br><span class="line">                                    比较 H1 == H2？</span><br><span class="line">                                    ├── 相等 → 签名有效 ✓</span><br><span class="line">                                    └── 不等 → 签名无效 ✗</span><br></pre></td></tr></table></figure>
+
+<p>值得注意的是，大多数签名方案并不直接对整个消息进行加密运算，而是先对消息哈希，再对哈希值进行密码学运算。这样做的好处在于：哈希值长度固定，运算效率更高，且对消息长度没有限制。</p>
+<hr>
+<h1 id="4-安全属性"><a href="#4-安全属性" class="headerlink" title="4. 安全属性"></a>4. 安全属性</h1><p>数字签名提供以下三大核心安全属性：</p>
+<h3 id="4-1-消息认证（Message-Authentication）"><a href="#4-1-消息认证（Message-Authentication）" class="headerlink" title="4.1 消息认证（Message Authentication）"></a>4.1 消息认证（Message Authentication）</h3><p>验证者通过发送方的公钥验证数字签名时，可以确信：该签名仅由持有对应私钥的发送方创建，而非他人伪造。</p>
+<h3 id="4-2-数据完整性（Data-Integrity）"><a href="#4-2-数据完整性（Data-Integrity）" class="headerlink" title="4.2 数据完整性（Data Integrity）"></a>4.2 数据完整性（Data Integrity）</h3><p>若攻击者对消息进行了任何修改，验证端重新计算的哈希值将与签名中提取的哈希值不匹配，导致签名验证失败。接收方由此可以判定消息在传输途中已被篡改。</p>
+<h3 id="4-3-不可抵赖性（Non-Repudiation）"><a href="#4-3-不可抵赖性（Non-Repudiation）" class="headerlink" title="4.3 不可抵赖性（Non-Repudiation）"></a>4.3 不可抵赖性（Non-Repudiation）</h3><p>由于仅有签名者持有私钥，签名者事后无法否认自己曾对特定数据进行签名。接收方可将消息和数字签名作为证据提交给第三方（如法庭）。</p>
+<p>部分不可抵赖方案还为数字签名提供<strong>时间戳</strong>，即便私钥日后泄露，带有时间戳的签名依然有效。</p>
+<blockquote>
+<p><strong>注意</strong>：数字签名本身<strong>不提供加密&#x2F;保密性</strong>。若需同时保密和认证，应将数字签名与加密方案结合使用（推荐”先加密，后签名”的 encrypt-then-sign 模式，而非先签名后加密）。</p>
+</blockquote>
+<hr>
+<h1 id="5-历史沿革"><a href="#5-历史沿革" class="headerlink" title="5. 历史沿革"></a>5. 历史沿革</h1><table>
+<thead>
+<tr>
+<th>年份</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1976</td>
+<td>Whitfield Diffie 与 Martin Hellman 在论文《New Directions in Cryptography》中首次提出数字签名方案的概念（当时仅为推测，尚未给出具体构造）</td>
+</tr>
+<tr>
+<td>1977</td>
+<td>Ronald Rivest、Adi Shamir、Leonard Adleman 发明 RSA 算法，可用于构造原始数字签名（但”原始 RSA 签名”本身并不安全）</td>
+</tr>
+<tr>
+<td>1979</td>
+<td>Michael Rabin 提出 Rabin 签名方案，这是历史上第一个在数学上可证明安全的数字签名方案</td>
+</tr>
+<tr>
+<td>1989</td>
+<td>Lotus Notes 1.0 发布，成为首个商业化提供数字签名功能的软件包（基于 RSA）</td>
+</tr>
+<tr>
+<td>1988</td>
+<td>Shafi Goldwasser、Silvio Micali 和 Ronald Rivest 首次严格定义数字签名的安全需求，提出 GMR 签名方案，并定义了”选择消息攻击下存在性不可伪造”这一至今仍是业界标准的安全定义</td>
+</tr>
+<tr>
+<td>1991</td>
+<td>NIST 提出数字签名算法（DSA），用于数字签名标准（DSS）；Taher ElGamal 的 ElGamal 签名方案作为 DSA 前身也在此时期广为人知</td>
+</tr>
+<tr>
+<td>1994</td>
+<td>NIST 将 DSA 正式采纳为联邦标准 FIPS 186</td>
+</tr>
+<tr>
+<td>1998–2023</td>
+<td>DSS 历经多次修订（FIPS 186-1 至 186-5）；2023 年的 FIPS 186-5 正式禁止使用 DSA 进行签名生成</td>
+</tr>
+<tr>
+<td>2009 以后</td>
+<td>椭圆曲线签名方案（ECDSA、EdDSA）逐渐成为主流</td>
+</tr>
+<tr>
+<td>2022–2024</td>
+<td>NIST 完成后量子密码学（PQC）标准化，发布 ML-DSA（基于 CRYSTALS-Dilithium）等抗量子签名算法</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="6-主要算法方案"><a href="#6-主要算法方案" class="headerlink" title="6. 主要算法方案"></a>6. 主要算法方案</h1><h3 id="6-1-RSA-签名"><a href="#6-1-RSA-签名" class="headerlink" title="6.1 RSA 签名"></a>6.1 RSA 签名</h3><p>RSA 是最早被广泛使用的数字签名算法，基于<strong>大整数分解难题（IFP）</strong>。</p>
+<p><strong>密钥生成：</strong></p>
+<ul>
+<li>选取两个大素数 $p$ 和 $q$，计算 $N &#x3D; pq$</li>
+<li>选取 $e$ 和 $d$ 使得 $ed \equiv 1 \pmod{\varphi(N)}$</li>
+<li>公钥为 $(N, e)$，私钥为 $d$</li>
+</ul>
+<p><strong>签名：</strong> $\sigma \equiv H(m)^d \pmod{N}$</p>
+<p><strong>验证：</strong> 检查 $\sigma^e \equiv H(m) \pmod{N}$ 是否成立</p>
+<p>RSA 签名至今仍广泛用于 TLS&#x2F;HTTPS 数字证书中（如 SHA256withRSA）。但趋势是向椭圆曲线签名迁移。</p>
+<h3 id="6-2-DSA（数字签名算法）"><a href="#6-2-DSA（数字签名算法）" class="headerlink" title="6.2 DSA（数字签名算法）"></a>6.2 DSA（数字签名算法）</h3><p>DSA 是 NIST 于 1991 年提出、1994 年标准化的联邦标准，基于<strong>离散对数难题（DLP）</strong> 和模幂运算，是 Schnorr 签名和 ElGamal 签名方案的变体。</p>
+<p>FIPS 186-5（2023）已禁止使用 DSA 生成新签名，建议迁移至 EdDSA 等现代方案。</p>
+<p>关键安全要求：签名时必须为每条消息生成不同的随机数 $k$，否则攻击者可直接推算出私钥。2010 年 PlayStation 3 私钥泄露事件即源于此漏洞（Sony 重复使用了相同的 $k$）。</p>
+<h3 id="6-3-ECDSA（椭圆曲线数字签名算法）"><a href="#6-3-ECDSA（椭圆曲线数字签名算法）" class="headerlink" title="6.3 ECDSA（椭圆曲线数字签名算法）"></a>6.3 ECDSA（椭圆曲线数字签名算法）</h3><p>ECDSA 是 DSA 在椭圆曲线群上的改进版本，基于<strong>椭圆曲线离散对数难题（ECDLP）</strong>。</p>
+<p>相较于 RSA 和 DSA，ECDSA 具有以下优势：</p>
+<ul>
+<li><strong>更短的密钥长度</strong>（256 位 ECC ≈ 3072 位 RSA 的安全性）</li>
+<li><strong>更短的签名长度</strong></li>
+<li><strong>更高的计算性能</strong></li>
+<li><strong>相同密钥长度下更高的安全级别</strong></li>
+</ul>
+<p>ECDSA 广泛应用于比特币、以太坊等区块链系统以及 TLS 协议中。</p>
+<p><strong>重要安全提示：</strong> 与 DSA 类似，ECDSA 签名中随机数 $k$ 的重用同样致命。2010 年 fail0verflow 团队通过此漏洞成功提取了索尼 PS3 的 ECDSA 私钥。建议使用 RFC 6979 中定义的确定性签名方式生成 $k$。</p>
+<h3 id="6-4-EdDSA（Edwards-曲线数字签名算法）"><a href="#6-4-EdDSA（Edwards-曲线数字签名算法）" class="headerlink" title="6.4 EdDSA（Edwards 曲线数字签名算法）"></a>6.4 EdDSA（Edwards 曲线数字签名算法）</h3><p>EdDSA 是基于 Edwards 型椭圆曲线（如 Curve25519 → Ed25519，Curve448 → Ed448）的现代签名方案。</p>
+<p>特点：</p>
+<ul>
+<li><strong>确定性签名</strong>（不依赖随机数，避免 $k$ 重用漏洞）</li>
+<li>抗侧信道攻击</li>
+<li>高性能、实现简单</li>
+<li>正逐步替代 DSA 成为新标准（FIPS 186-5 推荐）</li>
+</ul>
+<h3 id="6-5-ElGamal-签名方案"><a href="#6-5-ElGamal-签名方案" class="headerlink" title="6.5 ElGamal 签名方案"></a>6.5 ElGamal 签名方案</h3><p>由 Taher ElGamal 于 1985 年提出，基于 Diffie-Hellman 难题，是 DSA 的理论前驱。由于存在<strong>存在性伪造攻击</strong>（当不使用哈希函数时），原始方案本身并不安全，但其变体（DSA、Schnorr）在安全性上做了改进。</p>
+<h3 id="6-6-Schnorr-签名"><a href="#6-6-Schnorr-签名" class="headerlink" title="6.6 Schnorr 签名"></a>6.6 Schnorr 签名</h3><p>Schnorr 签名方案以简洁、高效著称，被认为是 DSA 的优雅替代，也是比特币 Taproot 升级采用的签名方案（BIP 340）。支持<strong>签名聚合</strong>，多个签名可合并为单一签名，极大提升区块链吞吐量。</p>
+<h3 id="6-7-BLS-签名（Boneh-Lynn-Shacham）"><a href="#6-7-BLS-签名（Boneh-Lynn-Shacham）" class="headerlink" title="6.7 BLS 签名（Boneh-Lynn-Shacham）"></a>6.7 BLS 签名（Boneh-Lynn-Shacham）</h3><p>BLS 签名基于配对友好椭圆曲线上的双线性配对，具备<strong>签名聚合</strong>特性：$n$ 个用户对 $n$ 条消息的 $n$ 个签名可聚合为常数大小的单个签名。广泛应用于以太坊 2.0 信标链。</p>
+<h3 id="6-8-哈希树签名（Merkle-签名）"><a href="#6-8-哈希树签名（Merkle-签名）" class="headerlink" title="6.8 哈希树签名（Merkle 签名）"></a>6.8 哈希树签名（Merkle 签名）</h3><p>Ralph Merkle 于 1979 年前后发明，基于哈希函数而非数论难题，因此对量子计算机具有天然抵抗力。现代变体包括 XMSS、SPHINCS+（已入选 NIST 后量子密码学标准）。缺点是每个公钥对应的签名次数有上限。</p>
+<hr>
+<h1 id="7-签名方案分类"><a href="#7-签名方案分类" class="headerlink" title="7. 签名方案分类"></a>7. 签名方案分类</h1><p>除了上述主要方案，密码学界还定义了多种具有特殊属性的签名变体：</p>
+<table>
+<thead>
+<tr>
+<th>签名类型</th>
+<th>特性说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>盲签名（Blind Signature）</strong></td>
+<td>签名者在不知道消息内容的情况下签名，常用于电子现金（e-cash）系统</td>
+</tr>
+<tr>
+<td><strong>群签名（Group Signature）</strong></td>
+<td>群组成员可代表整个群组签名，验证者只能确认签名来自该群组，无法识别具体成员</td>
+</tr>
+<tr>
+<td><strong>环签名（Ring Signature）</strong></td>
+<td>签名者从一组公钥中匿名签名，门罗币（Monero）采用此技术保护交易隐私</td>
+</tr>
+<tr>
+<td><strong>聚合签名（Aggregate Signature）</strong></td>
+<td>将 $n$ 个用户对 $n$ 条消息的签名聚合为单一签名</td>
+</tr>
+<tr>
+<td><strong>多重签名（Multisignature）</strong></td>
+<td>需要多方联合签名才能生成有效签名（如比特币多签钱包）</td>
+</tr>
+<tr>
+<td><strong>门限签名（Threshold Signature）</strong></td>
+<td>$n$ 个参与方中，任意 $t$ 方合作即可生成有效签名（$(t,n)$ 门限方案）</td>
+</tr>
+<tr>
+<td><strong>不可否认签名（Undeniable Signature）</strong></td>
+<td>验证需要签名者参与，签名者无法否认但验证者也无法单独验证</td>
+</tr>
+<tr>
+<td><strong>可转让签名（Delegatable Signature）</strong></td>
+<td>签名者可将签名权限委托给他人</td>
+</tr>
+<tr>
+<td><strong>代理签名（Proxy Signature）</strong></td>
+<td>签名者可授权代理方代为签名</td>
+</tr>
+<tr>
+<td><strong>一次性签名（One-time Signature）</strong></td>
+<td>每个密钥只能安全使用一次（如 Lamport 签名）</td>
+</tr>
+<tr>
+<td><strong>短签名（Short Signature）</strong></td>
+<td>如 BLS 签名，签名长度极短</td>
+</tr>
+<tr>
+<td><strong>带高效协议的签名</strong></td>
+<td>支持零知识证明或安全多方计算等复杂密码协议</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="8-数字签名-vs-手写签名"><a href="#8-数字签名-vs-手写签名" class="headerlink" title="8. 数字签名 vs 手写签名"></a>8. 数字签名 vs 手写签名</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>手写签名</th>
+<th>数字签名</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>介质</strong></td>
+<td>仅限纸质等物理介质</td>
+<td>任意比特串均可签名</td>
+</tr>
+<tr>
+<td><strong>可复制性</strong></td>
+<td>可以（通过扫描、复制）物理或数字复制</td>
+<td>密码学绑定到特定消息，无法复制到其他文档</td>
+</tr>
+<tr>
+<td><strong>篡改检测</strong></td>
+<td>对文档内容修改难以自动检测</td>
+<td>文档任意改动均导致签名验证失败</td>
+</tr>
+<tr>
+<td><strong>整体性保护</strong></td>
+<td>通常仅保护签名页</td>
+<td>可覆盖整个文档，确保每一页均受保护</td>
+</tr>
+<tr>
+<td><strong>不可抵赖性</strong></td>
+<td>依赖笔迹鉴定等主观手段</td>
+<td>密码学证明，可作为强力法律证据</td>
+</tr>
+<tr>
+<td><strong>伪造难度</strong></td>
+<td>需要专业技术，但有可能被仿制</td>
+<td>在私钥安全的前提下，计算上不可伪造</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="9-公钥基础设施（PKI）"><a href="#9-公钥基础设施（PKI）" class="headerlink" title="9. 公钥基础设施（PKI）"></a>9. 公钥基础设施（PKI）</h1><p>数字签名的安全性依赖于一个关键前提：<strong>公钥确实属于其声明的所有者</strong>。这正是 PKI 要解决的问题。</p>
+<h3 id="9-1-数字证书"><a href="#9-1-数字证书" class="headerlink" title="9.1 数字证书"></a>9.1 数字证书</h3><p>数字证书是由可信证书颁发机构（CA, Certificate Authority）签发的文件，内容包括：</p>
+<ul>
+<li>持有者的公钥</li>
+<li>持有者身份信息（姓名、组织等）</li>
+<li>CA 的数字签名（对上述内容的背书）</li>
+<li>证书有效期</li>
+<li>证书序列号、用途扩展等</li>
+</ul>
+<p>数字证书类似于驾驶证——其目的是证明证书持有者的身份。</p>
+<h3 id="9-2-证书颁发机构（CA）"><a href="#9-2-证书颁发机构（CA）" class="headerlink" title="9.2 证书颁发机构（CA）"></a>9.2 证书颁发机构（CA）</h3><p>CA 是 PKI 体系中的信任锚点，负责：</p>
+<ul>
+<li>验证申请者的真实身份（KYC）</li>
+<li>签发数字证书</li>
+<li>维护证书撤销列表（CRL）或提供 OCSP 服务</li>
+</ul>
+<p>商业 CA 体系属于”开放 PKI”，任何人都可以申请证书，但也存在 CA 错误签发证书的风险（历史上已有多起公开事故）。”封闭 PKI”成本更高，但更难被颠覆。</p>
+<h3 id="9-3-PGP-OpenPGP-与信任网络"><a href="#9-3-PGP-OpenPGP-与信任网络" class="headerlink" title="9.3 PGP &#x2F; OpenPGP 与信任网络"></a>9.3 PGP &#x2F; OpenPGP 与信任网络</h3><p>PGP（Pretty Good Privacy）是 PKI 的替代方案，采用<strong>信任网络（Web of Trust）</strong>模型：用户通过相互为彼此的证书签名来建立信任链，身份越被多人交叉验证，可信度越高。</p>
+<hr>
+<h1 id="10-智能卡与硬件实现"><a href="#10-智能卡与硬件实现" class="headerlink" title="10. 智能卡与硬件实现"></a>10. 智能卡与硬件实现</h1><p>为了保护私钥安全，数字签名往往在<strong>智能卡</strong>或<strong>硬件安全模块（HSM）</strong>中实现：</p>
+<h3 id="智能卡实现流程"><a href="#智能卡实现流程" class="headerlink" title="智能卡实现流程"></a>智能卡实现流程</h3><ol>
+<li>用户向智能卡发送待签名文档的哈希值</li>
+<li>智能卡 CPU 使用存储在卡内的私钥对哈希值签名</li>
+<li>返回签名结果（私钥始终不离开智能卡）</li>
+</ol>
+<h3 id="双因子认证"><a href="#双因子认证" class="headerlink" title="双因子认证"></a>双因子认证</h3><p>用户通常需要输入 PIN 码激活智能卡，实现”持卡 + 知密”的双因子认证。</p>
+<h3 id="安全注意事项"><a href="#安全注意事项" class="headerlink" title="安全注意事项"></a>安全注意事项</h3><ul>
+<li><strong>PIN 输入安全</strong>：应使用智能卡读卡器自带的物理键盘输入 PIN（而非计算机键盘），以防键盘记录木马窃取 PIN</li>
+<li><strong>专用读卡器</strong>通常经过 EAL3 认证，对硬件和软件篡改有更强抵抗力</li>
+<li>若私钥存储在软件中（如操作系统密钥库），被复制的风险更高，且泄露难以察觉</li>
+</ul>
+<hr>
+<h1 id="11-法律效力与监管框架"><a href="#11-法律效力与监管框架" class="headerlink" title="11. 法律效力与监管框架"></a>11. 法律效力与监管框架</h1><h3 id="全球立法现状"><a href="#全球立法现状" class="headerlink" title="全球立法现状"></a>全球立法现状</h3><p>多个国家和地区已通过立法，授权或承认数字签名的法律效力：</p>
+<ul>
+<li><strong>美国</strong>：犹他州（1995）率先立法，随后是马萨诸塞州和加利福尼亚州；联邦层面有《电子签名全球和国家商务法》（ESIGN，2000）</li>
+<li><strong>欧盟</strong>：eIDAS 法规（No 910&#x2F;2014）定义了合格电子签名（QES）等三个级别</li>
+<li><strong>联合国</strong>：联合国贸易法委员会（UNCITRAL）制定了《电子签名示范法》</li>
+<li><strong>中国</strong>：《电子签名法》（2004 年通过，2019 年修订）赋予符合条件的电子签名与手写签名同等法律效力</li>
+</ul>
+<h3 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h3><ul>
+<li>立法者对密码学工程现实的理解往往过于乐观或悲观</li>
+<li>技术标准的制定落后于立法进程，导致互操作性、算法选择、密钥长度等方面标准不统一</li>
+<li>PKI 商业运营者曾多次出现公开已知的问题（证书错误签发等）</li>
+</ul>
+<h3 id="WYSIWYS-原则"><a href="#WYSIWYS-原则" class="headerlink" title="WYSIWYS 原则"></a>WYSIWYS 原则</h3><p><strong>WYSIWYS（What You See Is What You Sign，所见即所签）</strong> 是数字签名有效性的重要要求：签名消息的语义解释不能在签名后被改变。</p>
+<p>然而，现代计算机系统的复杂性使这一要求难以保证——通过修改处理文档的软件或系统，可以相对容易地改变数字文档的语义解释。因此，签名应用程序与用户界面之间需要建立可信的认证通道。</p>
+<hr>
+<h1 id="12-应用场景"><a href="#12-应用场景" class="headerlink" title="12. 应用场景"></a>12. 应用场景</h1><h3 id="12-1-软件分发与代码签名"><a href="#12-1-软件分发与代码签名" class="headerlink" title="12.1 软件分发与代码签名"></a>12.1 软件分发与代码签名</h3><p>操作系统（Windows、macOS、Android、iOS）要求软件安装包必须有有效的代码签名证书，以防止恶意软件冒充合法软件。</p>
+<h3 id="12-2-电子邮件安全"><a href="#12-2-电子邮件安全" class="headerlink" title="12.2 电子邮件安全"></a>12.2 电子邮件安全</h3><ul>
+<li><strong>S&#x2F;MIME</strong>：基于 PKI 的邮件签名与加密标准</li>
+<li><strong>PGP&#x2F;GPG</strong>：基于信任网络的邮件签名与加密</li>
+</ul>
+<h3 id="12-3-TLS-HTTPS-证书"><a href="#12-3-TLS-HTTPS-证书" class="headerlink" title="12.3 TLS&#x2F;HTTPS 证书"></a>12.3 TLS&#x2F;HTTPS 证书</h3><p>网站 HTTPS 证书本质上是 CA 对网站公钥的数字签名。浏览器验证签名以确认服务器身份真实可信。</p>
+<h3 id="12-4-文档签名"><a href="#12-4-文档签名" class="headerlink" title="12.4 文档签名"></a>12.4 文档签名</h3><p>PDF、Word 等文档格式支持嵌入数字签名，用于合同、报告等正式文书的电子签署。</p>
+<h3 id="12-5-区块链与加密货币"><a href="#12-5-区块链与加密货币" class="headerlink" title="12.5 区块链与加密货币"></a>12.5 区块链与加密货币</h3><p>比特币使用 ECDSA（secp256k1）；以太坊同样使用 ECDSA；比特币后续通过 Taproot 升级引入 Schnorr 签名；以太坊 2.0 信标链使用 BLS 签名进行验证者认证与聚合。</p>
+<h3 id="12-6-身份认证与-PKI"><a href="#12-6-身份认证与-PKI" class="headerlink" title="12.6 身份认证与 PKI"></a>12.6 身份认证与 PKI</h3><p>政府颁发的电子身份证（如爱沙尼亚 e-ID、欧盟身份证）包含数字签名证书，可用于在线政务服务的身份认证。</p>
+<h3 id="12-7-时间戳服务"><a href="#12-7-时间戳服务" class="headerlink" title="12.7 时间戳服务"></a>12.7 时间戳服务</h3><p>可信时间戳（RFC 3161）为数字签名附加由可信时间服务机构（TSA）签名的时间戳，即使日后私钥被泄露，也可证明该签名在特定时间点之前已存在。</p>
+<hr>
+<h1 id="13-攻击模型与安全威胁"><a href="#13-攻击模型与安全威胁" class="headerlink" title="13. 攻击模型与安全威胁"></a>13. 攻击模型与安全威胁</h1><h3 id="13-1-形式化安全定义"><a href="#13-1-形式化安全定义" class="headerlink" title="13.1 形式化安全定义"></a>13.1 形式化安全定义</h3><p>Goldwasser、Micali 和 Rivest（1988）建立了数字签名安全的层次化攻击模型，从强到弱依次为：</p>
+<table>
+<thead>
+<tr>
+<th>攻击者能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>唯密钥攻击（Key-only Attack）</strong></td>
+<td>攻击者仅知道公钥</td>
+</tr>
+<tr>
+<td><strong>已知消息攻击（Known Message Attack）</strong></td>
+<td>攻击者可见若干消息及其签名</td>
+</tr>
+<tr>
+<td><strong>选择消息攻击（Chosen Message Attack）</strong></td>
+<td>攻击者可自适应地请求对任意消息的签名</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>攻击目标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>完全破解（Total Break）</strong></td>
+<td>恢复私钥</td>
+</tr>
+<tr>
+<td><strong>选择性伪造（Selective Forgery）</strong></td>
+<td>对特定目标消息伪造签名</td>
+</tr>
+<tr>
+<td><strong>存在性伪造（Existential Forgery）</strong></td>
+<td>伪造至少一个消息的有效签名（消息可由攻击者自选）</td>
+</tr>
+</tbody></table>
+<p><strong>现代标准</strong>：签名方案应能抵抗”选择消息攻击下的存在性伪造”（EUF-CMA），这正是 GMR 方案首次实现的安全目标。</p>
+<h3 id="13-2-私钥泄露"><a href="#13-2-私钥泄露" class="headerlink" title="13.2 私钥泄露"></a>13.2 私钥泄露</h3><p>若私钥被他人获知，该方可以完美伪造任何签名。私钥安全是整个数字签名体系的基石。</p>
+<h3 id="13-3-随机数重用攻击"><a href="#13-3-随机数重用攻击" class="headerlink" title="13.3 随机数重用攻击"></a>13.3 随机数重用攻击</h3><p>对于 DSA 和 ECDSA，若两条消息使用了相同的随机数 $k$ 进行签名，攻击者可直接计算出私钥。</p>
+<p><strong>典型案例</strong>：2010 年，研究团队 fail0verflow 通过此漏洞提取了索尼 PlayStation 3 的 ECDSA 私钥（Sony 实现中 $k$ 为常数）。</p>
+<p><strong>防御</strong>：使用 RFC 6979 定义的确定性随机数生成（从私钥和消息哈希确定性地派生 $k$）。</p>
+<h3 id="13-4-密码学算法弱点"><a href="#13-4-密码学算法弱点" class="headerlink" title="13.4 密码学算法弱点"></a>13.4 密码学算法弱点</h3><ul>
+<li><strong>弱算法</strong>：MD5、SHA-1 等已被发现碰撞攻击，不应再用于安全签名场景</li>
+<li><strong>算法实现错误</strong>：正确的算法若实现有误，同样不安全</li>
+<li><strong>侧信道攻击</strong>：通过计时、功耗、电磁辐射等物理信息推测私钥</li>
+</ul>
+<h3 id="13-5-PKI-信任问题"><a href="#13-5-PKI-信任问题" class="headerlink" title="13.5 PKI 信任问题"></a>13.5 PKI 信任问题</h3><ul>
+<li>CA 被攻击或行为不端，可能错误签发证书</li>
+<li>公钥与所有者绑定的中间人攻击（MITM）</li>
+<li>证书撤销机制的可靠性问题</li>
+</ul>
+<hr>
+<h1 id="14-量子计算威胁与后量子密码学"><a href="#14-量子计算威胁与后量子密码学" class="headerlink" title="14. 量子计算威胁与后量子密码学"></a>14. 量子计算威胁与后量子密码学</h1><h3 id="14-1-量子威胁"><a href="#14-1-量子威胁" class="headerlink" title="14.1 量子威胁"></a>14.1 量子威胁</h3><p>量子计算机利用 <strong>Shor 算法</strong>，可在多项式时间内解决：</p>
+<ul>
+<li>大整数分解问题（威胁 RSA）</li>
+<li>离散对数问题（威胁 DSA、ECDSA、ElGamal）</li>
+</ul>
+<p>这意味着，一旦足够强大的量子计算机出现，目前所有基于这些数学难题的数字签名方案将被彻底破解——攻击者届时可随意伪造任何数字签名。</p>
+<p><strong>Grover 算法</strong>则可对哈希函数的碰撞搜索提供平方根加速，但影响相对较小（将 SHA-256 的安全级别降至约 128 位）。</p>
+<h3 id="14-2-后量子数字签名标准"><a href="#14-2-后量子数字签名标准" class="headerlink" title="14.2 后量子数字签名标准"></a>14.2 后量子数字签名标准</h3><p>NIST 于 2024 年正式发布了首批后量子密码学标准，其中数字签名相关标准包括：</p>
+<table>
+<thead>
+<tr>
+<th>标准名称</th>
+<th>基础算法</th>
+<th>数学难题</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ML-DSA</strong>（FIPS 204）</td>
+<td>CRYSTALS-Dilithium</td>
+<td>格密码（Module-LWE&#x2F;SIS）</td>
+<td>密钥和签名尺寸适中</td>
+</tr>
+<tr>
+<td><strong>SLH-DSA</strong>（FIPS 205）</td>
+<td>SPHINCS+</td>
+<td>哈希函数</td>
+<td>无状态哈希签名，保守安全</td>
+</tr>
+<tr>
+<td><strong>FN-DSA</strong>（待定）</td>
+<td>FALCON</td>
+<td>格密码（NTRU）</td>
+<td>签名尺寸小，但实现复杂</td>
+</tr>
+</tbody></table>
+<h3 id="14-3-哈希基签名方案"><a href="#14-3-哈希基签名方案" class="headerlink" title="14.3 哈希基签名方案"></a>14.3 哈希基签名方案</h3><p>哈希基签名（Hash-based Signature）完全依赖哈希函数的安全性，天然抗量子。代表方案：</p>
+<ul>
+<li><strong>Lamport 签名</strong>（一次性签名，1979）</li>
+<li><strong>Merkle 签名方案</strong>（基于 Lamport，支持多次签名）</li>
+<li><strong>XMSS</strong>（eXtended Merkle Signature Scheme）</li>
+<li>**SPHINCS+**（无状态方案，已入选 NIST 标准）</li>
+</ul>
+<p>哈希基签名的主要限制：每个公钥对应的最大签名次数有限（有状态方案需要严格管理签名计数器，以避免状态重用）。SPHINCS+ 通过无状态设计规避了这一问题。</p>
+<h3 id="14-4-量子数字签名（QDS）"><a href="#14-4-量子数字签名（QDS）" class="headerlink" title="14.4 量子数字签名（QDS）"></a>14.4 量子数字签名（QDS）</h3><p>量子数字签名是利用量子力学原理（如量子密钥分发 QKD）实现的签名方案，提供信息论安全（而非计算安全），但当前仍处于研究阶段，实用化面临诸多挑战。</p>
+<hr>
+<h1 id="15-数字签名-vs-电子签名"><a href="#15-数字签名-vs-电子签名" class="headerlink" title="15. 数字签名 vs 电子签名"></a>15. 数字签名 vs 电子签名</h1><p>这两个概念常被混淆：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>电子签名（Electronic Signature）</th>
+<th>数字签名（Digital Signature）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定义</strong></td>
+<td>任何形式的电子标记，用于表示对文档的认可</td>
+<td>基于公钥密码学的特定电子签名技术</td>
+</tr>
+<tr>
+<td><strong>范围</strong></td>
+<td>宽泛（包括扫描手写签名、复选框勾选、输入姓名等）</td>
+<td>是电子签名的一个子集</td>
+</tr>
+<tr>
+<td><strong>技术基础</strong></td>
+<td>不要求特定密码技术</td>
+<td>必须基于公钥密码学和哈希函数</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>因实现而异，差异极大</td>
+<td>提供数学上可证明的完整性和认证</td>
+</tr>
+<tr>
+<td><strong>标准</strong></td>
+<td>各国法规定义各异</td>
+<td>遵循 PKI 国际标准</td>
+</tr>
+</tbody></table>
+<p>简而言之：<strong>所有数字签名都是电子签名，但并非所有电子签名都是数字签名。</strong></p>
+<hr>
+<h1 id="16-实现注意事项"><a href="#16-实现注意事项" class="headerlink" title="16. 实现注意事项"></a>16. 实现注意事项</h1><p>以下是实现数字签名时需要注意的关键安全事项，综合自业界最佳实践：</p>
+<p><strong>算法选择</strong></p>
+<ul>
+<li>优先选用已标准化的方案：Ed25519（EdDSA）、ECDSA（P-256&#x2F;P-384）、RSA-PSS（≥2048 位）</li>
+<li>避免使用：MD5&#x2F;SHA-1 签名、原始 RSA 签名（无填充）、DES 等弱算法</li>
+</ul>
+<p><strong>密钥管理</strong></p>
+<ul>
+<li>私钥必须安全存储（HSM、智能卡或经过妥善保护的密钥库）</li>
+<li>定期轮换密钥，并制定密钥泄露应急响应计划</li>
+<li>实施证书撤销机制（CRL &#x2F; OCSP）</li>
+</ul>
+<p><strong>随机数安全</strong></p>
+<ul>
+<li>使用密码学安全的随机数生成器（CSPRNG）</li>
+<li>对于 ECDSA&#x2F;DSA，考虑使用 RFC 6979 确定性签名</li>
+</ul>
+<p><strong>哈希函数</strong></p>
+<ul>
+<li>使用 SHA-256 或更强的哈希算法</li>
+<li>避免直接对消息签名（不经哈希），始终先哈希</li>
+</ul>
+<p><strong>验证完整性</strong></p>
+<ul>
+<li>验证签名时，必须同时验证签名者的证书链和证书有效性</li>
+<li>实现 WYSIWYS 原则，确保用户看到的内容就是被签名的内容</li>
+</ul>
+<p><strong>量子前瞻</strong></p>
+<ul>
+<li>对于需要长期安全保障的场景，考虑迁移至后量子签名算法或采用”混合签名”（经典 + 后量子）</li>
+</ul>
+<hr>
+<h1 id="参考与延伸阅读"><a href="#参考与延伸阅读" class="headerlink" title="参考与延伸阅读"></a>参考与延伸阅读</h1><ul>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Digital_signature">Digital signature</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Digital_Signature_Algorithm">Digital Signature Algorithm (DSA)</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/RSA_cryptosystem">RSA cryptosystem</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm">Elliptic Curve Digital Signature Algorithm (ECDSA)</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/EdDSA">EdDSA</a></li>
+<li>Wikipedia: <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Post-quantum_cryptography">Post-quantum cryptography</a></li>
+<li>NIST FIPS 186-5: <em>Digital Signature Standard (DSS)</em></li>
+<li>NIST FIPS 204: <em>Module-Lattice-Based Digital Signature Standard (ML-DSA)</em></li>
+<li>NIST FIPS 205: <em>Stateless Hash-Based Digital Signature Standard (SLH-DSA)</em></li>
+<li>RFC 6979: <em>Deterministic Usage of the Digital Signature Algorithm (DSA) and Elliptic Curve Digital Signature Algorithm (ECDSA)</em></li>
+<li>Goldwasser, S., Micali, S., Rivest, R. (1988). <em>A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks</em></li>
+<li>Diffie, W., Hellman, M. (1976). <em>New Directions in Cryptography</em></li>
+<li>CISA: <a target="_blank" rel="noopener" href="https://www.cisa.gov/news-events/news/understanding-digital-signatures">Understanding Digital Signatures</a></li>
+<li>Practical Cryptography for Developers: <a target="_blank" rel="noopener" href="https://cryptobook.nakov.com/digital-signatures">Digital Signatures</a></li>
+</ul>
+<hr>
+<p><em>本文综合整理自 Wikipedia「Digital signature」词条及多方权威资料。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">3.</span> <span class="toc-text">2. 核心概念与基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0%EF%BC%88Hash-Function%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 哈希函数（Hash Function）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%88%E5%85%AC%E9%92%A5%E5%AF%86%E7%A0%81%E5%AD%A6%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 非对称密码学（公钥密码学）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88PKI%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 公钥基础设施（PKI）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%AD%BE%E5%90%8D%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 签名流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%AA%8C%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 验证流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E5%B1%9E%E6%80%A7"><span class="toc-number">5.</span> <span class="toc-text">4. 安全属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%EF%BC%88Message-Authentication%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 消息认证（Message Authentication）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88Data-Integrity%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 数据完整性（Data Integrity）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%8D%E5%8F%AF%E6%8A%B5%E8%B5%96%E6%80%A7%EF%BC%88Non-Repudiation%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 不可抵赖性（Non-Repudiation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">6.</span> <span class="toc-text">5. 历史沿革</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%BB%E8%A6%81%E7%AE%97%E6%B3%95%E6%96%B9%E6%A1%88"><span class="toc-number">7.</span> <span class="toc-text">6. 主要算法方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RSA-%E7%AD%BE%E5%90%8D"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RSA 签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DSA%EF%BC%88%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DSA（数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-ECDSA%EF%BC%88%E6%A4%AD%E5%9C%86%E6%9B%B2%E7%BA%BF%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 ECDSA（椭圆曲线数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-EdDSA%EF%BC%88Edwards-%E6%9B%B2%E7%BA%BF%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E7%AE%97%E6%B3%95%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 EdDSA（Edwards 曲线数字签名算法）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-ElGamal-%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 ElGamal 签名方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-Schnorr-%E7%AD%BE%E5%90%8D"><span class="toc-number">7.0.6.</span> <span class="toc-text">6.6 Schnorr 签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7-BLS-%E7%AD%BE%E5%90%8D%EF%BC%88Boneh-Lynn-Shacham%EF%BC%89"><span class="toc-number">7.0.7.</span> <span class="toc-text">6.7 BLS 签名（Boneh-Lynn-Shacham）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-8-%E5%93%88%E5%B8%8C%E6%A0%91%E7%AD%BE%E5%90%8D%EF%BC%88Merkle-%E7%AD%BE%E5%90%8D%EF%BC%89"><span class="toc-number">7.0.8.</span> <span class="toc-text">6.8 哈希树签名（Merkle 签名）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88%E5%88%86%E7%B1%BB"><span class="toc-number">8.</span> <span class="toc-text">7. 签名方案分类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E6%89%8B%E5%86%99%E7%AD%BE%E5%90%8D"><span class="toc-number">9.</span> <span class="toc-text">8. 数字签名 vs 手写签名</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%85%AC%E9%92%A5%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%EF%BC%88PKI%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 公钥基础设施（PKI）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%95%B0%E5%AD%97%E8%AF%81%E4%B9%A6"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 数字证书</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E8%AF%81%E4%B9%A6%E9%A2%81%E5%8F%91%E6%9C%BA%E6%9E%84%EF%BC%88CA%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 证书颁发机构（CA）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-PGP-OpenPGP-%E4%B8%8E%E4%BF%A1%E4%BB%BB%E7%BD%91%E7%BB%9C"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 PGP &#x2F; OpenPGP 与信任网络</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%99%BA%E8%83%BD%E5%8D%A1%E4%B8%8E%E7%A1%AC%E4%BB%B6%E5%AE%9E%E7%8E%B0"><span class="toc-number">11.</span> <span class="toc-text">10. 智能卡与硬件实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%99%BA%E8%83%BD%E5%8D%A1%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">11.0.1.</span> <span class="toc-text">智能卡实现流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E5%9B%A0%E5%AD%90%E8%AE%A4%E8%AF%81"><span class="toc-number">11.0.2.</span> <span class="toc-text">双因子认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">11.0.3.</span> <span class="toc-text">安全注意事项</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%B3%95%E5%BE%8B%E6%95%88%E5%8A%9B%E4%B8%8E%E7%9B%91%E7%AE%A1%E6%A1%86%E6%9E%B6"><span class="toc-number">12.</span> <span class="toc-text">11. 法律效力与监管框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E7%90%83%E7%AB%8B%E6%B3%95%E7%8E%B0%E7%8A%B6"><span class="toc-number">12.0.1.</span> <span class="toc-text">全球立法现状</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%91%E6%88%98"><span class="toc-number">12.0.2.</span> <span class="toc-text">挑战</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WYSIWYS-%E5%8E%9F%E5%88%99"><span class="toc-number">12.0.3.</span> <span class="toc-text">WYSIWYS 原则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">13.</span> <span class="toc-text">12. 应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E8%BD%AF%E4%BB%B6%E5%88%86%E5%8F%91%E4%B8%8E%E4%BB%A3%E7%A0%81%E7%AD%BE%E5%90%8D"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 软件分发与代码签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6%E5%AE%89%E5%85%A8"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 电子邮件安全</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-TLS-HTTPS-%E8%AF%81%E4%B9%A6"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 TLS&#x2F;HTTPS 证书</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E6%96%87%E6%A1%A3%E7%AD%BE%E5%90%8D"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 文档签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8E%E5%8A%A0%E5%AF%86%E8%B4%A7%E5%B8%81"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 区块链与加密货币</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E4%B8%8E-PKI"><span class="toc-number">13.0.6.</span> <span class="toc-text">12.6 身份认证与 PKI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-%E6%97%B6%E9%97%B4%E6%88%B3%E6%9C%8D%E5%8A%A1"><span class="toc-number">13.0.7.</span> <span class="toc-text">12.7 时间戳服务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%94%BB%E5%87%BB%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%AE%89%E5%85%A8%E5%A8%81%E8%83%81"><span class="toc-number">14.</span> <span class="toc-text">13. 攻击模型与安全威胁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%BD%A2%E5%BC%8F%E5%8C%96%E5%AE%89%E5%85%A8%E5%AE%9A%E4%B9%89"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 形式化安全定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E7%A7%81%E9%92%A5%E6%B3%84%E9%9C%B2"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 私钥泄露</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%87%8D%E7%94%A8%E6%94%BB%E5%87%BB"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 随机数重用攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E5%AF%86%E7%A0%81%E5%AD%A6%E7%AE%97%E6%B3%95%E5%BC%B1%E7%82%B9"><span class="toc-number">14.0.4.</span> <span class="toc-text">13.4 密码学算法弱点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-PKI-%E4%BF%A1%E4%BB%BB%E9%97%AE%E9%A2%98"><span class="toc-number">14.0.5.</span> <span class="toc-text">13.5 PKI 信任问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E9%87%8F%E5%AD%90%E8%AE%A1%E7%AE%97%E5%A8%81%E8%83%81%E4%B8%8E%E5%90%8E%E9%87%8F%E5%AD%90%E5%AF%86%E7%A0%81%E5%AD%A6"><span class="toc-number">15.</span> <span class="toc-text">14. 量子计算威胁与后量子密码学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E9%87%8F%E5%AD%90%E5%A8%81%E8%83%81"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 量子威胁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-%E5%90%8E%E9%87%8F%E5%AD%90%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%E6%A0%87%E5%87%86"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 后量子数字签名标准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E5%93%88%E5%B8%8C%E5%9F%BA%E7%AD%BE%E5%90%8D%E6%96%B9%E6%A1%88"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 哈希基签名方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-4-%E9%87%8F%E5%AD%90%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D%EF%BC%88QDS%EF%BC%89"><span class="toc-number">15.0.4.</span> <span class="toc-text">14.4 量子数字签名（QDS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E6%95%B0%E5%AD%97%E7%AD%BE%E5%90%8D-vs-%E7%94%B5%E5%AD%90%E7%AD%BE%E5%90%8D"><span class="toc-number">16.</span> <span class="toc-text">15. 数字签名 vs 电子签名</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#16-%E5%AE%9E%E7%8E%B0%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">17.</span> <span class="toc-text">16. 实现注意事项</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E4%B8%8E%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">18.</span> <span class="toc-text">参考与延伸阅读</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/05/25/cryptology/6.digital_signature/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&text=Digital Signature"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&is_video=false&description=Digital Signature"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Digital Signature&body=Check out this article: http://example.com/2021/05/25/cryptology/6.digital_signature/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&title=Digital Signature"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/05/25/cryptology/6.digital_signature/&name=Digital Signature&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/05/25/cryptology/6.digital_signature/&t=Digital Signature"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

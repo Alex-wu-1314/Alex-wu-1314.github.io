@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本文系统梳理 DPDK 与 VPP 的核心设计思想，深入探讨 I-cache&#x2F;D-cache 命中率优化、伪共享、分支预测、报文批处理、cache ping-pong、内存一致性、memory orders 以及 C11 原子操作等关键技术。   目录 背景：为什么内核协议栈不够快 DPDK：把 CPU 变成数据包处理器 VPP：向量化的艺术 提升 I-cache 命中率 提升 D-c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高效包处理技术：DPDK 和 VPP 的核心技术">
+<meta property="og:url" content="http://example.com/2019/07/02/HPPP/high-performance-packet-processing/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="本文系统梳理 DPDK 与 VPP 的核心设计思想，深入探讨 I-cache&#x2F;D-cache 命中率优化、伪共享、分支预测、报文批处理、cache ping-pong、内存一致性、memory orders 以及 C11 原子操作等关键技术。   目录 背景：为什么内核协议栈不够快 DPDK：把 CPU 变成数据包处理器 VPP：向量化的艺术 提升 I-cache 命中率 提升 D-c">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-07-02T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-19T12:29:12.132Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="HPPP">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>高效包处理技术：DPDK 和 VPP 的核心技术</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2020/03/01/HPN/1.%E5%BB%B6%E8%BF%9F%E4%B8%8E%E5%B8%A6%E5%AE%BD/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2019/06/25/consistency%20model/2.%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E%E5%9B%A0%E6%9E%9C%E4%B8%80%E8%87%B4%E6%80%A7/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&text=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&is_video=false&description=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=高效包处理技术：DPDK 和 VPP 的核心技术&body=Check out this article: http://example.com/2019/07/02/HPPP/high-performance-packet-processing/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&name=高效包处理技术：DPDK 和 VPP 的核心技术&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&t=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%85%E6%A0%B8%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8D%E5%A4%9F%E5%BF%AB"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：为什么内核协议栈不够快 </span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-DPDK%EF%BC%9A%E6%8A%8A-CPU-%E5%8F%98%E6%88%90%E6%95%B0%E6%8D%AE%E5%8C%85%E5%A4%84%E7%90%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">2. DPDK：把 CPU 变成数据包处理器 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Kernel-Bypass-%E4%B8%8E-PMD"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 Kernel Bypass 与 PMD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Hugepage-%E4%B8%8E-mempool"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 Hugepage 与 mempool</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-CPU-%E4%BA%B2%E5%92%8C%E6%80%A7%E4%B8%8E-NUMA-%E6%84%9F%E7%9F%A5"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 CPU 亲和性与 NUMA 感知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%9B%B6%E6%8B%B7%E8%B4%9D%E4%B8%8E-DMA"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 零拷贝与 DMA</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-VPP%EF%BC%9A%E5%90%91%E9%87%8F%E5%8C%96%E7%9A%84%E8%89%BA%E6%9C%AF"><span class="toc-number">4.</span> <span class="toc-text">3. VPP：向量化的艺术 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%8A%82%E7%82%B9%E5%9B%BE%EF%BC%88Node-Graph%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 节点图（Node Graph）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%EF%BC%88Vector-Processing%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 向量批处理（Vector Processing）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%8F%90%E5%8D%87-I-cache-%E5%91%BD%E4%B8%AD%E7%8E%87"><span class="toc-number">5.</span> <span class="toc-text">4. 提升 I-cache 命中率 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-VPP-%E7%9A%84%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%E6%98%AF%E6%9C%80%E5%BC%BA%E7%9A%84-I-cache-%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 VPP 的向量批处理是最强的 I-cache 优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%83%AD-%E5%86%B7%E8%B7%AF%E5%BE%84%E5%88%86%E7%A6%BB"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 热&#x2F;冷路径分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%87%BD%E6%95%B0%E5%86%85%E8%81%94%E4%B8%8E%E5%8E%BB%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 函数内联与去虚拟化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Profile-Guided-Optimization%EF%BC%88PGO%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 Profile-Guided Optimization（PGO）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8F%90%E5%8D%87-D-cache-%E5%91%BD%E4%B8%AD%E7%8E%87"><span class="toc-number">6.</span> <span class="toc-text">5. 提升 D-cache 命中率 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%95%B0%E6%8D%AE%E9%A2%84%E5%8F%96%EF%BC%88Prefetch%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 数据预取（Prefetch）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9ACache-Line-%E5%AF%B9%E9%BD%90%E4%B8%8E%E7%B4%A7%E5%87%91%E5%B8%83%E5%B1%80"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 数据结构设计：Cache Line 对齐与紧凑布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E6%B5%81%E8%A1%A8%E8%AE%BE%E8%AE%A1"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 哈希表与流表设计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%BC%AA%E5%85%B1%E4%BA%AB%EF%BC%88False-Sharing%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 伪共享（False Sharing） </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8E%9F%E7%90%86"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DPDK-%E4%B8%AD%E7%9A%84-per-core-%E7%BB%9F%E8%AE%A1%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DPDK 中的 per-core 统计计数器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 检测工具</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E4%BC%98%E5%8C%96"><span class="toc-number">8.</span> <span class="toc-text">7. 分支预测优化 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-likely-unlikely-%E6%8F%90%E7%A4%BA"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 likely &#x2F; unlikely 提示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-VPP-%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%E5%AF%B9%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E7%9A%84%E8%B4%A1%E7%8C%AE"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 VPP 向量批处理对分支预测的贡献</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%BB%A5%E6%9F%A5%E8%A1%A8%E6%9B%BF%E4%BB%A3%E5%88%86%E6%94%AF"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 以查表替代分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-SIMD-%E6%B6%88%E9%99%A4%E5%88%86%E6%94%AF%EF%BC%88%E6%9D%A1%E4%BB%B6%E7%A7%BB%E5%8A%A8%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 SIMD 消除分支（条件移动）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%A5%E6%96%87%E6%89%B9%E5%A4%84%E7%90%86%EF%BC%88Batch-Processing%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 报文批处理（Batch Processing） </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-DPDK-%E7%9A%84-burst-I-O"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 DPDK 的 burst I&#x2F;O</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VPP-%E5%90%91%E9%87%8F%E9%95%BF%E5%BA%A6%E7%9A%84%E5%8A%A8%E6%80%81%E8%B0%83%E6%95%B4"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VPP 向量长度的动态调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%89%B9%E5%A4%84%E7%90%86%E7%9A%84%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 批处理的适用边界</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-Cache-Ping-Pong"><span class="toc-number">10.</span> <span class="toc-text">9. Cache Ping-Pong </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E7%8E%B0%E8%B1%A1%E6%8F%8F%E8%BF%B0"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 现象描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-DPDK-rte-ring-%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 DPDK rte_ring 的无锁设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-per-lcore-%E9%98%9F%E5%88%97%E6%B6%88%E9%99%A4%E5%85%B1%E4%BA%AB"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 per-lcore 队列消除共享</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E-Memory-Orders"><span class="toc-number">11.</span> <span class="toc-text">10. 内存一致性与 Memory Orders </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E5%AD%98%E5%BA%8F"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 为什么需要内存序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-x86-vs-ARM-RISC-V-%E7%9A%84%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%B7%AE%E5%BC%82"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 x86 vs ARM&#x2F;RISC-V 的内存模型差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%86%85%E5%AD%98%E5%BA%8F%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 内存序的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-C11-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E5%AE%9E%E8%B7%B5"><span class="toc-number">12.</span> <span class="toc-text">11. C11 原子操作实践 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 基本用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-Memory-Order-%E8%AF%AD%E4%B9%89%E9%80%9F%E6%9F%A5"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 Memory Order 语义速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E6%97%A0%E9%94%81%E5%8D%95%E7%94%9F%E4%BA%A7%E8%80%85-%E5%8D%95%E6%B6%88%E8%B4%B9%E8%80%85%E9%98%9F%E5%88%97%EF%BC%88SPSC-Queue%EF%BC%89"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 无锁单生产者-单消费者队列（SPSC Queue）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E9%81%BF%E5%85%8D%E8%BF%87%E5%BA%A6%E4%BD%BF%E7%94%A8%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 避免过度使用原子操作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E7%BB%BC%E5%90%88%EF%BC%9A%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E8%BD%AC%E5%8F%91%E6%A0%B8%E7%9A%84%E9%AA%A8%E6%9E%B6"><span class="toc-number">13.</span> <span class="toc-text">12. 综合：一个高性能转发核的骨架 </span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%93%B2%E5%AD%A6%E6%80%BB%E7%BB%93"><span class="toc-number">14.0.1.</span> <span class="toc-text">核心哲学总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        高效包处理技术：DPDK 和 VPP 的核心技术
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-07-02T02:44:19.000Z" class="dt-published" itemprop="datePublished">2019-07-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/HPPP/" rel="tag">HPPP</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p>本文系统梳理 DPDK 与 VPP 的核心设计思想，深入探讨 I-cache&#x2F;D-cache 命中率优化、伪共享、分支预测、报文批处理、cache ping-pong、内存一致性、memory orders 以及 C11 原子操作等关键技术。</p>
+</blockquote>
+<hr>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E8%83%8C%E6%99%AF">背景：为什么内核协议栈不够快</a></li>
+<li><a href="#dpdk">DPDK：把 CPU 变成数据包处理器</a></li>
+<li><a href="#vpp">VPP：向量化的艺术</a></li>
+<li><a href="#i-cache">提升 I-cache 命中率</a></li>
+<li><a href="#d-cache">提升 D-cache 命中率</a></li>
+<li><a href="#false-sharing">伪共享（False Sharing）</a></li>
+<li><a href="#branch-prediction">分支预测优化</a></li>
+<li><a href="#batch-processing">报文批处理</a></li>
+<li><a href="#cache-ping-pong">Cache Ping-Pong</a></li>
+<li><a href="#memory-orders">内存一致性与 Memory Orders</a></li>
+<li><a href="#atomics">C11 原子操作实践</a></li>
+<li><a href="#skeleton">综合：一个高性能转发核的骨架</a></li>
+<li><a href="#summary">总结</a></li>
+</ol>
+<hr>
+<h1 id="1-背景：为什么内核协议栈不够快"><a href="#1-背景：为什么内核协议栈不够快" class="headerlink" title="1. 背景：为什么内核协议栈不够快 "></a>1. 背景：为什么内核协议栈不够快 <a name="背景"></a></h1><p>Linux 内核网络协议栈设计目标是通用性和安全性，而非极限性能。每个收包路径都要经历：</p>
+<ul>
+<li><strong>系统调用与上下文切换</strong>：每次 <code>recvmsg</code> 都是一次内核&#x2F;用户态切换，约 1000–3000 ns。</li>
+<li><strong>中断风暴</strong>：高速 NIC 每秒产生数百万次硬中断，CPU 大量时间消耗在中断处理上。</li>
+<li><strong>多次内存拷贝</strong>：DMA → skb headroom → socket buffer → 用户空间，数据被拷贝 2–3 次。</li>
+<li><strong>锁竞争</strong>：socket 层、路由表、conntrack 均存在全局锁。</li>
+<li><strong>通用代码路径</strong>：协议栈面向所有协议，热路径中存在大量无用分支。</li>
+</ul>
+<p>在 10GbE 下，64 字节帧的理论线速是 <strong>14.88 Mpps</strong>，单包处理窗口仅约 <strong>67 ns</strong>。内核协议栈单核极限约 1–2 Mpps，差距超过一个数量级。</p>
+<p>DPDK 和 VPP 分别从<strong>硬件绕过</strong>和<strong>软件流水线</strong>两个维度解决了这个问题。</p>
+<hr>
+<h1 id="2-DPDK：把-CPU-变成数据包处理器"><a href="#2-DPDK：把-CPU-变成数据包处理器" class="headerlink" title="2. DPDK：把 CPU 变成数据包处理器 "></a>2. DPDK：把 CPU 变成数据包处理器 <a name="dpdk"></a></h1><p>DPDK（Data Plane Development Kit）的核心哲学是<strong>将网卡的所有权从内核夺走，交给用户态轮询线程</strong>。</p>
+<h3 id="2-1-Kernel-Bypass-与-PMD"><a href="#2-1-Kernel-Bypass-与-PMD" class="headerlink" title="2.1 Kernel Bypass 与 PMD"></a>2.1 Kernel Bypass 与 PMD</h3><p>DPDK 通过 UIO&#x2F;VFIO 将 NIC 的 BAR 空间直接映射到用户态。PMD（Poll Mode Driver）以<strong>忙轮询</strong>替代中断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    nb_rx = rte_eth_rx_burst(port, <span class="built_in">queue</span>, pkts, BURST_SIZE);</span><br><span class="line">    <span class="keyword">if</span> (nb_rx &gt; <span class="number">0</span>)</span><br><span class="line">        process_burst(pkts, nb_rx);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>忙轮询消耗一个 CPU 核的 100% 时间，但消除了中断延迟和上下文切换，延迟从微秒级降到亚微秒级。</p>
+<h3 id="2-2-Hugepage-与-mempool"><a href="#2-2-Hugepage-与-mempool" class="headerlink" title="2.2 Hugepage 与 mempool"></a>2.2 Hugepage 与 mempool</h3><p>普通 4KB page 在处理大量 mbuf 时会产生海量 TLB miss。DPDK 默认使用 <strong>2MB&#x2F;1GB hugepage</strong>，将 TLB 条目需求降低 512–262144 倍。</p>
+<p><code>rte_mempool</code> 是无锁的对象池，mbuf 分配&#x2F;释放均为 O(1)，底层使用 per-core cache + 全局 ring，几乎消除了内存分配的竞争。</p>
+<h3 id="2-3-CPU-亲和性与-NUMA-感知"><a href="#2-3-CPU-亲和性与-NUMA-感知" class="headerlink" title="2.3 CPU 亲和性与 NUMA 感知"></a>2.3 CPU 亲和性与 NUMA 感知</h3><p>DPDK 将每个轮询线程绑定到独立物理核（<code>rte_thread_set_affinity</code>），避免 OS 调度抖动。同时严格遵循 NUMA 拓扑：NIC 在哪个 NUMA node，mempool 就在哪个 node 分配，消除跨 socket 内存访问（约 100 ns 额外延迟）。</p>
+<h3 id="2-4-零拷贝与-DMA"><a href="#2-4-零拷贝与-DMA" class="headerlink" title="2.4 零拷贝与 DMA"></a>2.4 零拷贝与 DMA</h3><p>NIC 的 DMA 直接将帧写入预先分配的 mbuf data 区域，CPU 全程无拷贝。收包路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NIC DMA → mbuf.data_off → PMD rx_burst → 用户处理函数</span><br></pre></td></tr></table></figure>
+
+<p>整个链路只有<strong>一次内存写入</strong>（DMA）和<strong>一次内存读取</strong>（CPU 处理），I&#x2F;O 效率接近硬件极限。</p>
+<hr>
+<h1 id="3-VPP：向量化的艺术"><a href="#3-VPP：向量化的艺术" class="headerlink" title="3. VPP：向量化的艺术 "></a>3. VPP：向量化的艺术 <a name="vpp"></a></h1><p>VPP（Vector Packet Processor，FD.io 项目）在 DPDK 的 I&#x2F;O 基础上，解决了另一个瓶颈：<strong>处理逻辑本身的 CPU 效率</strong>。</p>
+<h3 id="3-1-节点图（Node-Graph）"><a href="#3-1-节点图（Node-Graph）" class="headerlink" title="3.1 节点图（Node Graph）"></a>3.1 节点图（Node Graph）</h3><p>VPP 将整个数据面拆分为一组<strong>有向图节点</strong>，每个节点完成一个处理步骤（ethernet-input、ip4-lookup、ip4-rewrite 等）。报文流经节点图，每个节点的输出连接下一个节点的输入。</p>
+<p>这个设计的关键不是图本身，而是它如何被<strong>调度</strong>。</p>
+<h3 id="3-2-向量批处理（Vector-Processing）"><a href="#3-2-向量批处理（Vector-Processing）" class="headerlink" title="3.2 向量批处理（Vector Processing）"></a>3.2 向量批处理（Vector Processing）</h3><p>VPP 的调度器不是”来一个包处理一个包”，而是<strong>积攒一批包（vector），一次性送入同一个节点</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[pkt1, pkt2, ..., pkt256] → ethernet-input</span><br><span class="line">[pkt1, pkt2, ..., pkt256] → ip4-lookup</span><br><span class="line">[pkt3, pkt7, pkt99]       → ip4-rewrite  (仅路由到同一接口的子集)</span><br></pre></td></tr></table></figure>
+
+<p>这个看似简单的改变，带来了深刻的缓存效应：</p>
+<ul>
+<li><strong>I-cache</strong>：同一节点的代码被 256 个包反复执行，节点函数在整个批次处理期间驻留在 L1 I-cache 中，完全消除了逐包切换处理逻辑带来的指令缓存抖动。</li>
+<li><strong>D-cache</strong>：对同类数据（同一偏移的 IP header 字段）的连续访问，prefetch 流水线效果极佳。</li>
+<li><strong>分支预测</strong>：同一节点内的分支在一批包中往往走相同路径（例如，都是 IPv4、都命中路由），预测器热度高、准确率高。</li>
+</ul>
+<p>VPP 的这一设计本质上是<strong>用时间局部性换取空间局部性</strong>：延迟单个包的处理，换取整批包的高效执行。</p>
+<hr>
+<h1 id="4-提升-I-cache-命中率"><a href="#4-提升-I-cache-命中率" class="headerlink" title="4. 提升 I-cache 命中率 "></a>4. 提升 I-cache 命中率 <a name="i-cache"></a></h1><p>现代 CPU 的 L1 I-cache 通常只有 32–64KB。对于复杂的网络处理程序，代码膨胀是 I-cache 的头号敌人。</p>
+<h3 id="4-1-VPP-的向量批处理是最强的-I-cache-优化"><a href="#4-1-VPP-的向量批处理是最强的-I-cache-优化" class="headerlink" title="4.1 VPP 的向量批处理是最强的 I-cache 优化"></a>4.1 VPP 的向量批处理是最强的 I-cache 优化</h3><p>如上所述，向量批处理确保单个节点的指令在整个向量处理期间持续驻留缓存。每包平均 I-cache miss 从 O(代码路径长度) 降至 O(代码路径长度 &#x2F; 向量长度)。</p>
+<h3 id="4-2-热-冷路径分离"><a href="#4-2-热-冷路径分离" class="headerlink" title="4.2 热&#x2F;冷路径分离"></a>4.2 热&#x2F;冷路径分离</h3><p>把低频路径（错误处理、慢速路径、管理面操作）从热路径中物理隔离：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 热路径：永远在缓存里</span></span><br><span class="line"><span class="type">static</span> __attribute__((hot)) <span class="type">void</span> <span class="title function_">fast_forward</span><span class="params">(<span class="keyword">struct</span> pkt *p)</span> &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 冷路径：不污染 I-cache</span></span><br><span class="line"><span class="type">static</span> __attribute__((cold)) <span class="type">void</span> <span class="title function_">handle_exception</span><span class="params">(<span class="keyword">struct</span> pkt *p)</span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>GCC&#x2F;Clang 会将 <code>cold</code> 函数放入独立 section，链接器将热代码聚集在一起，提高 I-cache 利用率。</p>
+<h3 id="4-3-函数内联与去虚拟化"><a href="#4-3-函数内联与去虚拟化" class="headerlink" title="4.3 函数内联与去虚拟化"></a>4.3 函数内联与去虚拟化</h3><p>频繁调用的小函数应强制内联，消除函数调用开销和间接跳转对分支预测器的干扰：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> __always_inline <span class="type">uint16_t</span> <span class="title function_">get_ether_type</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> rte_ether_hdr *h)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> rte_be_to_cpu_16(h-&gt;ether_type);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>间接函数调用（函数指针、虚函数）会阻止 CPU 的指令预取，在热路径中应尽量避免。</p>
+<h3 id="4-4-Profile-Guided-Optimization（PGO）"><a href="#4-4-Profile-Guided-Optimization（PGO）" class="headerlink" title="4.4 Profile-Guided Optimization（PGO）"></a>4.4 Profile-Guided Optimization（PGO）</h3><p>使用真实流量 profile 引导编译器布局：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gcc -fprofile-generate -O2 ...   <span class="comment"># 第一次编译</span></span><br><span class="line">./run_with_real_traffic            <span class="comment"># 采集 profile</span></span><br><span class="line">gcc -fprofile-use -O2 ...         <span class="comment"># 第二次编译，基于 profile 优化分支布局</span></span><br></pre></td></tr></table></figure>
+
+<p>PGO 能让编译器将最频繁执行的代码块放在内存相邻位置，减少 I-cache 碎片。</p>
+<hr>
+<h1 id="5-提升-D-cache-命中率"><a href="#5-提升-D-cache-命中率" class="headerlink" title="5. 提升 D-cache 命中率 "></a>5. 提升 D-cache 命中率 <a name="d-cache"></a></h1><p>数据缓存优化的核心原则是<strong>让 CPU 在需要数据之前就把它加载到缓存中</strong>，以及<strong>减少每次访问的缓存行占用</strong>。</p>
+<h3 id="5-1-数据预取（Prefetch）"><a href="#5-1-数据预取（Prefetch）" class="headerlink" title="5.1 数据预取（Prefetch）"></a>5.1 数据预取（Prefetch）</h3><p>DPDK 批处理中的经典预取模式，采用”流水线预取”策略：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> PREFETCH_OFFSET 4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nb_rx; i++) &#123;</span><br><span class="line">    <span class="comment">// 预取 4 个包之后的 mbuf 元数据</span></span><br><span class="line">    rte_prefetch0(pkts[i + PREFETCH_OFFSET]);</span><br><span class="line">    <span class="comment">// 预取 4 个包之后的报文数据（L2 header）</span></span><br><span class="line">    rte_prefetch0(rte_pktmbuf_mtod(pkts[i + PREFETCH_OFFSET], <span class="type">void</span> *));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理当前包——此时它已经在 cache 里了</span></span><br><span class="line">    process_packet(pkts[i]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>PREFETCH_OFFSET</code> 的选取需要根据处理延迟调整，通常 3–6 个包的偏移可以覆盖 L2&#x2F;L3 cache miss 的延迟（约 10–40 ns）。</p>
+<h3 id="5-2-数据结构设计：Cache-Line-对齐与紧凑布局"><a href="#5-2-数据结构设计：Cache-Line-对齐与紧凑布局" class="headerlink" title="5.2 数据结构设计：Cache Line 对齐与紧凑布局"></a>5.2 数据结构设计：Cache Line 对齐与紧凑布局</h3><p>一个 cache line 是 64 字节。频繁访问的结构体应：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 热数据放在第一个 cache line（前 64 字节）</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">flow_entry</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 热字段：转发决策所需，放前 64 字节 */</span></span><br><span class="line">    <span class="type">uint32_t</span> next_hop;</span><br><span class="line">    <span class="type">uint16_t</span> out_port;</span><br><span class="line">    <span class="type">uint16_t</span> flags;</span><br><span class="line">    <span class="type">uint8_t</span>  dmac[<span class="number">6</span>];</span><br><span class="line">    <span class="type">uint8_t</span>  smac[<span class="number">6</span>];</span><br><span class="line">    <span class="type">uint32_t</span> vlan_tag;</span><br><span class="line">    <span class="type">uint32_t</span> mpls_label;</span><br><span class="line">    <span class="comment">/* 前 32 字节，一个 cache line 内可放 2 个 entry */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 冷字段：统计/调试，放后续 cache line */</span></span><br><span class="line">    <span class="type">uint64_t</span> pkt_count  __attribute__((aligned(<span class="number">64</span>)));</span><br><span class="line">    <span class="type">uint64_t</span> byte_count;</span><br><span class="line">    <span class="type">uint64_t</span> last_active;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+<p>把读写频率相同的字段放在同一 cache line，把只读字段和频繁写字段分开（避免伪共享，见下节）。</p>
+<h3 id="5-3-哈希表与流表设计"><a href="#5-3-哈希表与流表设计" class="headerlink" title="5.3 哈希表与流表设计"></a>5.3 哈希表与流表设计</h3><p>流表（flow table）是数据面的核心数据结构。提升 D-cache 命中率的关键：</p>
+<ul>
+<li><strong>开放寻址法</strong>优于链表法：链表跳指针产生随机内存访问，开放寻址法在连续内存中探测，缓存友好。</li>
+<li><strong>Cuckoo hashing</strong>：最坏情况 O(1) 查找，且可以预取两个候选桶。</li>
+<li><strong>Batched lookup</strong>：一次提交 N 个查找请求，在等待 cache miss 期间处理其他包（VPP 的节点批处理天然支持此模式）。</li>
+</ul>
+<hr>
+<h1 id="6-伪共享（False-Sharing）"><a href="#6-伪共享（False-Sharing）" class="headerlink" title="6. 伪共享（False Sharing） "></a>6. 伪共享（False Sharing） <a name="false-sharing"></a></h1><p>伪共享是多核性能杀手之一，且极难通过代码逻辑发现。</p>
+<h3 id="6-1-原理"><a href="#6-1-原理" class="headerlink" title="6.1 原理"></a>6.1 原理</h3><p>当两个 CPU 核访问<strong>不同的变量</strong>，但这两个变量恰好落在<strong>同一个 cache line（64 字节）</strong>内，CPU 的 MESI 缓存一致性协议会将这条 cache line 当作一个整体来同步。每次一个核写入，另一个核的缓存副本就会失效（Invalidate），即使它需要的那个变量根本没被修改。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[Core 0] writes counter_a   →  invalidates Core 1&#x27;s cache line</span><br><span class="line">[Core 1] reads  counter_b   →  cache miss, must fetch from L3/memory</span><br><span class="line">[Core 0] writes counter_a   →  invalidates Core 1&#x27;s cache line again</span><br><span class="line">... 反复如此，变成串行化</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-DPDK-中的-per-core-统计计数器"><a href="#6-2-DPDK-中的-per-core-统计计数器" class="headerlink" title="6.2 DPDK 中的 per-core 统计计数器"></a>6.2 DPDK 中的 per-core 统计计数器</h3><p>错误写法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stats</span> &#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> rx_pkts;    <span class="comment">// Core 0 writes</span></span><br><span class="line">    <span class="type">uint64_t</span> tx_pkts;    <span class="comment">// Core 1 writes</span></span><br><span class="line">    <span class="comment">// 两者在同一 cache line！</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stats</span> <span class="title">global_stats</span>;</span>  <span class="comment">// 所有核共享</span></span><br></pre></td></tr></table></figure>
+
+<p>正确写法：per-core 独立统计，避免共享写：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">core_stats</span> &#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> rx_pkts;</span><br><span class="line">    <span class="type">uint64_t</span> tx_pkts;</span><br><span class="line">    <span class="comment">// padding 确保占满整个 cache line</span></span><br><span class="line">&#125; __attribute__((aligned(<span class="number">64</span>)));  <span class="comment">// 64 字节对齐 = 独占 cache line</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">core_stats</span> <span class="title">per_core_stats</span>[<span class="title">RTE_MAX_LCORE</span>];</span></span><br></pre></td></tr></table></figure>
+
+<p>读取汇总时，只需在管理面（低频）遍历所有核的计数器求和，数据面写操作完全无竞争。</p>
+<h3 id="6-3-检测工具"><a href="#6-3-检测工具" class="headerlink" title="6.3 检测工具"></a>6.3 检测工具</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Linux perf 检测 cache line 争用</span></span><br><span class="line">perf <span class="built_in">stat</span> -e cache-misses,cache-references ./your_app</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更精细：检测 HITM（Hit Modified, 命中被修改的行）</span></span><br><span class="line">perf c2c record ./your_app</span><br><span class="line">perf c2c report</span><br></pre></td></tr></table></figure>
+
+<p><code>perf c2c</code> 的 HITM 指标直接指向伪共享的热点。</p>
+<hr>
+<h1 id="7-分支预测优化"><a href="#7-分支预测优化" class="headerlink" title="7. 分支预测优化 "></a>7. 分支预测优化 <a name="branch-prediction"></a></h1><p>现代 CPU 的流水线深度通常为 14–20 级。一次分支预测错误需要冲刷流水线，代价约 15–20 个时钟周期（约 5–7 ns @3GHz）。</p>
+<h3 id="7-1-likely-unlikely-提示"><a href="#7-1-likely-unlikely-提示" class="headerlink" title="7.1 likely &#x2F; unlikely 提示"></a>7.1 likely &#x2F; unlikely 提示</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> likely(x)   __builtin_expect(!!(x), 1)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> unlikely(x) __builtin_expect(!!(x), 0)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 告诉编译器：checksum 错误是极少数情况</span></span><br><span class="line"><span class="keyword">if</span> (unlikely(pkt-&gt;ol_flags &amp; PKT_RX_L4_CKSUM_BAD)) &#123;</span><br><span class="line">    drop_packet(pkt);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 正常路径紧跟在判断之后，减少跳转</span></span><br><span class="line">process_normal(pkt);</span><br></pre></td></tr></table></figure>
+
+<p>编译器会将”likely”分支紧跟在条件判断之后（减少 taken branch），将”unlikely”分支放到函数末尾或单独的冷代码块。</p>
+<h3 id="7-2-VPP-向量批处理对分支预测的贡献"><a href="#7-2-VPP-向量批处理对分支预测的贡献" class="headerlink" title="7.2 VPP 向量批处理对分支预测的贡献"></a>7.2 VPP 向量批处理对分支预测的贡献</h3><p>在向量批处理中，同一节点处理同类包：一个批次内所有包大概率走相同的分支（都是 IPv4、都命中路由缓存）。CPU 的分支历史缓冲区（BHB）在处理整个向量期间保持”热”状态，预测准确率接近 100%。</p>
+<p>相比逐包处理的混合流量，分支预测错误率可降低 5–10 倍。</p>
+<h3 id="7-3-以查表替代分支"><a href="#7-3-以查表替代分支" class="headerlink" title="7.3 以查表替代分支"></a>7.3 以查表替代分支</h3><p>对于多路分支，查表法消除了条件跳转：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 慢：多路 if-else 或 switch，分支预测器难以处理</span></span><br><span class="line"><span class="keyword">if</span> (proto == IPPROTO_TCP)       handle_tcp(pkt);</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (proto == IPPROTO_UDP)  handle_udp(pkt);</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (proto == IPPROTO_ICMP) handle_icmp(pkt);</span><br><span class="line"><span class="keyword">else</span>                            drop(pkt);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 快：函数指针表，无分支（但注意间接跳转对 BTB 的影响）</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">void</span> <span class="params">(*handler_fn)</span><span class="params">(<span class="keyword">struct</span> pkt *)</span>;</span><br><span class="line"><span class="type">static</span> handler_fn dispatch_table[<span class="number">256</span>];  <span class="comment">// 按 proto 索引</span></span><br><span class="line"><span class="comment">// 初始化时填表...</span></span><br><span class="line">dispatch_table[pkt-&gt;proto](pkt);</span><br></pre></td></tr></table></figure>
+
+<p>在 DPDK 中，这种 dispatch table 广泛用于协议解析、ACL 匹配后的动作分发等场景。</p>
+<h3 id="7-4-SIMD-消除分支（条件移动）"><a href="#7-4-SIMD-消除分支（条件移动）" class="headerlink" title="7.4 SIMD 消除分支（条件移动）"></a>7.4 SIMD 消除分支（条件移动）</h3><p>对于简单的条件赋值，SSE&#x2F;AVX 的 masked 操作可以完全避免分支：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 有分支版本（可能预测错误）</span></span><br><span class="line"><span class="type">uint16_t</span> len = (pkt-&gt;data_len &gt; MAX_LEN) ? MAX_LEN : pkt-&gt;data_len;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 无分支版本（编译器通常能自动生成 CMOV）</span></span><br><span class="line"><span class="type">uint16_t</span> len = pkt-&gt;data_len;</span><br><span class="line"><span class="keyword">if</span> (len &gt; MAX_LEN) len = MAX_LEN;  <span class="comment">// 编译器倾向生成 cmov 而非 jcc</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="8-报文批处理（Batch-Processing）"><a href="#8-报文批处理（Batch-Processing）" class="headerlink" title="8. 报文批处理（Batch Processing） "></a>8. 报文批处理（Batch Processing） <a name="batch-processing"></a></h1><p>批处理是高性能包处理中最重要的系统级优化，它同时改善了 I-cache、D-cache 和分支预测。</p>
+<h3 id="8-1-DPDK-的-burst-I-O"><a href="#8-1-DPDK-的-burst-I-O" class="headerlink" title="8.1 DPDK 的 burst I&#x2F;O"></a>8.1 DPDK 的 burst I&#x2F;O</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一次 DMA 描述符同步，收取最多 32 个包</span></span><br><span class="line"><span class="type">uint16_t</span> nb_rx = rte_eth_rx_burst(port_id, queue_id, rx_pkts, <span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 批量处理</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">uint16_t</span> i = <span class="number">0</span>; i &lt; nb_rx; i++) &#123;</span><br><span class="line">    <span class="comment">// prefetch 提前加载</span></span><br><span class="line">    <span class="keyword">if</span> (i + <span class="number">4</span> &lt; nb_rx)</span><br><span class="line">        rte_prefetch0(rte_pktmbuf_mtod(rx_pkts[i + <span class="number">4</span>], <span class="type">void</span> *));</span><br><span class="line">    process(rx_pkts[i]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一次批量发送</span></span><br><span class="line">rte_eth_tx_burst(port_id, queue_id, tx_pkts, nb_tx);</span><br></pre></td></tr></table></figure>
+
+<p>批处理的系统级收益：</p>
+<ul>
+<li><strong>PCIe 事务效率</strong>：N 个包共享一次 PCIe descriptor ring doorbell，而非 N 次。</li>
+<li><strong>DMA 聚合</strong>：NIC 可以将多个 DMA 请求合并为更大的突发传输。</li>
+<li><strong>摊销开销</strong>：rx_burst 的固定开销（读 tail pointer、内存屏障）被 N 个包平摊。</li>
+</ul>
+<h3 id="8-2-VPP-向量长度的动态调整"><a href="#8-2-VPP-向量长度的动态调整" class="headerlink" title="8.2 VPP 向量长度的动态调整"></a>8.2 VPP 向量长度的动态调整</h3><p>VPP 的向量长度并非固定，而是根据<strong>当前负载动态调整</strong>：</p>
+<ul>
+<li>低负载：向量短（甚至为 1），优先保证延迟。</li>
+<li>高负载：向量长（默认最大 256），优先保证吞吐。</li>
+</ul>
+<p>这个机制通过<strong>目标延迟控制器</strong>实现：如果上一轮节点调度超过延迟阈值，就缩短向量长度；反之则延长。这让 VPP 在 “吞吐 vs 延迟” 之间自动权衡，无需手动配置。</p>
+<h3 id="8-3-批处理的适用边界"><a href="#8-3-批处理的适用边界" class="headerlink" title="8.3 批处理的适用边界"></a>8.3 批处理的适用边界</h3><p>批处理并非越大越好：</p>
+<ul>
+<li>过大的批量增加延迟（第一个包需要等待整批积累完才被处理）。</li>
+<li>超出 L1 D-cache 的批量会导致 mbuf 数组自身的缓存抖动。</li>
+</ul>
+<p>实践中，32–256 个包的批量在大多数场景下是最优区间，具体取决于 cache size 和延迟 SLA。</p>
+<hr>
+<h1 id="9-Cache-Ping-Pong"><a href="#9-Cache-Ping-Pong" class="headerlink" title="9. Cache Ping-Pong "></a>9. Cache Ping-Pong <a name="cache-ping-pong"></a></h1><p>Cache ping-pong 是多核系统中缓存一致性协议带来的性能问题，与伪共享相关但更广泛。</p>
+<h3 id="9-1-现象描述"><a href="#9-1-现象描述" class="headerlink" title="9.1 现象描述"></a>9.1 现象描述</h3><p>当多个核<strong>频繁争抢同一 cache line 的写入权</strong>时，该 cache line 在核之间来回迁移，如同”乒乓球”：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Core 0: WRITE counter → 获得 Modified 状态</span><br><span class="line">Core 1: WRITE counter → 发 Invalidate → Core 0 变 Invalid → Core 1 获得 Modified</span><br><span class="line">Core 0: WRITE counter → 发 Invalidate → Core 1 变 Invalid → Core 0 获得 Modified</span><br><span class="line">... 每次迁移约需 40–100 ns（跨核 L3 延迟）</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-DPDK-rte-ring-的无锁设计"><a href="#9-2-DPDK-rte-ring-的无锁设计" class="headerlink" title="9.2 DPDK rte_ring 的无锁设计"></a>9.2 DPDK rte_ring 的无锁设计</h3><p>DPDK 的无锁环形队列（<code>rte_ring</code>）是规避 cache ping-pong 的典范。其核心是<strong>分离 producer head&#x2F;tail 和 consumer head&#x2F;tail</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rte_ring</span> &#123;</span></span><br><span class="line">    <span class="comment">// Producer 端（生产者写）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="keyword">volatile</span> <span class="type">uint32_t</span> head;</span><br><span class="line">        <span class="keyword">volatile</span> <span class="type">uint32_t</span> tail;</span><br><span class="line">    &#125; prod __rte_cache_aligned;  <span class="comment">// 独占 cache line</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Consumer 端（消费者写）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="keyword">volatile</span> <span class="type">uint32_t</span> head;</span><br><span class="line">        <span class="keyword">volatile</span> <span class="type">uint32_t</span> tail;</span><br><span class="line">    &#125; cons __rte_cache_aligned;  <span class="comment">// 独占另一个 cache line</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>生产者只修改 <code>prod</code> 结构，消费者只修改 <code>cons</code> 结构，两者不共享 cache line，ping-pong 消失。</p>
+<h3 id="9-3-per-lcore-队列消除共享"><a href="#9-3-per-lcore-队列消除共享" class="headerlink" title="9.3 per-lcore 队列消除共享"></a>9.3 per-lcore 队列消除共享</h3><p>更彻底的方案是<strong>完全避免跨核共享写状态</strong>，给每个 lcore 配一个独立的收发队列：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RSS（Receive Side Scaling）将流哈希到不同队列</span></span><br><span class="line"><span class="comment">// Core 0 → queue 0，Core 1 → queue 1，彼此独立</span></span><br><span class="line">rte_eth_dev_configure(port, nb_lcores, nb_lcores, &amp;port_conf);</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; nb_lcores; i++)</span><br><span class="line">    rte_eth_rx_queue_setup(port, i, NB_RXD, socket_id, <span class="literal">NULL</span>, mbuf_pool);</span><br></pre></td></tr></table></figure>
+
+<p>这是 DPDK 应用的标准架构：share nothing，每核完全独立处理自己队列的流量。</p>
+<hr>
+<h1 id="10-内存一致性与-Memory-Orders"><a href="#10-内存一致性与-Memory-Orders" class="headerlink" title="10. 内存一致性与 Memory Orders "></a>10. 内存一致性与 Memory Orders <a name="memory-orders"></a></h1><p>理解内存一致性模型是写出正确且高效的无锁代码的前提。</p>
+<h3 id="10-1-为什么需要内存序"><a href="#10-1-为什么需要内存序" class="headerlink" title="10.1 为什么需要内存序"></a>10.1 为什么需要内存序</h3><p>现代 CPU 为了提升性能，会对<strong>读写操作重排序</strong>（Store Buffer、Load Buffer、Write Combining）。编译器也会在优化时重排指令。这些重排序在单核上不可见，但在多核间通过共享内存通信时会导致数据竞争：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Core 0</span><br><span class="line">data = 42;           // (1)</span><br><span class="line">flag = 1;            // (2)  CPU 可能先执行 (2) 再执行 (1)！</span><br><span class="line"></span><br><span class="line">// Core 1</span><br><span class="line">while (flag == 0)    // (3) 看到 flag=1</span><br><span class="line">    ;</span><br><span class="line">use(data);           // (4) 但 data 可能还是 0！</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-x86-vs-ARM-RISC-V-的内存模型差异"><a href="#10-2-x86-vs-ARM-RISC-V-的内存模型差异" class="headerlink" title="10.2 x86 vs ARM&#x2F;RISC-V 的内存模型差异"></a>10.2 x86 vs ARM&#x2F;RISC-V 的内存模型差异</h3><ul>
+<li><strong>x86（TSO，Total Store Order）</strong>：只允许 Store-Load 重排序，其他操作天然有序。很多无锁代码在 x86 上”碰巧”正确，换到 ARM 上就 crash。</li>
+<li><strong>ARM&#x2F;RISC-V（弱序，Weakly Ordered）</strong>：几乎所有重排序都允许，必须显式插入内存屏障。</li>
+</ul>
+<p>DPDK 的代码通过宏封装平台差异：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rte_smp_rmb();   <span class="comment">// 读屏障：确保此前所有读操作在此之前完成</span></span><br><span class="line">rte_smp_wmb();   <span class="comment">// 写屏障：确保此前所有写操作在此之前完成</span></span><br><span class="line">rte_smp_mb();    <span class="comment">// 全屏障：读写屏障的组合</span></span><br></pre></td></tr></table></figure>
+
+<p>在 x86 上，<code>rte_smp_rmb()</code> 编译为空（x86 loads 天然有序），<code>rte_smp_wmb()</code> 编译为 <code>sfence</code> 或空（取决于场景），<code>rte_smp_mb()</code> 编译为 <code>mfence</code> 或 <code>lock addl</code>。</p>
+<h3 id="10-3-内存序的性能代价"><a href="#10-3-内存序的性能代价" class="headerlink" title="10.3 内存序的性能代价"></a>10.3 内存序的性能代价</h3><p>不同内存屏障的开销差异悬殊：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>x86 代价</th>
+<th>ARM 代价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通 load&#x2F;store</td>
+<td>~4 ns</td>
+<td>~4 ns</td>
+</tr>
+<tr>
+<td><code>acquire</code> load</td>
+<td>~4 ns</td>
+<td>~8 ns</td>
+</tr>
+<tr>
+<td><code>release</code> store</td>
+<td>~4 ns</td>
+<td>~8 ns</td>
+</tr>
+<tr>
+<td><code>seq_cst</code> store</td>
+<td>~20 ns（mfence）</td>
+<td>~15 ns（dmb ish）</td>
+</tr>
+<tr>
+<td>Full memory fence</td>
+<td>~20 ns</td>
+<td>~15 ns</td>
+</tr>
+</tbody></table>
+<p>在高频路径中，用 <code>acquire/release</code> 替代 <code>seq_cst</code> 往往能带来 2–5 倍的性能提升。</p>
+<hr>
+<h1 id="11-C11-原子操作实践"><a href="#11-C11-原子操作实践" class="headerlink" title="11. C11 原子操作实践 "></a>11. C11 原子操作实践 <a name="atomics"></a></h1><p>C11 的 <code>&lt;stdatomic.h&gt;</code> 提供了跨平台、语义明确的原子操作，是现代无锁代码的基础。</p>
+<h3 id="11-1-基本用法"><a href="#11-1-基本用法" class="headerlink" title="11.1 基本用法"></a>11.1 基本用法</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdatomic.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 声明原子变量</span></span><br><span class="line"><span class="type">atomic_uint_fast64_t</span> pkt_counter = ATOMIC_VAR_INIT(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原子读（acquire 语义）</span></span><br><span class="line"><span class="type">uint64_t</span> val = atomic_load_explicit(&amp;pkt_counter, memory_order_acquire);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原子写（release 语义）</span></span><br><span class="line">atomic_store_explicit(&amp;pkt_counter, val + <span class="number">1</span>, memory_order_release);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原子加（relaxed：纯计数器，不需要同步其他数据）</span></span><br><span class="line">atomic_fetch_add_explicit(&amp;pkt_counter, <span class="number">1</span>, memory_order_relaxed);</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-Memory-Order-语义速查"><a href="#11-2-Memory-Order-语义速查" class="headerlink" title="11.2 Memory Order 语义速查"></a>11.2 Memory Order 语义速查</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// memory_order_relaxed</span></span><br><span class="line"><span class="comment">// 仅保证该变量自身的原子性，不保证与其他变量的顺序关系</span></span><br><span class="line"><span class="comment">// 适用：独立计数器、统计数据</span></span><br><span class="line">atomic_fetch_add_explicit(&amp;stats-&gt;rx_pkts, <span class="number">1</span>, memory_order_relaxed);</span><br><span class="line"></span><br><span class="line"><span class="comment">// memory_order_release（写）+ memory_order_acquire（读）</span></span><br><span class="line"><span class="comment">// 最常用的同步对：写方&quot;发布&quot;数据，读方&quot;获取&quot;数据</span></span><br><span class="line"><span class="comment">// 保证：写方在 release 之前的所有写操作，对读方 acquire 之后可见</span></span><br><span class="line"><span class="comment">// 适用：生产者-消费者，无锁队列的 head/tail 更新</span></span><br><span class="line">atomic_store_explicit(&amp;ring-&gt;prod_tail, new_tail, memory_order_release);</span><br><span class="line"><span class="comment">// ...另一核...</span></span><br><span class="line"><span class="type">uint32_t</span> tail = atomic_load_explicit(&amp;ring-&gt;prod_tail, memory_order_acquire);</span><br><span class="line"></span><br><span class="line"><span class="comment">// memory_order_acq_rel（读-改-写操作的组合语义）</span></span><br><span class="line"><span class="comment">// 适用：CAS 成功时需要同时 acquire 和 release</span></span><br><span class="line">atomic_compare_exchange_strong_explicit(</span><br><span class="line">    &amp;lock, &amp;expected, desired,</span><br><span class="line">    memory_order_acq_rel,   <span class="comment">// 成功时的语义</span></span><br><span class="line">    memory_order_relaxed    <span class="comment">// 失败时的语义</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// memory_order_seq_cst（顺序一致性，最强，最慢）</span></span><br><span class="line"><span class="comment">// 适用：需要全局顺序一致的场景（通常可以用更弱的语义替代）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="11-3-无锁单生产者-单消费者队列（SPSC-Queue）"><a href="#11-3-无锁单生产者-单消费者队列（SPSC-Queue）" class="headerlink" title="11.3 无锁单生产者-单消费者队列（SPSC Queue）"></a>11.3 无锁单生产者-单消费者队列（SPSC Queue）</h3><p>这是网络处理中最常见的线程间通信模式（如 lcore 间传递 mbuf 指针）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> QUEUE_SIZE 1024  <span class="comment">// 必须是 2 的幂</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">spsc_queue</span> &#123;</span></span><br><span class="line">    <span class="type">void</span> *buf[QUEUE_SIZE];</span><br><span class="line">    <span class="type">atomic_uint</span> head __attribute__((aligned(<span class="number">64</span>)));  <span class="comment">// 消费者写，独占 cache line</span></span><br><span class="line">    <span class="type">atomic_uint</span> tail __attribute__((aligned(<span class="number">64</span>)));  <span class="comment">// 生产者写，独占 cache line</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生产者：push（单生产者，无需 CAS）</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">spsc_push</span><span class="params">(<span class="keyword">struct</span> spsc_queue *q, <span class="type">void</span> *item)</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> tail = atomic_load_explicit(&amp;q-&gt;tail, memory_order_relaxed);</span><br><span class="line">    <span class="type">unsigned</span> head = atomic_load_explicit(&amp;q-&gt;head, memory_order_acquire);</span><br><span class="line">    <span class="keyword">if</span> (tail - head &gt;= QUEUE_SIZE) <span class="keyword">return</span> <span class="number">-1</span>;  <span class="comment">// 队列满</span></span><br><span class="line">    q-&gt;buf[tail &amp; (QUEUE_SIZE - <span class="number">1</span>)] = item;</span><br><span class="line">    atomic_store_explicit(&amp;q-&gt;tail, tail + <span class="number">1</span>, memory_order_release);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费者：pop（单消费者，无需 CAS）</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> *<span class="title function_">spsc_pop</span><span class="params">(<span class="keyword">struct</span> spsc_queue *q)</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> head = atomic_load_explicit(&amp;q-&gt;head, memory_order_relaxed);</span><br><span class="line">    <span class="type">unsigned</span> tail = atomic_load_explicit(&amp;q-&gt;tail, memory_order_acquire);</span><br><span class="line">    <span class="keyword">if</span> (head == tail) <span class="keyword">return</span> <span class="literal">NULL</span>;  <span class="comment">// 队列空</span></span><br><span class="line">    <span class="type">void</span> *item = q-&gt;buf[head &amp; (QUEUE_SIZE - <span class="number">1</span>)];</span><br><span class="line">    atomic_store_explicit(&amp;q-&gt;head, head + <span class="number">1</span>, memory_order_release);</span><br><span class="line">    <span class="keyword">return</span> item;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么这样选择 memory_order：</strong></p>
+<ul>
+<li><code>tail</code> 的 store 用 <code>release</code>：确保 <code>buf[tail]</code> 的写入对消费者可见后，才更新 tail。</li>
+<li><code>tail</code> 的 load（消费者读）用 <code>acquire</code>：配对 <code>release</code>，确保消费者看到完整写入的 item。</li>
+<li><code>head</code>&#x2F;<code>tail</code> 的 relaxed load（写方读自己的计数器）：不需要同步其他内存，纯粹读自己上次写入的值。</li>
+</ul>
+<h3 id="11-4-避免过度使用原子操作"><a href="#11-4-避免过度使用原子操作" class="headerlink" title="11.4 避免过度使用原子操作"></a>11.4 避免过度使用原子操作</h3><p>原子操作不是”线程安全”的万能药。在 DPDK&#x2F;VPP 的高性能架构中，<strong>首要目标是消除共享状态</strong>，而非用原子操作保护共享状态：</p>
+<ul>
+<li><strong>share-nothing 架构</strong>：每个核只访问自己的数据，根本不需要原子操作。</li>
+<li><strong>单向数据流</strong>：包从 rx → 处理 → tx，用 SPSC 队列传递，只有入队&#x2F;出队点需要原子操作。</li>
+<li><strong>读多写少</strong>：只读配置（路由表、ACL 规则）使用 RCU（Read-Copy-Update）机制，读侧完全无锁。</li>
+</ul>
+<hr>
+<h1 id="12-综合：一个高性能转发核的骨架"><a href="#12-综合：一个高性能转发核的骨架" class="headerlink" title="12. 综合：一个高性能转发核的骨架 "></a>12. 综合：一个高性能转发核的骨架 <a name="skeleton"></a></h1><p>将上述技术综合为一个最简转发循环的伪代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 绑核、NUMA 分配已在初始化时完成</span></span><br><span class="line"><span class="type">static</span> __attribute__((hot)) <span class="type">int</span> <span class="title function_">forwarding_lcore</span><span class="params">(<span class="type">void</span> *arg)</span> &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">lcore_conf</span> *<span class="title">conf</span> =</span> arg;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rte_mbuf</span> *<span class="title">pkts</span>[<span class="title">MAX_BURST</span>];</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (likely(!quit_signal)) &#123;</span><br><span class="line">        <span class="comment">// 1. 批量收包（轮询，无中断）</span></span><br><span class="line">        <span class="type">uint16_t</span> nb_rx = rte_eth_rx_burst(conf-&gt;port, conf-&gt;<span class="built_in">queue</span>,</span><br><span class="line">                                           pkts, MAX_BURST);</span><br><span class="line">        <span class="keyword">if</span> (unlikely(nb_rx == <span class="number">0</span>)) <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 预取 mbuf 数据（流水线预取，覆盖 cache miss 延迟）</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">uint16_t</span> i = <span class="number">0</span>; i &lt; MIN(nb_rx, PREFETCH_OFFSET); i++) &#123;</span><br><span class="line">            rte_prefetch0(pkts[i]);</span><br><span class="line">            rte_prefetch0(rte_pktmbuf_mtod(pkts[i], <span class="type">void</span> *));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 批量处理（所有包走同一代码路径，I-cache 热）</span></span><br><span class="line">        <span class="type">uint16_t</span> nb_tx = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">uint16_t</span> i = <span class="number">0</span>; i &lt; nb_rx; i++) &#123;</span><br><span class="line">            <span class="comment">// 预取下一批</span></span><br><span class="line">            <span class="keyword">if</span> (likely(i + PREFETCH_OFFSET &lt; nb_rx)) &#123;</span><br><span class="line">                rte_prefetch0(pkts[i + PREFETCH_OFFSET]);</span><br><span class="line">                rte_prefetch0(rte_pktmbuf_mtod(pkts[i + PREFETCH_OFFSET], <span class="type">void</span>*));</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 转发决策（查表，无分支）</span></span><br><span class="line">            <span class="keyword">if</span> (likely(forward_packet(pkts[i]) == ACTION_FORWARD)) &#123;</span><br><span class="line">                pkts[nb_tx++] = pkts[i];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                rte_pktmbuf_free(pkts[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4. 批量发包</span></span><br><span class="line">        <span class="type">uint16_t</span> sent = rte_eth_tx_burst(conf-&gt;out_port, conf-&gt;<span class="built_in">queue</span>,</span><br><span class="line">                                          pkts, nb_tx);</span><br><span class="line">        <span class="comment">// 释放未发送的包</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">uint16_t</span> i = sent; i &lt; nb_tx; i++)</span><br><span class="line">            rte_pktmbuf_free(pkts[i]);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 5. 更新 per-lcore 统计（relaxed，无跨核同步需求）</span></span><br><span class="line">        atomic_fetch_add_explicit(&amp;conf-&gt;stats.rx_pkts, nb_rx,</span><br><span class="line">                                   memory_order_relaxed);</span><br><span class="line">        atomic_fetch_add_explicit(&amp;conf-&gt;stats.tx_pkts, sent,</span><br><span class="line">                                   memory_order_relaxed);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个骨架体现了本文所有优化的交汇点：批处理 + 流水线预取 + 热路径 likely&#x2F;unlikely + 无锁 per-core 统计 + share-nothing 架构。</p>
+<hr>
+<h1 id="13-总结"><a href="#13-总结" class="headerlink" title="13. 总结 "></a>13. 总结 <a name="summary"></a></h1><p>高效包处理不是单点优化，而是一套互相支撑的技术体系：</p>
+<table>
+<thead>
+<tr>
+<th>优化方向</th>
+<th>DPDK 手段</th>
+<th>VPP 手段</th>
+<th>本质</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I-cache 命中率</td>
+<td>热路径内联、PGO</td>
+<td>向量批处理、节点图</td>
+<td>减少指令流的多样性</td>
+</tr>
+<tr>
+<td>D-cache 命中率</td>
+<td>批量预取、cache 对齐结构体</td>
+<td>批量预取、紧凑元数据</td>
+<td>减少数据访问的随机性</td>
+</tr>
+<tr>
+<td>分支预测</td>
+<td>likely&#x2F;unlikely、查表</td>
+<td>向量批处理（同类包同路径）</td>
+<td>让 CPU 预测器”暖机”</td>
+</tr>
+<tr>
+<td>伪共享</td>
+<td><code>__rte_cache_aligned</code>、per-core 统计</td>
+<td>每节点独立向量</td>
+<td>消除无意义的 cache line 共享</td>
+</tr>
+<tr>
+<td>Cache ping-pong</td>
+<td>per-lcore 队列、rte_ring 分离 head&#x2F;tail</td>
+<td>share-nothing 节点</td>
+<td>消除跨核写共享</td>
+</tr>
+<tr>
+<td>内存一致性</td>
+<td>rte_smp_mb&#x2F;rmb&#x2F;wmb</td>
+<td>内部使用 acquire&#x2F;release</td>
+<td>最弱够用的内存序</td>
+</tr>
+<tr>
+<td>原子操作</td>
+<td>尽量 relaxed，用 SPSC 替代锁</td>
+<td>无锁节点调度</td>
+<td>原子操作只用于必须同步的边界</td>
+</tr>
+<tr>
+<td>批处理</td>
+<td>rx_burst&#x2F;tx_burst，BURST_SIZE&#x3D;32–256</td>
+<td>vector_size 动态调整</td>
+<td>摊销固定开销，提升局部性</td>
+</tr>
+</tbody></table>
+<h3 id="核心哲学总结"><a href="#核心哲学总结" class="headerlink" title="核心哲学总结"></a>核心哲学总结</h3><blockquote>
+<p><strong>DPDK</strong>：绕过内核，把硬件资源交给应用，消除软件栈的固定开销。</p>
+<p><strong>VPP</strong>：把包聚成向量，让 CPU 的缓存和预测器始终处于”热”状态，用空间换时间。</p>
+<p><strong>两者合力</strong>：在用户态构建一个 share-nothing、cache-friendly、branch-predictable 的数据面，在现代多核 CPU 上实现接近硬件极限的包处理性能。</p>
+</blockquote>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://doc.dpdk.org/guides/">DPDK 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://fd.io/docs/">FD.io VPP 文档</a></li>
+<li>Dave Barach 等，*”Vector Packet Processing”*, Linux Foundation, 2017</li>
+<li>Herb Sutter，*”atomic&lt;&gt; Weapons”*, CppCon, 2012</li>
+<li>Paul McKenney，*”Is Parallel Programming Hard, And, If So, What Can You Do About It?”*</li>
+<li>Intel，*”64 and IA-32 Architectures Software Developer’s Manual”*, Volume 3, Chapter 8</li>
+<li>ARM，*”ARM Architecture Reference Manual”*, Chapter B2（Memory Model）</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%85%E6%A0%B8%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8D%E5%A4%9F%E5%BF%AB"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：为什么内核协议栈不够快 </span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-DPDK%EF%BC%9A%E6%8A%8A-CPU-%E5%8F%98%E6%88%90%E6%95%B0%E6%8D%AE%E5%8C%85%E5%A4%84%E7%90%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">2. DPDK：把 CPU 变成数据包处理器 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Kernel-Bypass-%E4%B8%8E-PMD"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 Kernel Bypass 与 PMD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Hugepage-%E4%B8%8E-mempool"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 Hugepage 与 mempool</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-CPU-%E4%BA%B2%E5%92%8C%E6%80%A7%E4%B8%8E-NUMA-%E6%84%9F%E7%9F%A5"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 CPU 亲和性与 NUMA 感知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%9B%B6%E6%8B%B7%E8%B4%9D%E4%B8%8E-DMA"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 零拷贝与 DMA</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-VPP%EF%BC%9A%E5%90%91%E9%87%8F%E5%8C%96%E7%9A%84%E8%89%BA%E6%9C%AF"><span class="toc-number">4.</span> <span class="toc-text">3. VPP：向量化的艺术 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%8A%82%E7%82%B9%E5%9B%BE%EF%BC%88Node-Graph%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 节点图（Node Graph）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%EF%BC%88Vector-Processing%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 向量批处理（Vector Processing）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%8F%90%E5%8D%87-I-cache-%E5%91%BD%E4%B8%AD%E7%8E%87"><span class="toc-number">5.</span> <span class="toc-text">4. 提升 I-cache 命中率 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-VPP-%E7%9A%84%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%E6%98%AF%E6%9C%80%E5%BC%BA%E7%9A%84-I-cache-%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 VPP 的向量批处理是最强的 I-cache 优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%83%AD-%E5%86%B7%E8%B7%AF%E5%BE%84%E5%88%86%E7%A6%BB"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 热&#x2F;冷路径分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%87%BD%E6%95%B0%E5%86%85%E8%81%94%E4%B8%8E%E5%8E%BB%E8%99%9A%E6%8B%9F%E5%8C%96"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 函数内联与去虚拟化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Profile-Guided-Optimization%EF%BC%88PGO%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 Profile-Guided Optimization（PGO）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8F%90%E5%8D%87-D-cache-%E5%91%BD%E4%B8%AD%E7%8E%87"><span class="toc-number">6.</span> <span class="toc-text">5. 提升 D-cache 命中率 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%95%B0%E6%8D%AE%E9%A2%84%E5%8F%96%EF%BC%88Prefetch%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 数据预取（Prefetch）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9ACache-Line-%E5%AF%B9%E9%BD%90%E4%B8%8E%E7%B4%A7%E5%87%91%E5%B8%83%E5%B1%80"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 数据结构设计：Cache Line 对齐与紧凑布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E6%B5%81%E8%A1%A8%E8%AE%BE%E8%AE%A1"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 哈希表与流表设计</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%BC%AA%E5%85%B1%E4%BA%AB%EF%BC%88False-Sharing%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 伪共享（False Sharing） </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8E%9F%E7%90%86"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DPDK-%E4%B8%AD%E7%9A%84-per-core-%E7%BB%9F%E8%AE%A1%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DPDK 中的 per-core 统计计数器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 检测工具</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E4%BC%98%E5%8C%96"><span class="toc-number">8.</span> <span class="toc-text">7. 分支预测优化 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-likely-unlikely-%E6%8F%90%E7%A4%BA"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 likely &#x2F; unlikely 提示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-VPP-%E5%90%91%E9%87%8F%E6%89%B9%E5%A4%84%E7%90%86%E5%AF%B9%E5%88%86%E6%94%AF%E9%A2%84%E6%B5%8B%E7%9A%84%E8%B4%A1%E7%8C%AE"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 VPP 向量批处理对分支预测的贡献</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%BB%A5%E6%9F%A5%E8%A1%A8%E6%9B%BF%E4%BB%A3%E5%88%86%E6%94%AF"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 以查表替代分支</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-SIMD-%E6%B6%88%E9%99%A4%E5%88%86%E6%94%AF%EF%BC%88%E6%9D%A1%E4%BB%B6%E7%A7%BB%E5%8A%A8%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 SIMD 消除分支（条件移动）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%A5%E6%96%87%E6%89%B9%E5%A4%84%E7%90%86%EF%BC%88Batch-Processing%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 报文批处理（Batch Processing） </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-DPDK-%E7%9A%84-burst-I-O"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 DPDK 的 burst I&#x2F;O</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VPP-%E5%90%91%E9%87%8F%E9%95%BF%E5%BA%A6%E7%9A%84%E5%8A%A8%E6%80%81%E8%B0%83%E6%95%B4"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VPP 向量长度的动态调整</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%89%B9%E5%A4%84%E7%90%86%E7%9A%84%E9%80%82%E7%94%A8%E8%BE%B9%E7%95%8C"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 批处理的适用边界</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-Cache-Ping-Pong"><span class="toc-number">10.</span> <span class="toc-text">9. Cache Ping-Pong </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E7%8E%B0%E8%B1%A1%E6%8F%8F%E8%BF%B0"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 现象描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-DPDK-rte-ring-%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 DPDK rte_ring 的无锁设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-per-lcore-%E9%98%9F%E5%88%97%E6%B6%88%E9%99%A4%E5%85%B1%E4%BA%AB"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 per-lcore 队列消除共享</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8E-Memory-Orders"><span class="toc-number">11.</span> <span class="toc-text">10. 内存一致性与 Memory Orders </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%86%85%E5%AD%98%E5%BA%8F"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 为什么需要内存序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-x86-vs-ARM-RISC-V-%E7%9A%84%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%B7%AE%E5%BC%82"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 x86 vs ARM&#x2F;RISC-V 的内存模型差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%86%85%E5%AD%98%E5%BA%8F%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 内存序的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-C11-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E5%AE%9E%E8%B7%B5"><span class="toc-number">12.</span> <span class="toc-text">11. C11 原子操作实践 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 基本用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-Memory-Order-%E8%AF%AD%E4%B9%89%E9%80%9F%E6%9F%A5"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 Memory Order 语义速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E6%97%A0%E9%94%81%E5%8D%95%E7%94%9F%E4%BA%A7%E8%80%85-%E5%8D%95%E6%B6%88%E8%B4%B9%E8%80%85%E9%98%9F%E5%88%97%EF%BC%88SPSC-Queue%EF%BC%89"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 无锁单生产者-单消费者队列（SPSC Queue）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E9%81%BF%E5%85%8D%E8%BF%87%E5%BA%A6%E4%BD%BF%E7%94%A8%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 避免过度使用原子操作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E7%BB%BC%E5%90%88%EF%BC%9A%E4%B8%80%E4%B8%AA%E9%AB%98%E6%80%A7%E8%83%BD%E8%BD%AC%E5%8F%91%E6%A0%B8%E7%9A%84%E9%AA%A8%E6%9E%B6"><span class="toc-number">13.</span> <span class="toc-text">12. 综合：一个高性能转发核的骨架 </span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结 </span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%93%B2%E5%AD%A6%E6%80%BB%E7%BB%93"><span class="toc-number">14.0.1.</span> <span class="toc-text">核心哲学总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&text=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&is_video=false&description=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=高效包处理技术：DPDK 和 VPP 的核心技术&body=Check out this article: http://example.com/2019/07/02/HPPP/high-performance-packet-processing/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&title=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&name=高效包处理技术：DPDK 和 VPP 的核心技术&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2019/07/02/HPPP/high-performance-packet-processing/&t=高效包处理技术：DPDK 和 VPP 的核心技术"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
