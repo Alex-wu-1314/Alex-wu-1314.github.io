@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="在高性能网络或嵌入式系统中，报文处理软件（如 L2 层转发引擎、协议解析器、流量调度器等）通常需要管理海量数据结构，并频繁通过指针或引用访问这些结构。这类系统对缓存效率和内存占用极为敏感，因为每一次缓存未命中都可能带来数十甚至上百个时钟周期的延迟，直接影响吞吐量和延迟指标。 面对这一挑战，开发者常常陷入一个经典困境：    使用 64 位系统能获得更强的计算能力和更多寄存器，但指针膨胀会加剧缓存污">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在报文处理系统中权衡 32 位与 64 位架构">
+<meta property="og:url" content="http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="在高性能网络或嵌入式系统中，报文处理软件（如 L2 层转发引擎、协议解析器、流量调度器等）通常需要管理海量数据结构，并频繁通过指针或引用访问这些结构。这类系统对缓存效率和内存占用极为敏感，因为每一次缓存未命中都可能带来数十甚至上百个时钟周期的延迟，直接影响吞吐量和延迟指标。 面对这一挑战，开发者常常陷入一个经典困境：    使用 64 位系统能获得更强的计算能力和更多寄存器，但指针膨胀会加剧缓存污">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-02T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-20T13:13:38.173Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="CPU Arch">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>在报文处理系统中权衡 32 位与 64 位架构</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/02/10/cpu%20arch/cpu_cache/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/01/21/cpu%20arch/ABI%20ACLE/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%8132-%E4%BD%8D%E6%A8%A1%E5%BC%8F%EF%BC%88ILP32%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">1.</span> <span class="toc-text">一、32 位模式（ILP32）的优势与局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-number">1.0.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%EF%BC%88%E5%9C%A8-ARM-%E5%B9%B3%E5%8F%B0%E4%B8%8A%E5%B0%A4%E4%B8%BA%E7%AA%81%E5%87%BA%EF%BC%89"><span class="toc-number">1.0.2.</span> <span class="toc-text">局限（在 ARM 平台上尤为突出）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%8164-%E4%BD%8D%E6%A8%A1%E5%BC%8F%EF%BC%88LP64-AArch64%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E4%BB%A3%E4%BB%B7"><span class="toc-number">2.</span> <span class="toc-text">二、64 位模式（LP64 &#x2F; AArch64）的优势与代价</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-1"><span class="toc-number">2.0.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7"><span class="toc-number">2.0.2.</span> <span class="toc-text">代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A6%82%E4%BD%95%E6%9D%83%E8%A1%A1%EF%BC%9F%E5%85%B3%E9%94%AE%E5%9C%A8%E4%BA%8E%E2%80%9C%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E7%89%B9%E5%BE%81%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">三、如何权衡？关键在于“应用场景特征”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B7%B7%E5%90%88%E6%8C%87%E9%92%88%E6%A8%A1%E5%9E%8B-%E2%80%94%E2%80%94-%E2%80%9C%E7%94%A8-64-%E4%BD%8D%E5%B9%B3%E5%8F%B0%EF%BC%8C%E8%B7%91-32-%E4%BD%8D%E5%BC%95%E7%94%A8%E2%80%9D"><span class="toc-number">4.</span> <span class="toc-text">四、解决方案：混合指针模型 —— “用 64 位平台，跑 32 位引用”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">4.0.1.</span> <span class="toc-text">核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">4.0.2.</span> <span class="toc-text">实现方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B6%E7%9B%8A"><span class="toc-number">4.0.3.</span> <span class="toc-text">收益</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BC%98%E5%8C%96%EF%BC%9A%E4%BD%BF%E7%94%A8-16-%E4%BD%8D%E7%B4%A2%E5%BC%95%E5%AE%9E%E7%8E%B0%E6%9E%81%E8%87%B4%E5%8E%8B%E7%BC%A9"><span class="toc-number">5.</span> <span class="toc-text">五、进一步优化：使用 16 位索引实现极致压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E5%85%B8%E5%9E%8B%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-number">5.0.1.</span> <span class="toc-text">两种典型实现方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%B8%8E%E5%B7%A5%E7%A8%8B%E8%80%83%E9%87%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">性能与工程考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%93%E8%AF%AD"><span class="toc-number">6.</span> <span class="toc-text">六、结语</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        在报文处理系统中权衡 32 位与 64 位架构
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-02-02T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-02-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/CPU-Arch/" rel="tag">CPU Arch</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>在高性能网络或嵌入式系统中，报文处理软件（如 L2 层转发引擎、协议解析器、流量调度器等）通常需要管理海量数据结构，并频繁通过指针或引用访问这些结构。这类系统对<strong>缓存效率</strong>和<strong>内存占用</strong>极为敏感，因为每一次缓存未命中都可能带来数十甚至上百个时钟周期的延迟，直接影响吞吐量和延迟指标。</p>
+<p>面对这一挑战，开发者常常陷入一个经典困境：  </p>
+<blockquote>
+<p><strong>使用 64 位系统能获得更强的计算能力和更多寄存器，但指针膨胀会加剧缓存污染；而 32 位系统内存紧凑，却无法享受现代处理器的性能红利。</strong></p>
+</blockquote>
+<p>本文将以 ARM Cortex-A55 平台为例，深入分析 32 位与 64 位模式在报文处理场景下的优劣，并提出一种兼顾性能、内存效率与未来兼容性的混合解决方案。</p>
+<hr>
+<h1 id="一、32-位模式（ILP32）的优势与局限"><a href="#一、32-位模式（ILP32）的优势与局限" class="headerlink" title="一、32 位模式（ILP32）的优势与局限"></a>一、32 位模式（ILP32）的优势与局限</h1><h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ol>
+<li><p><strong>更小的指针尺寸</strong><br>指针仅占 4 字节（而非 8 字节），在包含大量指针的数据结构（如链表、树、哈希表）中，可显著减少内存占用。例如，一个包含 100 万个节点的链表，仅指针一项就可节省约 4MB 内存。</p>
+</li>
+<li><p><strong>更低的缓存压力</strong><br>更小的数据结构意味着更高的缓存命中率，尤其在 L1&#x2F;L2 缓存有限的嵌入式 SoC 上，这对高频访问路径至关重要。</p>
+</li>
+<li><p><strong>代码密度更高（ARMv7 + Thumb-2）</strong><br>ARMv7 架构支持 Thumb-2 指令集，混合使用 16&#x2F;32 位指令，可减少代码体积，有利于 I-cache 利用率。</p>
+</li>
+</ol>
+<h3 id="局限（在-ARM-平台上尤为突出）"><a href="#局限（在-ARM-平台上尤为突出）" class="headerlink" title="局限（在 ARM 平台上尤为突出）"></a>局限（在 ARM 平台上尤为突出）</h3><ol>
+<li><p><strong>寄存器数量受限</strong><br>ARMv7 仅提供 16 个通用寄存器（实际可用约 12–13 个），编译器难以优化复杂函数，容易导致频繁的栈溢出（spill&#x2F;fill），增加内存访问。</p>
+</li>
+<li><p><strong>缺乏原生 64 位运算支持</strong><br>虽然可通过软件模拟实现 64 位操作，但效率低下。而现代报文处理常需批量拷贝（memcpy）、清零（memset）或校验和计算，64 位加载&#x2F;存储指令可一次处理 8 字节，大幅提升吞吐。</p>
+</li>
+<li><p><strong>架构演进受限</strong><br>ARM 已明确表示，从 Cortex-A510 开始的新一代核心将<strong>不再支持 AArch32（即 32 位执行状态）</strong>。继续依赖 32 位模式将面临硬件淘汰风险。</p>
+</li>
+</ol>
+<hr>
+<h1 id="二、64-位模式（LP64-AArch64）的优势与代价"><a href="#二、64-位模式（LP64-AArch64）的优势与代价" class="headerlink" title="二、64 位模式（LP64 &#x2F; AArch64）的优势与代价"></a>二、64 位模式（LP64 &#x2F; AArch64）的优势与代价</h1><h3 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h3><ol>
+<li><p><strong>32 个通用寄存器</strong><br>AArch64 提供 30 个可自由使用的通用寄存器（x0–x30），极大缓解寄存器压力，提升指令级并行度，减少内存往返。</p>
+</li>
+<li><p><strong>更简洁高效的指令集</strong><br>统一使用 32 位定长指令，简化流水线设计；支持原子操作、SIMD 扩展（如 NEON），加速数据包处理。</p>
+</li>
+<li><p><strong>原生 64 位内存操作</strong><br><code>LDR x0, [x1]</code> 可一次性加载 8 字节，配合预取和非临时存储（non-temporal store），显著优化大块内存操作性能。</p>
+</li>
+<li><p><strong>面向未来</strong><br>AArch64 是 ARM 生态的长期方向，工具链、操作系统、安全特性（如 PAC、BTI）均优先支持 64 位。</p>
+</li>
+</ol>
+<h3 id="代价"><a href="#代价" class="headerlink" title="代价"></a>代价</h3><ol>
+<li><p><strong>指针膨胀导致缓存污染</strong><br>所有指针翻倍至 8 字节，若数据结构中指针占比高（如图结构、对象引用），L1&#x2F;L2 缓存有效容量实质“缩水”近半。</p>
+</li>
+<li><p><strong>内存带宽压力增大</strong><br>更大的数据结构意味着每次缓存行填充（cache line fill）传输更多无效数据，尤其在随机访问场景下影响显著。</p>
+</li>
+</ol>
+<hr>
+<h1 id="三、如何权衡？关键在于“应用场景特征”"><a href="#三、如何权衡？关键在于“应用场景特征”" class="headerlink" title="三、如何权衡？关键在于“应用场景特征”"></a>三、如何权衡？关键在于“应用场景特征”</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>倾向 32 位</th>
+<th>倾向 64 位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>指针密集型数据结构</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>计算密集型逻辑（如加密、校验）</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>寄存器压力大（多变量、复杂控制流）</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>内存总量 &lt; 4GB</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>需长期维护、部署新硬件</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p>对于<strong>报文处理系统</strong>，通常兼具：</p>
+<ul>
+<li><strong>高指针密度</strong>（连接跟踪表、流表、缓冲区描述符等）</li>
+<li><strong>中等计算强度</strong>（解析、匹配、统计）</li>
+<li><strong>对延迟极度敏感</strong></li>
+</ul>
+<p>因此，简单选择任一模式都非最优。</p>
+<hr>
+<h1 id="四、解决方案：混合指针模型-——-“用-64-位平台，跑-32-位引用”"><a href="#四、解决方案：混合指针模型-——-“用-64-位平台，跑-32-位引用”" class="headerlink" title="四、解决方案：混合指针模型 —— “用 64 位平台，跑 32 位引用”"></a>四、解决方案：混合指针模型 —— “用 64 位平台，跑 32 位引用”</h1><p>为兼得鱼与熊掌，可采用以下策略：</p>
+<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><blockquote>
+<p><strong>在 AArch64（64 位）环境下运行程序，但对大规模持久化数据结构，使用 32 位“软件引用”（如偏移量、索引）代替原生指针。</strong></p>
+</blockquote>
+<h3 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h3><ol>
+<li><p><strong>分配统一内存池</strong><br>将所有报文元数据、流状态等分配在一块连续的 ≤4GB 内存区域（base_ptr）。</p>
+</li>
+<li><p><strong>用 uint32_t 存储引用</strong><br>数据结构中不再直接存储 <code>void*</code>，而是存储相对于 base_ptr 的偏移（offset）或全局索引（index）。</p>
+</li>
+<li><p><strong>访问时显式转换</strong>  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 存储时</span></span><br><span class="line">entry-&gt;next_offset = (<span class="type">uint32_t</span>)((<span class="type">char</span>*)next_entry - base_ptr);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 访问时</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">entry</span> *<span class="title">next</span> =</span> (<span class="keyword">struct</span> entry*)(base_ptr + entry-&gt;next_offset);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>封装转换逻辑</strong><br>通过宏或内联函数统一管理转换，便于未来切换（如移植到纯 32 位平台时，转换可退化为空操作）。</p>
+</li>
+</ol>
+<h3 id="收益"><a href="#收益" class="headerlink" title="收益"></a>收益</h3><ul>
+<li>保留 AArch64 的<strong>32 寄存器、64 位指令、未来兼容性</strong></li>
+<li>数据结构保持<strong>4 字节引用</strong>，缓存效率接近 32 位系统</li>
+<li>内存布局可控，利于 NUMA 或 DMA 优化</li>
+<li>为后续引入压缩指针、对象池等高级优化打下基础</li>
+</ul>
+<hr>
+<h1 id="五、进一步优化：使用-16-位索引实现极致压缩"><a href="#五、进一步优化：使用-16-位索引实现极致压缩" class="headerlink" title="五、进一步优化：使用 16 位索引实现极致压缩"></a>五、进一步优化：使用 16 位索引实现极致压缩</h1><p>在某些场景下，<strong>连 32 位引用都显得“奢侈”</strong>。例如，当系统中缓冲区（buffer）或对象总数不超过 65536（2¹⁶）时，完全可以使用 <strong>16 位索引</strong>作为不透明句柄（opaque handle）。</p>
+<h3 id="两种典型实现方式："><a href="#两种典型实现方式：" class="headerlink" title="两种典型实现方式："></a>两种典型实现方式：</h3><ol>
+<li><p><strong>基于数组索引（Index into Allocation Array）</strong><br>所有缓冲区预先分配在一个固定大小的数组中（如 <code>buffer_pool[MAX_BUFFERS]</code>），每个 buffer 由其数组下标唯一标识。只要 <code>MAX_BUFFERS ≤ 65536</code>，索引即可用 <code>uint16_t</code> 表示。</p>
+</li>
+<li><p><strong>基于高位恒定的 64 位指针压缩</strong><br>若所有缓冲区内存分配在同一个 4GB 对齐的虚拟地址段内，则 64 位指针的高 32 位恒定，只需存储低 32 位。若进一步限制在 64KB 段内，甚至可用 16 位表示偏移。</p>
+</li>
+</ol>
+<h3 id="性能与工程考量"><a href="#性能与工程考量" class="headerlink" title="性能与工程考量"></a>性能与工程考量</h3><ul>
+<li><strong>无运行时开销</strong>：索引转指针仅需一次基地址加法（<code>base + index * sizeof(item)</code>），在 AArch64 上可直接用一条 <code>ADD</code> 指令完成，且因寄存器充裕（32 个），不会造成寄存器压力。</li>
+<li><strong>已被工业验证</strong>：Cisco 的 VPP（Vector Packet Processing）高性能网络栈广泛采用此类“索引代替指针”的设计，在绝大多数路径上使用 32 位甚至 16 位句柄，显著降低内存带宽需求。</li>
+<li><strong>需早期设计介入</strong>：这种模式<strong>无法轻易 retrofit 到已有代码库</strong>。系统必须从一开始就围绕“数组+索引”或“内存池+偏移”进行抽象，所有引用操作需通过封装层完成。</li>
+</ul>
+<blockquote>
+<p>因此，若报文处理系统的规模可预测（如最大并发流数、缓冲区数量有上限），<strong>优先考虑 16 位索引</strong>是实现极致缓存效率的最佳实践。</p>
+</blockquote>
+<hr>
+<h1 id="六、结语"><a href="#六、结语" class="headerlink" title="六、结语"></a>六、结语</h1><p>在 ARM Cortex-A55 等现代嵌入式处理器上，盲目坚持 32 位模式已非明智之选。虽然 64 位指针带来内存开销，但其架构优势不可忽视。通过<strong>显式管理 32 位软件引用</strong>，我们可以在 AArch64 平台上构建出既高效又紧凑的报文处理系统。</p>
+<p>更进一步，若系统规模允许，<strong>采用 16 位数组索引作为不透明句柄</strong>，可将内存效率推向极致——这正是 Cisco VPP 等高性能网络软件的核心设计哲学之一。</p>
+<p>这种“<strong>平台 64 位，数据 32 位甚至 16 位</strong>”的分层抽象模型，不仅解决了当前性能与内存的矛盾，更为系统未来的演进铺平了道路。毕竟，在 ARM 的世界里，64 位已是现在，而 32 位正在成为历史。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%8132-%E4%BD%8D%E6%A8%A1%E5%BC%8F%EF%BC%88ILP32%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">1.</span> <span class="toc-text">一、32 位模式（ILP32）的优势与局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-number">1.0.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%EF%BC%88%E5%9C%A8-ARM-%E5%B9%B3%E5%8F%B0%E4%B8%8A%E5%B0%A4%E4%B8%BA%E7%AA%81%E5%87%BA%EF%BC%89"><span class="toc-number">1.0.2.</span> <span class="toc-text">局限（在 ARM 平台上尤为突出）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%8164-%E4%BD%8D%E6%A8%A1%E5%BC%8F%EF%BC%88LP64-AArch64%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E4%BB%A3%E4%BB%B7"><span class="toc-number">2.</span> <span class="toc-text">二、64 位模式（LP64 &#x2F; AArch64）的优势与代价</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-1"><span class="toc-number">2.0.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7"><span class="toc-number">2.0.2.</span> <span class="toc-text">代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A6%82%E4%BD%95%E6%9D%83%E8%A1%A1%EF%BC%9F%E5%85%B3%E9%94%AE%E5%9C%A8%E4%BA%8E%E2%80%9C%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E7%89%B9%E5%BE%81%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">三、如何权衡？关键在于“应用场景特征”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B7%B7%E5%90%88%E6%8C%87%E9%92%88%E6%A8%A1%E5%9E%8B-%E2%80%94%E2%80%94-%E2%80%9C%E7%94%A8-64-%E4%BD%8D%E5%B9%B3%E5%8F%B0%EF%BC%8C%E8%B7%91-32-%E4%BD%8D%E5%BC%95%E7%94%A8%E2%80%9D"><span class="toc-number">4.</span> <span class="toc-text">四、解决方案：混合指针模型 —— “用 64 位平台，跑 32 位引用”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">4.0.1.</span> <span class="toc-text">核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">4.0.2.</span> <span class="toc-text">实现方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B6%E7%9B%8A"><span class="toc-number">4.0.3.</span> <span class="toc-text">收益</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BC%98%E5%8C%96%EF%BC%9A%E4%BD%BF%E7%94%A8-16-%E4%BD%8D%E7%B4%A2%E5%BC%95%E5%AE%9E%E7%8E%B0%E6%9E%81%E8%87%B4%E5%8E%8B%E7%BC%A9"><span class="toc-number">5.</span> <span class="toc-text">五、进一步优化：使用 16 位索引实现极致压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E5%85%B8%E5%9E%8B%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-number">5.0.1.</span> <span class="toc-text">两种典型实现方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%B8%8E%E5%B7%A5%E7%A8%8B%E8%80%83%E9%87%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">性能与工程考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%BB%93%E8%AF%AD"><span class="toc-number">6.</span> <span class="toc-text">六、结语</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

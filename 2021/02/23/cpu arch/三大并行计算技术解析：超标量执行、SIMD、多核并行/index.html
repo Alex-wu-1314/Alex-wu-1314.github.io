@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="在现代计算机体系结构中，超标量执行（Superscalar execution）、SIMD（单指令多数据）和多核并行（Multicore parallelism）是提升运算效率的核心技术。 一、核心技术解析1. 超标量执行（Superscalar execution） 核心逻辑：CPU 在单个时钟周期内，通过内置的多套独立硬件执行单元（如整数运算单元、浮点运算单元），同时发射并执行多条无依赖关系的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三大并行计算技术：超标量执行、SIMD、多核并行">
+<meta property="og:url" content="http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="在现代计算机体系结构中，超标量执行（Superscalar execution）、SIMD（单指令多数据）和多核并行（Multicore parallelism）是提升运算效率的核心技术。 一、核心技术解析1. 超标量执行（Superscalar execution） 核心逻辑：CPU 在单个时钟周期内，通过内置的多套独立硬件执行单元（如整数运算单元、浮点运算单元），同时发射并执行多条无依赖关系的">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-23T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-20T22:25:29.269Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="CPU Arch">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>三大并行计算技术：超标量执行、SIMD、多核并行</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/02/27/cpu%20arch/%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E3%80%81%E7%BC%93%E5%AD%98%E4%B8%8EDRAM%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/02/17/cpu%20arch/cpu_pipeline/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&text=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&is_video=false&description=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=三大并行计算技术：超标量执行、SIMD、多核并行&body=Check out this article: http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&name=三大并行计算技术：超标量执行、SIMD、多核并行&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&t=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">一、核心技术解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%EF%BC%88Superscalar-execution%EF%BC%89"><span class="toc-number">1.0.1.</span> <span class="toc-text">1. 超标量执行（Superscalar execution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-SIMD%EF%BC%88%E5%8D%95%E6%8C%87%E4%BB%A4%EF%BC%8C%E5%A4%9A%E6%95%B0%E6%8D%AE%EF%BC%8CSingle-Instruction-Multiple-Data%EF%BC%89"><span class="toc-number">1.0.2.</span> <span class="toc-text">2. SIMD（单指令，多数据，Single Instruction, Multiple Data）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C%EF%BC%88Multicore-parallelism%EF%BC%89"><span class="toc-number">1.0.3.</span> <span class="toc-text">3. 多核并行（Multicore parallelism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E8%BF%99%E4%B8%89%E7%A7%8D%E6%8A%80%E6%9C%AF%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">二、为什么是这三种技术？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B9%B6%E8%A1%8C%E5%B1%82%E7%BA%A7%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88%E6%97%A0%E6%A0%B8%E5%BF%83%E9%81%97%E6%BC%8F%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">1. 并行层级的完整性（无核心遗漏）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%A1%AC%E4%BB%B6%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%85%A8%E9%93%BE%E8%B7%AF%E8%A6%86%E7%9B%96"><span class="toc-number">2.0.2.</span> <span class="toc-text">2. 硬件设计的全链路覆盖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E7%9A%84%E4%BA%92%E8%A1%A5%E6%80%A7%EF%BC%88%E7%9B%B8%E4%BA%92%E9%85%8D%E5%90%88%EF%BC%8C%E6%95%88%E7%8E%87%E6%9C%80%E5%A4%A7%E5%8C%96%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">3. 应用场景的互补性（相互配合，效率最大化）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%89%E8%80%85%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%E8%A1%A8%EF%BC%88%E5%BF%AB%E9%80%9F%E5%8C%BA%E5%88%86%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、三者核心对比表（快速区分）</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        三大并行计算技术：超标量执行、SIMD、多核并行
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-02-23T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-02-23</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/CPU-Arch/" rel="tag">CPU Arch</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>在现代计算机体系结构中，超标量执行（Superscalar execution）、SIMD（单指令多数据）和多核并行（Multicore parallelism）是提升运算效率的核心技术。</p>
+<h1 id="一、核心技术解析"><a href="#一、核心技术解析" class="headerlink" title="一、核心技术解析"></a>一、核心技术解析</h1><h3 id="1-超标量执行（Superscalar-execution）"><a href="#1-超标量执行（Superscalar-execution）" class="headerlink" title="1. 超标量执行（Superscalar execution）"></a>1. 超标量执行（Superscalar execution）</h3><ul>
+<li><p><strong>核心逻辑</strong>：CPU 在<strong>单个时钟周期内</strong>，通过内置的<strong>多套独立硬件执行单元</strong>（如整数运算单元、浮点运算单元），同时发射并执行<strong>多条无依赖关系的独立指令</strong>，本质是挖掘单线程内的 “指令级并行（ILP）”。</p>
+</li>
+<li><p><strong>通俗理解</strong>：一个厨师（单个 CPU 核心）面前摆了多个独立灶台（多套执行单元），他不用等一道菜做完再做下一道，而是同时在不同灶台上处理多个独立菜品（独立指令）—— 比如左边灶台炒青菜，右边灶台煮鸡蛋，最大化利用单周期时间。</p>
+</li>
+<li><p><strong>矢量化场景示例</strong>：在执行矢量化矩阵运算时，超标量 CPU 会自动拆分矩阵乘法中的独立指令（如多个元素的乘法运算），分配到不同执行单元同时执行，无需等待单个元素运算完成，提升单线程矢量化运算效率。</p>
+</li>
+<li><p><strong>关键特点</strong>：对程序员完全透明，依赖 CPU 的指令调度器和编译器优化，自动挖掘指令间的并行性，适用于各类通用计算场景。</p>
+</li>
+</ul>
+<h3 id="2-SIMD（单指令，多数据，Single-Instruction-Multiple-Data）"><a href="#2-SIMD（单指令，多数据，Single-Instruction-Multiple-Data）" class="headerlink" title="2. SIMD（单指令，多数据，Single Instruction, Multiple Data）"></a>2. SIMD（单指令，多数据，Single Instruction, Multiple Data）</h3><ul>
+<li><p><strong>核心逻辑</strong>：一条指令同时作用于<strong>多组数据</strong>（通常是连续的向量数据），是 “数据级并行（DLP）” 的核心技术，专门优化批量数据的同质化运算。</p>
+</li>
+<li><p><strong>通俗理解</strong>：一个厨师（一条指令）手里拿着多个勺子（向量寄存器），同时给 10 个盘子（10 组数据）撒盐（同一种运算）—— 不用逐个盘子操作，一次完成多组数据的相同处理，效率大幅提升。</p>
+</li>
+<li><p><strong>矢量化场景示例</strong>：在图像矢量化处理中，对像素矩阵进行亮度调整时，SIMD 指令可一次性读取 16&#x2F;32 个像素数据（向量数据），用一条指令完成所有像素的亮度值计算，相比单数据指令，运算速度提升数倍；在 AI 模型的向量乘法中，SIMD 可同时处理多个特征向量的乘积运算，加速模型推理。</p>
+</li>
+<li><p><strong>关键特点</strong>：需编译器自动向量化或程序员通过 SIMD 指令集（如 SSE、AVX、NEON）显式调用，核心优势是批量数据运算效率，广泛应用于图形学、AI、信号处理等矢量化场景。</p>
+</li>
+</ul>
+<h3 id="3-多核并行（Multicore-parallelism）"><a href="#3-多核并行（Multicore-parallelism）" class="headerlink" title="3. 多核并行（Multicore parallelism）"></a>3. 多核并行（Multicore parallelism）</h3><ul>
+<li><p><strong>核心逻辑</strong>：在一块 CPU 芯片上集成<strong>多个独立的完整核心</strong>（每个核心都具备独立的指令执行能力），每个核心可独立运行一条指令流，实现 “线程级 &#x2F; 进程级并行（TLP）”。</p>
+</li>
+<li><p><strong>通俗理解</strong>：一个厨房（CPU 芯片）里有多个独立厨师（多个核心），每个厨师都能自己买菜、做菜（独立执行指令流），可以同时处理多个不同任务 —— 比如厨师 A 做主食，厨师 B 做荤菜，厨师 C 做素菜，整体任务吞吐量大幅提升。</p>
+</li>
+<li><p><strong>矢量化场景示例</strong>：在大规模矢量化数据处理（如卫星影像矢量化分析）中，可将任务拆分为多个子任务（不同区域的影像处理），每个核心负责一个子任务的矢量化运算，同时并行执行；在多模型 AI 推理场景中，多个核心可分别运行不同的矢量化模型，提升整体推理吞吐量。</p>
+</li>
+<li><p><strong>关键特点</strong>：需要操作系统的线程调度、编程语言的并行编程支持（如 Java 多线程、Python multiprocessing），适用于多任务、大规模数据并行场景，是现代 CPU 的标配设计。</p>
+</li>
+</ul>
+<h1 id="二、为什么是这三种技术？"><a href="#二、为什么是这三种技术？" class="headerlink" title="二、为什么是这三种技术？"></a>二、为什么是这三种技术？</h1><p>这三者并非随机选择，而是计算机并行计算的<strong>三大核心层级</strong>，覆盖了从硬件底层到系统级的完整并行逻辑，构成了现代 CPU 性能提升的核心框架：</p>
+<h3 id="1-并行层级的完整性（无核心遗漏）"><a href="#1-并行层级的完整性（无核心遗漏）" class="headerlink" title="1. 并行层级的完整性（无核心遗漏）"></a>1. 并行层级的完整性（无核心遗漏）</h3><p>并行计算的本质是 “同时处理多个任务 &#x2F; 数据”，而这三种技术分别对应了最核心的三个并行维度：</p>
+<ul>
+<li><p>超标量执行：聚焦<strong>指令级</strong>（单线程内，多条独立指令并行）—— 解决 “单线程指令执行效率低” 的问题；</p>
+</li>
+<li><p>SIMD：聚焦<strong>数据级</strong>（单指令，多组同源数据并行）—— 解决 “批量数据同质化运算慢” 的问题；</p>
+</li>
+<li><p>多核并行：聚焦<strong>线程 &#x2F; 进程级</strong>（多核心，多个独立任务并行）—— 解决 “多任务并发处理能力不足” 的问题。</p>
+<p>三者从 “指令”“数据”“任务” 三个维度，完整覆盖了并行计算的所有核心场景，没有关键遗漏。</p>
+</li>
+</ul>
+<h3 id="2-硬件设计的全链路覆盖"><a href="#2-硬件设计的全链路覆盖" class="headerlink" title="2. 硬件设计的全链路覆盖"></a>2. 硬件设计的全链路覆盖</h3><p>从 CPU 内部微架构到芯片级集成，三者是硬件性能优化的 “三级火箭”：</p>
+<ul>
+<li><p>超标量执行：优化单个核心的内部指令执行效率，是 CPU 微架构设计的基础；</p>
+</li>
+<li><p>SIMD：强化单个核心的向量运算能力，针对批量数据场景做专项优化；</p>
+</li>
+<li><p>多核并行：通过多核心集成，突破单个核心的性能上限，提升整体任务吞吐量。</p>
+<p>三者协同构成了现代 CPU 的硬件架构核心，缺一不可。</p>
+</li>
+</ul>
+<h3 id="3-应用场景的互补性（相互配合，效率最大化）"><a href="#3-应用场景的互补性（相互配合，效率最大化）" class="headerlink" title="3. 应用场景的互补性（相互配合，效率最大化）"></a>3. 应用场景的互补性（相互配合，效率最大化）</h3><p>三者并非替代关系，而是协同工作：</p>
+<ul>
+<li><p>单线程矢量化运算时：超标量执行拆分独立指令，SIMD 处理批量数据，两者结合让单核心效率最大化；</p>
+</li>
+<li><p>多任务场景时：多核并行分配不同任务，每个核心内部再通过超标量 + SIMD 优化单任务执行效率，实现 “多任务并发 + 单任务高效” 的双重提升。</p>
+<p>比如在 AI 训练中，多核并行分配不同的训练批次，每个核心用 SIMD 处理批次内的向量运算，同时通过超标量执行优化指令流程，三者共同支撑训练效率。</p>
+</li>
+</ul>
+<h1 id="三、三者核心对比表（快速区分）"><a href="#三、三者核心对比表（快速区分）" class="headerlink" title="三、三者核心对比表（快速区分）"></a>三、三者核心对比表（快速区分）</h1><table>
+<thead>
+<tr>
+<th>技术</th>
+<th>并行层级</th>
+<th>核心特征</th>
+<th>厨师案例类比</th>
+<th>矢量化场景适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>超标量执行</td>
+<td>指令级并行 (ILP)</td>
+<td>单周期多条独立指令执行</td>
+<td>一个厨师用多个灶台同时做独立菜品</td>
+<td>通用矢量化运算（单线程内指令优化）</td>
+</tr>
+<tr>
+<td>SIMD</td>
+<td>数据级并行 (DLP)</td>
+<td>一条指令处理多组向量数据</td>
+<td>一个厨师同时给多个盘子做相同操作</td>
+<td>批量矢量化运算（图像、AI、矩阵）</td>
+</tr>
+<tr>
+<td>多核并行</td>
+<td>线程级并行 (TLP)</td>
+<td>多核心独立执行任务流</td>
+<td>多个厨师同时独立处理不同任务</td>
+<td>大规模矢量化任务拆分、多模型并行</td>
+</tr>
+</tbody></table>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">一、核心技术解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%EF%BC%88Superscalar-execution%EF%BC%89"><span class="toc-number">1.0.1.</span> <span class="toc-text">1. 超标量执行（Superscalar execution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-SIMD%EF%BC%88%E5%8D%95%E6%8C%87%E4%BB%A4%EF%BC%8C%E5%A4%9A%E6%95%B0%E6%8D%AE%EF%BC%8CSingle-Instruction-Multiple-Data%EF%BC%89"><span class="toc-number">1.0.2.</span> <span class="toc-text">2. SIMD（单指令，多数据，Single Instruction, Multiple Data）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C%EF%BC%88Multicore-parallelism%EF%BC%89"><span class="toc-number">1.0.3.</span> <span class="toc-text">3. 多核并行（Multicore parallelism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E8%BF%99%E4%B8%89%E7%A7%8D%E6%8A%80%E6%9C%AF%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">二、为什么是这三种技术？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B9%B6%E8%A1%8C%E5%B1%82%E7%BA%A7%E7%9A%84%E5%AE%8C%E6%95%B4%E6%80%A7%EF%BC%88%E6%97%A0%E6%A0%B8%E5%BF%83%E9%81%97%E6%BC%8F%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">1. 并行层级的完整性（无核心遗漏）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%A1%AC%E4%BB%B6%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%85%A8%E9%93%BE%E8%B7%AF%E8%A6%86%E7%9B%96"><span class="toc-number">2.0.2.</span> <span class="toc-text">2. 硬件设计的全链路覆盖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E7%9A%84%E4%BA%92%E8%A1%A5%E6%80%A7%EF%BC%88%E7%9B%B8%E4%BA%92%E9%85%8D%E5%90%88%EF%BC%8C%E6%95%88%E7%8E%87%E6%9C%80%E5%A4%A7%E5%8C%96%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">3. 应用场景的互补性（相互配合，效率最大化）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%89%E8%80%85%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%E8%A1%A8%EF%BC%88%E5%BF%AB%E9%80%9F%E5%8C%BA%E5%88%86%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、三者核心对比表（快速区分）</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&text=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&is_video=false&description=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=三大并行计算技术：超标量执行、SIMD、多核并行&body=Check out this article: http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&title=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&name=三大并行计算技术：超标量执行、SIMD、多核并行&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/23/cpu%20arch/%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/&t=三大并行计算技术：超标量执行、SIMD、多核并行"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
