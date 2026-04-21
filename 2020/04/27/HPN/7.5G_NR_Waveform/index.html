@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景：什么是”传输波形”？ 一、下行传输波形：CP-OFDM 1.1 OFDM：多子载波并行传输 1.2 循环前缀（CP）：信号的”缓冲垫” 1.3 两种 CP 类型：适配不同传播环境 1.4 下行应用场景   二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换 2.1 DFT 扩展的作用：降低 PAPR 2.2 两种上行模式对比 2.3 模式切换机制：由基站通过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解 5G NR 上下行传输波形">
+<meta property="og:url" content="http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景：什么是”传输波形”？ 一、下行传输波形：CP-OFDM 1.1 OFDM：多子载波并行传输 1.2 循环前缀（CP）：信号的”缓冲垫” 1.3 两种 CP 类型：适配不同传播环境 1.4 下行应用场景   二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换 2.1 DFT 扩展的作用：降低 PAPR 2.2 两种上行模式对比 2.3 模式切换机制：由基站通过">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-04-27T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-21T01:38:03.350Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="高性能网络">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>深入理解 5G NR 上下行传输波形</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/01/09/cpu%20arch/A55%20%E5%BE%AE%E6%9E%B6%E6%9E%84%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%8C%87%E6%A0%87/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2020/04/15/HPN/6.%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3%E9%9D%A2%E5%90%91%E5%AD%97%E8%8A%82%E6%B5%81%E3%80%81%E9%9D%A2%E5%90%91%E6%B6%88%E6%81%AF%E6%B5%81%E3%80%81%E9%9D%A2%E5%90%91%E6%95%B0%E6%8D%AE%E6%8A%A5%E7%9A%84%E5%8C%BA%E5%88%AB/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%BB%80%E4%B9%88%E6%98%AF%E2%80%9D%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%E2%80%9D%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">背景：什么是”传输波形”？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%8B%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM"><span class="toc-number">3.</span> <span class="toc-text">一、下行传输波形：CP-OFDM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-OFDM%EF%BC%9A%E5%A4%9A%E5%AD%90%E8%BD%BD%E6%B3%A2%E5%B9%B6%E8%A1%8C%E4%BC%A0%E8%BE%93"><span class="toc-number">3.0.1.</span> <span class="toc-text">1.1 OFDM：多子载波并行传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88CP%EF%BC%89%EF%BC%9A%E4%BF%A1%E5%8F%B7%E7%9A%84%E2%80%9D%E7%BC%93%E5%86%B2%E5%9E%AB%E2%80%9D"><span class="toc-number">3.0.2.</span> <span class="toc-text">1.2 循环前缀（CP）：信号的”缓冲垫”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%A4%E7%A7%8D-CP-%E7%B1%BB%E5%9E%8B%EF%BC%9A%E9%80%82%E9%85%8D%E4%B8%8D%E5%90%8C%E4%BC%A0%E6%92%AD%E7%8E%AF%E5%A2%83"><span class="toc-number">3.0.3.</span> <span class="toc-text">1.3 两种 CP 类型：适配不同传播环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E4%B8%8B%E8%A1%8C%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.0.4.</span> <span class="toc-text">1.4 下行应用场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%8A%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%EF%BC%9ADFT-S-OFDM-CP-OFDM-%E5%8F%AF%E5%88%87%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-DFT-%E6%89%A9%E5%B1%95%E7%9A%84%E4%BD%9C%E7%94%A8%EF%BC%9A%E9%99%8D%E4%BD%8E-PAPR"><span class="toc-number">4.0.1.</span> <span class="toc-text">2.1 DFT 扩展的作用：降低 PAPR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%A4%E7%A7%8D%E4%B8%8A%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.2.</span> <span class="toc-text">2.2 两种上行模式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E6%9C%BA%E5%88%B6%EF%BC%9A%E7%94%B1%E5%9F%BA%E7%AB%99%E9%80%9A%E8%BF%87-RRC-%E4%BF%A1%E4%BB%A4%E6%8E%A7%E5%88%B6"><span class="toc-number">4.0.3.</span> <span class="toc-text">2.3 模式切换机制：由基站通过 RRC 信令控制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%B1%E4%BA%AB%E9%A2%91%E8%B0%B1%E4%B8%8B%E7%9A%84-PRB-%E4%BA%A4%E7%BB%87"><span class="toc-number">5.</span> <span class="toc-text">三、共享频谱下的 PRB 交织</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BB%80%E4%B9%88%E6%98%AF-PRB-%E4%BA%A4%E7%BB%87%EF%BC%9F"><span class="toc-number">5.0.1.</span> <span class="toc-text">3.1 什么是 PRB 交织？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4%E4%B8%8E%E9%99%90%E5%88%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">3.2 适用范围与限制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AD%90%E8%BD%BD%E6%B3%A2%E9%97%B4%E9%9A%94%EF%BC%88SCS%EF%BC%89%E4%B8%8E-CP-%E9%95%BF%E5%BA%A6%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">四、子载波间隔（SCS）与 CP 长度的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E5%A4%8D%E5%88%B6%E5%B0%BE%E9%83%A8%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%8F%92%E5%85%A5%E7%A9%BA%E7%99%BD%E6%AE%B5%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">五、常见问题：为什么用复制尾部，而不是插入空白段？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E7%99%BD%E6%AE%B5%EF%BC%88Zero-Padding-Guard-Interval%EF%BC%89%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="toc-number">7.0.1.</span> <span class="toc-text">空白段（Zero Padding Guard Interval）的缺陷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CP%EF%BC%88%E5%A4%8D%E5%88%B6%E5%B0%BE%E9%83%A8%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">7.0.2.</span> <span class="toc-text">CP（复制尾部）的优势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">9.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        深入理解 5G NR 上下行传输波形
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-04-27T02:44:19.000Z" class="dt-published" itemprop="datePublished">2020-04-27</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BD%E7%BD%91%E7%BB%9C/" rel="tag">高性能网络</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#%E8%83%8C%E6%99%AF%E4%BB%80%E4%B9%88%E6%98%AF%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2">背景：什么是”传输波形”？</a></li>
+<li><a href="#%E4%B8%80%E4%B8%8B%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2cp-ofdm">一、下行传输波形：CP-OFDM</a><ul>
+<li><a href="#11-ofdm%E5%A4%9A%E5%AD%90%E8%BD%BD%E6%B3%A2%E5%B9%B6%E8%A1%8C%E4%BC%A0%E8%BE%93">1.1 OFDM：多子载波并行传输</a></li>
+<li><a href="#12-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80cp%E4%BF%A1%E5%8F%B7%E7%9A%84%E7%BC%93%E5%86%B2%E5%9E%AB">1.2 循环前缀（CP）：信号的”缓冲垫”</a></li>
+<li><a href="#13-%E4%B8%A4%E7%A7%8D-cp-%E7%B1%BB%E5%9E%8B%E9%80%82%E9%85%8D%E4%B8%8D%E5%90%8C%E4%BC%A0%E6%92%AD%E7%8E%AF%E5%A2%83">1.3 两种 CP 类型：适配不同传播环境</a></li>
+<li><a href="#14-%E4%B8%8B%E8%A1%8C%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">1.4 下行应用场景</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BA%8C%E4%B8%8A%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2dft-s-ofdm--cp-ofdm-%E5%8F%AF%E5%88%87%E6%8D%A2">二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换</a><ul>
+<li><a href="#21-dft-%E6%89%A9%E5%B1%95%E7%9A%84%E4%BD%9C%E7%94%A8%E9%99%8D%E4%BD%8E-papr">2.1 DFT 扩展的作用：降低 PAPR</a></li>
+<li><a href="#22-%E4%B8%A4%E7%A7%8D%E4%B8%8A%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94">2.2 两种上行模式对比</a></li>
+<li><a href="#23-%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E6%9C%BA%E5%88%B6%E7%94%B1%E5%9F%BA%E7%AB%99%E9%80%9A%E8%BF%87-rrc-%E4%BF%A1%E4%BB%A4%E6%8E%A7%E5%88%B6">2.3 模式切换机制：由基站通过 RRC 信令控制</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89%E5%85%B1%E4%BA%AB%E9%A2%91%E8%B0%B1%E4%B8%8B%E7%9A%84-prb-%E4%BA%A4%E7%BB%87">三、共享频谱下的 PRB 交织</a><ul>
+<li><a href="#31-%E4%BB%80%E4%B9%88%E6%98%AF-prb-%E4%BA%A4%E7%BB%87">3.1 什么是 PRB 交织？</a></li>
+<li><a href="#32-%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4%E4%B8%8E%E9%99%90%E5%88%B6">3.2 适用范围与限制</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9B%9B%E5%AD%90%E8%BD%BD%E6%B3%A2%E9%97%B4%E9%9A%94scs%E4%B8%8E-cp-%E9%95%BF%E5%BA%A6%E7%9A%84%E5%85%B3%E7%B3%BB">四、子载波间隔（SCS）与 CP 长度的关系</a></li>
+<li><a href="#%E4%BA%94%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E5%A4%8D%E5%88%B6%E5%B0%BE%E9%83%A8%E8%80%8C%E4%B8%8D%E6%98%AF%E6%8F%92%E5%85%A5%E7%A9%BA%E7%99%BD%E6%AE%B5">五、常见问题：为什么用复制尾部，而不是插入空白段？</a></li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+<hr>
+<h1 id="背景：什么是”传输波形”？"><a href="#背景：什么是”传输波形”？" class="headerlink" title="背景：什么是”传输波形”？"></a>背景：什么是”传输波形”？</h1><p>在 5G 通信中，”传输波形”是指信号在空中接口（Uu 口）传输时所采用的调制与复用方式。它决定了：</p>
+<ul>
+<li>信号如何打包、调制后发送到空中；</li>
+<li>接收端如何从复杂的无线信道中准确还原数据；</li>
+<li>系统在多用户、多天线、多场景下的抗干扰能力与频谱效率。</li>
+</ul>
+<p>5G NR（New Radio）在设计上充分考虑了下行广播与手机接收的稳定性，以及上行终端的功耗约束，针对不同方向采用了不同但兼容的波形方案。</p>
+<hr>
+<h1 id="一、下行传输波形：CP-OFDM"><a href="#一、下行传输波形：CP-OFDM" class="headerlink" title="一、下行传输波形：CP-OFDM"></a>一、下行传输波形：CP-OFDM</h1><p><strong>下行（基站 → 手机）</strong> 统一采用 <strong>CP-OFDM（Cyclic Prefix Orthogonal Frequency Division Multiplexing，循环前缀正交频分复用）</strong>。</p>
+<h3 id="1-1-OFDM：多子载波并行传输"><a href="#1-1-OFDM：多子载波并行传输" class="headerlink" title="1.1 OFDM：多子载波并行传输"></a>1.1 OFDM：多子载波并行传输</h3><p>OFDM 的核心思想是将一个宽带信道分割为若干个<strong>窄带子载波</strong>，每个子载波独立传输一部分数据，并行发送。</p>
+<p><strong>类比理解</strong>：把原本一条宽的”信号公路”，分成几十条、上百条窄车道，每一条车道（子载波）都单独传一部分数据，多车道公路自然比单车道公路走得快。</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>子载波数量</td>
+<td>可达数百至数千条</td>
+</tr>
+<tr>
+<td>子载波间隔</td>
+<td>15 kHz &#x2F; 30 kHz &#x2F; 60 kHz 等（由 μ 参数决定）</td>
+</tr>
+<tr>
+<td>正交性</td>
+<td>各子载波频率点在彼此的零点上，频域互不干扰</td>
+</tr>
+<tr>
+<td>频谱效率</td>
+<td>高，可紧密排列子载波，充分利用频谱资源</td>
+</tr>
+</tbody></table>
+<p>OFDM 本身的局限在于：无线信道中存在<strong>多径传播</strong>（信号经墙壁、建筑物反射后走不同路径到达接收端，产生时延差），导致相邻符号之间的干扰（ISI）和子载波间的干扰（ICI），这正是 CP 出现的原因。</p>
+<h3 id="1-2-循环前缀（CP）：信号的”缓冲垫”"><a href="#1-2-循环前缀（CP）：信号的”缓冲垫”" class="headerlink" title="1.2 循环前缀（CP）：信号的”缓冲垫”"></a>1.2 循环前缀（CP）：信号的”缓冲垫”</h3><p>CP 的构造方式并非插入空白段，而是<strong>将每个 OFDM 符号的尾部复制一段，附加到符号头部</strong>，形成保护间隔。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原始符号：  [---------- 数据体 ----------]</span><br><span class="line">加 CP 后：  [--CP（尾部复制）--][---------- 数据体 ----------]</span><br></pre></td></tr></table></figure>
+
+<p><strong>CP 的作用机制：</strong></p>
+<ol>
+<li><p><strong>消除 ISI（符号间干扰）</strong>：只要最大多径时延差 ≤ CP 长度，前一个符号的多径残留只会落入后一个符号的 CP 区域，不会污染数据体。接收端丢弃 CP 部分，仅处理数据体，即可完整还原信号。</p>
+</li>
+<li><p><strong>维持正交性，消除 ICI（载波间干扰）</strong>：CP 使每个符号看起来像”循环卷积”，在频域上保证各子载波之间的正交性不被破坏。这是选择”复制尾部”而非”空白填充”的根本原因。</p>
+</li>
+</ol>
+<p><strong>类比: 快递车（帮助理解多径干扰与 CP 的作用）</strong></p>
+<p>把每一段信号比作一辆快递车，基站是仓库，手机是收件人，无线传播环境（建筑物、墙壁）是”复杂路况”：</p>
+<ul>
+<li><p><strong>理想情况（只有直路）</strong>：快递车走一条直路匀速直达，手机看到”整辆车”到了，直接签收，信号完整无干扰。</p>
+</li>
+<li><p><strong>实际情况（多径传播）</strong>：除了直路，还有信号被墙壁反射走的”绕路”，绕路的快递车会晚到（反射信号比直射信号慢一步）。</p>
+<ul>
+<li><p><strong>没有 CP</strong>：前一辆快递车的绕路车，会和后一辆快递车的直行车<strong>同时到达</strong>手机门口，两辆车挤在一起，手机分不清哪件快递是哪一车的 → 这就是<strong>符号间干扰（ISI）</strong>；有时候相邻车道的快递车也会互相蹭到 → 这就是<strong>载波间干扰（ICI）</strong>。</p>
+</li>
+<li><p><strong>有了 CP</strong>：相当于给每辆快递车的车头，贴了一段和车尾一样的”重复快递”（CP 段）。手机签收时，只认”缓冲垫后面的核心快递”（数据体），哪怕绕路的快递车晚到，撞到的也只是车头的缓冲垫，不会碰到底层的核心货物，手机就能准确收到信号。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-3-两种-CP-类型：适配不同传播环境"><a href="#1-3-两种-CP-类型：适配不同传播环境" class="headerlink" title="1.3 两种 CP 类型：适配不同传播环境"></a>1.3 两种 CP 类型：适配不同传播环境</h3><p>5G NR 定义了两种 CP：</p>
+<table>
+<thead>
+<tr>
+<th>CP 类型</th>
+<th>长度</th>
+<th>适用场景</th>
+<th>适用 SCS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Normal CP（正常 CP）</strong></td>
+<td>较短（约 4.7 μs @ 15 kHz）</td>
+<td>城市、小区、写字楼等多径时延小的场景</td>
+<td>所有 SCS（15&#x2F;30&#x2F;60&#x2F;120&#x2F;240 kHz）</td>
+</tr>
+<tr>
+<td><strong>Extended CP（扩展 CP）</strong></td>
+<td>较长（约 16.67 μs）</td>
+<td>郊区、农村、室内深覆盖（地下车库、楼道）等多径时延大的场景</td>
+<td><strong>仅 60 kHz SCS（μ&#x3D;2）</strong></td>
+</tr>
+</tbody></table>
+<p><strong>两种 CP 的通俗理解：</strong></p>
+<ul>
+<li><p><strong>Normal CP（短缓冲垫）</strong>：适合城市、小区、写字楼这些”路况简单”的地方。信号传播路径少、延迟小，短缓冲垫足够用，既能防干扰，又不浪费频谱资源。日常刷手机、发消息基本都用这种。</p>
+</li>
+<li><p><strong>Extended CP（长缓冲垫）</strong>：适合郊区、农村，或室内深度覆盖（比如地下车库、高楼楼道）这些”路况复杂”的地方。这里信号反射路径多、延迟差大，就像快递车要走很多弯路、晚到的时间更长，长缓冲垫才能更好地挡住干扰，避免信号”撞车”。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>说明</strong>：Extended CP 仅在 μ&#x3D;2（60 kHz 子载波间隔）下支持，此时每符号持续时间较短，扩展 CP 才具备工程意义。同时，使用 Extended CP 时，上行须采用单端口（单天线）传输，长缓冲垫和多天线一起用会浪费频谱资源，得不偿失，需要在”防干扰”和”传输效率”之间找平衡。</p>
+</blockquote>
+<h3 id="1-4-下行应用场景"><a href="#1-4-下行应用场景" class="headerlink" title="1.4 下行应用场景"></a>1.4 下行应用场景</h3><p>CP-OFDM 是所有下行场景的<strong>统一波形</strong>，包括：</p>
+<ul>
+<li><strong>宏基站（Macro Cell）</strong>：覆盖城市主干道、大范围区域</li>
+<li><strong>小基站（Small Cell）</strong>：补盲覆盖，如楼道、地下停车场</li>
+<li><strong>室内分布系统（IDA&#x2F;DAS）</strong>：商场、写字楼室内覆盖</li>
+<li><strong>毫米波基站（FR2）</strong>：实验室、高端写字楼高速传输</li>
+</ul>
+<p>不论部署类型，手机侧接收统一使用 CP-OFDM，确保标准统一，设备兼容性好。</p>
+<hr>
+<h1 id="二、上行传输波形：DFT-S-OFDM-CP-OFDM-可切换"><a href="#二、上行传输波形：DFT-S-OFDM-CP-OFDM-可切换" class="headerlink" title="二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换"></a>二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换</h1><p><strong>上行（手机 → 基站）</strong>采用<strong>可切换</strong>的波形设计，支持两种模式：</p>
+<ul>
+<li><strong>DFT-S-OFDM</strong>（DFT Spread OFDM，开启 DFT 扩展）：省电优先</li>
+<li><strong>CP-OFDM</strong>（关闭 DFT 扩展）：性能优先</li>
+</ul>
+<h3 id="2-1-DFT-扩展的作用：降低-PAPR"><a href="#2-1-DFT-扩展的作用：降低-PAPR" class="headerlink" title="2.1 DFT 扩展的作用：降低 PAPR"></a>2.1 DFT 扩展的作用：降低 PAPR</h3><p><strong>PAPR（Peak-to-Average Power Ratio，峰均功率比）</strong> 是描述信号波动幅度的指标：</p>
+<ul>
+<li>PAPR 高：信号瞬时功率峰值远高于平均功率，功率放大器（PA）需要更大的线性范围，静态功耗大，效率低。</li>
+<li>PAPR 低：信号功率平稳，PA 工作在高效率区间，终端耗电少。</li>
+</ul>
+<p>OFDM 本身 PAPR 较高（多个子载波叠加时可能出现高功率峰值）。引入 <strong>DFT 扩展</strong>后：</p>
+<ol>
+<li>时域信号先经过 DFT（离散傅里叶变换），将数据”扩展”到频域；</li>
+<li>扩展后的频域数据分配到各子载波，相当于把能量更均匀地分散；</li>
+<li>经 IDFT（反离散傅里叶变换）合成时域信号后，PAPR 明显降低。</li>
+</ol>
+<p><strong>类比：喊口号（帮助理解 PAPR 与 DFT 扩展）</strong></p>
+<p>把手机发信号比作”喊口号”：</p>
+<ul>
+<li><p><strong>高 PAPR（不开启 DFT 扩展）</strong>：相当于喊口号时”忽高忽低、落差极大”——突然大声嘶吼、突然小声低语。手机里的”发声器”（功率放大器）需要频繁调节音量，不仅设计复杂，还特别费电。</p>
+</li>
+<li><p><strong>低 PAPR（开启 DFT 扩展）</strong>：相当于”把口号的音量拉平”，让声音平稳、落差小。此时”发声器”不用频繁调节，设计更简单、耗电也更少——就像我们平稳说话比忽高忽低嘶吼更省力气一样。</p>
+</li>
+</ul>
+<p>这种特性对<strong>普通手机、物联网设备</strong>（智能手表、智能门锁等）尤为关键，这些设备靠电池供电、功率有限，省电才是第一需求。</p>
+<h3 id="2-2-两种上行模式对比"><a href="#2-2-两种上行模式对比" class="headerlink" title="2.2 两种上行模式对比"></a>2.2 两种上行模式对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>DFT-S-OFDM（开启 DFT 扩展）</th>
+<th>CP-OFDM（关闭 DFT 扩展）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PAPR</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>终端功耗</td>
+<td>低（PA 效率高）</td>
+<td>高（PA 需更大线性范围）</td>
+</tr>
+<tr>
+<td>覆盖距离</td>
+<td>相对更远（相同功率下信噪比更高）</td>
+<td>略短</td>
+</tr>
+<tr>
+<td>系统复杂度</td>
+<td>发送端需额外 DFT 处理</td>
+<td>与下行结构一致，实现简单</td>
+</tr>
+<tr>
+<td>多天线支持</td>
+<td>受限（通常单层传输）</td>
+<td>支持多层 MIMO 传输</td>
+</tr>
+<tr>
+<td>适用设备</td>
+<td>手机、IoT 终端（电池供电、功率受限）</td>
+<td>专业终端、工业设备（插电、不缺电）</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>普通用户上网、发消息、物联网</td>
+<td>收银系统、工厂监控、企业专业终端</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-模式切换机制：由基站通过-RRC-信令控制"><a href="#2-3-模式切换机制：由基站通过-RRC-信令控制" class="headerlink" title="2.3 模式切换机制：由基站通过 RRC 信令控制"></a>2.3 模式切换机制：由基站通过 RRC 信令控制</h3><p>上行波形模式的切换<strong>不由终端自主决定</strong>，而是由基站通过 <strong>RRC（Radio Resource Control）信令</strong>下发指令控制：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">基站下发 RRC 配置</span><br><span class="line">  ├── transform precoder enabled  → 终端使用 DFT-S-OFDM（省电模式）</span><br><span class="line">  └── transform precoder disabled → 终端使用 CP-OFDM（性能模式）</span><br></pre></td></tr></table></figure>
+
+<p><strong>同一商场内的”按需分配”示例：</strong></p>
+<table>
+<thead>
+<tr>
+<th>设备</th>
+<th>供电方式</th>
+<th>基站指令</th>
+<th>上行模式</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>顾客手机</td>
+<td>电池供电，功率有限</td>
+<td>开启 DFT 扩展</td>
+<td>DFT-S-OFDM（省电）</td>
+<td>刷手机、发消息不耗电太快</td>
+</tr>
+<tr>
+<td>商场收银终端</td>
+<td>插电，不缺电</td>
+<td>关闭 DFT 扩展</td>
+<td>CP-OFDM（性能）</td>
+<td>收银数据传输又快又稳，不卡顿</td>
+</tr>
+<tr>
+<td>工厂监控摄像头</td>
+<td>插电，功率充足</td>
+<td>关闭 DFT 扩展</td>
+<td>CP-OFDM（性能）</td>
+<td>视频流传输速率高，稳定不丢帧</td>
+</tr>
+</tbody></table>
+<p>这种”按需分配”机制实现了不同设备类型的差异化服务，在兼顾覆盖与功耗的同时最大化频谱利用率。</p>
+<hr>
+<h1 id="三、共享频谱下的-PRB-交织"><a href="#三、共享频谱下的-PRB-交织" class="headerlink" title="三、共享频谱下的 PRB 交织"></a>三、共享频谱下的 PRB 交织</h1><p>在多运营商共享频谱（如部分未授权频段或共享许可频段）场景下，多路信号共用同一段频谱，容易产生<strong>邻频干扰</strong>与<strong>同频碰撞</strong>。5G NR 在 <strong>FR1 频段（450 MHz–6 GHz）</strong> 的上行引入了 <strong>PRB 交织（PRB Interlacing）</strong> 机制来解决这一问题。</p>
+<h3 id="3-1-什么是-PRB-交织？"><a href="#3-1-什么是-PRB-交织？" class="headerlink" title="3.1 什么是 PRB 交织？"></a>3.1 什么是 PRB 交织？</h3><p><strong>PRB（Physical Resource Block，物理资源块）</strong> 是 5G NR 中频域资源分配的基本单位，由连续的子载波组成。</p>
+<p>传统分配方式：连续占用一段 PRB，多用户&#x2F;多运营商信号紧密相邻，容易产生干扰。</p>
+<p><strong>PRB 交织</strong>的核心思路：</p>
+<blockquote>
+<p>将连续的 PRB 按固定间隔拆分为若干<strong>交织块（Interlace）</strong>，每个交织块包含多个<strong>不连续</strong>的 PRB，分散在整个带宽中。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">传统连续分配：</span><br><span class="line">频率轴：[PRB0][PRB1][PRB2][PRB3][PRB4][PRB5][PRB6][PRB7]...</span><br><span class="line">运营商A：[====][====]</span><br><span class="line">运营商B：            [====][====]</span><br><span class="line">← 紧邻排列，容易产生邻频干扰 →</span><br><span class="line"></span><br><span class="line">PRB 交织分配（间隔=5）：</span><br><span class="line">交织块0：[PRB0]          [PRB5]          [PRB10]...</span><br><span class="line">交织块1：      [PRB1]          [PRB6]          [PRB11]...</span><br><span class="line">运营商A 占交织块0，运营商B 占交织块1，频率上分散交错，互不相邻</span><br></pre></td></tr></table></figure>
+
+<p><strong>停车场类比（帮助理解”分散占位”）</strong></p>
+<blockquote>
+<p>原来停车场是连续的一排车位，不同的车紧挨着停，很容易互相蹭到（邻频干扰）。现在改成分散的多个车位——不同的车停在整个停车场的分散位置上，彼此之间隔着空位，就不容易互相碰到。同理，不同运营商的信号用分散的”交织块”传输，就不会出现邻频干扰和同频碰撞，信号传输更稳定。</p>
+</blockquote>
+<p><strong>优势：</strong></p>
+<ul>
+<li>分散式频率占用使相邻运营商&#x2F;用户的信号在频域上不紧邻，降低邻频干扰；</li>
+<li>每个交织块覆盖全带宽，具备频率分集增益；</li>
+<li>便于多运营商在同一频段内灵活共享资源，互不影响。</li>
+</ul>
+<h3 id="3-2-适用范围与限制"><a href="#3-2-适用范围与限制" class="headerlink" title="3.2 适用范围与限制"></a>3.2 适用范围与限制</h3><table>
+<thead>
+<tr>
+<th>条件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用频段</td>
+<td>仅 <strong>FR1（450 MHz–6 GHz）</strong>，FR2（毫米波）不支持</td>
+</tr>
+<tr>
+<td>配置方式</td>
+<td>由基站通过 <strong>SIB1（系统信息块1）</strong> 或专用 RRC 信令配置</td>
+</tr>
+<tr>
+<td>交织块参数</td>
+<td>交织块数量、间隔大小由网络侧决定，终端按指示执行</td>
+</tr>
+<tr>
+<td>应用场景</td>
+<td>NR-U（非授权频谱）、共享频谱场景，CBG（基于码块组）调度</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="四、子载波间隔（SCS）与-CP-长度的关系"><a href="#四、子载波间隔（SCS）与-CP-长度的关系" class="headerlink" title="四、子载波间隔（SCS）与 CP 长度的关系"></a>四、子载波间隔（SCS）与 CP 长度的关系</h1><p>5G NR 定义了一组<strong>数字学参数（Numerology）</strong>，用参数 <strong>μ</strong> 描述子载波间隔（SCS）：</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>SCS</th>
+<th>典型应用</th>
+<th>支持 Extended CP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>15 kHz</td>
+<td>广覆盖、农村、FDD</td>
+<td>否</td>
+</tr>
+<tr>
+<td>1</td>
+<td>30 kHz</td>
+<td>城市 Sub-6G 主力</td>
+<td>否</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60 kHz</td>
+<td>高速传输、室内</td>
+<td><strong>是</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>120 kHz</td>
+<td>FR2 毫米波</td>
+<td>否</td>
+</tr>
+<tr>
+<td>4</td>
+<td>240 kHz</td>
+<td>FR2 参考信号</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p><strong>SCS 与 CP 的关联规律：</strong></p>
+<ul>
+<li>SCS 越大（车道越宽），传输速度越快，符号时长越短（SCS&#x3D;15kHz 时符号约 66.7 μs；SCS&#x3D;120kHz 时约 8.3 μs）；</li>
+<li>CP 长度随 SCS 增大而等比缩短（绝对时间），但相对符号时长的占比保持稳定（Normal CP 约 7%）；</li>
+<li>仅 SCS&#x3D;60 kHz（μ&#x3D;2）支持 Extended CP，此时 CP 长度约为符号时长的 25%，适应大时延扩展场景；</li>
+<li>Extended CP 与上行多天线（多端口）传输不兼容，需在覆盖增强与传输效率之间权衡取舍。</li>
+</ul>
+<p><strong>车道宽度类比：</strong></p>
+<blockquote>
+<p>子载波就像公路车道，车道越宽（SCS 越大）传输越快，但需要的缓冲垫（CP）也相应调整。窄车道（15kHz）适合广覆盖（如农村大范围覆盖）；宽车道（60kHz 以上）适合高速传输（如城市里刷 4K 视频）。只有”60kHz 宽车道”（μ&#x3D;2）才能用”长缓冲垫”（Extended CP），而且此时手机只能走单车道（单天线），因为长缓冲垫和多天线同时用会浪费公路资源，得不偿失。</p>
+</blockquote>
+<hr>
+<h1 id="五、常见问题：为什么用复制尾部，而不是插入空白段？"><a href="#五、常见问题：为什么用复制尾部，而不是插入空白段？" class="headerlink" title="五、常见问题：为什么用复制尾部，而不是插入空白段？"></a>五、常见问题：为什么用复制尾部，而不是插入空白段？</h1><p>这是理解 CP 设计哲学的关键问题。</p>
+<h3 id="空白段（Zero-Padding-Guard-Interval）的缺陷"><a href="#空白段（Zero-Padding-Guard-Interval）的缺陷" class="headerlink" title="空白段（Zero Padding Guard Interval）的缺陷"></a>空白段（Zero Padding Guard Interval）的缺陷</h3><p>若在符号间插入全零的空白段：</p>
+<ol>
+<li><strong>破坏循环卷积特性</strong>：OFDM 的频域正交性依赖于线性卷积被”循环化”的数学前提。空白段破坏了这一循环结构，接收端做 DFT 后各子载波不再正交。</li>
+<li><strong>产生 ICI</strong>：正交性一旦被破坏，子载波之间出现能量泄漏，形成载波间干扰（ICI），信号质量严重下降。</li>
+</ol>
+<p><strong>类比：合唱团（空白段的问题）：</strong></p>
+<blockquote>
+<p>把 OFDM 的各子载波比作合唱团的歌手，每个歌手唱自己的调，节奏完全对齐（正交），听众（手机）能清晰分辨每个声音——这是信号传输的理想状态。</p>
+<p>如果加空白段：相当于合唱团唱到一半，<strong>突然全体停唱几秒，再接着唱</strong>。停唱后再开口，歌手们的节奏全乱了，调也互相串，听众根本分不清谁唱谁——这就是”频域特性变差”，信号会失真、干扰严重。</p>
+</blockquote>
+<h3 id="CP（复制尾部）的优势"><a href="#CP（复制尾部）的优势" class="headerlink" title="CP（复制尾部）的优势"></a>CP（复制尾部）的优势</h3><p>复制符号尾部贴到头部，等价于将线性卷积转化为循环卷积：</p>
+<ol>
+<li><strong>维持正交性</strong>：DFT 处理后子载波仍满足正交条件，频域特性完好；</li>
+<li><strong>消除 ISI</strong>：多径延迟落入 CP 区段，核心数据体不受污染；</li>
+<li><strong>实现简单</strong>：接收端仅需丢弃 CP 段，直接对数据体做 FFT，无需额外均衡处理。</li>
+</ol>
+<p><strong>合唱团类比（CP 的优势）：</strong></p>
+<blockquote>
+<p>如果加 CP：相当于合唱团每段开头，<strong>全体先重复一遍上一段的最后一句</strong>，再唱新内容。重复的部分不影响核心演唱，歌手们的节奏始终对齐，听众跳过重复的引子，依然能清晰分辨每个声音，不会破坏”秩序”（正交性）。</p>
+</blockquote>
+<p><strong>代价与收益：</strong></p>
+<blockquote>
+<p>空白段看似节省频谱资源，却会让信号混乱；CP 虽然多传了一段重复信号（约 7% 的时域开销），却能保证信号稳定，换来的信号质量提升远超这点开销，工程上完全值得。这就是工程师选择 CP 当缓冲垫的根本原因。</p>
+</blockquote>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>下行</th>
+<th>上行</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>波形</strong></td>
+<td>CP-OFDM（统一）</td>
+<td>DFT-S-OFDM 或 CP-OFDM（可切换）</td>
+</tr>
+<tr>
+<td><strong>切换控制</strong></td>
+<td>无需切换</td>
+<td>基站通过 RRC 信令控制</td>
+</tr>
+<tr>
+<td><strong>核心优化目标</strong></td>
+<td>接收稳定性、频谱效率</td>
+<td>终端功耗（PAPR）或传输性能</td>
+</tr>
+<tr>
+<td><strong>CP 类型</strong></td>
+<td>Normal CP（通用）&#x2F; Extended CP（60kHz SCS）</td>
+<td>同下行</td>
+</tr>
+<tr>
+<td><strong>共享频谱优化</strong></td>
+<td>—</td>
+<td>PRB 交织（FR1 频段）</td>
+</tr>
+</tbody></table>
+<p>5G NR 的波形设计体现了系统级的工程哲学：</p>
+<ul>
+<li><strong>下行统一</strong>：降低手机实现复杂度，保障全场景兼容；</li>
+<li><strong>上行灵活</strong>：兼顾功率受限的消费终端与性能优先的工业终端；</li>
+<li><strong>资源管理精细化</strong>：通过 PRB 交织支持多运营商频谱共享，提升频谱利用效率。</li>
+</ul>
+<p>理解这些波形设计，有助于深入把握 5G NR 物理层架构的设计逻辑，也是进一步学习链路预算、MIMO、调度算法的重要基础。</p>
+<hr>
+<h1 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h1><ul>
+<li>3GPP TS 38.211：NR Physical channels and modulation</li>
+<li>3GPP TS 38.213：NR Physical layer procedures for control</li>
+<li>3GPP TS 38.331：NR Radio Resource Control (RRC) protocol specification</li>
+<li>3GPP TR 38.802：Study on New Radio Access Technology Physical Layer Aspects</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%BB%80%E4%B9%88%E6%98%AF%E2%80%9D%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%E2%80%9D%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">背景：什么是”传输波形”？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%8B%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM"><span class="toc-number">3.</span> <span class="toc-text">一、下行传输波形：CP-OFDM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-OFDM%EF%BC%9A%E5%A4%9A%E5%AD%90%E8%BD%BD%E6%B3%A2%E5%B9%B6%E8%A1%8C%E4%BC%A0%E8%BE%93"><span class="toc-number">3.0.1.</span> <span class="toc-text">1.1 OFDM：多子载波并行传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88CP%EF%BC%89%EF%BC%9A%E4%BF%A1%E5%8F%B7%E7%9A%84%E2%80%9D%E7%BC%93%E5%86%B2%E5%9E%AB%E2%80%9D"><span class="toc-number">3.0.2.</span> <span class="toc-text">1.2 循环前缀（CP）：信号的”缓冲垫”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%A4%E7%A7%8D-CP-%E7%B1%BB%E5%9E%8B%EF%BC%9A%E9%80%82%E9%85%8D%E4%B8%8D%E5%90%8C%E4%BC%A0%E6%92%AD%E7%8E%AF%E5%A2%83"><span class="toc-number">3.0.3.</span> <span class="toc-text">1.3 两种 CP 类型：适配不同传播环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E4%B8%8B%E8%A1%8C%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">3.0.4.</span> <span class="toc-text">1.4 下行应用场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%8A%E8%A1%8C%E4%BC%A0%E8%BE%93%E6%B3%A2%E5%BD%A2%EF%BC%9ADFT-S-OFDM-CP-OFDM-%E5%8F%AF%E5%88%87%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-DFT-%E6%89%A9%E5%B1%95%E7%9A%84%E4%BD%9C%E7%94%A8%EF%BC%9A%E9%99%8D%E4%BD%8E-PAPR"><span class="toc-number">4.0.1.</span> <span class="toc-text">2.1 DFT 扩展的作用：降低 PAPR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%A4%E7%A7%8D%E4%B8%8A%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.2.</span> <span class="toc-text">2.2 两种上行模式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E6%9C%BA%E5%88%B6%EF%BC%9A%E7%94%B1%E5%9F%BA%E7%AB%99%E9%80%9A%E8%BF%87-RRC-%E4%BF%A1%E4%BB%A4%E6%8E%A7%E5%88%B6"><span class="toc-number">4.0.3.</span> <span class="toc-text">2.3 模式切换机制：由基站通过 RRC 信令控制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%B1%E4%BA%AB%E9%A2%91%E8%B0%B1%E4%B8%8B%E7%9A%84-PRB-%E4%BA%A4%E7%BB%87"><span class="toc-number">5.</span> <span class="toc-text">三、共享频谱下的 PRB 交织</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BB%80%E4%B9%88%E6%98%AF-PRB-%E4%BA%A4%E7%BB%87%EF%BC%9F"><span class="toc-number">5.0.1.</span> <span class="toc-text">3.1 什么是 PRB 交织？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4%E4%B8%8E%E9%99%90%E5%88%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">3.2 适用范围与限制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AD%90%E8%BD%BD%E6%B3%A2%E9%97%B4%E9%9A%94%EF%BC%88SCS%EF%BC%89%E4%B8%8E-CP-%E9%95%BF%E5%BA%A6%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">四、子载波间隔（SCS）与 CP 长度的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E5%A4%8D%E5%88%B6%E5%B0%BE%E9%83%A8%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%8F%92%E5%85%A5%E7%A9%BA%E7%99%BD%E6%AE%B5%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">五、常见问题：为什么用复制尾部，而不是插入空白段？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E7%99%BD%E6%AE%B5%EF%BC%88Zero-Padding-Guard-Interval%EF%BC%89%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="toc-number">7.0.1.</span> <span class="toc-text">空白段（Zero Padding Guard Interval）的缺陷</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CP%EF%BC%88%E5%A4%8D%E5%88%B6%E5%B0%BE%E9%83%A8%EF%BC%89%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">7.0.2.</span> <span class="toc-text">CP（复制尾部）的优势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">9.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/Alex-wu-1314">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
