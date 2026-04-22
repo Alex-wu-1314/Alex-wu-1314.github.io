@@ -9,7 +9,7 @@
     <meta name="description" content="软件性能深受内存访问效率的影响。内存访问延迟背后的故事是分层的：从 CPU 缓存出发，经过虚拟内存转换，最终抵达物理 DRAM。每一层都引入了各自的开销与优化挑战。 本文专注于 CPU 缓存，内存层级中仅次于 CPU 寄存器的第二快层级。我们将深入探讨 CPU 缓存的结构设计、数据放置与查找机制，以及这些机制如何影响代码的执行速度。  目录 为什么需要 CPU 缓存？ 内存层级：缓存处于哪个位置">
 <meta property="og:type" content="article">
 <meta property="og:title" content="理解 CPU 缓存的组织与结构">
-<meta property="og:url" content="http://example.com/2021/02/10/cpu%20arch/cpu_cache/index.html">
+<meta property="og:url" content="http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="软件性能深受内存访问效率的影响。内存访问延迟背后的故事是分层的：从 CPU 缓存出发，经过虚拟内存转换，最终抵达物理 DRAM。每一层都引入了各自的开销与优化挑战。 本文专注于 CPU 缓存，内存层级中仅次于 CPU 寄存器的第二快层级。我们将深入探讨 CPU 缓存的结构设计、数据放置与查找机制，以及这些机制如何影响代码的执行速度。  目录 为什么需要 CPU 缓存？ 内存层级：缓存处于哪个位置">
 <meta property="og:locale" content="en_US">
@@ -94,10 +94,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" aria-label="Previous post" href="/2021/02/17/cpu%20arch/cpu_pipeline/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Previous post" href="/2021/02/17/cpu%20arch/5.cpu_pipeline/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -110,17 +110,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/10/cpu%20arch/cpu_cache/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&text=理解 CPU 缓存的组织与结构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&is_video=false&description=理解 CPU 缓存的组织与结构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=理解 CPU 缓存的组织与结构&body=Check out this article: http://example.com/2021/02/10/cpu%20arch/cpu_cache/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&name=理解 CPU 缓存的组织与结构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&t=理解 CPU 缓存的组织与结构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&text=理解 CPU 缓存的组织与结构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&is_video=false&description=理解 CPU 缓存的组织与结构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=理解 CPU 缓存的组织与结构&body=Check out this article: http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&name=理解 CPU 缓存的组织与结构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&t=理解 CPU 缓存的组织与结构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -516,17 +516,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/10/cpu%20arch/cpu_cache/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&text=理解 CPU 缓存的组织与结构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&is_video=false&description=理解 CPU 缓存的组织与结构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=理解 CPU 缓存的组织与结构&body=Check out this article: http://example.com/2021/02/10/cpu%20arch/cpu_cache/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&name=理解 CPU 缓存的组织与结构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/10/cpu%20arch/cpu_cache/&t=理解 CPU 缓存的组织与结构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&text=理解 CPU 缓存的组织与结构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&is_video=false&description=理解 CPU 缓存的组织与结构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=理解 CPU 缓存的组织与结构&body=Check out this article: http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&title=理解 CPU 缓存的组织与结构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&name=理解 CPU 缓存的组织与结构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/10/cpu%20arch/4.cpu_cache/&t=理解 CPU 缓存的组织与结构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

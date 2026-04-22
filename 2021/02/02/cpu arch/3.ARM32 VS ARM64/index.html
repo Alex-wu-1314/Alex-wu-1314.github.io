@@ -9,7 +9,7 @@
     <meta name="description" content="在高性能网络或嵌入式系统中，报文处理软件（如 L2 层转发引擎、协议解析器、流量调度器等）通常需要管理海量数据结构，并频繁通过指针或引用访问这些结构。这类系统对缓存效率和内存占用极为敏感，因为每一次缓存未命中都可能带来数十甚至上百个时钟周期的延迟，直接影响吞吐量和延迟指标。 面对这一挑战，开发者常常陷入一个经典困境：    使用 64 位系统能获得更强的计算能力和更多寄存器，但指针膨胀会加剧缓存污">
 <meta property="og:type" content="article">
 <meta property="og:title" content="在报文处理系统中权衡 32 位与 64 位架构">
-<meta property="og:url" content="http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/index.html">
+<meta property="og:url" content="http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="在高性能网络或嵌入式系统中，报文处理软件（如 L2 层转发引擎、协议解析器、流量调度器等）通常需要管理海量数据结构，并频繁通过指针或引用访问这些结构。这类系统对缓存效率和内存占用极为敏感，因为每一次缓存未命中都可能带来数十甚至上百个时钟周期的延迟，直接影响吞吐量和延迟指标。 面对这一挑战，开发者常常陷入一个经典困境：    使用 64 位系统能获得更强的计算能力和更多寄存器，但指针膨胀会加剧缓存污">
 <meta property="og:locale" content="en_US">
@@ -94,10 +94,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" aria-label="Previous post" href="/2021/02/10/cpu%20arch/cpu_cache/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Previous post" href="/2021/02/10/cpu%20arch/4.cpu_cache/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2021/01/21/cpu%20arch/ABI%20ACLE/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2021/01/21/cpu%20arch/2.ABI%20ACLE/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -110,17 +110,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -331,17 +331,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&text=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&is_video=false&description=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=在报文处理系统中权衡 32 位与 64 位架构&body=Check out this article: http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&title=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&name=在报文处理系统中权衡 32 位与 64 位架构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/&t=在报文处理系统中权衡 32 位与 64 位架构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
