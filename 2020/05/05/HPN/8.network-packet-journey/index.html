@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”——从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。   目录 浏览器解析 URL —— HTTP 查询真实地址 —— DNS 协议栈：网络通信的指南 可靠传输 —— TCP 远程定位 —— IP 两点传输 —— MAC 出口 —— 网卡 送别者 —— 交换">
+    <meta name="description" content="一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”，从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。   目录 浏览器解析 URL —— HTTP 查询真实地址 —— DNS 协议栈：网络通信的指南 可靠传输 —— TCP 远程定位 —— IP 两点传输 —— MAC 出口 —— 网卡 送别者 —— 交换机">
 <meta property="og:type" content="article">
 <meta property="og:title" content="当你键入网址后，数据包经历了什么">
 <meta property="og:url" content="http://example.com/2020/05/05/HPN/8.network-packet-journey/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
-<meta property="og:description" content="一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”——从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。   目录 浏览器解析 URL —— HTTP 查询真实地址 —— DNS 协议栈：网络通信的指南 可靠传输 —— TCP 远程定位 —— IP 两点传输 —— MAC 出口 —— 网卡 送别者 —— 交换">
+<meta property="og:description" content="一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”，从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。   目录 浏览器解析 URL —— HTTP 查询真实地址 —— DNS 协议栈：网络通信的指南 可靠传输 —— TCP 远程定位 —— IP 两点传输 —— MAC 出口 —— 网卡 送别者 —— 交换机">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-05-05T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-23T00:07:35.324Z">
+<meta property="article:modified_time" content="2026-04-23T00:09:09.012Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="高性能网络">
 <meta name="twitter:card" content="summary">
@@ -173,7 +173,7 @@
 
   <div class="content e-content" itemprop="articleBody">
     <blockquote>
-<p>一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”——从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。</p>
+<p>一次完整的 HTTP 请求背后，隐藏着一段数据包的”心路历程”，从浏览器解析 URL，到服务器返回响应，涉及 DNS、TCP、IP、MAC、网卡、交换机、路由器等一系列协议与设备的协同配合。</p>
 </blockquote>
 <hr>
 <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
@@ -241,7 +241,7 @@
 </ul>
 <h3 id="DNS-解析完整流程"><a href="#DNS-解析完整流程" class="headerlink" title="DNS 解析完整流程"></a>DNS 解析完整流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">客户端</span><br><span class="line">  │── 1. 问本地 DNS：www.server.com 的 IP 是多少？</span><br><span class="line">  │</span><br><span class="line">本地 DNS</span><br><span class="line">  │── 2. 缓存命中？直接返回 ✓ / 未命中？继续↓</span><br><span class="line">  │── 3. 问根 DNS：www.server.com 归谁管？</span><br><span class="line">  │</span><br><span class="line">根 DNS</span><br><span class="line">  │── 4. 返回：归 .com 顶级域管，地址给你</span><br><span class="line">  │</span><br><span class="line">本地 DNS</span><br><span class="line">  │── 5. 问顶级域 DNS：www.server.com 的 IP？</span><br><span class="line">  │</span><br><span class="line">顶级域 DNS</span><br><span class="line">  │── 6. 返回：去问权威 DNS，地址给你</span><br><span class="line">  │</span><br><span class="line">本地 DNS</span><br><span class="line">  │── 7. 问权威 DNS：www.server.com 的 IP？</span><br><span class="line">  │</span><br><span class="line">权威 DNS</span><br><span class="line">  │── 8. 返回：IP 地址是 X.X.X.X</span><br><span class="line">  │</span><br><span class="line">本地 DNS</span><br><span class="line">  └── 9. 将 IP 返回给客户端</span><br></pre></td></tr></table></figure>
 
-<p>整个过程犹如”只指路，不带路”——每一层 DNS 只告诉你下一步去哪问，最终由权威 DNS 给出答案。</p>
+<p>整个过程犹如”只指路，不带路”，每一层 DNS 只告诉你下一步去哪问，最终由权威 DNS 给出答案。</p>
 <hr>
 <h1 id="3-协议栈：网络通信的指南"><a href="#3-协议栈：网络通信的指南" class="headerlink" title="3. 协议栈：网络通信的指南"></a>3. 协议栈：网络通信的指南</h1><h3 id="协议栈的层次结构"><a href="#协议栈的层次结构" class="headerlink" title="协议栈的层次结构"></a>协议栈的层次结构</h3><p>获取到 IP 地址后，浏览器将 HTTP 消息的传输工作委托给操作系统中的<strong>协议栈</strong>。协议栈分层如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────┐</span><br><span class="line">│         应用层（HTTP）         │  ← 浏览器通过 Socket 库调用</span><br><span class="line">├──────────────────────────────┤</span><br><span class="line">│     传输层（TCP / UDP）        │  ← 负责数据收发</span><br><span class="line">├──────────────────────────────┤</span><br><span class="line">│    网络层（IP / ICMP / ARP）   │  ← 控制网络包收发</span><br><span class="line">├──────────────────────────────┤</span><br><span class="line">│       网卡驱动程序             │  ← 控制网卡硬件</span><br><span class="line">├──────────────────────────────┤</span><br><span class="line">│           网卡                │  ← 实际收发电信号</span><br><span class="line">└──────────────────────────────┘</span><br></pre></td></tr></table></figure>
@@ -305,7 +305,7 @@
 <td>流量控制，避免接收方被”撑死”或”饿死”</td>
 </tr>
 </tbody></table>
-<p>此外，TCP 还具备<strong>拥塞控制</strong>能力——当网络拥塞时，通过控制自身发送速率来应对。</p>
+<p>此外，TCP 还具备<strong>拥塞控制</strong>能力，当网络拥塞时，通过控制自身发送速率来应对。</p>
 <h3 id="三次握手建立连接"><a href="#三次握手建立连接" class="headerlink" title="三次握手建立连接"></a>三次握手建立连接</h3><p>在传输 HTTP 数据之前，TCP 需要先建立连接，即著名的<strong>三次握手</strong>：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">客户端                         服务端</span><br><span class="line">  │                              │  (LISTEN)</span><br><span class="line">  │── SYN（SYN-SENT）──────────▶│</span><br><span class="line">  │                              │  (SYN-RCVD)</span><br><span class="line">  │◀─────── SYN + ACK ──────────│</span><br><span class="line">  │  (ESTABLISHED)               │</span><br><span class="line">  │── ACK ──────────────────────▶│</span><br><span class="line">  │                              │  (ESTABLISHED)</span><br></pre></td></tr></table></figure>
 
