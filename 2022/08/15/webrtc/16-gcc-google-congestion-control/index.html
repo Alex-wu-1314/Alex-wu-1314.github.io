@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 背景与动机 标准化历程 系统模型与整体架构 反馈机制与信令扩展 发送引擎（Pacer） 基于延迟的控制器（Delay-based Controller） 6.1 到达时间模型（Arrival-time Model） 6.2 预过滤（Pre-filtering） 6.3 Kalman 滤波器（Arrival-time Filter） 6.4 过载检测器（Over-use Detector） 6">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-08-15T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-28T13:01:15.938Z">
+<meta property="article:modified_time" content="2026-04-28T13:35:50.650Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -201,7 +201,7 @@
 <li><strong>公平性要求</strong>：实时流量需要与同路径上的 TCP 流量和平共处，既不能被饿死，也不能无限占用带宽</li>
 </ul>
 <p>传统 TCP 的拥塞控制（CUBIC、Reno 等）基于<strong>丢包</strong>作为拥塞信号，本质上是”填满队列 → 丢包 → 降速”的被动响应模式，引入了大量排队延迟，不适合实时场景。</p>
-<p>GCC 的核心思路是<strong>主动探测</strong>：通过观察数据包的<strong>单向延迟变化趋势（delay gradient）</strong>来提前感知拥塞的苗头，在队列真正满溢（导致丢包）之前就开始降速，从而兼顾低延迟与高吞吐。</p>
+<p>GCC 的核心思路是<strong>主动探测</strong>：通过观察数据包的<strong>单向延迟变化趋势（delay gradient）</strong> 来提前感知拥塞的苗头，在队列真正满溢（导致丢包）之前就开始降速，从而兼顾低延迟与高吞吐。</p>
 <hr>
 <h1 id="2-标准化历程"><a href="#2-标准化历程" class="headerlink" title="2. 标准化历程"></a>2. 标准化历程</h1><table>
 <thead>
@@ -236,7 +236,7 @@
 </blockquote>
 <hr>
 <h1 id="3-系统模型与整体架构"><a href="#3-系统模型与整体架构" class="headerlink" title="3. 系统模型与整体架构"></a>3. 系统模型与整体架构</h1><p>GCC 定义的系统中包含以下核心组件：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发送端                                    接收端</span><br><span class="line">┌─────────────────────────────────┐      ┌─────────────────────────────────┐</span><br><span class="line">│  媒体编码器                       │      │  RTP 接收 &amp; 时间戳记录            │</span><br><span class="line">│       ↓                         │      │       ↓                         │</span><br><span class="line">│  Pacer（发包平滑）                │─RTP→ │  延迟测量 / 丢包统计               │</span><br><span class="line">│       ↓ ↑                       │      │       ↓                         │</span><br><span class="line">│  Loss-based Controller          │←──── │  RTCP Feedback                  │</span><br><span class="line">│       ↑                         │      │  (REMB / Transport-CC)          │</span><br><span class="line">│  Delay-based Controller         │      │                                 │</span><br><span class="line">│  (send-side 或 recv-side)        │      │  Delay-based Controller（旧）    │</span><br><span class="line">└─────────────────────────────────┘      └─────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发送端                                    接收端</span><br><span class="line">┌─────────────────────────────────┐      ┌─────────────────────────────────┐</span><br><span class="line">│  媒体编码器                       │      │  RTP 接收 &amp; 时间戳记录            │</span><br><span class="line">│       ↓                         │      │       ↓                         │</span><br><span class="line">│  Pacer（发包平滑）                │─RTP→ │  延迟测量 / 丢包统计               │</span><br><span class="line">│       ↓ ↑                       │      │       ↓                         │</span><br><span class="line">│  Loss-based Controller          │←RTCP │  RTCP Feedback                  │</span><br><span class="line">│       ↑                         │      │  (REMB / Transport-CC)          │</span><br><span class="line">│  Delay-based Controller         │      │                                 │</span><br><span class="line">│  (send-side 或 recv-side)        │      │  Delay-based Controller（旧）    │</span><br><span class="line">└─────────────────────────────────┘      └─────────────────────────────────┘</span><br></pre></td></tr></table></figure>
 
 <p><strong>整体流程</strong>：</p>
 <ol>
@@ -464,7 +464,7 @@
 <p><strong>Hold（保持）</strong>：维持当前码率，等待队列排空后再进入 Increase 状态。</p>
 <hr>
 <h1 id="7-基于丢包的控制器（Loss-based-Controller）"><a href="#7-基于丢包的控制器（Loss-based-Controller）" class="headerlink" title="7. 基于丢包的控制器（Loss-based Controller）"></a>7. 基于丢包的控制器（Loss-based Controller）</h1><p>Loss-based Controller 在发送端运行，基于 RTCP Receiver Report 中的丢包率 <code>p</code> 调整发送码率估计 <code>A_s_hat</code>：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">         ┌  A_s_hat(i-1)              ,  2% ≤ p &lt; 10%    // 轻微丢包，维持</span><br><span class="line">A_s_hat = ┤  A_s_hat(i-1) × (1 - 0.5p) ,  p ≥ 10%        // 严重丢包，降速</span><br><span class="line">         └  1.05 × A_s_hat(i-1)       ,  p &lt; 2%          // 无明显丢包，缓慢增加</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">          ┌  A_s_hat(i-1)              ,  2% ≤ p &lt; 10%    // 轻微丢包，维持</span><br><span class="line">A_s_hat = ┤  A_s_hat(i-1) × (1 - 0.5p) ,  p ≥ 10%        // 严重丢包，降速</span><br><span class="line">          └  1.05 × A_s_hat(i-1)       ,  p &lt; 2%          // 无明显丢包，缓慢增加</span><br></pre></td></tr></table></figure>
 
 <p><strong>设计逻辑</strong>：</p>
 <ul>
