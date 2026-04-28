@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 1. SDP 是什么，不是什么 2. 规范演进 3. SDP 文本格式基础 4. 会话级字段详解 5. 媒体描述（m&#x3D; 块）详解 6. WebRTC 专属 SDP 扩展属性 7. 一个完整的 WebRTC SDP Offer 逐行注解 8. Offer&#x2F;Answer 模型（RFC 3264） 9. JSEP 与 SDP 的关系（RFC 8829） 10. Simulcas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议">
+<meta property="og:url" content="http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 1. SDP 是什么，不是什么 2. 规范演进 3. SDP 文本格式基础 4. 会话级字段详解 5. 媒体描述（m&#x3D; 块）详解 6. WebRTC 专属 SDP 扩展属性 7. 一个完整的 WebRTC SDP Offer 逐行注解 8. Offer&#x2F;Answer 模型（RFC 3264） 9. JSEP 与 SDP 的关系（RFC 8829） 10. Simulcas">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-04-01T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-25T13:30:04.339Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/04/09/webrtc/05-ICE/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/03/14/webrtc/03-websocket-signaling/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&text=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&is_video=false&description=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议&body=Check out this article: http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&name=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&t=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-SDP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8D%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">1. SDP 是什么，不是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E8%A7%84%E8%8C%83%E6%BC%94%E8%BF%9B"><span class="toc-number">3.</span> <span class="toc-text">2. 规范演进</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SDP-%E6%96%87%E6%9C%AC%E6%A0%BC%E5%BC%8F%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">3. SDP 文本格式基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 整体结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AD%97%E6%AE%B5%E9%A1%BA%E5%BA%8F%E7%BA%A6%E6%9D%9F"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 字段顺序约束</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E4%BC%9A%E8%AF%9D%E7%BA%A7%E5%AD%97%E6%AE%B5%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. 会话级字段详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-v-%E7%89%88%E6%9C%AC"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 v&#x3D; 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-o-%E5%8F%91%E8%B5%B7%E8%80%85%E4%B8%8E%E4%BC%9A%E8%AF%9D%E6%A0%87%E8%AF%86"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 o&#x3D; 发起者与会话标识</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-s-%E4%BC%9A%E8%AF%9D%E5%90%8D%E7%A7%B0"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 s&#x3D; 会话名称</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-t-%E6%97%B6%E9%97%B4"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 t&#x3D; 时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-c-%E8%BF%9E%E6%8E%A5%E4%BF%A1%E6%81%AF"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 c&#x3D; 连接信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-b-%E5%B8%A6%E5%AE%BD"><span class="toc-number">5.0.6.</span> <span class="toc-text">4.6 b&#x3D; 带宽</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AA%92%E4%BD%93%E6%8F%8F%E8%BF%B0%EF%BC%88m-%E5%9D%97%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 媒体描述（m&#x3D; 块）详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-m-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 m&#x3D; 行格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-a-rtpmap-%E2%80%94-%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 a&#x3D;rtpmap — 载荷类型映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-a-fmtp-%E2%80%94-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%8F%82%E6%95%B0"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 a&#x3D;fmtp — 编解码器参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-a-sendrecv-sendonly-recvonly-inactive-%E2%80%94-%E5%AA%92%E4%BD%93%E6%96%B9%E5%90%91"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 a&#x3D;sendrecv &#x2F; sendonly &#x2F; recvonly &#x2F; inactive — 媒体方向</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-WebRTC-%E4%B8%93%E5%B1%9E-SDP-%E6%89%A9%E5%B1%95%E5%B1%9E%E6%80%A7"><span class="toc-number">7.</span> <span class="toc-text">6. WebRTC 专属 SDP 扩展属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-ICE-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 ICE 相关属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DTLS-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DTLS 相关属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-BUNDLE-%E2%80%94-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88RFC-8843%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 BUNDLE — 多路复用（RFC 8843）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-a-rtcp-mux-%E2%80%94-RTP-RTCP-%E7%AB%AF%E5%8F%A3%E5%A4%8D%E7%94%A8%EF%BC%88RFC-5761%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 a&#x3D;rtcp-mux — RTP&#x2F;RTCP 端口复用（RFC 5761）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-a-mid-%E2%80%94-%E5%AA%92%E4%BD%93%E6%A0%87%E8%AF%86%E7%AC%A6"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 a&#x3D;mid — 媒体标识符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-a-msid-%E2%80%94-MediaStream-%E6%A0%87%E8%AF%86%EF%BC%88RFC-8830%EF%BC%89"><span class="toc-number">7.0.6.</span> <span class="toc-text">6.6 a&#x3D;msid — MediaStream 标识（RFC 8830）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7-a-ssrc-%E2%80%94-%E5%90%8C%E6%AD%A5%E6%BA%90%E6%A0%87%E8%AF%86"><span class="toc-number">7.0.7.</span> <span class="toc-text">6.7 a&#x3D;ssrc — 同步源标识</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-8-a-extmap-%E2%80%94-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%E6%98%A0%E5%B0%84%EF%BC%88RFC-8285%EF%BC%89"><span class="toc-number">7.0.8.</span> <span class="toc-text">6.8 a&#x3D;extmap — RTP 头部扩展映射（RFC 8285）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-9-a-rtcp-fb-%E2%80%94-RTCP-%E5%8F%8D%E9%A6%88%E8%83%BD%E5%8A%9B%EF%BC%88RFC-4585%EF%BC%89"><span class="toc-number">7.0.9.</span> <span class="toc-text">6.9 a&#x3D;rtcp-fb — RTCP 反馈能力（RFC 4585）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-10-a-ice-options-trickle-%E2%80%94-Trickle-ICE-%E6%94%AF%E6%8C%81"><span class="toc-number">7.0.10.</span> <span class="toc-text">6.10 a&#x3D;ice-options:trickle — Trickle ICE 支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%9A%84-WebRTC-SDP-Offer-%E9%80%90%E8%A1%8C%E6%B3%A8%E8%A7%A3"><span class="toc-number">8.</span> <span class="toc-text">7. 一个完整的 WebRTC SDP Offer 逐行注解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Offer-Answer-%E6%A8%A1%E5%9E%8B%EF%BC%88RFC-3264%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. Offer&#x2F;Answer 模型（RFC 3264）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8D%8F%E5%95%86%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 协商流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Answer-%E5%AF%B9-Offer-%E7%9A%84%E5%93%8D%E5%BA%94%E8%A7%84%E5%88%99"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Answer 对 Offer 的响应规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Offer-Answer-%E7%A4%BA%E4%BE%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Offer&#x2F;Answer 示例对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-JSEP-%E4%B8%8E-SDP-%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%88RFC-8829%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. JSEP 与 SDP 的关系（RFC 8829）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-Unified-Plan-vs-Plan-B"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 Unified Plan vs Plan B</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Rollback-%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 Rollback 机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Simulcast-SDP%EF%BC%88RFC-8853%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. Simulcast SDP（RFC 8853）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-a-rid-%E7%BA%A6%E6%9D%9F%E8%A1%8C"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 a&#x3D;rid 约束行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-a-simulcast-%E8%A1%8C"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 a&#x3D;simulcast 行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SDP-%E5%9C%A8-DataChannel-%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E7%94%A8%E6%B3%95"><span class="toc-number">12.</span> <span class="toc-text">11. SDP 在 DataChannel 场景中的用法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-SDP-%E7%9A%84%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">13.</span> <span class="toc-text">12. SDP 的常见坑与调试技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 常见错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 调试工具</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">14.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-01T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-04-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#1-sdp-%E6%98%AF%E4%BB%80%E4%B9%88%E4%B8%8D%E6%98%AF%E4%BB%80%E4%B9%88">1. SDP 是什么，不是什么</a></li>
+<li><a href="#2-%E8%A7%84%E8%8C%83%E6%BC%94%E8%BF%9B">2. 规范演进</a></li>
+<li><a href="#3-sdp-%E6%96%87%E6%9C%AC%E6%A0%BC%E5%BC%8F%E5%9F%BA%E7%A1%80">3. SDP 文本格式基础</a></li>
+<li><a href="#4-%E4%BC%9A%E8%AF%9D%E7%BA%A7%E5%AD%97%E6%AE%B5%E8%AF%A6%E8%A7%A3">4. 会话级字段详解</a></li>
+<li><a href="#5-%E5%AA%92%E4%BD%93%E6%8F%8F%E8%BF%B0m-%E5%9D%97%E8%AF%A6%E8%A7%A3">5. 媒体描述（m&#x3D; 块）详解</a></li>
+<li><a href="#6-webrtc-%E4%B8%93%E5%B1%9E-sdp-%E6%89%A9%E5%B1%95%E5%B1%9E%E6%80%A7">6. WebRTC 专属 SDP 扩展属性</a></li>
+<li><a href="#7-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%9A%84-webrtc-sdp-offer-%E9%80%90%E8%A1%8C%E6%B3%A8%E8%A7%A3">7. 一个完整的 WebRTC SDP Offer 逐行注解</a></li>
+<li><a href="#8-offeranswer-%E6%A8%A1%E5%9E%8Brfc-3264">8. Offer&#x2F;Answer 模型（RFC 3264）</a></li>
+<li><a href="#9-jsep-%E4%B8%8E-sdp-%E7%9A%84%E5%85%B3%E7%B3%BBrfc-8829">9. JSEP 与 SDP 的关系（RFC 8829）</a></li>
+<li><a href="#10-simulcast-sdprfc-8853">10. Simulcast SDP（RFC 8853）</a></li>
+<li><a href="#11-sdp-%E5%9C%A8-datachannel-%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E7%94%A8%E6%B3%95">11. SDP 在 DataChannel 场景中的用法</a></li>
+<li><a href="#12-sdp-%E7%9A%84%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7">12. SDP 的常见坑与调试技巧</a></li>
+</ul>
+<hr>
+<h1 id="1-SDP-是什么，不是什么"><a href="#1-SDP-是什么，不是什么" class="headerlink" title="1. SDP 是什么，不是什么"></a>1. SDP 是什么，不是什么</h1><p>SDP（Session Description Protocol，会话描述协议）是 WebRTC 中<strong>媒体能力协商</strong>的核心载体。在理解 SDP 之前，首先要明确它的边界：</p>
+<p><strong>SDP 是</strong>：</p>
+<ul>
+<li>一种<strong>纯文本格式</strong>，用于描述多媒体通信会话的参数</li>
+<li>告知对方”我支持哪些编解码器”、”我的 ICE 凭证是什么”、”我的 DTLS 指纹是什么”</li>
+<li>WebRTC Offer&#x2F;Answer 协商的核心内容</li>
+</ul>
+<p><strong>SDP 不是</strong>：</p>
+<ul>
+<li>一个传输协议（它本身不负责传输自己，需要借助信令通道）</li>
+<li>一个媒体传输协议（它只描述参数，实际媒体由 RTP&#x2F;SRTP 传输）</li>
+<li>一个加密协议（DTLS-SRTP 负责加密，SDP 只携带 DTLS 指纹用于验证）</li>
+</ul>
+<blockquote>
+<p>“SDP does not deliver any media streams itself but is used between endpoints for negotiation of network metrics, media types, and other associated properties.”</p>
+</blockquote>
+<p>在 WebRTC 架构中，SDP 的数据流向是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">浏览器内部（WebRTC 引擎自动生成 SDP）</span><br><span class="line">        ↓</span><br><span class="line">应用层 JavaScript（通过 createOffer/createAnswer 获取）</span><br><span class="line">        ↓</span><br><span class="line">信令通道（WebSocket 等，作为不透明字符串传输）</span><br><span class="line">        ↓</span><br><span class="line">对端浏览器（通过 setRemoteDescription 消费）</span><br><span class="line">        ↓</span><br><span class="line">对端 WebRTC 引擎（解析并据此建立媒体连接）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="2-规范演进"><a href="#2-规范演进" class="headerlink" title="2. 规范演进"></a>2. 规范演进</h1><table>
+<thead>
+<tr>
+<th>年份</th>
+<th>规范</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1998</td>
+<td>RFC 2327</td>
+<td>SDP 初版，随 SAP（Session Announcement Protocol）发布</td>
+</tr>
+<tr>
+<td>2006</td>
+<td>RFC 4566</td>
+<td>重要更新，澄清了多处歧义，废弃了 <code>k=</code> 加密字段</td>
+</tr>
+<tr>
+<td>2021</td>
+<td><strong>RFC 8866</strong></td>
+<td>当前有效规范，废弃 RFC 4566，进一步澄清语义</td>
+</tr>
+</tbody></table>
+<p>WebRTC 对 SDP 的使用受以下规范约束：</p>
+<ul>
+<li><strong>RFC 8866</strong>：SDP 基础格式定义</li>
+<li><strong>RFC 3264</strong>：Offer&#x2F;Answer 模型（SDP 如何用于协商）</li>
+<li><strong>RFC 8829（JSEP）</strong>：JavaScript 环境下 SDP 的生成与处理规则</li>
+<li><strong>RFC 8843</strong>：BUNDLE（多媒体流在单一传输通道复用）</li>
+<li><strong>RFC 8853</strong>：Simulcast SDP 扩展</li>
+<li><strong>RFC 8830</strong>：<code>a=msid</code> MediaStream 标识扩展</li>
+</ul>
+<hr>
+<h1 id="3-SDP-文本格式基础"><a href="#3-SDP-文本格式基础" class="headerlink" title="3. SDP 文本格式基础"></a>3. SDP 文本格式基础</h1><h3 id="3-1-整体结构"><a href="#3-1-整体结构" class="headerlink" title="3.1 整体结构"></a>3.1 整体结构</h3><p>根据 RFC 8866 Section 5，SDP 描述由若干文本行组成，每行格式为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;type&gt;=&lt;value&gt;CRLF</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>&lt;type&gt;</code> 是<strong>单个大小写敏感的字符</strong>，<code>&lt;value&gt;</code> 是结构化文本，格式由字段类型决定。<code>=</code> 号两侧<strong>不允许有空格</strong>。</p>
+<p>一个 SDP 描述由两部分组成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">会话级（Session-Level）</span><br><span class="line">└── 媒体描述 1（Media Description，m= 块）</span><br><span class="line">└── 媒体描述 2（m= 块）</span><br><span class="line">└── ...（可以有多个）</span><br></pre></td></tr></table></figure>
+
+<p>会话级字段是所有媒体描述的默认值，媒体级字段可以覆盖会话级值。</p>
+<h3 id="3-2-字段顺序约束"><a href="#3-2-字段顺序约束" class="headerlink" title="3.2 字段顺序约束"></a>3.2 字段顺序约束</h3><p>RFC 8866 对字段顺序有严格要求，<strong>必须</strong>按以下顺序出现（<code>*</code> 表示可选）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">会话级（必须按此顺序）：</span><br><span class="line">  v=  （版本，必须）</span><br><span class="line">  o=  （发起者，必须）</span><br><span class="line">  s=  （会话名称，必须）</span><br><span class="line">  i=* （会话信息）</span><br><span class="line">  u=* （URI）</span><br><span class="line">  e=* （邮件地址）</span><br><span class="line">  p=* （电话）</span><br><span class="line">  c=* （连接信息）</span><br><span class="line">  b=* （带宽）</span><br><span class="line">  t=  （时间，必须）</span><br><span class="line">  r=* （重复时间）</span><br><span class="line">  z=* （时区调整）</span><br><span class="line">  a=* （属性，零个或多个）</span><br><span class="line"></span><br><span class="line">媒体描述级（每个 m= 块内必须按此顺序）：</span><br><span class="line">  m=  （媒体，必须）</span><br><span class="line">  i=* （媒体标题）</span><br><span class="line">  c=* （连接信息，覆盖会话级）</span><br><span class="line">  b=* （带宽）</span><br><span class="line">  a=* （属性，零个或多个）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>实践提示：现代浏览器生成的 SDP 严格遵守此顺序，但解析器应当对轻微的顺序违规保持容忍（Robustness Principle）。</p>
+</blockquote>
+<hr>
+<h1 id="4-会话级字段详解"><a href="#4-会话级字段详解" class="headerlink" title="4. 会话级字段详解"></a>4. 会话级字段详解</h1><h3 id="4-1-v-版本"><a href="#4-1-v-版本" class="headerlink" title="4.1 v&#x3D; 版本"></a>4.1 v&#x3D; 版本</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">v=0</span><br></pre></td></tr></table></figure>
+
+<p>当前 SDP 版本固定为 <code>0</code>，这是 RFC 4566 以来唯一合法的值。</p>
+<h3 id="4-2-o-发起者与会话标识"><a href="#4-2-o-发起者与会话标识" class="headerlink" title="4.2 o&#x3D; 发起者与会话标识"></a>4.2 o&#x3D; 发起者与会话标识</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">o=&lt;username&gt; &lt;sess-id&gt; &lt;sess-version&gt; &lt;nettype&gt; &lt;addrtype&gt; &lt;unicast-address&gt;</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">o=- 4567890123456789 2 IN IP4 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>各子字段说明：</p>
+<table>
+<thead>
+<tr>
+<th>子字段</th>
+<th>示例值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;username&gt;</code></td>
+<td><code>-</code></td>
+<td>发起方用户名，WebRTC 中通常用 <code>-</code> 占位</td>
+</tr>
+<tr>
+<td><code>&lt;sess-id&gt;</code></td>
+<td><code>4567890123456789</code></td>
+<td>会话 ID，随机数字，在会话生命周期内不变</td>
+</tr>
+<tr>
+<td><code>&lt;sess-version&gt;</code></td>
+<td><code>2</code></td>
+<td>会话版本号，每次重新协商时递增</td>
+</tr>
+<tr>
+<td><code>&lt;nettype&gt;</code></td>
+<td><code>IN</code></td>
+<td>网络类型，固定为 <code>IN</code>（Internet）</td>
+</tr>
+<tr>
+<td><code>&lt;addrtype&gt;</code></td>
+<td><code>IP4</code></td>
+<td>地址类型，<code>IP4</code> 或 <code>IP6</code></td>
+</tr>
+<tr>
+<td><code>&lt;unicast-address&gt;</code></td>
+<td><code>127.0.0.1</code></td>
+<td>发起方地址，WebRTC 中通常为 <code>127.0.0.1</code> 或 <code>0.0.0.0</code>（实际地址通过 ICE 协商）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>WebRTC 实践</strong>：<code>&lt;sess-id&gt;</code> 和 <code>&lt;sess-version&gt;</code> 共同唯一标识一个会话，<code>&lt;sess-version&gt;</code> 递增表示会话发生了重新协商（Re-negotiation）。</p>
+</blockquote>
+<h3 id="4-3-s-会话名称"><a href="#4-3-s-会话名称" class="headerlink" title="4.3 s&#x3D; 会话名称"></a>4.3 s&#x3D; 会话名称</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s=-</span><br></pre></td></tr></table></figure>
+
+<p>RFC 8866 要求此字段必须存在且非空，WebRTC 中通常用 <code>-</code> 作为占位符。</p>
+<h3 id="4-4-t-时间"><a href="#4-4-t-时间" class="headerlink" title="4.4 t&#x3D; 时间"></a>4.4 t&#x3D; 时间</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">t=0 0</span><br></pre></td></tr></table></figure>
+
+<p>格式：<code>t=&lt;start-time&gt; &lt;stop-time&gt;</code>，时间以 NTP 秒数表示（距 1900-01-01 的秒数）。</p>
+<p>WebRTC 中固定使用 <code>t=0 0</code>，表示没有固定的开始和结束时间（永久会话）。</p>
+<h3 id="4-5-c-连接信息"><a href="#4-5-c-连接信息" class="headerlink" title="4.5 c&#x3D; 连接信息"></a>4.5 c&#x3D; 连接信息</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">c=IN IP4 0.0.0.0</span><br></pre></td></tr></table></figure>
+
+<p>格式：<code>c=&lt;nettype&gt; &lt;addrtype&gt; &lt;connection-address&gt;</code></p>
+<p>在 WebRTC 中，实际连接地址通过 ICE Candidate 确定，<code>c=</code> 行通常写 <code>0.0.0.0</code> 作为占位。</p>
+<h3 id="4-6-b-带宽"><a href="#4-6-b-带宽" class="headerlink" title="4.6 b&#x3D; 带宽"></a>4.6 b&#x3D; 带宽</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">b=AS:2000</span><br><span class="line">b=TIAS:2000000</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AS</code></td>
+<td>Application Specific，最大带宽（kbps），对应 RTP 会话带宽</td>
+</tr>
+<tr>
+<td><code>TIAS</code></td>
+<td>Transport Independent Application Specific（RFC 3890），以 bps 为单位，更精确</td>
+</tr>
+<tr>
+<td><code>CT</code></td>
+<td>Conference Total，会议总带宽上限</td>
+</tr>
+</tbody></table>
+<p>WebRTC 中常见的 <code>b=AS</code> 用于限制单条媒体流的最大发送码率，也是 SFU 限速的常用手段。</p>
+<hr>
+<h1 id="5-媒体描述（m-块）详解"><a href="#5-媒体描述（m-块）详解" class="headerlink" title="5. 媒体描述（m&#x3D; 块）详解"></a>5. 媒体描述（m&#x3D; 块）详解</h1><h3 id="5-1-m-行格式"><a href="#5-1-m-行格式" class="headerlink" title="5.1 m&#x3D; 行格式"></a>5.1 m&#x3D; 行格式</h3><p>每个媒体描述以 <code>m=</code> 行开始：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m=&lt;media&gt; &lt;port&gt; &lt;proto&gt; &lt;fmt-list&gt;</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111 103 0 8</span><br><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100</span><br><span class="line">m=application 9 UDP/DTLS/SCTP webrtc-datachannel</span><br></pre></td></tr></table></figure>
+
+<p>各字段说明：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;media&gt;</code></td>
+<td><code>audio</code> &#x2F; <code>video</code> &#x2F; <code>application</code></td>
+<td>媒体类型</td>
+</tr>
+<tr>
+<td><code>&lt;port&gt;</code></td>
+<td><code>9</code></td>
+<td>媒体端口，WebRTC 中通常写 <code>9</code>（占位），实际端口通过 ICE 确定</td>
+</tr>
+<tr>
+<td><code>&lt;proto&gt;</code></td>
+<td><code>UDP/TLS/RTP/SAVPF</code></td>
+<td>传输协议栈</td>
+</tr>
+<tr>
+<td><code>&lt;fmt-list&gt;</code></td>
+<td><code>111 103 0 8</code></td>
+<td>Payload Type（PT）列表，优先级从高到低</td>
+</tr>
+</tbody></table>
+<p><strong>WebRTC 常用协议栈</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>协议栈</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>UDP/TLS/RTP/SAVPF</code></td>
+<td>UDP + DTLS + SRTP + RTCP 反馈（RFC 4585）</td>
+</tr>
+<tr>
+<td><code>UDP/DTLS/SCTP</code></td>
+<td>UDP + DTLS + SCTP（DataChannel 专用）</td>
+</tr>
+<tr>
+<td><code>RTP/AVP</code></td>
+<td>传统 RTP，不加密</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>SAVPF</code> 中的 <code>S</code> &#x3D; Secure（SRTP），<code>A</code> &#x3D; Audio-Video Profile，<code>VPF</code> &#x3D; 带反馈的 Video Profile，表明支持 RTCP 反馈消息（如 NACK、PLI）。</p>
+</blockquote>
+<h3 id="5-2-a-rtpmap-—-载荷类型映射"><a href="#5-2-a-rtpmap-—-载荷类型映射" class="headerlink" title="5.2 a&#x3D;rtpmap — 载荷类型映射"></a>5.2 a&#x3D;rtpmap — 载荷类型映射</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:&lt;payload-type&gt; &lt;encoding-name&gt;/&lt;clock-rate&gt;[/&lt;encoding-params&gt;]</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:111 opus/48000/2     ; PT 111 → Opus，48kHz，双声道</span><br><span class="line">a=rtpmap:96  VP8/90000        ; PT 96  → VP8，90kHz 时钟（视频标准）</span><br><span class="line">a=rtpmap:97  VP9/90000</span><br><span class="line">a=rtpmap:98  H264/90000</span><br><span class="line">a=rtpmap:0   PCMU/8000        ; 静态 PT 0 → PCMU（G.711 μ-law），8kHz</span><br></pre></td></tr></table></figure>
+
+<p><strong>Payload Type（PT）</strong> 是 RTP 包头中的 7 位字段（0–127）：</p>
+<ul>
+<li>PT 0–95：静态分配（IANA 定义）</li>
+<li>PT 96–127：动态分配，必须通过 <code>a=rtpmap</code> 声明</li>
+</ul>
+<p><code>&lt;clock-rate&gt;</code> 决定 RTP 时间戳增长速率：音频通常等于采样率，视频固定为 90000。</p>
+<p><code>&lt;encoding-params&gt;</code> 对音频表示声道数（如 <code>2</code> &#x3D; 立体声）。</p>
+<h3 id="5-3-a-fmtp-—-编解码器参数"><a href="#5-3-a-fmtp-—-编解码器参数" class="headerlink" title="5.3 a&#x3D;fmtp — 编解码器参数"></a>5.3 a&#x3D;fmtp — 编解码器参数</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=fmtp:&lt;payload-type&gt; &lt;format-specific-parameters&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Opus（音频）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=fmtp:111 minptime=10;useinbandfec=1;stereo=1</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>minptime</code></td>
+<td>最小打包时长（ms）</td>
+</tr>
+<tr>
+<td><code>useinbandfec</code></td>
+<td>启用 Opus 内置 FEC（前向纠错）</td>
+</tr>
+<tr>
+<td><code>stereo</code></td>
+<td>1 &#x3D; 立体声，0 &#x3D; 单声道</td>
+</tr>
+<tr>
+<td><code>maxaveragebitrate</code></td>
+<td>最大平均码率（bps）</td>
+</tr>
+</tbody></table>
+<p><strong>H.264（视频）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=fmtp:98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>profile-level-id</code></td>
+<td>3 字节十六进制：Profile IDC + IOPs + Level IDC。<code>42e01f</code> &#x3D; Constrained Baseline Level 3.1</td>
+</tr>
+<tr>
+<td><code>packetization-mode</code></td>
+<td><code>0</code> 单 NAL；<code>1</code> 非交错（推荐）；<code>2</code> 交错</td>
+</tr>
+<tr>
+<td><code>level-asymmetry-allowed</code></td>
+<td>允许双方使用不同 Level，提高兼容性</td>
+</tr>
+</tbody></table>
+<p><strong>VP8&#x2F;VP9</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=fmtp:96 max-fr=30;max-fs=3600</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>max-fr</code></td>
+<td>最大帧率</td>
+</tr>
+<tr>
+<td><code>max-fs</code></td>
+<td>最大帧尺寸（macroblock），3600 ≈ 720p</td>
+</tr>
+</tbody></table>
+<h3 id="5-4-a-sendrecv-sendonly-recvonly-inactive-—-媒体方向"><a href="#5-4-a-sendrecv-sendonly-recvonly-inactive-—-媒体方向" class="headerlink" title="5.4 a&#x3D;sendrecv &#x2F; sendonly &#x2F; recvonly &#x2F; inactive — 媒体方向"></a>5.4 a&#x3D;sendrecv &#x2F; sendonly &#x2F; recvonly &#x2F; inactive — 媒体方向</h3><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a=sendrecv</code></td>
+<td>双向（默认）</td>
+</tr>
+<tr>
+<td><code>a=sendonly</code></td>
+<td>只发送（对端应设 recvonly）</td>
+</tr>
+<tr>
+<td><code>a=recvonly</code></td>
+<td>只接收</td>
+</tr>
+<tr>
+<td><code>a=inactive</code></td>
+<td>暂停媒体</td>
+</tr>
+</tbody></table>
+<p>在 SFU 场景中，<code>sendonly</code>&#x2F;<code>recvonly</code> 的配合尤为常见。</p>
+<hr>
+<h1 id="6-WebRTC-专属-SDP-扩展属性"><a href="#6-WebRTC-专属-SDP-扩展属性" class="headerlink" title="6. WebRTC 专属 SDP 扩展属性"></a>6. WebRTC 专属 SDP 扩展属性</h1><p>标准 SDP（RFC 8866）不包含 WebRTC 所需的全部信息，以下属性来自 WebRTC 相关 RFC 扩展。</p>
+<h3 id="6-1-ICE-相关属性"><a href="#6-1-ICE-相关属性" class="headerlink" title="6.1 ICE 相关属性"></a>6.1 ICE 相关属性</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a=ice-ufrag:074c6550</span><br><span class="line">a=ice-pwd:a28a397a4c3f31747d1ee3474af08a068</span><br><span class="line">a=ice-options:trickle</span><br><span class="line">a=candidate:1 1 UDP 2122252543 192.168.1.100 54321 typ host</span><br><span class="line">a=candidate:2 1 UDP 1686052863 203.0.113.1 54321 typ srflx raddr 192.168.1.100 rport 54321</span><br><span class="line">a=end-of-candidates</span><br></pre></td></tr></table></figure>
+
+<p><strong>a&#x3D;ice-ufrag 和 a&#x3D;ice-pwd</strong>（RFC 8839）：</p>
+<p>ICE 用户名片段和密码，用于 STUN 绑定请求认证。密码长度至少 22 个 Base64 字符。在 ICE 重启时会更换（新 Offer 中提供新的 ufrag&#x2F;pwd）。</p>
+<p><strong>a&#x3D;ice-options:trickle</strong>（RFC 8838）：</p>
+<p>声明支持 Trickle ICE，候选可以在 Offer&#x2F;Answer 之后增量发送，是现代 WebRTC 的默认行为。</p>
+<p><strong>a&#x3D;candidate</strong>（RFC 8839）格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=candidate:&lt;foundation&gt; &lt;component-id&gt; &lt;transport&gt; &lt;priority&gt; &lt;address&gt; &lt;port&gt; typ &lt;type&gt; [raddr &lt;raddr&gt;] [rport &lt;rport&gt;]</span><br></pre></td></tr></table></figure>
+
+<p><strong>a&#x3D;end-of-candidates</strong>（RFC 8840）：</p>
+<p>声明本端候选收集完毕，对端无需再等待。在 Trickle ICE 中，<code>event.candidate === null</code> 时发送此行。</p>
+<h3 id="6-2-DTLS-相关属性"><a href="#6-2-DTLS-相关属性" class="headerlink" title="6.2 DTLS 相关属性"></a>6.2 DTLS 相关属性</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=fingerprint:sha-256 49:66:12:40:EE:BE:89:AB:D9:0C:FA:38:0F:F4:43:8A:...</span><br><span class="line">a=setup:actpass</span><br></pre></td></tr></table></figure>
+
+<p><strong>a&#x3D;fingerprint</strong>（RFC 8122）：</p>
+<p>DTLS 证书的哈希摘要，对端在 DTLS 握手时据此验证身份，防止中间人攻击。格式：<code>a=fingerprint:&lt;hash-function&gt; &lt;fingerprint&gt;</code>，哈希算法通常为 <code>sha-256</code>。</p>
+<blockquote>
+<p><strong>安全关键</strong>：若攻击者篡改信令中的 SDP，替换 <code>a=fingerprint</code> 为自己证书的指纹，即可实施 DTLS 中间人攻击并解密媒体流。这正是<strong>信令必须使用 TLS（WSS）</strong>的根本原因。</p>
+</blockquote>
+<p><strong>a&#x3D;setup</strong>（RFC 5763）：</p>
+<p>定义 DTLS 握手角色：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>active</code></td>
+<td>主动发起握手（DTLS Client）</td>
+</tr>
+<tr>
+<td><code>passive</code></td>
+<td>被动等待（DTLS Server）</td>
+</tr>
+<tr>
+<td><code>actpass</code></td>
+<td>两者皆可（Offer 方常用）</td>
+</tr>
+</tbody></table>
+<p>典型流程：Offer 写 <code>actpass</code>，Answer 写 <code>active</code>（Answer 方主动发起 DTLS 握手）。</p>
+<h3 id="6-3-BUNDLE-—-多路复用（RFC-8843）"><a href="#6-3-BUNDLE-—-多路复用（RFC-8843）" class="headerlink" title="6.3 BUNDLE — 多路复用（RFC 8843）"></a>6.3 BUNDLE — 多路复用（RFC 8843）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=group:BUNDLE 0 1 2</span><br></pre></td></tr></table></figure>
+
+<p>BUNDLE 允许<strong>多个 <code>m=</code> 块共享同一个底层传输连接</strong>（同一个 ICE 候选对 &#x2F; 同一个 DTLS 会话 &#x2F; 同一个 UDP 端口）。</p>
+<p>未使用 BUNDLE 时，每个 <code>m=</code> 块需要独立的 ICE 协商和 DTLS 握手，耗费大量端口资源和时间。</p>
+<p>使用 BUNDLE 时，每个捆绑的 <code>m=</code> 块<strong>必须</strong>包含：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=mid:0</span><br><span class="line">a=extmap:X urn:ietf:params:rtp-hdrext:sdes:mid</span><br></pre></td></tr></table></figure>
+
+<p>接收端通过 RTP 包头中的 MID 扩展字段区分不同媒体流。WebRTC 浏览器默认启用并要求 BUNDLE 协商成功。</p>
+<h3 id="6-4-a-rtcp-mux-—-RTP-RTCP-端口复用（RFC-5761）"><a href="#6-4-a-rtcp-mux-—-RTP-RTCP-端口复用（RFC-5761）" class="headerlink" title="6.4 a&#x3D;rtcp-mux — RTP&#x2F;RTCP 端口复用（RFC 5761）"></a>6.4 a&#x3D;rtcp-mux — RTP&#x2F;RTCP 端口复用（RFC 5761）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-mux</span><br></pre></td></tr></table></figure>
+
+<p>允许 RTP 和 RTCP 使用同一个 UDP 端口，而非传统的两个端口。配合 BUNDLE，现代 WebRTC 通话通常只需要 <strong>1 个 UDP 端口</strong>承载所有音视频的 RTP 和 RTCP。</p>
+<h3 id="6-5-a-mid-—-媒体标识符"><a href="#6-5-a-mid-—-媒体标识符" class="headerlink" title="6.5 a&#x3D;mid — 媒体标识符"></a>6.5 a&#x3D;mid — 媒体标识符</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=mid:audio</span><br><span class="line">a=mid:video</span><br><span class="line">a=mid:0</span><br></pre></td></tr></table></figure>
+
+<p>为每个 <code>m=</code> 块分配字符串标识符（Media ID），在 BUNDLE 中用于标识归属，也是 <code>RTCRtpTransceiver.mid</code> 属性的值。</p>
+<h3 id="6-6-a-msid-—-MediaStream-标识（RFC-8830）"><a href="#6-6-a-msid-—-MediaStream-标识（RFC-8830）" class="headerlink" title="6.6 a&#x3D;msid — MediaStream 标识（RFC 8830）"></a>6.6 a&#x3D;msid — MediaStream 标识（RFC 8830）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=msid:&lt;stream-id&gt; &lt;track-id&gt;</span><br></pre></td></tr></table></figure>
+
+<p>将 RTP 流与 W3C API 中的 <code>MediaStream</code> 和 <code>MediaStreamTrack</code> 对象关联：</p>
+<ul>
+<li><code>&lt;stream-id&gt;</code>：对应 <code>MediaStream.id</code></li>
+<li><code>&lt;track-id&gt;</code>：对应 <code>MediaStreamTrack.id</code></li>
+</ul>
+<p>接收端通过 <code>a=msid</code> 信息构建 <code>RTCTrackEvent.streams</code> 数组。</p>
+<h3 id="6-7-a-ssrc-—-同步源标识"><a href="#6-7-a-ssrc-—-同步源标识" class="headerlink" title="6.7 a&#x3D;ssrc — 同步源标识"></a>6.7 a&#x3D;ssrc — 同步源标识</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=ssrc:&lt;ssrc-id&gt; cname:&lt;cname&gt;</span><br><span class="line">a=ssrc:&lt;ssrc-id&gt; msid:&lt;stream-id&gt; &lt;track-id&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>SSRC（Synchronization Source）</strong> 是 RTP 包头中的 32 位随机标识符。<code>cname</code>（Canonical Name）用于跨流同步（音视频唇形同步）。</p>
+<p>RTX（重传流）使用独立 SSRC，通过 FID 组关联：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=ssrc-group:FID 1234567890 9876543210</span><br><span class="line">a=ssrc:1234567890 cname:user@device</span><br><span class="line">a=ssrc:9876543210 cname:user@device</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-8-a-extmap-—-RTP-头部扩展映射（RFC-8285）"><a href="#6-8-a-extmap-—-RTP-头部扩展映射（RFC-8285）" class="headerlink" title="6.8 a&#x3D;extmap — RTP 头部扩展映射（RFC 8285）"></a>6.8 a&#x3D;extmap — RTP 头部扩展映射（RFC 8285）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:&lt;id&gt; &lt;URI&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在 SDP 中声明 RTP 头部扩展 ID 与其语义 URI 的映射：</p>
+<table>
+<thead>
+<tr>
+<th>扩展 URI</th>
+<th>用途</th>
+<th>RFC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>urn:ietf:params:rtp-hdrext:ssrc-audio-level</code></td>
+<td>携带音频音量级别，VAD 检测</td>
+<td>RFC 6464</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:sdes:mid</code></td>
+<td>BUNDLE MID 标识</td>
+<td>RFC 8843</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</code></td>
+<td>Simulcast RID 标识</td>
+<td>RFC 8852</td>
+</tr>
+<tr>
+<td><code>http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</code></td>
+<td>绝对发送时间（BWE 带宽估计）</td>
+<td>Google</td>
+</tr>
+<tr>
+<td><code>http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions</code></td>
+<td>Transport-CC 序列号（拥塞控制）</td>
+<td>IETF Draft</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:toffset</code></td>
+<td>传输时间偏移（唇形同步）</td>
+<td>RFC 5450</td>
+</tr>
+</tbody></table>
+<h3 id="6-9-a-rtcp-fb-—-RTCP-反馈能力（RFC-4585）"><a href="#6-9-a-rtcp-fb-—-RTCP-反馈能力（RFC-4585）" class="headerlink" title="6.9 a&#x3D;rtcp-fb — RTCP 反馈能力（RFC 4585）"></a>6.9 a&#x3D;rtcp-fb — RTCP 反馈能力（RFC 4585）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:&lt;payload-type&gt; &lt;feedback-type&gt; [&lt;feedback-param&gt;]</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a=rtcp-fb:96 nack</code></td>
+<td>支持 NACK 触发重传</td>
+</tr>
+<tr>
+<td><code>a=rtcp-fb:96 nack pli</code></td>
+<td>支持 PLI 请求关键帧</td>
+</tr>
+<tr>
+<td><code>a=rtcp-fb:96 ccm fir</code></td>
+<td>支持 FIR 请求完整关键帧</td>
+</tr>
+<tr>
+<td><code>a=rtcp-fb:96 goog-remb</code></td>
+<td>支持 Google REMB 带宽估计</td>
+</tr>
+<tr>
+<td><code>a=rtcp-fb:96 transport-cc</code></td>
+<td>支持 Transport-CC 拥塞控制</td>
+</tr>
+</tbody></table>
+<p>Chrome 97+ 支持通配符写法，大幅压缩 SDP 体积：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:* nack</span><br><span class="line">a=rtcp-fb:* nack pli</span><br><span class="line">a=rtcp-fb:* ccm fir</span><br><span class="line">a=rtcp-fb:* goog-remb</span><br><span class="line">a=rtcp-fb:* transport-cc</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-10-a-ice-options-trickle-—-Trickle-ICE-支持"><a href="#6-10-a-ice-options-trickle-—-Trickle-ICE-支持" class="headerlink" title="6.10 a&#x3D;ice-options:trickle — Trickle ICE 支持"></a>6.10 a&#x3D;ice-options:trickle — Trickle ICE 支持</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=ice-options:trickle</span><br></pre></td></tr></table></figure>
+
+<p>RFC 8838 要求支持 Trickle ICE 的端点在所有 SDP Offer 和 Answer 中包含此 ice-option。</p>
+<hr>
+<h1 id="7-一个完整的-WebRTC-SDP-Offer-逐行注解"><a href="#7-一个完整的-WebRTC-SDP-Offer-逐行注解" class="headerlink" title="7. 一个完整的 WebRTC SDP Offer 逐行注解"></a>7. 一个完整的 WebRTC SDP Offer 逐行注解</h1><p>以下是典型浏览器生成的 WebRTC SDP Offer，含音频、视频和 DataChannel：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">v=0</span><br><span class="line">o=- 4611731400430051336 2 IN IP4 127.0.0.1</span><br><span class="line">s=-</span><br><span class="line">t=0 0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>会话级头部：版本 0，会话 ID 随机，时间无限制。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=group:BUNDLE 0 1 2</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>BUNDLE 组（RFC 8843）：mid&#x3D;0、1、2 的媒体描述共用同一个传输通道。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=extmap-allow-mixed</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>允许在同一 RTP 包中混合使用单字节和双字节头部扩展格式（RFC 8285）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=msid-semantic: WMS stream-id-abc</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>媒体流语义声明，<code>WMS</code>（WebRTC Media Streams）是 WebRTC 的 msid 语义标识符。</p>
+</blockquote>
+<hr>
+<p><strong>音频 m&#x3D; 块</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111 103 0 8 126</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=rtcp:9 IN IP4 0.0.0.0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>音频媒体描述，端口 9 占位。PT 按优先级：111（Opus）&gt; 103（ISAC&#x2F;16k）&gt; 0（PCMU）&gt; 8（PCMA）&gt; 126（telephone-event）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=ice-ufrag:8a1/LJqQ</span><br><span class="line">a=ice-pwd:sbfskHYHACygyHW1wVi8GZM+</span><br><span class="line">a=ice-options:trickle</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>ICE 认证凭证（RFC 8839）+ Trickle ICE 支持声明。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=fingerprint:sha-256 49:66:12:40:EE:BE:89:AB:D9:0C:FA:38:0F:F4:43:8A:D3:41:61:92:...</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>DTLS 证书指纹（RFC 8122），对端据此验证 DTLS 握手身份。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=setup:actpass</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>DTLS 角色（RFC 5763）：Offer 方声明 actpass，由 Answer 方决定谁主动握手。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=mid:0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>此媒体描述在 BUNDLE 组中的标识符。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level</span><br><span class="line">a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</span><br><span class="line">a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br><span class="line">a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>RTP 头部扩展映射：音量检测、绝对发送时间（BWE）、Transport-CC（拥塞控制）、BUNDLE MID。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=sendrecv</span><br><span class="line">a=msid:stream-id-abc audio-track-id-xyz</span><br><span class="line">a=rtcp-mux</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>双向传输；MediaStream&#x2F;Track 关联；RTP 与 RTCP 共用端口。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=rtcp-fb:111 transport-cc</span><br><span class="line">a=fmtp:111 minptime=10;useinbandfec=1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Opus 编解码器定义：48kHz 双声道，支持 Transport-CC 反馈，最小打包 10ms，启用内置 FEC。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:0 PCMU/8000</span><br><span class="line">a=rtpmap:8 PCMA/8000</span><br><span class="line">a=rtpmap:126 telephone-event/8000</span><br><span class="line">a=fmtp:126 0-95</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>备选编解码器 G.711（PCMU&#x2F;PCMA）及 DTMF 电话事件（支持事件 0–95）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=ssrc:2570988474 cname:Wg8kdYwkkqzCZqko</span><br><span class="line">a=ssrc:2570988474 msid:stream-id-abc audio-track-id-xyz</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>声明音频 SSRC 及其 CNAME（音视频同步用）和 msid 关联。</p>
+</blockquote>
+<hr>
+<p><strong>视频 m&#x3D; 块</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100 101</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=ice-ufrag:8a1/LJqQ</span><br><span class="line">a=ice-pwd:sbfskHYHACygyHW1wVi8GZM+</span><br><span class="line">a=ice-options:trickle</span><br><span class="line">a=fingerprint:sha-256 49:66:12:40:EE:BE:89:AB:...</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=mid:1</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>视频媒体描述，注意 ICE 凭证和 DTLS 指纹与音频相同（BUNDLE 共用传输通道）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:1 urn:ietf:params:rtp-hdrext:toffset</span><br><span class="line">a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</span><br><span class="line">a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br><span class="line">a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid</span><br><span class="line">a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</span><br><span class="line">a=extmap:6 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>视频新增：传输时间偏移（唇形同步）、Simulcast RTP-Stream-ID 和 repaired-RTP-Stream-ID（RTX 重传流标识）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=sendrecv</span><br><span class="line">a=msid:stream-id-abc video-track-id-uvw</span><br><span class="line">a=rtcp-mux</span><br><span class="line">a=rtcp-rsize</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>a=rtcp-rsize</code>（RFC 5506）：支持简化 RTCP 反馈包，减少控制流开销。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>VP8 及其全套 RTCP 反馈机制（REMB 带宽估计、Transport-CC、FIR&#x2F;NACK&#x2F;PLI 关键帧控制）。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>PT 97 是 PT 96（VP8）的 <strong>RTX 重传流</strong>（RFC 4588）。<code>apt=96</code> 表示此 RTX 流为 VP8 服务。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:98 VP9/90000</span><br><span class="line">a=rtcp-fb:98 goog-remb</span><br><span class="line">a=rtcp-fb:98 transport-cc</span><br><span class="line">a=rtcp-fb:98 ccm fir</span><br><span class="line">a=rtcp-fb:98 nack</span><br><span class="line">a=rtcp-fb:98 nack pli</span><br><span class="line">a=rtpmap:99 rtx/90000</span><br><span class="line">a=fmtp:99 apt=98</span><br><span class="line"></span><br><span class="line">a=rtpmap:100 H264/90000</span><br><span class="line">a=rtcp-fb:100 goog-remb</span><br><span class="line">a=rtcp-fb:100 transport-cc</span><br><span class="line">a=rtcp-fb:100 ccm fir</span><br><span class="line">a=rtcp-fb:100 nack</span><br><span class="line">a=rtcp-fb:100 nack pli</span><br><span class="line">a=fmtp:100 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f</span><br><span class="line">a=rtpmap:101 rtx/90000</span><br><span class="line">a=fmtp:101 apt=100</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>VP9 和 H.264（Constrained Baseline Level 3.1）及各自的 RTX 重传流。</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a=ssrc-group:FID 3849985795 1920781173</span><br><span class="line">a=ssrc:3849985795 cname:Wg8kdYwkkqzCZqko</span><br><span class="line">a=ssrc:3849985795 msid:stream-id-abc video-track-id-uvw</span><br><span class="line">a=ssrc:1920781173 cname:Wg8kdYwkkqzCZqko</span><br><span class="line">a=ssrc:1920781173 msid:stream-id-abc video-track-id-uvw</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>FID 组关联主视频流 SSRC（3849985795）与 RTX 重传流 SSRC（1920781173）。</p>
+</blockquote>
+<hr>
+<p><strong>DataChannel m&#x3D; 块</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">m=application 9 UDP/DTLS/SCTP webrtc-datachannel</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=ice-ufrag:8a1/LJqQ</span><br><span class="line">a=ice-pwd:sbfskHYHACygyHW1wVi8GZM+</span><br><span class="line">a=ice-options:trickle</span><br><span class="line">a=fingerprint:sha-256 49:66:12:40:EE:BE:89:AB:...</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=mid:2</span><br><span class="line">a=sctp-port:5000</span><br><span class="line">a=max-message-size:262144</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>DataChannel 媒体描述。协议 <code>UDP/DTLS/SCTP</code>；SCTP 端口固定 5000；最大消息 256KB。</p>
+</blockquote>
+<hr>
+<h1 id="8-Offer-Answer-模型（RFC-3264）"><a href="#8-Offer-Answer-模型（RFC-3264）" class="headerlink" title="8. Offer&#x2F;Answer 模型（RFC 3264）"></a>8. Offer&#x2F;Answer 模型（RFC 3264）</h1><h3 id="8-1-协商流程"><a href="#8-1-协商流程" class="headerlink" title="8.1 协商流程"></a>8.1 协商流程</h3><p>SDP Offer&#x2F;Answer 模型（RFC 3264）定义了两个对等端如何就会话参数达成一致：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Caller（发起方）                              Callee（被叫方）</span><br><span class="line">    |                                              |</span><br><span class="line">    | createOffer() + setLocalDescription()        |</span><br><span class="line">    |                                              |</span><br><span class="line">    |     ----[信令传输 Offer SDP]----&gt;             |</span><br><span class="line">    |                                              |</span><br><span class="line">    |                   setRemoteDescription(offer)|</span><br><span class="line">    |        createAnswer() + setLocalDescription()|</span><br><span class="line">    |                                              |</span><br><span class="line">    |              &lt;---[信令传输 Answer SDP]----    |</span><br><span class="line">    |                                              |</span><br><span class="line">    | setRemoteDescription(answer)                 |</span><br><span class="line">    |                                              |</span><br><span class="line">    |            [ICE 建立连接，DTLS 握手]           |</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-Answer-对-Offer-的响应规则"><a href="#8-2-Answer-对-Offer-的响应规则" class="headerlink" title="8.2 Answer 对 Offer 的响应规则"></a>8.2 Answer 对 Offer 的响应规则</h3><p>根据 RFC 3264：</p>
+<ul>
+<li><strong>媒体描述数量</strong>：Answer 中的 <code>m=</code> 块数量不得超过 Offer</li>
+<li><strong>媒体描述顺序</strong>：Answer 中的 <code>m=</code> 块必须与 Offer 中的顺序对应</li>
+<li><strong>拒绝媒体</strong>：将 <code>m=</code> 行的端口设为 <code>0</code> 表示拒绝该媒体描述</li>
+<li><strong>编解码器交集</strong>：Answer 只能选择 Offer 中提供的编解码器（取子集）</li>
+<li><strong>方向协商</strong>：若 Offer 为 <code>sendrecv</code>，Answer 可选 <code>sendrecv</code>&#x2F;<code>sendonly</code>&#x2F;<code>recvonly</code>&#x2F;<code>inactive</code></li>
+</ul>
+<h3 id="8-3-Offer-Answer-示例对比"><a href="#8-3-Offer-Answer-示例对比" class="headerlink" title="8.3 Offer&#x2F;Answer 示例对比"></a>8.3 Offer&#x2F;Answer 示例对比</h3><p><strong>Offer（Alice 发起）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111 103 0 8</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=rtpmap:103 ISAC/16000</span><br><span class="line">a=rtpmap:0   PCMU/8000</span><br><span class="line">a=rtpmap:8   PCMA/8000</span><br><span class="line">a=sendrecv</span><br></pre></td></tr></table></figure>
+
+<p><strong>Answer（Bob 应答）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111 0</span><br><span class="line">a=rtpmap:111 opus/48000/2    ; Bob 支持 Opus，优先选择</span><br><span class="line">a=rtpmap:0   PCMU/8000       ; 保留 PCMU 备选</span><br><span class="line">; Bob 不支持 ISAC，故 PT 103 未出现在 Answer 中</span><br><span class="line">a=sendrecv</span><br></pre></td></tr></table></figure>
+
+<p>协商结果：双方使用 Opus（PT 111）。</p>
+<hr>
+<h1 id="9-JSEP-与-SDP-的关系（RFC-8829）"><a href="#9-JSEP-与-SDP-的关系（RFC-8829）" class="headerlink" title="9. JSEP 与 SDP 的关系（RFC 8829）"></a>9. JSEP 与 SDP 的关系（RFC 8829）</h1><h3 id="9-1-Unified-Plan-vs-Plan-B"><a href="#9-1-Unified-Plan-vs-Plan-B" class="headerlink" title="9.1 Unified Plan vs Plan B"></a>9.1 Unified Plan vs Plan B</h3><p><strong>Plan B（已废弃）</strong>：</p>
+<ul>
+<li>每种媒体类型只有一个 <code>m=</code> 块</li>
+<li>多个同类轨道通过在同一 <code>m=</code> 块中添加多个 <code>a=ssrc</code> 区分</li>
+<li>Chrome 旧版本使用此方案</li>
+</ul>
+<p><strong>Unified Plan（当前标准，RFC 8829）</strong>：</p>
+<ul>
+<li>每个媒体轨道（<code>RTCRtpTransceiver</code>）对应一个独立的 <code>m=</code> 块</li>
+<li>每个 <code>m=</code> 块通过 <code>a=msid</code> 与 <code>MediaStreamTrack</code> 关联</li>
+<li>配合 BUNDLE，所有 <code>m=</code> 块共用同一个传输通道</li>
+<li>Chrome 72+、Firefox、Safari 均默认使用 Unified Plan</li>
+</ul>
+<p>Unified Plan 使每个轨道的参数可以独立控制，是 <code>RTCRtpTransceiver</code> API 的设计基础。</p>
+<h3 id="9-2-Rollback-机制"><a href="#9-2-Rollback-机制" class="headerlink" title="9.2 Rollback 机制"></a>9.2 Rollback 机制</h3><p>当协商失败或需要取消时，JSEP 提供 Rollback 将信令状态机恢复到 <code>stable</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 回滚本端未完成的 Offer</span></span><br><span class="line"><span class="keyword">await</span> pc.<span class="title function_">setLocalDescription</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;rollback&#x27;</span> &#125;);</span><br><span class="line"><span class="comment">// 或回滚收到的 Offer</span></span><br><span class="line"><span class="keyword">await</span> pc.<span class="title function_">setRemoteDescription</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;rollback&#x27;</span> &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在 Perfect Negotiation 模式中，礼貌方（polite peer）在发生 Offer 碰撞时通过 Rollback 撤回自己的 Offer，接受对端的 Offer。</p>
+<hr>
+<h1 id="10-Simulcast-SDP（RFC-8853）"><a href="#10-Simulcast-SDP（RFC-8853）" class="headerlink" title="10. Simulcast SDP（RFC 8853）"></a>10. Simulcast SDP（RFC 8853）</h1><p>Simulcast（联播）允许发送端同时发送同一视频源的多个不同分辨率&#x2F;码率的 RTP 流，接收端（SFU）根据订阅者网络状况选择转发合适的流。</p>
+<p>RFC 8853 引入两个新 SDP 属性：</p>
+<h3 id="10-1-a-rid-约束行"><a href="#10-1-a-rid-约束行" class="headerlink" title="10.1 a&#x3D;rid 约束行"></a>10.1 a&#x3D;rid 约束行</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rid:&lt;rid-id&gt; &lt;direction&gt; [pt=&lt;pt-list&gt;] [&lt;restriction-list&gt;]</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a=rid:high send pt=96;max-width=1280;max-height=720;max-fr=30</span><br><span class="line">a=rid:mid  send pt=96;max-width=640;max-height=360;max-fr=15</span><br><span class="line">a=rid:low  send pt=96;max-width=320;max-height=180;max-fr=15</span><br></pre></td></tr></table></figure>
+
+<p><code>rid</code>（RTP Stream Identifier）为每个 Simulcast 流定义标识符，并可声明分辨率、帧率约束。</p>
+<h3 id="10-2-a-simulcast-行"><a href="#10-2-a-simulcast-行" class="headerlink" title="10.2 a&#x3D;simulcast 行"></a>10.2 a&#x3D;simulcast 行</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=simulcast:&lt;send-streams&gt; [&lt;recv-streams&gt;]</span><br></pre></td></tr></table></figure>
+
+<p>完整 Simulcast 视频媒体描述示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br><span class="line">a=rid:high send pt=96;max-width=1280;max-height=720</span><br><span class="line">a=rid:mid  send pt=96;max-width=640;max-height=360</span><br><span class="line">a=rid:low  send pt=96;max-width=320;max-height=180</span><br><span class="line">a=simulcast:send high;mid;low</span><br><span class="line">a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</span><br><span class="line">a=extmap:6 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id</span><br></pre></td></tr></table></figure>
+
+<p>接收端通过 RTP 包头的 <code>rtp-stream-id</code> 扩展字段识别属于哪个 <code>rid</code>。</p>
+<p>在 JavaScript 中启用 Simulcast：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sender = pc.<span class="title function_">addTrack</span>(videoTrack, stream);</span><br><span class="line"><span class="keyword">const</span> params = sender.<span class="title function_">getParameters</span>();</span><br><span class="line"></span><br><span class="line">params.<span class="property">encodings</span> = [</span><br><span class="line">  &#123; <span class="attr">rid</span>: <span class="string">&#x27;high&#x27;</span>, <span class="attr">maxBitrate</span>: <span class="number">1_200_000</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">1.0</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">rid</span>: <span class="string">&#x27;mid&#x27;</span>,  <span class="attr">maxBitrate</span>:   <span class="number">500_000</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">2.0</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">rid</span>: <span class="string">&#x27;low&#x27;</span>,  <span class="attr">maxBitrate</span>:   <span class="number">150_000</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">4.0</span> &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> sender.<span class="title function_">setParameters</span>(params);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-SDP-在-DataChannel-场景中的用法"><a href="#11-SDP-在-DataChannel-场景中的用法" class="headerlink" title="11. SDP 在 DataChannel 场景中的用法"></a>11. SDP 在 DataChannel 场景中的用法</h1><p>使用 <code>RTCPeerConnection.createDataChannel()</code> 时，SDP 中会出现 <code>application</code> 类型的媒体描述：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">m=application 9 UDP/DTLS/SCTP webrtc-datachannel</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=ice-ufrag:wPqt</span><br><span class="line">a=ice-pwd:Lg6hOQFHKuXfmgEXCJCKwQov</span><br><span class="line">a=ice-options:trickle</span><br><span class="line">a=fingerprint:sha-256 AB:CD:EF:...</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=mid:2</span><br><span class="line">a=sctp-port:5000</span><br><span class="line">a=max-message-size:262144</span><br></pre></td></tr></table></figure>
+
+<p>关键字段：</p>
+<ul>
+<li><code>UDP/DTLS/SCTP</code>：SCTP 运行在 DTLS 加密的 UDP 之上</li>
+<li><code>webrtc-datachannel</code>：WebRTC DataChannel 语义</li>
+<li><code>a=sctp-port:5000</code>：SCTP 端口固定为 5000（RFC 8841）</li>
+<li><code>a=max-message-size:262144</code>：最大消息 256KB</li>
+</ul>
+<p>DataChannel 本身的子通道（Stream ID、标签、可靠性模式等）通过 SCTP 内部的 DCEP（Data Channel Establishment Protocol，RFC 8832）协商，不在 SDP 中体现。</p>
+<hr>
+<h1 id="12-SDP-的常见坑与调试技巧"><a href="#12-SDP-的常见坑与调试技巧" class="headerlink" title="12. SDP 的常见坑与调试技巧"></a>12. SDP 的常见坑与调试技巧</h1><h3 id="12-1-常见错误"><a href="#12-1-常见错误" class="headerlink" title="12.1 常见错误"></a>12.1 常见错误</h3><p><strong>错误 1：ICE Candidate 早于 RemoteDescription 到达</strong></p>
+<p>Trickle ICE 场景下，ICE Candidate 可能先于 Offer&#x2F;Answer 到达，必须先缓存，等 <code>setRemoteDescription</code> 完成后再添加：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pendingCandidates = [];</span><br><span class="line"><span class="keyword">let</span> remoteDescSet = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">handleRemoteDescription</span>(<span class="params">sdp</span>) &#123;</span><br><span class="line">  <span class="keyword">await</span> pc.<span class="title function_">setRemoteDescription</span>(sdp);</span><br><span class="line">  remoteDescSet = <span class="literal">true</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> c <span class="keyword">of</span> pendingCandidates) &#123;</span><br><span class="line">    <span class="keyword">await</span> pc.<span class="title function_">addIceCandidate</span>(c);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">handleIceCandidate</span>(<span class="params">candidate</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!remoteDescSet) &#123;</span><br><span class="line">    pendingCandidates.<span class="title function_">push</span>(candidate);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">await</span> pc.<span class="title function_">addIceCandidate</span>(candidate);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>错误 2：手动修改 SDP 字符串（SDP munging）</strong></p>
+<p>直接拼接或正则替换 SDP 文本会绕过浏览器状态管理，容易引入微妙的 bug。推荐使用标准 API，如 <code>RTCRtpSender.setParameters()</code> 修改码率，<code>RTCRtpTransceiver.setCodecPreferences()</code> 调整编解码器优先级。</p>
+<p><strong>错误 3：编解码器优先级未正确设置</strong></p>
+<p>若需优先使用特定编解码器（如 VP9 而非 VP8）：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> transceiver = pc.<span class="title function_">getTransceivers</span>()[<span class="number">0</span>];</span><br><span class="line"><span class="keyword">const</span> codecs = <span class="title class_">RTCRtpSender</span>.<span class="title function_">getCapabilities</span>(<span class="string">&#x27;video&#x27;</span>).<span class="property">codecs</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 VP9 放到最前面（最高优先级）</span></span><br><span class="line"><span class="keyword">const</span> preferred = [</span><br><span class="line">  ...codecs.<span class="title function_">filter</span>(<span class="function"><span class="params">c</span> =&gt;</span> c.<span class="property">mimeType</span> === <span class="string">&#x27;video/VP9&#x27;</span>),</span><br><span class="line">  ...codecs.<span class="title function_">filter</span>(<span class="function"><span class="params">c</span> =&gt;</span> c.<span class="property">mimeType</span> !== <span class="string">&#x27;video/VP9&#x27;</span>),</span><br><span class="line">];</span><br><span class="line">transceiver.<span class="title function_">setCodecPreferences</span>(preferred);</span><br></pre></td></tr></table></figure>
+
+<p><strong>错误 4：ICE Restart 时未正确处理新的 ufrag&#x2F;pwd</strong></p>
+<p>ICE Restart 通过新 Offer 中更新的 <code>ice-ufrag</code> 和 <code>ice-pwd</code> 触发，接收到 ICE 连接失败（<code>iceConnectionState === &#39;failed&#39;</code>）时应主动触发：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pc.<span class="property">oniceconnectionstatechange</span> = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (pc.<span class="property">iceConnectionState</span> === <span class="string">&#x27;failed&#x27;</span>) &#123;</span><br><span class="line">    pc.<span class="title function_">restartIce</span>(); <span class="comment">// 触发新一轮 ICE 协商</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="12-2-调试工具"><a href="#12-2-调试工具" class="headerlink" title="12.2 调试工具"></a>12.2 调试工具</h3><p><strong>WebRTC Internals（Chrome 内置）</strong>：</p>
+<p>在 Chrome 中打开 <code>chrome://webrtc-internals/</code>，可以实时查看所有 <code>RTCPeerConnection</code> 的完整 SDP、ICE 状态和媒体统计。</p>
+<p><strong>SDP 解析库 sdp-transform</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 SDP 字符串解析为结构化 JSON 对象</span></span><br><span class="line"><span class="keyword">const</span> sdpTransform = <span class="built_in">require</span>(<span class="string">&#x27;sdp-transform&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> parsed = sdpTransform.<span class="title function_">parse</span>(pc.<span class="property">localDescription</span>.<span class="property">sdp</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(parsed, <span class="literal">null</span>, <span class="number">2</span>));</span><br></pre></td></tr></table></figure>
+
+<p><strong>在线工具</strong>：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://webrtc.github.io/samples/">webrtc.github.io&#x2F;samples&#x2F;</a>：官方示例</li>
+<li><code>chrome://webrtc-internals/</code>（Chrome）&#x2F; <code>about:webrtc</code>（Firefox）：实时 SDP 与状态查看</li>
+</ul>
+<hr>
+<h1 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h1><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8866">RFC 8866</a></td>
+<td>SDP: Session Description Protocol</td>
+<td>SDP 当前核心规范（废弃 RFC 4566）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3264">RFC 3264</a></td>
+<td>An Offer&#x2F;Answer Model with SDP</td>
+<td>Offer&#x2F;Answer 协商模型</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8829">RFC 8829</a></td>
+<td>JavaScript Session Establishment Protocol (JSEP)</td>
+<td>WebRTC 信令状态机与 SDP 处理规则</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8843">RFC 8843</a></td>
+<td>Negotiating Media Multiplexing Using SDP</td>
+<td>BUNDLE 多路复用</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8853">RFC 8853</a></td>
+<td>Using Simulcast in SDP and RTP Sessions</td>
+<td>Simulcast SDP 扩展</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8830">RFC 8830</a></td>
+<td>WebRTC MediaStream Identification in SDP</td>
+<td>a&#x3D;msid 属性</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8839">RFC 8839</a></td>
+<td>SDP Offer&#x2F;Answer Procedures for ICE</td>
+<td>ICE 在 SDP 中的表示</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8122">RFC 8122</a></td>
+<td>Connection-Oriented Media Transport over TLS in SDP</td>
+<td>a&#x3D;fingerprint DTLS 指纹</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8285">RFC 8285</a></td>
+<td>A General Mechanism for RTP Header Extensions</td>
+<td>a&#x3D;extmap RTP 头部扩展</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5761">RFC 5761</a></td>
+<td>Multiplexing RTP Data and Control Packets</td>
+<td>a&#x3D;rtcp-mux</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc4585">RFC 4585</a></td>
+<td>Extended RTP Profile for RTCP-Based Feedback (AVPF)</td>
+<td>a&#x3D;rtcp-fb</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5763">RFC 5763</a></td>
+<td>Framework for Establishing DTLS-SRTP</td>
+<td>a&#x3D;setup DTLS 角色</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8838">RFC 8838</a></td>
+<td>Trickle ICE</td>
+<td>a&#x3D;ice-options:trickle</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8841">RFC 8841</a></td>
+<td>SDP Offer&#x2F;Answer Procedures for SCTP over DTLS</td>
+<td>DataChannel SDP</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc4588">RFC 4588</a></td>
+<td>RTP Retransmission Payload Format</td>
+<td>RTX 重传流</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/">W3C WebRTC</a></td>
+<td>WebRTC: Real-Time Communication in Browsers</td>
+<td>RTCPeerConnection API</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-rtcweb-sdp-09">draft-ietf-rtcweb-sdp</a></td>
+<td>Annotated Example SDP for WebRTC</td>
+<td>WebRTC SDP 注解示例</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-SDP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%8D%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.</span> <span class="toc-text">1. SDP 是什么，不是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E8%A7%84%E8%8C%83%E6%BC%94%E8%BF%9B"><span class="toc-number">3.</span> <span class="toc-text">2. 规范演进</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SDP-%E6%96%87%E6%9C%AC%E6%A0%BC%E5%BC%8F%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">3. SDP 文本格式基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 整体结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AD%97%E6%AE%B5%E9%A1%BA%E5%BA%8F%E7%BA%A6%E6%9D%9F"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 字段顺序约束</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E4%BC%9A%E8%AF%9D%E7%BA%A7%E5%AD%97%E6%AE%B5%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. 会话级字段详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-v-%E7%89%88%E6%9C%AC"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 v&#x3D; 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-o-%E5%8F%91%E8%B5%B7%E8%80%85%E4%B8%8E%E4%BC%9A%E8%AF%9D%E6%A0%87%E8%AF%86"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 o&#x3D; 发起者与会话标识</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-s-%E4%BC%9A%E8%AF%9D%E5%90%8D%E7%A7%B0"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 s&#x3D; 会话名称</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-t-%E6%97%B6%E9%97%B4"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 t&#x3D; 时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-c-%E8%BF%9E%E6%8E%A5%E4%BF%A1%E6%81%AF"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 c&#x3D; 连接信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-b-%E5%B8%A6%E5%AE%BD"><span class="toc-number">5.0.6.</span> <span class="toc-text">4.6 b&#x3D; 带宽</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AA%92%E4%BD%93%E6%8F%8F%E8%BF%B0%EF%BC%88m-%E5%9D%97%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 媒体描述（m&#x3D; 块）详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-m-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 m&#x3D; 行格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-a-rtpmap-%E2%80%94-%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 a&#x3D;rtpmap — 载荷类型映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-a-fmtp-%E2%80%94-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%8F%82%E6%95%B0"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 a&#x3D;fmtp — 编解码器参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-a-sendrecv-sendonly-recvonly-inactive-%E2%80%94-%E5%AA%92%E4%BD%93%E6%96%B9%E5%90%91"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 a&#x3D;sendrecv &#x2F; sendonly &#x2F; recvonly &#x2F; inactive — 媒体方向</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-WebRTC-%E4%B8%93%E5%B1%9E-SDP-%E6%89%A9%E5%B1%95%E5%B1%9E%E6%80%A7"><span class="toc-number">7.</span> <span class="toc-text">6. WebRTC 专属 SDP 扩展属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-ICE-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 ICE 相关属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-DTLS-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 DTLS 相关属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-BUNDLE-%E2%80%94-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88RFC-8843%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 BUNDLE — 多路复用（RFC 8843）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-a-rtcp-mux-%E2%80%94-RTP-RTCP-%E7%AB%AF%E5%8F%A3%E5%A4%8D%E7%94%A8%EF%BC%88RFC-5761%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 a&#x3D;rtcp-mux — RTP&#x2F;RTCP 端口复用（RFC 5761）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-a-mid-%E2%80%94-%E5%AA%92%E4%BD%93%E6%A0%87%E8%AF%86%E7%AC%A6"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 a&#x3D;mid — 媒体标识符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-a-msid-%E2%80%94-MediaStream-%E6%A0%87%E8%AF%86%EF%BC%88RFC-8830%EF%BC%89"><span class="toc-number">7.0.6.</span> <span class="toc-text">6.6 a&#x3D;msid — MediaStream 标识（RFC 8830）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7-a-ssrc-%E2%80%94-%E5%90%8C%E6%AD%A5%E6%BA%90%E6%A0%87%E8%AF%86"><span class="toc-number">7.0.7.</span> <span class="toc-text">6.7 a&#x3D;ssrc — 同步源标识</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-8-a-extmap-%E2%80%94-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%E6%98%A0%E5%B0%84%EF%BC%88RFC-8285%EF%BC%89"><span class="toc-number">7.0.8.</span> <span class="toc-text">6.8 a&#x3D;extmap — RTP 头部扩展映射（RFC 8285）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-9-a-rtcp-fb-%E2%80%94-RTCP-%E5%8F%8D%E9%A6%88%E8%83%BD%E5%8A%9B%EF%BC%88RFC-4585%EF%BC%89"><span class="toc-number">7.0.9.</span> <span class="toc-text">6.9 a&#x3D;rtcp-fb — RTCP 反馈能力（RFC 4585）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-10-a-ice-options-trickle-%E2%80%94-Trickle-ICE-%E6%94%AF%E6%8C%81"><span class="toc-number">7.0.10.</span> <span class="toc-text">6.10 a&#x3D;ice-options:trickle — Trickle ICE 支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%9A%84-WebRTC-SDP-Offer-%E9%80%90%E8%A1%8C%E6%B3%A8%E8%A7%A3"><span class="toc-number">8.</span> <span class="toc-text">7. 一个完整的 WebRTC SDP Offer 逐行注解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Offer-Answer-%E6%A8%A1%E5%9E%8B%EF%BC%88RFC-3264%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. Offer&#x2F;Answer 模型（RFC 3264）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8D%8F%E5%95%86%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 协商流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Answer-%E5%AF%B9-Offer-%E7%9A%84%E5%93%8D%E5%BA%94%E8%A7%84%E5%88%99"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Answer 对 Offer 的响应规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Offer-Answer-%E7%A4%BA%E4%BE%8B%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Offer&#x2F;Answer 示例对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-JSEP-%E4%B8%8E-SDP-%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%88RFC-8829%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. JSEP 与 SDP 的关系（RFC 8829）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-Unified-Plan-vs-Plan-B"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 Unified Plan vs Plan B</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-Rollback-%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 Rollback 机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Simulcast-SDP%EF%BC%88RFC-8853%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. Simulcast SDP（RFC 8853）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-a-rid-%E7%BA%A6%E6%9D%9F%E8%A1%8C"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 a&#x3D;rid 约束行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-a-simulcast-%E8%A1%8C"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 a&#x3D;simulcast 行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SDP-%E5%9C%A8-DataChannel-%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E7%94%A8%E6%B3%95"><span class="toc-number">12.</span> <span class="toc-text">11. SDP 在 DataChannel 场景中的用法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-SDP-%E7%9A%84%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">13.</span> <span class="toc-text">12. SDP 的常见坑与调试技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 常见错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 调试工具</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">14.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&text=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&is_video=false&description=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议&body=Check out this article: http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&title=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&name=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/01/webrtc/04-sdp-session-description-protocol%20/&t=SDP（Session Description Protocol）— 描述媒体能力与连接参数的协议"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

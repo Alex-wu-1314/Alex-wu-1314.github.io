@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Alex Wu - Interactive Flipbook Resume - Inconsolata</title>
+    <style>
+        /* 导入 Google 字体 Inconsolata */
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --ink: #1a1208;
+            --paper: #f5f0e8;
+            --paper2: #ede8d8;
+            --accent: #c0392b;
+            --accent2: #2c7a4b;
+            --accent3: #1a4a7a;
+            --pencil: #5a4a3a;
+        }
+
+        .wrap {
+            /* 关键修改：将全局字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 水平居中所有内容 */
+            padding: 40px 0 20px;
+            min-height: 100vh;
+            background: #dfd7c0; /* 增加背景色对比 */
+        }
+
+        /* 标签栏样式 */
+        .tab-row {
+            display: flex;
+            gap: 3px;
+            margin-bottom: -1px;
+            z-index: 5;
+            width: 620px;       /* 强制与 .scene 宽度一致 */
+            padding-left: 24px; /* 补偿脊柱位置 */
+        }
+
+        .tab {
+            background: var(--paper2);
+            border: 1.5px solid #b8a880;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            padding: 4px 14px;
+            /* 关键修改：标签字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace;
+            font-size: 14px;
+            color: var(--pencil);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .tab.active {
+            background: var(--paper);
+            color: var(--ink);
+            font-weight: 700;
+            height: 32px; /* 略微高出一点点 */
+        }
+
+        /* book container */
+        .scene {
+            perspective: 1800px;
+            width: 620px;
+            height: 460px;
+            position: relative;
+        }
+
+        .book {
+            width: 620px;
+            height: 460px;
+            position: relative;
+        }
+
+        /* spine */
+        .spine {
+            position: absolute;
+            left: -18px;
+            top: 0;
+            bottom: 0;
+            width: 22px;
+            background: linear-gradient(90deg, #5a1500, #7a1f00, #5a1500);
+            border-radius: 6px 0 0 6px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spine-text {
+            /* 关键修改：脊柱字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 11px;
+            color: #e8c896;
+            letter-spacing: 2px;
+        }
+
+        .page {
+            position: absolute;
+            inset: 0;
+            border-radius: 4px 12px 12px 4px;
+            transform-origin: left center;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .page.flipped {
+            transform: rotateY(-175deg);
+        }
+
+        /* paper pages (pages 1-4) */
+        .paper {
+            background: var(--paper);
+            border: 1.5px solid #c8b896;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 修复横线 */
+        .paper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(transparent, transparent 27px, #e0d8c8 27px, #e0d8c8 28px);
+            pointer-events: none;
+            opacity: 0.45;
+            z-index: 0;
+        }
+
+        .paper::after {
+            content: '';
+            position: absolute;
+            left: 54px;
+            top: 0;
+            bottom: 0;
+            width: 1.5px;
+            background: #e8a090;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* cover page */
+        .cover-page {
+            background: #8b2500;
+            border: 3px solid #5a1500;
+            box-shadow: inset -6px 0 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cover-title {
+            /* 关键修改：封面字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace;
+            font-weight: 700;
+            font-size: 32px;
+            color: #f5e6c8;
+            text-align: center;
+            line-height: 1.3;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+        }
+
+        .cover-sub { font-size: 17px; color: #e8c896; letter-spacing: 2px; }
+        .cover-deco { width: 80px; height: 3px; background: linear-gradient(90deg, transparent, #e8c896, transparent); margin: 4px 0; }
+        .cover-hint { font-size: 14px; color: #e8c896; opacity: 0.6; margin-top: 8px; }
+
+        .page-inner {
+            position: absolute;
+            inset: 0;
+            padding: 26px 28px 20px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            overflow: hidden;
+            z-index: 1; /* 确保内容在横线上方 */
+        }
+
+        .pg-num { position: absolute; bottom: 11px; right: 16px; font-size: 13px; color: var(--pencil); opacity: 0.55; }
+        .dog-ear { position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 26px 26px 0; border-color: transparent #c8b896 transparent transparent; z-index: 2; }
+
+        /* content styles */
+        .pg-title { 
+            /* 关键修改：标题字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace; 
+            font-weight: 700;
+            font-size: 20px; 
+            color: var(--accent); 
+            border-bottom: 2px dashed #c8b896; 
+            padding-bottom: 5px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            flex-shrink: 0; 
+        }
+        
+        .section-label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--accent3); 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            /* 关键修改：标签字体替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace; 
+            flex-shrink: 0; 
+        }
+        
+        .hw { 
+            /* 关键修改：正文强制替换为 Inconsolata */
+            font-family: 'Inconsolata', monospace; 
+            font-size: 15px; 
+            color: var(--ink); 
+            line-height: 1.5; 
+        }
+        
+        .skill-row { display: flex; flex-wrap: wrap; gap: 5px; }
+        
+        .stag { 
+            background: var(--paper2); 
+            border: 1.5px solid #b8a880; 
+            border-radius: 3px; 
+            padding: 1px 9px; 
+            font-size: 13px; 
+            color: var(--pencil); 
+            /* 关键修改：标签内部字体替换 */
+            font-family: 'Inconsolata', monospace;
+        }
+        .stag.g { border-color: var(--accent2); color: var(--accent2); }
+        .stag.b { border-color: var(--accent3); color: var(--accent3); }
+
+        .bar-wrap { display: flex; flex-direction: column; gap: 7px; }
+        .bar-row { display: flex; align-items: center; gap: 8px; }
+        .bar-label { font-size: 13px; color: var(--ink); width: 118px; flex-shrink: 0; }
+        .bar-track { flex: 1; height: 11px; background: var(--paper2); border: 1.5px solid #b8a880; border-radius: 2px; }
+        .bar-fill { height: 100%; border-radius: 2px; width: 0; transition: width 1s ease; }
+        .bf-r { background: var(--accent); }
+        .bf-g { background: var(--accent2); }
+        .bf-b { background: var(--accent3); }
+
+        .tag-block { background: var(--paper2); border: 1.5px solid #b8a880; border-radius: 4px; padding: 6px 10px; margin-bottom: 5px; }
+        .tag-name { 
+            /* 关键修改：标签名统一 */
+            font-family: 'Inconsolata', monospace; 
+            font-weight: 700;
+            font-size: 12px; 
+            color: var(--accent); 
+            letter-spacing: 1px; 
+            margin-bottom: 3px; 
+        }
+        
+        .art-link { font-size: 12px; color: var(--accent3); cursor: pointer; line-height: 1.4; }
+        .art-link:hover { text-decoration: underline; color: var(--accent); }
+        .art-link::before { content: '· '; }
+
+        .tl { display: flex; flex-direction: column; gap: 8px; position: relative; }
+        .tl::before { content: ''; position: absolute; left: 8px; top: 6px; bottom: 6px; width: 2px; background: repeating-linear-gradient(180deg, var(--pencil) 0, var(--pencil) 4px, transparent 4px, transparent 8px); opacity: 0.35; }
+        .tl-item { padding-left: 24px; position: relative; }
+        .tl-item::before { content: ''; position: absolute; left: 4px; top: 5px; width: 9px; height: 9px; border: 2px solid var(--accent); border-radius: 50%; background: var(--paper); }
+        
+        .tl-year { 
+            font-size: 11px; 
+            color: var(--accent); 
+            /* 关键修改：时间轴字体 */
+            font-family: 'Inconsolata', monospace; 
+        }
+        .tl-role { font-size: 14px; color: var(--ink); font-weight: 700; }
+        .tl-org { font-size: 12px; color: var(--pencil); }
+
+        .cl { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 14px; color: var(--accent3); border-bottom: 1px dashed #c8b896; cursor: pointer; }
+        .cl:last-child { border-bottom: none; }
+        
+        .stamp { 
+            position: absolute; 
+            right: 32px; 
+            top: 22px; 
+            width: 54px; 
+            height: 54px; 
+            border: 3px solid var(--accent); 
+            border-radius: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transform: rotate(8deg); 
+            opacity: 0.13; 
+            /* 关键修改：印章字体 */
+            font-family: 'Inconsolata', monospace; 
+            font-size: 9px; 
+            color: var(--accent); 
+            text-align: center; 
+            line-height: 1.3; 
+        }
+        
+        .washi { position: absolute; top: -2px; left: 26px; width: 66px; height: 15px; background: repeating-linear-gradient(45deg, #e8c090 0, #e8c090 4px, #f5d8a0 4px, #f5d8a0 8px); opacity: 0.55; transform: rotate(-2deg); }
+
+        .nav-row { display: flex; gap: 16px; align-items: center; justify-content: center; margin-top: 14px; }
+        .nbtn { 
+            background: var(--paper); 
+            border: 2px solid #b8a880; 
+            border-radius: 50%; 
+            width: 42px; 
+            height: 42px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: transform 0.15s, border-color 0.2s; 
+            /* 关键修改：按钮字体 */
+            font-family: 'Inconsolata', monospace; 
+            color: var(--ink); 
+            box-shadow: 2px 2px 0 #c8b896; 
+        }
+        
+        .nbtn:hover { border-color: var(--accent); transform: scale(1.1); }
+        .nbtn:disabled { opacity: 0.3; cursor: default; transform: none; }
+        .pgind { font-family: 'Inconsolata', monospace; font-size: 16px; color: var(--pencil); min-width: 110px; text-align: center; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+  <h2 class="sr-only">Alex Wu Inconsolata 版互动简历 — About / Skills / Blog / Contact</h2>
+  
+  <div class="tab-row" id="tabs"></div>
+
+  <div class="scene">
+    <div class="book" id="book">
+      <div class="spine"><span class="spine-text">ALEX WU · 2026</span></div>
+      <div id="pagesContainer"></div>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="nbtn" id="prevBtn" onclick="go(-1)">←</button>
+    <span class="pgind" id="pgind">Cover</span>
+    <button class="nbtn" id="nextBtn" onclick="go(1)">→</button>
+  </div>
+</div>
+
+<script>
+const tagData = [
+  { name:"CPU Arch", articles:[
+    {t:"内存访问全解析：虚拟内存、缓存与 DRAM 如何影响性能", u:"https://alex-wu-1314.github.io/2021/02/27/cpu%20arch/7.%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E3%80%81%E7%BC%93%E5%AD%98%E4%B8%8EDRAM%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD/"},
+    {t:"三大并行计算技术：超标量执行、SIMD、多核并行", u:"https://alex-wu-1314.github.io/2021/02/23/cpu%20arch/6.%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/"},
+    {t:"CPU 流水线：现代处理器如何加速指令执行", u:"https://alex-wu-1314.github.io/2021/02/17/cpu%20arch/5.cpu_pipeline/"},
+  ]},
+  { name:"WebRTC", articles:[
+    {t:"P2P / SFU / MCU：三种 WebRTC 部署架构对比", u:"https://alex-wu-1314.github.io/2021/11/19/webrtc/02-p2p-sfu-mcu/"},
+    {t:"WebRTC Framework：整体架构概览与浏览器内部模块分层", u:"https://alex-wu-1314.github.io/2021/11/07/webrtc/01-webrtc-framework/"},
+  ]},
+  { name:"Cryptology", articles:[
+    {t:"公钥密码学（非对称密码学）深度解析", u:"https://alex-wu-1314.github.io/2021/07/22/cryptology/10.public_key_cryptography/"},
+    {t:"前向保密（Forward Secrecy）", u:"https://alex-wu-1314.github.io/2021/07/01/cryptology/9.forward-secrecy/"},
+    {t:"RSA Cryptosystem", u:"https://alex-wu-1314.github.io/2021/05/10/cryptology/5.RSA_cryptosystem/"},
+  ]},
+  { name:"HPPP", articles:[
+    {t:"如何设计高性能的数据平面软件", u:"https://alex-wu-1314.github.io/2019/08/02/HPPP/high_performance_dataplane/"},
+    {t:"高效包处理技术：DPDK 和 VPP 的核心技术", u:"https://alex-wu-1314.github.io/2019/07/02/HPPP/1.high-performance-packet-processing/"},
+  ]},
+  { name:"内存模型 & 一致性", articles:[
+    {t:"内存模型 & 一致性模型 系列文章", u:"https://alex-wu-1314.github.io/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/"},
+  ]},
+];
+
+function openLink(url) { window.open(url, '_blank'); }
+
+function coverHTML() {
+  return `<div class="cover-page page" id="p0" style="z-index:50">
+    <div class="cover-title">Alex Wu</div>
+    <div class="cover-deco"></div>
+    <div class="cover-sub">Software Engineer</div>
+    <div class="cover-hint">click to open →</div>
+  </div>`;
+}
+
+function aboutHTML() {
+  return `<div class="paper page" id="p1" style="z-index:40">
+    <div class="page-inner">
+      <div class="washi"></div>
+      <div class="stamp">ALEX<br>WU<br>2026</div>
+      <div class="pg-title"><span>👋</span> About Me</div>
+      <div class="hw">Hi! I'm <strong>Alex Wu</strong> — a software engineer deeply passionate about low-level systems, hardware-aware software, and real-time communication technologies.</div>
+      <div class="hw" style="font-size:14px;opacity:0.85;">I believe the best engineering happens at the intersection of <span style="color:var(--accent2);font-weight:700;">hardware</span> and <span style="color:var(--accent3);font-weight:700;">software</span>. This flipbook is where my work comes alive — one page at a time.</div>
+      <div>
+        <div class="section-label">Focus Areas</div>
+        <div class="skill-row" style="margin-top:6px;">
+          <span class="stag g">3GPP L2 Protocol</span>
+          <span class="stag b">WebRTC</span>
+          <span class="stag g">CPU Perf Optimization</span>
+          <span class="stag b">5G NR</span>
+          <span class="stag">Cryptography</span>
+          <span class="stag b">Lock-free Structures</span>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Currently</div>
+        <div class="hw" style="font-size:14px;">📍 Documenting experiments in low-level systems & real-time comms</div>
+      </div>
+    </div>
+    <div class="pg-num">1 / 4</div>
+    <div class="dog-ear"></div>
+  </div>`;
+}
+
+function skillsHTML() {
+  return `<div class="paper page" id="p2" style="z-index:30">
+    <div class="page-inner">
+      <div class="pg-title"><span>⚙️</span> Technical Skills</div>
+      <div class="bar-wrap" id="barWrap">
+        <div class="bar-row"><span class="bar-label">C / C++</span><div class="bar-track"><div class="bar-fill bf-r" data-w="92%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">3GPP MAC/RLC/PDCP</span><div class="bar-track"><div class="bar-fill bf-g" data-w="90%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">WebRTC Stack</span><div class="bar-track"><div class="bar-fill bf-b" data-w="85%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">CPU Architecture</span><div class="bar-track"><div class="bar-fill bf-r" data-w="83%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">Cryptography</span><div class="bar-track"><div class="bar-fill bf-g" data-w="78%"></div></div></div>
+        <div class="bar-row"><span class="bar-label">Linux / Systems</span><div class="bar-track"><div class="bar-fill bf-b" data-w="88%"></div></div></div>
+      </div>
+      <div>
+        <div class="section-label" style="margin-top:10px;">Also familiar with</div>
+        <div class="skill-row" style="margin-top:5px;">
+          <span class="stag">ICE / STUN / TURN</span>
+          <span class="stag">Lock-free DS</span>
+          <span class="stag">Multi-core Scheduling</span>
+          <span class="stag">RSA / ECDH</span>
+          <span class="stag">DPDK / VPP</span>
+        </div>
+      </div>
+    </div>
+    <div class="pg-num">2 / 4</div>
+    <div class="dog-ear"></div>
+  </div>`;
+}
+
+function blogHTML() {
+  const blocks = tagData.map(tag =>
+    `<div class="tag-block">
+      <div class="tag-name"># ${tag.name}</div>
+      <div>${tag.articles.map(a => `<div class="art-link" onclick="openLink('${a.u}')">${a.t}</div>`).join('')}</div>
+    </div>`
+  ).join('');
+  return `<div class="paper page" id="p3" style="z-index:20">
+    <div class="page-inner">
+      <div class="pg-title"><span>✍️</span> Writing by Tag</div>
+      <div class="hw" style="font-size:12px;opacity:0.65;flex-shrink:0;">点击标题可跳转阅读 →</div>
+      <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;padding-right:5px;">${blocks}</div>
+    </div>
+    <div class="pg-num">3 / 4</div>
+    <div class="dog-ear"></div>
+  </div>`;
+}
+
+function contactHTML() {
+  return `<div class="paper page" id="p4" style="z-index:10">
+    <div class="page-inner">
+      <div class="washi"></div>
+      <div class="pg-title"><span>📬</span> Get in Touch</div>
+      <div class="hw" style="font-size:15px;">Let's build something great together!</div>
+      <div>
+        <div class="section-label">Experience</div>
+        <div class="tl" style="margin-top:8px;">
+          <div class="tl-item">
+            <div class="tl-year">2016 – Present</div>
+            <div class="tl-role">Software Engineer</div>
+            <div class="tl-org">Low-level Systems & Telecom R&D</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-year">Writing</div>
+            <div class="tl-role">Tech Blogger</div>
+            <div class="tl-org">alex-wu-1314.github.io · 40+ articles</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Links</div>
+        <div style="margin-top:7px;display:flex;flex-direction:column;">
+          <div class="cl" onclick="openLink('https://alex-wu-1314.github.io/')"><span style="width:22px;font-size:15px;">🌐</span><span>alex-wu-1314.github.io</span></div>
+          <div class="cl" onclick="openLink('mailto:didiw1314@gmail.com')"><span style="width:22px;font-size:15px;">✉️</span><span>didiw1314@gmail.com</span></div>
+          <div class="cl" onclick="openLink('https://github.com/alex-wu-1314')"><span style="width:22px;font-size:15px;">💻</span><span>github.com/alex-wu-1314</span></div>
+        </div>
+      </div>
+      <div class="hw" style="font-size:13px;opacity:0.5;text-align:right;margin-top:4px;">— Alex Wu, 2026</div>
+    </div>
+    <div class="pg-num">4 / 4</div>
+    <div class="dog-ear"></div>
+  </div>`;
+}
+
+// Initialization
+const container = document.getElementById('pagesContainer');
+container.innerHTML = contactHTML() + blogHTML() + skillsHTML() + aboutHTML() + coverHTML();
+
+const tabDefs = [{label:'About',pg:1},{label:'Skills',pg:2},{label:'Blog',pg:3},{label:'Contact',pg:4}];
+const tabRow = document.getElementById('tabs');
+tabDefs.forEach(td => {
+  const el = document.createElement('div');
+  el.className = 'tab';
+  el.id = 'tab_' + td.pg;
+  el.textContent = td.label;
+  el.onclick = () => jumpTo(td.pg);
+  tabRow.appendChild(el);
+});
+
+let current = 0;
+
+function flipFwd(i) {
+  const el = document.getElementById('p' + i);
+  if (el) el.classList.add('flipped');
+}
+function flipBck(i) {
+  const el = document.getElementById('p' + i);
+  if (el) el.classList.remove('flipped');
+}
+
+function go(dir) {
+  const next = current + dir;
+  if (next < 0 || next > 4) return;
+  if (dir > 0) {
+    flipFwd(current);
+  } else {
+    flipBck(next);
+  }
+  current = next;
+  updateUI();
+}
+
+function jumpTo(target) {
+  if (target === current) return;
+  if (target > current) {
+    for (let i = current; i < target; i++) flipFwd(i);
+  } else {
+    for (let i = current - 1; i >= target; i--) flipBck(i);
+  }
+  current = target;
+  updateUI();
+}
+
+document.getElementById('p0').onclick = function() { if (current === 0) go(1); };
+
+function updateUI() {
+  const names = ['Cover','About','Skills','Blog','Contact'];
+  const nums  = ['Cover','1 / 4','2 / 4','3 / 4','4 / 4'];
+  document.getElementById('pgind').textContent = names[current] + (current > 0 ? '  ' + nums[current] : '');
+  document.getElementById('prevBtn').disabled = current <= 0;
+  document.getElementById('nextBtn').disabled = current >= 4;
+  
+  tabDefs.forEach(td => {
+    const el = document.getElementById('tab_' + td.pg);
+    if (el) el.className = 'tab' + (td.pg === current ? ' active' : '');
+  });
+  
+  if (current === 2) setTimeout(animateBars, 400);
+}
+
+function animateBars() {
+  document.querySelectorAll('.bar-fill').forEach(b => { 
+      if (b.dataset.w) b.style.width = b.dataset.w; 
+  });
+}
+
+updateUI();
+</script>
+
+</body>
+</html>

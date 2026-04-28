@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 协议概述与背景 设计哲学与架构原则 RTP 报文结构详解 3.1 固定头部字段 3.2 头部扩展（Header Extension） 3.3 载荷（Payload）   关键机制解析 4.1 序列号与丢包检测 4.2 时间戳与媒体同步 4.3 SSRC 与流复用 4.4 CSRC 与混音器   载荷类型（Payload Type）体系 RTP Profile 机制 中间件：Mixer 与 T">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RTP（Real-time Transport Protocol）">
+<meta property="og:url" content="http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 协议概述与背景 设计哲学与架构原则 RTP 报文结构详解 3.1 固定头部字段 3.2 头部扩展（Header Extension） 3.3 载荷（Payload）   关键机制解析 4.1 序列号与丢包检测 4.2 时间戳与媒体同步 4.3 SSRC 与流复用 4.4 CSRC 与混音器   载荷类型（Payload Type）体系 RTP Profile 机制 中间件：Mixer 与 T">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-07-01T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-27T00:28:08.211Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>RTP（Real-time Transport Protocol）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/06/14/webrtc/09-SRTP/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&text=RTP（Real-time Transport Protocol）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&is_video=false&description=RTP（Real-time Transport Protocol）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTP（Real-time Transport Protocol）&body=Check out this article: http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&name=RTP（Real-time Transport Protocol）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&t=RTP（Real-time Transport Protocol）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 协议概述与背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6%E4%B8%8E%E6%9E%B6%E6%9E%84%E5%8E%9F%E5%88%99"><span class="toc-number">3.</span> <span class="toc-text">2. 设计哲学与架构原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BA%94%E7%94%A8%E5%B1%82%E5%88%86%E5%B8%A7%EF%BC%88Application-Layer-Framing%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 应用层分帧（Application-Layer Framing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BD%95%E9%80%89%E6%8B%A9-UDP-%E8%80%8C%E9%9D%9E-TCP"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 为何选择 UDP 而非 TCP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8D%8F%E8%AE%AE%E6%A1%86%E6%9E%B6%E8%80%8C%E9%9D%9E%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 协议框架而非完整实现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RTP-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. RTP 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9B%BA%E5%AE%9A%E5%A4%B4%E9%83%A8%E5%AD%97%E6%AE%B5"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 固定头部字段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#V%EF%BC%88Version%EF%BC%89%EF%BC%9A2-bits"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">V（Version）：2 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P%EF%BC%88Padding%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.2.</span> <span class="toc-text">P（Padding）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#X%EF%BC%88Extension%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.3.</span> <span class="toc-text">X（Extension）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CC%EF%BC%88CSRC-Count%EF%BC%89%EF%BC%9A4-bits"><span class="toc-number">4.0.1.4.</span> <span class="toc-text">CC（CSRC Count）：4 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#M%EF%BC%88Marker%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.5.</span> <span class="toc-text">M（Marker）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PT%EF%BC%88Payload-Type%EF%BC%89%EF%BC%9A7-bits"><span class="toc-number">4.0.1.6.</span> <span class="toc-text">PT（Payload Type）：7 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Sequence-Number%EF%BC%88%E5%BA%8F%E5%88%97%E5%8F%B7%EF%BC%89%EF%BC%9A16-bits"><span class="toc-number">4.0.1.7.</span> <span class="toc-text">Sequence Number（序列号）：16 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Timestamp%EF%BC%88%E6%97%B6%E9%97%B4%E6%88%B3%EF%BC%89%EF%BC%9A32-bits"><span class="toc-number">4.0.1.8.</span> <span class="toc-text">Timestamp（时间戳）：32 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSRC%EF%BC%88Synchronization-Source-Identifier%EF%BC%89%EF%BC%9A32-bits"><span class="toc-number">4.0.1.9.</span> <span class="toc-text">SSRC（Synchronization Source Identifier）：32 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CSRC-List%EF%BC%88Contributing-Source-Identifiers%EF%BC%89%EF%BC%9A0-15-%C3%97-32-bits"><span class="toc-number">4.0.1.10.</span> <span class="toc-text">CSRC List（Contributing Source Identifiers）：0-15 × 32 bits</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%EF%BC%88Header-Extension%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 头部扩展（Header Extension）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BD%BD%E8%8D%B7%EF%BC%88Payload%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 载荷（Payload）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">4. 关键机制解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BA%8F%E5%88%97%E5%8F%B7%E4%B8%8E%E4%B8%A2%E5%8C%85%E6%A3%80%E6%B5%8B"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 序列号与丢包检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%97%B6%E9%97%B4%E6%88%B3%E4%B8%8E%E5%AA%92%E4%BD%93%E5%90%8C%E6%AD%A5"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 时间戳与媒体同步</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%92%AD%E6%94%BE%E6%97%B6%E5%BA%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">播放时序控制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9F%B3%E8%A7%86%E9%A2%91%E5%94%87%E5%BD%A2%E5%90%8C%E6%AD%A5%EF%BC%88Lip-Sync%EF%BC%89"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">音视频唇形同步（Lip Sync）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E8%BF%9E%E7%BB%AD%E4%BC%A0%E8%BE%93%EF%BC%88DTX-Silence-Suppression%EF%BC%89"><span class="toc-number">5.0.2.3.</span> <span class="toc-text">不连续传输（DTX &#x2F; Silence Suppression）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-SSRC-%E4%B8%8E%E6%B5%81%E5%A4%8D%E7%94%A8"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 SSRC 与流复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-CSRC-%E4%B8%8E%E6%B7%B7%E9%9F%B3%E5%99%A8"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 CSRC 与混音器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Payload-Type%EF%BC%89%E4%BD%93%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">5. 载荷类型（Payload Type）体系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%9D%99%E6%80%81%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Static-PT%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 静态载荷类型（Static PT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%8A%A8%E6%80%81%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Dynamic-PT%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 动态载荷类型（Dynamic PT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%97%B6%E9%92%9F%E9%A2%91%E7%8E%87%EF%BC%88Clock-Rate%EF%BC%89%E8%AF%B4%E6%98%8E"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 时钟频率（Clock Rate）说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-Profile-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.</span> <span class="toc-text">6. RTP Profile 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AMixer-%E4%B8%8E-Translator"><span class="toc-number">8.</span> <span class="toc-text">7. 中间件：Mixer 与 Translator</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mixer%EF%BC%88%E6%B7%B7%E9%9F%B3%E5%99%A8%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">Mixer（混音器）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Translator%EF%BC%88%E8%BD%AC%E8%AF%91%E5%99%A8%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">Translator（转译器）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-RTP-%E6%89%A9%E5%B1%95%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. RTP 扩展机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-RFC-8285-%E7%B4%A7%E5%87%91%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 RFC 8285 紧凑头部扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#One-Byte-Header-%E6%A0%BC%E5%BC%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">9.0.1.1.</span> <span class="toc-text">One-Byte Header 格式（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Two-Byte-Header-%E6%A0%BC%E5%BC%8F"><span class="toc-number">9.0.1.2.</span> <span class="toc-text">Two-Byte Header 格式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">9.0.1.3.</span> <span class="toc-text">SDP 协商</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-RTX-%E9%87%8D%E4%BC%A0%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4588%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 RTX 重传格式（RFC 4588）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-RTP-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">10.</span> <span class="toc-text">9. RTP 在 WebRTC 中的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%88%B6%E4%BD%BF%E7%94%A8-SRTP%EF%BC%88RFC-8834%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 强制使用 SRTP（RFC 8834）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RTCP-MUX%EF%BC%88RFC-5761%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RTCP-MUX（RFC 5761）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-BUNDLE-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 BUNDLE 多路复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E5%B8%B8%E7%94%A8-WebRTC-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95"><span class="toc-number">10.0.4.</span> <span class="toc-text">9.4 常用 WebRTC RTP 头部扩展</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F"><span class="toc-number">11.</span> <span class="toc-text">10. 安全性考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-SRTP-%E5%BC%BA%E5%88%B6%E5%8A%A0%E5%AF%86"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 SRTP 强制加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-SSRC-%E9%9A%8F%E6%9C%BA%E5%8C%96"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 SSRC 随机化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%BA%8F%E5%88%97%E5%8F%B7%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%80%BC"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 序列号随机初始值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%BD%8D%E7%BD%AE%E4%B8%8E%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB"><span class="toc-number">12.</span> <span class="toc-text">11. 协议栈位置与交互关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E7%94%A8-Wireshark-%E5%88%86%E6%9E%90-RTP-%E6%8A%A5%E6%96%87"><span class="toc-number">13.</span> <span class="toc-text">12. 实践：用 Wireshark 分析 RTP 报文</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8D%95%E8%8E%B7-WebRTC-%E6%B5%81%E9%87%8F"><span class="toc-number">13.0.1.</span> <span class="toc-text">捕获 WebRTC 流量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB-RTP-%E5%8C%85"><span class="toc-number">13.0.2.</span> <span class="toc-text">识别 RTP 包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">13.0.3.</span> <span class="toc-text">过滤表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E8%AF%BB%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">13.0.4.</span> <span class="toc-text">解读关键字段</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 相关 RFC 速查表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">小结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        RTP（Real-time Transport Protocol）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-01T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-07-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF">协议概述与背景</a></li>
+<li><a href="#2-%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6%E4%B8%8E%E6%9E%B6%E6%9E%84%E5%8E%9F%E5%88%99">设计哲学与架构原则</a></li>
+<li><a href="#3-rtp-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3">RTP 报文结构详解</a><ul>
+<li>3.1 <a href="#31-%E5%9B%BA%E5%AE%9A%E5%A4%B4%E9%83%A8%E5%AD%97%E6%AE%B5">固定头部字段</a></li>
+<li>3.2 <a href="#32-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95header-extension">头部扩展（Header Extension）</a></li>
+<li>3.3 <a href="#33-%E8%BD%BD%E8%8D%B7payload">载荷（Payload）</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90">关键机制解析</a><ul>
+<li>4.1 <a href="#41-%E5%BA%8F%E5%88%97%E5%8F%B7%E4%B8%8E%E4%B8%A2%E5%8C%85%E6%A3%80%E6%B5%8B">序列号与丢包检测</a></li>
+<li>4.2 <a href="#42-%E6%97%B6%E9%97%B4%E6%88%B3%E4%B8%8E%E5%AA%92%E4%BD%93%E5%90%8C%E6%AD%A5">时间戳与媒体同步</a></li>
+<li>4.3 <a href="#43-ssrc-%E4%B8%8E%E6%B5%81%E5%A4%8D%E7%94%A8">SSRC 与流复用</a></li>
+<li>4.4 <a href="#44-csrc-%E4%B8%8E%E6%B7%B7%E9%9F%B3%E5%99%A8">CSRC 与混音器</a></li>
+</ul>
+</li>
+<li><a href="#5-%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8Bpayload-type%E4%BD%93%E7%B3%BB">载荷类型（Payload Type）体系</a></li>
+<li><a href="#6-rtp-profile-%E6%9C%BA%E5%88%B6">RTP Profile 机制</a></li>
+<li><a href="#7-%E4%B8%AD%E9%97%B4%E4%BB%B6mixer-%E4%B8%8E-translator">中间件：Mixer 与 Translator</a></li>
+<li><a href="#8-rtp-%E6%89%A9%E5%B1%95%E6%9C%BA%E5%88%B6">RTP 扩展机制</a><ul>
+<li>8.1 <a href="#81-rfc-8285-%E7%B4%A7%E5%87%91%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95">RFC 8285 紧凑头部扩展</a></li>
+<li>8.2 <a href="#82-rtx-%E9%87%8D%E4%BC%A0%E6%A0%BC%E5%BC%8Frfc-4588">RTX 重传格式（RFC 4588）</a></li>
+</ul>
+</li>
+<li><a href="#9-rtp-%E5%9C%A8-webrtc-%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8">RTP 在 WebRTC 中的使用</a><ul>
+<li>9.1 <a href="#91-%E5%BC%BA%E5%88%B6%E4%BD%BF%E7%94%A8-srtprfc-8834">强制使用 SRTP（RFC 8834）</a></li>
+<li>9.2 <a href="#92-rtcp-muxrfc-5761">RTCP-MUX（RFC 5761）</a></li>
+<li>9.3 <a href="#93-bundle-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8">BUNDLE 多路复用</a></li>
+<li>9.4 <a href="#94-%E5%B8%B8%E7%94%A8-webrtc-rtp-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95">常用 WebRTC RTP 头部扩展</a></li>
+</ul>
+</li>
+<li><a href="#10-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F">安全性考量</a></li>
+<li><a href="#11-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%BD%8D%E7%BD%AE%E4%B8%8E%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB">协议栈位置与交互关系</a></li>
+<li><a href="#12-%E5%AE%9E%E8%B7%B5%E7%94%A8-wireshark-%E5%88%86%E6%9E%90-rtp-%E6%8A%A5%E6%96%87">实践：用 Wireshark 分析 RTP 报文</a></li>
+<li><a href="#13-%E7%9B%B8%E5%85%B3-rfc-%E9%80%9F%E6%9F%A5%E8%A1%A8">相关 RFC 速查表</a></li>
+</ol>
+<hr>
+<h1 id="1-协议概述与背景"><a href="#1-协议概述与背景" class="headerlink" title="1. 协议概述与背景"></a>1. 协议概述与背景</h1><p><strong>RTP（Real-time Transport Protocol，实时传输协议）</strong> 是 IP 网络上音视频实时传输的核心协议，由 IETF 音视频传输工作组（Audio-Video Transport Working Group）开发。</p>
+<p><strong>标准化历程：</strong></p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>里程碑</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1977</td>
+<td>IETF RFC 741 发布，早期实时传输研究</td>
+</tr>
+<tr>
+<td>1992</td>
+<td>IETF 开始正式开发 RTP</td>
+</tr>
+<tr>
+<td>1996</td>
+<td>RFC 1889 发布，RTP 初版标准</td>
+</tr>
+<tr>
+<td>2003</td>
+<td><strong>RFC 3550</strong> 发布，取代 RFC 1889，成为当前正式标准（Internet Standard 64）</td>
+</tr>
+</tbody></table>
+<p>当前权威规范为 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3550">RFC 3550</a>，由 Columbia University 的 Henning Schulzrinne 等人主导撰写。</p>
+<p><strong>RTP 的核心职责</strong>是为具有实时特征的数据提供端到端传输服务，包括：</p>
+<ul>
+<li><strong>载荷类型标识（Payload Type Identification）</strong>：标明携带的媒体格式</li>
+<li><strong>序列号（Sequence Numbering）</strong>：检测丢包与乱序</li>
+<li><strong>时间戳（Timestamping）</strong>：支持播放同步与抖动补偿</li>
+<li><strong>传输监控（Delivery Monitoring）</strong>：配合 RTCP 实现质量反馈</li>
+</ul>
+<blockquote>
+<p><strong>重要认知</strong>：RTP 本身<strong>不保证</strong>及时投递或服务质量（QoS），也不进行资源预留。它依赖下层协议（通常是 UDP）提供基础传输能力，依赖 RTCP 进行质量监控。</p>
+</blockquote>
+<hr>
+<h1 id="2-设计哲学与架构原则"><a href="#2-设计哲学与架构原则" class="headerlink" title="2. 设计哲学与架构原则"></a>2. 设计哲学与架构原则</h1><h3 id="2-1-应用层分帧（Application-Layer-Framing）"><a href="#2-1-应用层分帧（Application-Layer-Framing）" class="headerlink" title="2.1 应用层分帧（Application-Layer Framing）"></a>2.1 应用层分帧（Application-Layer Framing）</h3><p>RTP 遵循 <strong>ALF（Application-Layer Framing）</strong> 原则：协议功能在应用层实现，而非操作系统协议栈。这使得 RTP 可以根据不同媒体类型灵活定制行为，而不需要修改协议核心。</p>
+<h3 id="2-2-为何选择-UDP-而非-TCP"><a href="#2-2-为何选择-UDP-而非-TCP" class="headerlink" title="2.2 为何选择 UDP 而非 TCP"></a>2.2 为何选择 UDP 而非 TCP</h3><p>实时多媒体应用优先考虑<strong>及时性</strong>而非可靠性：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TCP                          UDP + RTP</span><br><span class="line">─────────────────────        ─────────────────────</span><br><span class="line">✓ 可靠传输（重传）            ✓ 低延迟（无队头阻塞）</span><br><span class="line">✓ 有序到达                   ✓ 可容忍少量丢包</span><br><span class="line">✗ 重传导致额外延迟            ✓ 应用层控制重传策略</span><br><span class="line">✗ 队头阻塞（HOL Blocking）   ✗ 不保证可靠性</span><br></pre></td></tr></table></figure>
+
+<p>音频丢失一帧（例如 20 ms）通过 PLC（丢包隐藏）处理，对用户影响极小；但因 TCP 重传导致的数百毫秒延迟对实时通话则是不可接受的。</p>
+<h3 id="2-3-协议框架而非完整实现"><a href="#2-3-协议框架而非完整实现" class="headerlink" title="2.3 协议框架而非完整实现"></a>2.3 协议框架而非完整实现</h3><p>RTP 是一个<strong>协议框架（Protocol Framework）</strong>，刻意保持不完整。一个完整的 RTP 实现需要三个文档层次：</p>
+<ol>
+<li><strong>RFC 3550</strong>：RTP 核心规范（本文重点）</li>
+<li><strong>Profile 文档</strong>：定义载荷类型码表与应用特定扩展（如 RFC 3551 for A&#x2F;V）</li>
+<li><strong>Payload Format 文档</strong>：定义特定编解码器的打包方式（如 RFC 6184 for H.264）</li>
+</ol>
+<hr>
+<h1 id="3-RTP-报文结构详解"><a href="#3-RTP-报文结构详解" class="headerlink" title="3. RTP 报文结构详解"></a>3. RTP 报文结构详解</h1><h3 id="3-1-固定头部字段"><a href="#3-1-固定头部字段" class="headerlink" title="3.1 固定头部字段"></a>3.1 固定头部字段</h3><p>每个 RTP 数据包都以<strong>最小 12 字节的固定头部</strong>开始：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|X|  CC   |M|     PT      |       Sequence Number         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                           Timestamp                           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|           Synchronization Source (SSRC) identifier            |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|            Contributing Source (CSRC) identifiers             |</span><br><span class="line">|                             ....                              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><em>（来源：RFC 3550, Section 5.1）</em></p>
+<p>各字段含义如下：</p>
+<hr>
+<h4 id="V（Version）：2-bits"><a href="#V（Version）：2-bits" class="headerlink" title="V（Version）：2 bits"></a><code>V</code>（Version）：2 bits</h4><p>当前版本号固定为 <strong>2</strong>。值 0 由早期的 “vat” 音频工具使用，值 1 由 RTP 草稿初版使用。接收方应丢弃版本号不为 2 的包。</p>
+<hr>
+<h4 id="P（Padding）：1-bit"><a href="#P（Padding）：1-bit" class="headerlink" title="P（Padding）：1 bit"></a><code>P</code>（Padding）：1 bit</h4><p>填充标志位。若为 1，表示报文末尾附有填充字节（用于满足加密算法的块对齐要求）。填充区的<strong>最后一个字节</strong>记录填充字节总数（含自身）。在 SRTP 场景下，加密块对齐往往需要此字段。</p>
+<hr>
+<h4 id="X（Extension）：1-bit"><a href="#X（Extension）：1-bit" class="headerlink" title="X（Extension）：1 bit"></a><code>X</code>（Extension）：1 bit</h4><p>扩展标志位。若为 1，表示固定头部之后、载荷之前有<strong>头部扩展</strong>（详见 3.2 节）。</p>
+<hr>
+<h4 id="CC（CSRC-Count）：4-bits"><a href="#CC（CSRC-Count）：4-bits" class="headerlink" title="CC（CSRC Count）：4 bits"></a><code>CC</code>（CSRC Count）：4 bits</h4><p>指示跟随固定头部的 CSRC 标识符数量（0-15 个）。</p>
+<hr>
+<h4 id="M（Marker）：1-bit"><a href="#M（Marker）：1-bit" class="headerlink" title="M（Marker）：1 bit"></a><code>M</code>（Marker）：1 bit</h4><p>标记位，含义由 Profile 定义。</p>
+<ul>
+<li><strong>视频流</strong>：通常在帧的<strong>最后一个包</strong>设为 1，标记帧边界。接收端可据此判断一帧视频数据是否完整到达。</li>
+<li><strong>音频流</strong>：部分实现在静默期后的<strong>第一个说话包</strong>设为 1，接收端可据此调整播放延迟。</li>
+</ul>
+<hr>
+<h4 id="PT（Payload-Type）：7-bits"><a href="#PT（Payload-Type）：7-bits" class="headerlink" title="PT（Payload Type）：7 bits"></a><code>PT</code>（Payload Type）：7 bits</h4><p>载荷类型，取值 0-127，标识 RTP 载荷的编码格式。接收方根据 PT 值选择对应的解码器。详见第 5 节。</p>
+<hr>
+<h4 id="Sequence-Number（序列号）：16-bits"><a href="#Sequence-Number（序列号）：16-bits" class="headerlink" title="Sequence Number（序列号）：16 bits"></a><code>Sequence Number</code>（序列号）：16 bits</h4><p>每发送一个 RTP 包，序列号加 1，回绕后从 0 重新开始（最大值 65535）。初始值<strong>应随机选取</strong>（安全考虑，避免猜测攻击）。</p>
+<p>接收端用序列号：</p>
+<ul>
+<li><strong>检测丢包</strong>：序列号出现跳跃</li>
+<li><strong>检测乱序</strong>：序列号逆序到达</li>
+<li><strong>NACK 反馈</strong>：告知发送端具体哪些包丢失</li>
+</ul>
+<hr>
+<h4 id="Timestamp（时间戳）：32-bits"><a href="#Timestamp（时间戳）：32-bits" class="headerlink" title="Timestamp（时间戳）：32 bits"></a><code>Timestamp</code>（时间戳）：32 bits</h4><p>反映 RTP 数据包中<strong>第一个字节的采样时刻</strong>，由单调递增的时钟驱动。时间戳不代表绝对时间，仅在同一流内部有意义，须通过 RTCP SR（Sender Report）与 NTP 时间关联后才能换算为真实时间。</p>
+<p>时间戳的关键特性：</p>
+<ul>
+<li><strong>时钟频率（Clock Rate）因媒体类型而异</strong>：<ul>
+<li>音频（如 Opus）：通常为 48000 Hz，每个采样周期时间戳增加 1</li>
+<li>视频（如 H.264&#x2F;VP8）：通常为 <strong>90000 Hz</strong>，即使视频帧率只有 30fps，时间戳分辨率也足够精细</li>
+</ul>
+</li>
+<li><strong>同一帧的所有包时间戳相同</strong>：一帧视频可能被拆分为多个 RTP 包，它们共享相同的时间戳</li>
+<li><strong>初始值随机</strong>：防止安全攻击，初始时间戳不应从 0 开始</li>
+<li><strong>静默期间时间戳仍线性增长</strong>：区分”静默期”与”丢包”</li>
+</ul>
+<blockquote>
+<p><strong>特殊案例</strong>：G.722 的采样率为 16000 Hz，但 RTP 时钟频率是 8000 Hz。这是历史错误——RFC 1890 错误地记录了此值，为向后兼容而保留（见 RFC 3551 §4.5.2）。</p>
+</blockquote>
+<hr>
+<h4 id="SSRC（Synchronization-Source-Identifier）：32-bits"><a href="#SSRC（Synchronization-Source-Identifier）：32-bits" class="headerlink" title="SSRC（Synchronization Source Identifier）：32 bits"></a><code>SSRC</code>（Synchronization Source Identifier）：32 bits</h4><p>同步源标识符，<strong>随机生成</strong>的 32 位值，在一个 RTP 会话内唯一标识一条媒体流。</p>
+<p>SSRC 的用途：</p>
+<ul>
+<li>接收端通过 SSRC 区分不同的媒体流</li>
+<li>RTCP 报文通过 SSRC 与对应 RTP 流关联</li>
+<li>同一 RTP 会话中，一个参与者可以有多个 SSRC（如同时发送音频和视频）</li>
+</ul>
+<p>若两个源恰好选择了相同的 SSRC（碰撞概率低但存在），RFC 3550 Section 8 定义了碰撞检测与解决机制：检测到碰撞后，源必须发送 RTCP BYE 并选择新的 SSRC。</p>
+<hr>
+<h4 id="CSRC-List（Contributing-Source-Identifiers）：0-15-×-32-bits"><a href="#CSRC-List（Contributing-Source-Identifiers）：0-15-×-32-bits" class="headerlink" title="CSRC List（Contributing Source Identifiers）：0-15 × 32 bits"></a><code>CSRC List</code>（Contributing Source Identifiers）：0-15 × 32 bits</h4><p>贡献源列表，仅在 <strong>Mixer（混音器）</strong> 插入时出现，最多 15 个。记录被混合进当前包的各原始源 SSRC。</p>
+<p>典型用途：多方音频会议中，Mixer 将多路音频混合后发出，CSRC 列表记录哪些参与者的声音被包含在内，接收端可据此在 UI 上显示”当前发言人”。</p>
+<hr>
+<h3 id="3-2-头部扩展（Header-Extension）"><a href="#3-2-头部扩展（Header-Extension）" class="headerlink" title="3.2 头部扩展（Header Extension）"></a>3.2 头部扩展（Header Extension）</h3><p>当 <code>X</code> 位为 1 时，固定头部（含 CSRC 列表）后紧跟头部扩展区：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|      defined by profile       |           length              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                        header extension                       |</span><br><span class="line">|                             ....                              |</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>defined by profile</code>（16 bits）：Profile 自定义标识，或 RFC 8285 中的 magic number</li>
+<li><code>length</code>（16 bits）：扩展数据长度（单位：32 位字，不含该 4 字节头部）</li>
+</ul>
+<p>原始的 RFC 3550 头部扩展每个包只能携带<strong>一条</strong>扩展信息，且 ID 分配混乱。RFC 8285（详见 8.1 节）通过”紧凑头部扩展”解决了这个问题。</p>
+<hr>
+<h3 id="3-3-载荷（Payload）"><a href="#3-3-载荷（Payload）" class="headerlink" title="3.3 载荷（Payload）"></a>3.3 载荷（Payload）</h3><p>头部扩展之后（若有）是媒体载荷数据：已编码的音频帧、视频 NAL 单元片段等。载荷的具体打包格式由对应的 <strong>Payload Format 规范</strong>定义，与 RTP 核心无关。</p>
+<hr>
+<h1 id="4-关键机制解析"><a href="#4-关键机制解析" class="headerlink" title="4. 关键机制解析"></a>4. 关键机制解析</h1><h3 id="4-1-序列号与丢包检测"><a href="#4-1-序列号与丢包检测" class="headerlink" title="4.1 序列号与丢包检测"></a>4.1 序列号与丢包检测</h3><p>序列号使接收端能够：</p>
+<p><strong>检测丢包</strong>：若收到序列号 100、101、103，则 102 丢失。接收端可通过 RTCP NACK 请求发送端重传。</p>
+<p><strong>处理乱序</strong>：序列号逆序到达时，接收端在 Jitter Buffer 中等待并重排。</p>
+<p><strong>计算丢包率</strong>（算法见 RFC 3550 Appendix A.3）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">期望收到包数 = 最高序号 - 初始序号 + 1</span><br><span class="line">实际收到包数 = 实际计数</span><br><span class="line">丢包数 = 期望 - 实际</span><br><span class="line">丢包率 = 丢包数 / 期望包数</span><br></pre></td></tr></table></figure>
+
+<p>序列号 16 位意味着最多标识 65536 个包，回绕后从 0 开始。接收端必须处理回绕（wraparound）逻辑，通常采用扩展序列号（Extended Sequence Number）保存历史状态。</p>
+<hr>
+<h3 id="4-2-时间戳与媒体同步"><a href="#4-2-时间戳与媒体同步" class="headerlink" title="4.2 时间戳与媒体同步"></a>4.2 时间戳与媒体同步</h3><h4 id="播放时序控制"><a href="#播放时序控制" class="headerlink" title="播放时序控制"></a>播放时序控制</h4><p>接收端根据时间戳决定<strong>何时</strong>播放一帧数据，而非收到即播。这是 Jitter Buffer 工作的基础：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">包到达时间（wall clock）与时间戳的差值 = 网络抖动</span><br></pre></td></tr></table></figure>
+
+<p>接收端维护一个目标延迟，将各包放入 Jitter Buffer，按时间戳顺序取出，平滑抖动。</p>
+<h4 id="音视频唇形同步（Lip-Sync）"><a href="#音视频唇形同步（Lip-Sync）" class="headerlink" title="音视频唇形同步（Lip Sync）"></a>音视频唇形同步（Lip Sync）</h4><p>音频流和视频流分别有各自的 SSRC 和时间戳，时钟频率也不同（音频 48000 Hz，视频 90000 Hz）。跨流同步依赖 RTCP SR（Sender Report）：</p>
+<p>RTCP SR 同时携带：</p>
+<ul>
+<li><strong>NTP 时间戳</strong>（绝对墙钟时间）</li>
+<li><strong>对应时刻的 RTP 时间戳</strong></li>
+</ul>
+<p>接收端通过两条 SR（一条音频、一条视频）建立映射关系，将不同时钟频率的 RTP 时间戳统一到 NTP 时间轴，实现唇形同步。</p>
+<h4 id="不连续传输（DTX-Silence-Suppression）"><a href="#不连续传输（DTX-Silence-Suppression）" class="headerlink" title="不连续传输（DTX &#x2F; Silence Suppression）"></a>不连续传输（DTX &#x2F; Silence Suppression）</h4><p>静默期间，发送端可以停止发送音频包（节省带宽），但<strong>时间戳必须保持线性连续增长</strong>。这样接收端可区分”静默期（时间戳跳跃但没有丢包）”与”真实丢包（时间戳连续但序列号跳跃）”。</p>
+<hr>
+<h3 id="4-3-SSRC-与流复用"><a href="#4-3-SSRC-与流复用" class="headerlink" title="4.3 SSRC 与流复用"></a>4.3 SSRC 与流复用</h3><p>在 WebRTC 的 SFU 架构中，一个客户端可能同时发送多条流：</p>
+<table>
+<thead>
+<tr>
+<th>流</th>
+<th>SSRC</th>
+<th>PT</th>
+<th>时钟频率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>音频（Opus）</td>
+<td>随机值 A</td>
+<td>111（动态）</td>
+<td>48000</td>
+</tr>
+<tr>
+<td>视频（H.264）</td>
+<td>随机值 B</td>
+<td>96（动态）</td>
+<td>90000</td>
+</tr>
+<tr>
+<td>视频 RTX</td>
+<td>随机值 C</td>
+<td>97（动态）</td>
+<td>90000</td>
+</tr>
+<tr>
+<td>视频低分辨率（Simulcast）</td>
+<td>随机值 D</td>
+<td>96</td>
+<td>90000</td>
+</tr>
+</tbody></table>
+<p>接收端通过 SSRC 区分这些流，并通过 MID&#x2F;RID 扩展头（见 9.4 节）将其映射到 SDP 协商的 m&#x3D; 行。</p>
+<p><strong>SSRC 碰撞检测</strong>：若两端恰好生成相同的 SSRC（32 位随机值的碰撞概率约为 1&#x2F;2^32），RFC 3550 Section 8 定义了解决方案：</p>
+<ol>
+<li>检测到碰撞后，发送 RTCP BYE 包</li>
+<li>选择新的 SSRC 重新加入会话</li>
+<li>循环检测直至 SSRC 唯一</li>
+</ol>
+<hr>
+<h3 id="4-4-CSRC-与混音器"><a href="#4-4-CSRC-与混音器" class="headerlink" title="4.4 CSRC 与混音器"></a>4.4 CSRC 与混音器</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">参与者 A (SSRC=1) ─┐</span><br><span class="line">参与者 B (SSRC=2) ─┤──► Mixer ──► 混合流(SSRC=100, CSRC=[1,2,3])</span><br><span class="line">参与者 C (SSRC=3) ─┘</span><br></pre></td></tr></table></figure>
+
+<p>Mixer 将多路流合并后：</p>
+<ul>
+<li>使用自己的 SSRC（如 100）发送混合包</li>
+<li>在 CSRC 列表中记录参与混合的各源 SSRC（最多 15 个）</li>
+</ul>
+<p>接收端可通过 CSRC 列表配合 RFC 6465（Mixer-to-Client Audio Level）扩展获取每个参与者的音量，在 UI 中显示谁在发言，即使所有包的 SSRC 都是 Mixer 的 SSRC。</p>
+<blockquote>
+<p><strong>WebRTC 实践</strong>：现代 WebRTC 部署普遍使用 SFU（Selective Forwarding Unit）而非 Mixer。SFU 转发原始 RTP 包，保留原 SSRC，因此 CSRC 机制在 WebRTC 中实际上很少被用到。</p>
+</blockquote>
+<hr>
+<h1 id="5-载荷类型（Payload-Type）体系"><a href="#5-载荷类型（Payload-Type）体系" class="headerlink" title="5. 载荷类型（Payload Type）体系"></a>5. 载荷类型（Payload Type）体系</h1><h3 id="5-1-静态载荷类型（Static-PT）"><a href="#5-1-静态载荷类型（Static-PT）" class="headerlink" title="5.1 静态载荷类型（Static PT）"></a>5.1 静态载荷类型（Static PT）</h3><p>RFC 3551 为常见媒体格式预分配了固定 PT 值（0-95）：</p>
+<table>
+<thead>
+<tr>
+<th>PT</th>
+<th>名称</th>
+<th>类型</th>
+<th>时钟率（Hz）</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>PCMU</td>
+<td>音频</td>
+<td>8000</td>
+<td>G.711 μ-law</td>
+</tr>
+<tr>
+<td>8</td>
+<td>PCMA</td>
+<td>音频</td>
+<td>8000</td>
+<td>G.711 A-law</td>
+</tr>
+<tr>
+<td>9</td>
+<td>G722</td>
+<td>音频</td>
+<td>8000</td>
+<td>实际采样 16kHz，历史原因时钟 8kHz</td>
+</tr>
+<tr>
+<td>14</td>
+<td>MPA</td>
+<td>音频</td>
+<td>90000</td>
+<td>MPEG Audio</td>
+</tr>
+<tr>
+<td>26</td>
+<td>JPEG</td>
+<td>视频</td>
+<td>90000</td>
+<td>JPEG 视频</td>
+</tr>
+<tr>
+<td>31</td>
+<td>H261</td>
+<td>视频</td>
+<td>90000</td>
+<td>H.261</td>
+</tr>
+<tr>
+<td>32</td>
+<td>MPV</td>
+<td>视频</td>
+<td>90000</td>
+<td>MPEG 视频</td>
+</tr>
+<tr>
+<td>34</td>
+<td>H263</td>
+<td>视频</td>
+<td>90000</td>
+<td>H.263</td>
+</tr>
+<tr>
+<td>96-127</td>
+<td>动态</td>
+<td>任意</td>
+<td>协商</td>
+<td>通过 SDP 分配</td>
+</tr>
+</tbody></table>
+<p>RFC 3551 明确声明<strong>不再新增静态载荷类型</strong>，所有新编码格式只能通过动态 PT 协商。</p>
+<h3 id="5-2-动态载荷类型（Dynamic-PT）"><a href="#5-2-动态载荷类型（Dynamic-PT）" class="headerlink" title="5.2 动态载荷类型（Dynamic PT）"></a>5.2 动态载荷类型（Dynamic PT）</h3><p>PT 96-127 保留给动态分配，通过 SDP <code>a=rtpmap</code> 属性在会话建立时绑定：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111 103 104</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=fmtp:111 minptime=10;useinbandfec=1</span><br><span class="line">a=rtpmap:103 ISAC/16000</span><br><span class="line">a=rtpmap:104 ISAC/32000</span><br><span class="line"></span><br><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97 98</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br><span class="line">a=rtpmap:98 VP9/90000</span><br></pre></td></tr></table></figure>
+
+<p>在这个 SDP 示例中：</p>
+<ul>
+<li>PT 111 → Opus，48000 Hz，2 声道</li>
+<li>PT 96 → VP8，90000 Hz 时钟</li>
+<li>PT 97 → RTX（重传流），关联 PT 96（VP8）</li>
+</ul>
+<h3 id="5-3-时钟频率（Clock-Rate）说明"><a href="#5-3-时钟频率（Clock-Rate）说明" class="headerlink" title="5.3 时钟频率（Clock Rate）说明"></a>5.3 时钟频率（Clock Rate）说明</h3><p>时钟频率决定时间戳的增长速率，<strong>不一定等于编解码器采样率</strong>：</p>
+<ul>
+<li><strong>视频编解码器统一使用 90000 Hz</strong>：高分辨率时间戳便于精确的 RTCP NTP 对齐</li>
+<li><strong>Opus 固定使用 48000 Hz</strong>：即使实际以更低采样率工作</li>
+<li><strong>G.722 使用 8000 Hz</strong>：历史错误，实际采样 16000 Hz</li>
+</ul>
+<hr>
+<h1 id="6-RTP-Profile-机制"><a href="#6-RTP-Profile-机制" class="headerlink" title="6. RTP Profile 机制"></a>6. RTP Profile 机制</h1><p>Profile 是连接 RTP 核心与具体应用的桥梁。主要 Profile：</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>RFC</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RTP&#x2F;AVP</td>
+<td>RFC 3551</td>
+<td>音视频基础 Profile</td>
+</tr>
+<tr>
+<td>RTP&#x2F;SAVP</td>
+<td>RFC 3711</td>
+<td>AVP + SRTP 加密</td>
+</tr>
+<tr>
+<td>RTP&#x2F;AVPF</td>
+<td>RFC 4585</td>
+<td>AVP + 快速 RTCP 反馈</td>
+</tr>
+<tr>
+<td><strong>RTP&#x2F;SAVPF</strong></td>
+<td>RFC 5124</td>
+<td>SAVP + AVPF（<strong>WebRTC 强制要求</strong>）</td>
+</tr>
+</tbody></table>
+<p>WebRTC 强制使用 <strong>RTP&#x2F;SAVPF</strong>（RFC 8834 Section 4.4），即所有 RTP 和 RTCP 包必须通过 SRTP&#x2F;SRTCP 加密，且支持快速 RTCP 反馈（不受标准 5% 带宽上限约束）。</p>
+<hr>
+<h1 id="7-中间件：Mixer-与-Translator"><a href="#7-中间件：Mixer-与-Translator" class="headerlink" title="7. 中间件：Mixer 与 Translator"></a>7. 中间件：Mixer 与 Translator</h1><h3 id="Mixer（混音器）"><a href="#Mixer（混音器）" class="headerlink" title="Mixer（混音器）"></a>Mixer（混音器）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">媒体流 ──►          ┌─────────┐       新 RTP 流</span><br><span class="line">媒体流 ──► ─────►   │  Mixer  │ ──► (新 SSRC, CSRC 列表)</span><br><span class="line">媒体流 ──►          └─────────┘</span><br></pre></td></tr></table></figure>
+
+<p>Mixer：</p>
+<ul>
+<li>接收多路 RTP 流</li>
+<li>将它们混合（音频叠加，视频合成）</li>
+<li>以<strong>新 SSRC</strong> 发出合并后的单路流</li>
+<li>在 CSRC 列表记录贡献源</li>
+</ul>
+<p>Mixer 会终结原始流的时序信息，并重新生成时间戳。RTCP 也由 Mixer 接管。</p>
+<h3 id="Translator（转译器）"><a href="#Translator（转译器）" class="headerlink" title="Translator（转译器）"></a>Translator（转译器）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">流 A ──►  Translator ──► 转码/格式变换后的流 A&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>Translator：</p>
+<ul>
+<li>转发 RTP 流，<strong>保留原始 SSRC</strong></li>
+<li>可变更载荷类型（如 H.264 → VP8 转码）</li>
+<li>可调整采样率、码率等</li>
+<li>不混合多条流</li>
+</ul>
+<p>SFU 本质上是一种 Translator，它选择性转发各端的 RTP 流，保留 SSRC 不变。</p>
+<hr>
+<h1 id="8-RTP-扩展机制"><a href="#8-RTP-扩展机制" class="headerlink" title="8. RTP 扩展机制"></a>8. RTP 扩展机制</h1><h3 id="8-1-RFC-8285-紧凑头部扩展"><a href="#8-1-RFC-8285-紧凑头部扩展" class="headerlink" title="8.1 RFC 8285 紧凑头部扩展"></a>8.1 RFC 8285 紧凑头部扩展</h3><p>原始 RFC 3550 头部扩展只支持<strong>单条</strong>扩展信息。RFC 8285（取代 RFC 5285）定义了支持多条扩展的紧凑格式。</p>
+<h4 id="One-Byte-Header-格式（推荐）"><a href="#One-Byte-Header-格式（推荐）" class="headerlink" title="One-Byte Header 格式（推荐）"></a>One-Byte Header 格式（推荐）</h4><p>当扩展数据 ≤ 16 字节时使用，magic number 为 <code>0xBEDE</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  0xBE |  0xDE |            length             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  ID   |  len  |   data...     |  ID   |  len  |   data...     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>ID</code>（4 bits）：扩展类型 ID（1-14，0 是填充，15 保留）</li>
+<li><code>len</code>（4 bits）：数据长度减 1（即 0 表示 1 字节数据，15 表示 16 字节数据）</li>
+</ul>
+<h4 id="Two-Byte-Header-格式"><a href="#Two-Byte-Header-格式" class="headerlink" title="Two-Byte Header 格式"></a>Two-Byte Header 格式</h4><p>支持更长的扩展数据（最多 255 字节），magic number 为 <code>0x1000</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|    0x10   | appbits |  length |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|      ID       |     length    |          data...              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>RFC 8285 的新特性：允许同一 RTP <strong>流</strong>中混用两种格式（不同包可用不同格式），通过 SDP <code>a=extmap-allow-mixed</code> 协商开启。</p>
+<h4 id="SDP-协商"><a href="#SDP-协商" class="headerlink" title="SDP 协商"></a>SDP 协商</h4><p>头部扩展通过 SDP <code>a=extmap</code> 行建立 URI → ID 的映射：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level</span><br><span class="line">a=extmap:2 urn:ietf:params:rtp-hdrext:toffset</span><br><span class="line">a=extmap:3 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</span><br><span class="line">a=extmap:4 urn:3gpp:video-orientation</span><br><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="8-2-RTX-重传格式（RFC-4588）"><a href="#8-2-RTX-重传格式（RFC-4588）" class="headerlink" title="8.2 RTX 重传格式（RFC 4588）"></a>8.2 RTX 重传格式（RFC 4588）</h3><p>RTX（RTP Retransmission）是 RTP 层的重传机制，使用独立的 SSRC 和 PT 发送重传包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         RTP Header                            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|           OSN (Original Sequence Number)                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                    Original RTP Payload                       |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>OSN</strong>（Original Sequence Number，2 字节）：被重传包的原始序列号</li>
+<li>重传包时间戳 &#x3D; 原始包时间戳（便于接收端正确排序）</li>
+<li>重传包有自己的序列号（在重传流内递增）</li>
+</ul>
+<p>RTX 的优势：</p>
+<ul>
+<li>无头阻塞：放弃超时未到的重传，不影响后续包播放</li>
+<li>与原始流解耦：不干扰原始流的时序分析</li>
+</ul>
+<p>SDP 示例（<code>apt</code> 属性关联原始 PT）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="9-RTP-在-WebRTC-中的使用"><a href="#9-RTP-在-WebRTC-中的使用" class="headerlink" title="9. RTP 在 WebRTC 中的使用"></a>9. RTP 在 WebRTC 中的使用</h1><h3 id="9-1-强制使用-SRTP（RFC-8834）"><a href="#9-1-强制使用-SRTP（RFC-8834）" class="headerlink" title="9.1 强制使用 SRTP（RFC 8834）"></a>9.1 强制使用 SRTP（RFC 8834）</h3><p>RFC 8834（Media Transport and Use of RTP in WebRTC）明确规定：</p>
+<blockquote>
+<p>WebRTC endpoints <strong>MUST NOT</strong> send packets using the basic RTP&#x2F;AVP profile or the RTP&#x2F;AVPF profile; they <strong>MUST</strong> employ the full <strong>RTP&#x2F;SAVPF</strong> profile to protect all RTP and RTCP packets that are generated.</p>
+</blockquote>
+<p>即 WebRTC 中所有 RTP 包实际上都是 <strong>SRTP</strong> 包，密钥通过 <strong>DTLS-SRTP</strong> 协商（详见本系列 DTLS 和 SRTP 篇）。SRTP 保留与 RTP 相同的头部布局，仅对载荷加密并附加认证标签（Authentication Tag）。</p>
+<h3 id="9-2-RTCP-MUX（RFC-5761）"><a href="#9-2-RTCP-MUX（RFC-5761）" class="headerlink" title="9.2 RTCP-MUX（RFC 5761）"></a>9.2 RTCP-MUX（RFC 5761）</h3><p>传统上 RTP 和 RTCP 使用相邻端口（RTP 用偶数端口，RTCP 用奇数端口 +1）。WebRTC 要求使用 <strong>RTCP-MUX</strong>，将 RTP 和 RTCP 合并到<strong>同一个 UDP 端口</strong>传输：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">同一 5-tuple（src IP, src port, dst IP, dst port, UDP）</span><br><span class="line">│</span><br><span class="line">├── RTP 包（载荷类型字段 PT &lt; 64 或 PT = 72-76 → 通过首字节区分）</span><br><span class="line">└── RTCP 包（首字节范围 200-204）</span><br></pre></td></tr></table></figure>
+
+<p>具体区分规则见 RFC 7983：通过检查包的首字节范围来判断是 RTP、RTCP、DTLS 还是 STUN 包。</p>
+<p>RTCP-MUX 的好处：减少 NAT 打孔的端口数量，简化防火墙配置，降低延迟。</p>
+<h3 id="9-3-BUNDLE-多路复用"><a href="#9-3-BUNDLE-多路复用" class="headerlink" title="9.3 BUNDLE 多路复用"></a>9.3 BUNDLE 多路复用</h3><p>WebRTC 进一步支持 <strong>BUNDLE</strong>（RFC 8843），将多条 RTP 流（音频、视频、屏幕共享）合并到<strong>同一个传输层连接</strong>（同一 ICE&#x2F;DTLS 流量）中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ICE/DTLS 连接（单一 5-tuple）</span><br><span class="line">│</span><br><span class="line">├── SSRC_A（音频流）</span><br><span class="line">├── SSRC_B（视频流）</span><br><span class="line">├── SSRC_C（视频 RTX）</span><br><span class="line">└── SSRC_D（屏幕共享视频）</span><br></pre></td></tr></table></figure>
+
+<p>接收端通过 <code>MID</code> 头部扩展将包路由到对应 SDP m&#x3D; 行处理。</p>
+<h3 id="9-4-常用-WebRTC-RTP-头部扩展"><a href="#9-4-常用-WebRTC-RTP-头部扩展" class="headerlink" title="9.4 常用 WebRTC RTP 头部扩展"></a>9.4 常用 WebRTC RTP 头部扩展</h3><p>以下扩展在现代 WebRTC 实现中被广泛使用：</p>
+<table>
+<thead>
+<tr>
+<th>URI</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>urn:ietf:params:rtp-hdrext:ssrc-audio-level</code></td>
+<td>携带音频电平（RFC 6464），接收端实时知道发言者音量</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:sdes:mid</code></td>
+<td>Media Identification，标识包属于哪个 SDP m&#x3D; 行，支持 BUNDLE</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</code></td>
+<td>RTP Stream ID（RID），标识 Simulcast 的具体层</td>
+</tr>
+<tr>
+<td><code>http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</code></td>
+<td>绝对发送时间，用于 GCC 带宽估计（单向延迟计算）</td>
+</tr>
+<tr>
+<td><code>http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</code></td>
+<td>Transport-CC 序列号，支持精细的拥塞控制反馈</td>
+</tr>
+<tr>
+<td><code>urn:3gpp:video-orientation</code></td>
+<td>视频旋转角度（0°&#x2F;90°&#x2F;180°&#x2F;270°）</td>
+</tr>
+<tr>
+<td><code>urn:ietf:params:rtp-hdrext:toffset</code></td>
+<td>传输时间偏移，辅助 RTCP 时间分析</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="10-安全性考量"><a href="#10-安全性考量" class="headerlink" title="10. 安全性考量"></a>10. 安全性考量</h1><h3 id="10-1-SRTP-强制加密"><a href="#10-1-SRTP-强制加密" class="headerlink" title="10.1 SRTP 强制加密"></a>10.1 SRTP 强制加密</h3><p>如前所述，WebRTC 强制要求 SRTP。原始 RTP 存在的安全问题：</p>
+<ul>
+<li><strong>窃听</strong>：未加密的载荷可直接还原媒体内容</li>
+<li><strong>重放攻击</strong>：攻击者重发旧包干扰通话</li>
+<li><strong>包注入</strong>：伪造 RTP 包注入噪声媒体</li>
+</ul>
+<p>SRTP（RFC 3711）提供：</p>
+<ul>
+<li><strong>载荷加密</strong>（AES-CM 或 AES-GCM）</li>
+<li><strong>消息认证</strong>（HMAC-SHA1 或 GCM 内置认证）</li>
+<li><strong>重放保护</strong>（Replay Protection Window）</li>
+</ul>
+<h3 id="10-2-SSRC-随机化"><a href="#10-2-SSRC-随机化" class="headerlink" title="10.2 SSRC 随机化"></a>10.2 SSRC 随机化</h3><p>RFC 3550 要求 SSRC 随机生成，防止攻击者预测 SSRC 值注入伪造包。</p>
+<h3 id="10-3-序列号随机初始值"><a href="#10-3-序列号随机初始值" class="headerlink" title="10.3 序列号随机初始值"></a>10.3 序列号随机初始值</h3><p>初始序列号也应随机选取，防止针对初始值的攻击。</p>
+<hr>
+<h1 id="11-协议栈位置与交互关系"><a href="#11-协议栈位置与交互关系" class="headerlink" title="11. 协议栈位置与交互关系"></a>11. 协议栈位置与交互关系</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────┐</span><br><span class="line">│              Web Application / JS API       │</span><br><span class="line">├─────────────────────────────────────────────┤</span><br><span class="line">│              WebRTC API (W3C)               │</span><br><span class="line">├──────────────┬──────────────────────────────┤</span><br><span class="line">│   Media      │        Data                  │</span><br><span class="line">│ (Audio/Video)│       (DataChannel)          │</span><br><span class="line">├──────┬───────┴──────────────────────────────┤</span><br><span class="line">│ SRTP │  SRTCP   │          SCTP             │</span><br><span class="line">│ (RTP+│  (RTCP+  │                           │</span><br><span class="line">│ 加密) │   加密)  │                           │</span><br><span class="line">├──────┴──────────┴───────────────────────────┤</span><br><span class="line">│                  DTLS                       │</span><br><span class="line">├─────────────────────────────────────────────┤</span><br><span class="line">│                   ICE                       │</span><br><span class="line">├──────────────────┬──────────────────────────┤</span><br><span class="line">│      STUN        │         TURN             │</span><br><span class="line">├──────────────────┴──────────────────────────┤</span><br><span class="line">│                   UDP                       │</span><br><span class="line">├─────────────────────────────────────────────┤</span><br><span class="line">│                   IP                        │</span><br><span class="line">└─────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>RTP 与各组件的交互</strong>：</p>
+<ul>
+<li><strong>SDP ↔ RTP</strong>：SDP 协商 PT 映射、时钟频率、头部扩展 ID 等，是 RTP 的”配置文件”</li>
+<li><strong>RTP ↔ RTCP</strong>：RTCP 是 RTP 的控制面，两者共享 SSRC 标识，RTCP 提供统计反馈</li>
+<li><strong>RTP ↔ SRTP</strong>：SRTP 是加密版 RTP，头部不变，载荷加密</li>
+<li><strong>RTP ↔ ICE&#x2F;DTLS</strong>：ICE 提供传输通道，DTLS 协商 SRTP 密钥</li>
+<li><strong>RTP ↔ Jitter Buffer</strong>：接收端 Jitter Buffer 利用 RTP 时间戳和序列号进行重排和平滑</li>
+</ul>
+<hr>
+<h1 id="12-实践：用-Wireshark-分析-RTP-报文"><a href="#12-实践：用-Wireshark-分析-RTP-报文" class="headerlink" title="12. 实践：用 Wireshark 分析 RTP 报文"></a>12. 实践：用 Wireshark 分析 RTP 报文</h1><h3 id="捕获-WebRTC-流量"><a href="#捕获-WebRTC-流量" class="headerlink" title="捕获 WebRTC 流量"></a>捕获 WebRTC 流量</h3><p>由于 WebRTC 使用 SRTP 加密，直接捕获的包是密文。调试时可以：</p>
+<ol>
+<li><strong>Chrome 导出密钥</strong>：在启动参数中加 <code>--ssl-key-log-file=/tmp/keylog.txt</code>，Wireshark 中配置该文件用于解密</li>
+<li><strong>本地回环测试</strong>：使用 <code>localhost</code> 的 WebRTC 测试，部分浏览器不加密回环流量</li>
+</ol>
+<h3 id="识别-RTP-包"><a href="#识别-RTP-包" class="headerlink" title="识别 RTP 包"></a>识别 RTP 包</h3><p>在 Wireshark 的 UDP 包中，通过首字节判断包类型（RFC 7983）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">首字节值范围        包类型</span><br><span class="line">0-3               STUN</span><br><span class="line">16-19             ZRTP</span><br><span class="line">20-63             DTLS</span><br><span class="line">64-79             TURN Channel Data</span><br><span class="line">128-191           RTP</span><br><span class="line">192-223           RTCP (SR/RR/SDES/BYE/APP)</span><br></pre></td></tr></table></figure>
+
+<h3 id="过滤表达式"><a href="#过滤表达式" class="headerlink" title="过滤表达式"></a>过滤表达式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 过滤 RTP 包</span><br><span class="line">rtp</span><br><span class="line"></span><br><span class="line"># 过滤特定 SSRC 的 RTP</span><br><span class="line">rtp.ssrc == 0x12345678</span><br><span class="line"></span><br><span class="line"># 过滤特定 PT</span><br><span class="line">rtp.p_type == 96</span><br><span class="line"></span><br><span class="line"># 分析 RTP 流质量（菜单：Telephony → RTP → RTP Streams）</span><br></pre></td></tr></table></figure>
+
+<h3 id="解读关键字段"><a href="#解读关键字段" class="headerlink" title="解读关键字段"></a>解读关键字段</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Frame 1234:</span><br><span class="line">  UDP, Src Port: 54321, Dst Port: 5004</span><br><span class="line">  Real-Time Transport Protocol</span><br><span class="line">    [Stream setup by SDP (frame 5)]</span><br><span class="line">    10.. .... = Version: RFC 1889 Version (2)</span><br><span class="line">    ..0. .... = Padding: False</span><br><span class="line">    ...0 .... = Extension: False</span><br><span class="line">    .... 0000 = Contributing source identifiers count: 0</span><br><span class="line">    0... .... = Marker: False</span><br><span class="line">    Payload type: DynamicRTP-Type-96 (96)   ← VP8 视频</span><br><span class="line">    Sequence number: 1234</span><br><span class="line">    Timestamp: 810000                        ← 90kHz 时钟</span><br><span class="line">    Synchronization Source identifier: 0xABCD1234</span><br><span class="line">    Payload: ...（编码后的视频数据）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="13-相关-RFC-速查表"><a href="#13-相关-RFC-速查表" class="headerlink" title="13. 相关 RFC 速查表"></a>13. 相关 RFC 速查表</h1><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3550">RFC 3550</a></td>
+<td>RTP: A Transport Protocol for Real-Time Applications</td>
+<td>Internet Standard</td>
+<td><strong>RTP 核心规范</strong></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3551">RFC 3551</a></td>
+<td>RTP Profile for Audio and Video Conferences</td>
+<td>Internet Standard</td>
+<td>AVP Profile，定义静态 PT</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3711">RFC 3711</a></td>
+<td>The Secure Real-time Transport Protocol (SRTP)</td>
+<td>Proposed Standard</td>
+<td>SRTP 加密扩展</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4585">RFC 4585</a></td>
+<td>Extended RTP Profile for RTCP-Based Feedback (AVPF)</td>
+<td>Proposed Standard</td>
+<td>快速 RTCP 反馈 Profile</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4588">RFC 4588</a></td>
+<td>RTP Retransmission Payload Format</td>
+<td>Proposed Standard</td>
+<td>RTX 重传格式</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5124">RFC 5124</a></td>
+<td>Extended Secure RTP Profile for RTCP-Based Feedback (SAVPF)</td>
+<td>Proposed Standard</td>
+<td>SRTP + AVPF 合并 Profile</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5761">RFC 5761</a></td>
+<td>Multiplexing RTP Data and Control Packets on a Single Port</td>
+<td>Proposed Standard</td>
+<td>RTCP-MUX</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6184">RFC 6184</a></td>
+<td>RTP Payload Format for H.264 Video</td>
+<td>Proposed Standard</td>
+<td>H.264 打包格式</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7587">RFC 7587</a></td>
+<td>RTP Payload Format for the Opus Speech and Audio Codec</td>
+<td>Proposed Standard</td>
+<td>Opus 打包格式</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7656">RFC 7656</a></td>
+<td>A Taxonomy of Semantics and Mechanisms for RTP Sources</td>
+<td>Informational</td>
+<td>RTP 源分类体系</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7983">RFC 7983</a></td>
+<td>Multiplexing Scheme Updates for SRTP</td>
+<td>Proposed Standard</td>
+<td>包类型区分（首字节规则）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8083">RFC 8083</a></td>
+<td>Codec Control Messages in AVPF</td>
+<td>Proposed Standard</td>
+<td>编解码控制消息更新</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8285">RFC 8285</a></td>
+<td>A General Mechanism for RTP Header Extensions</td>
+<td>Proposed Standard</td>
+<td>紧凑头部扩展（取代 RFC 5285）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8834">RFC 8834</a></td>
+<td>Media Transport and Use of RTP in WebRTC</td>
+<td>Proposed Standard</td>
+<td><strong>WebRTC RTP 使用规范</strong></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8843">RFC 8843</a></td>
+<td>Negotiating Media Multiplexing Using SDP (BUNDLE)</td>
+<td>Proposed Standard</td>
+<td>BUNDLE 多路复用</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc9628">RFC 9628</a></td>
+<td>RTP Payload Format for VP9 Video</td>
+<td>Proposed Standard</td>
+<td>VP9 打包格式</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>RTP 是实时媒体传输的基石，其设计哲学高度务实：</p>
+<ol>
+<li><strong>最小化头部开销</strong>：12 字节固定头部，大部分字节用于媒体数据</li>
+<li><strong>灵活可扩展</strong>：通过 Profile 和 Payload Format 适配任意媒体类型，头部扩展机制支持新特性</li>
+<li><strong>不求完美，追求及时</strong>：接受丢包，优先低延迟</li>
+<li><strong>关注点分离</strong>：数据传输（RTP）与控制反馈（RTCP）分离，与下层传输解耦</li>
+</ol>
+<p>在 WebRTC 中，RTP 被强制以 SRTP 形式使用，配合 RTCP-MUX、BUNDLE 等优化，构成了浏览器实时通信的核心媒体传输层。理解 RTP 的报文结构、序列号&#x2F;时间戳机制和扩展体系，是深入理解 WebRTC 媒体质量保障（BWE、Jitter Buffer、NACK&#x2F;FEC）的前提。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 协议概述与背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6%E4%B8%8E%E6%9E%B6%E6%9E%84%E5%8E%9F%E5%88%99"><span class="toc-number">3.</span> <span class="toc-text">2. 设计哲学与架构原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BA%94%E7%94%A8%E5%B1%82%E5%88%86%E5%B8%A7%EF%BC%88Application-Layer-Framing%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 应用层分帧（Application-Layer Framing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%BA%E4%BD%95%E9%80%89%E6%8B%A9-UDP-%E8%80%8C%E9%9D%9E-TCP"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 为何选择 UDP 而非 TCP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8D%8F%E8%AE%AE%E6%A1%86%E6%9E%B6%E8%80%8C%E9%9D%9E%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 协议框架而非完整实现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RTP-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. RTP 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9B%BA%E5%AE%9A%E5%A4%B4%E9%83%A8%E5%AD%97%E6%AE%B5"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 固定头部字段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#V%EF%BC%88Version%EF%BC%89%EF%BC%9A2-bits"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">V（Version）：2 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P%EF%BC%88Padding%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.2.</span> <span class="toc-text">P（Padding）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#X%EF%BC%88Extension%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.3.</span> <span class="toc-text">X（Extension）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CC%EF%BC%88CSRC-Count%EF%BC%89%EF%BC%9A4-bits"><span class="toc-number">4.0.1.4.</span> <span class="toc-text">CC（CSRC Count）：4 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#M%EF%BC%88Marker%EF%BC%89%EF%BC%9A1-bit"><span class="toc-number">4.0.1.5.</span> <span class="toc-text">M（Marker）：1 bit</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PT%EF%BC%88Payload-Type%EF%BC%89%EF%BC%9A7-bits"><span class="toc-number">4.0.1.6.</span> <span class="toc-text">PT（Payload Type）：7 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Sequence-Number%EF%BC%88%E5%BA%8F%E5%88%97%E5%8F%B7%EF%BC%89%EF%BC%9A16-bits"><span class="toc-number">4.0.1.7.</span> <span class="toc-text">Sequence Number（序列号）：16 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Timestamp%EF%BC%88%E6%97%B6%E9%97%B4%E6%88%B3%EF%BC%89%EF%BC%9A32-bits"><span class="toc-number">4.0.1.8.</span> <span class="toc-text">Timestamp（时间戳）：32 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSRC%EF%BC%88Synchronization-Source-Identifier%EF%BC%89%EF%BC%9A32-bits"><span class="toc-number">4.0.1.9.</span> <span class="toc-text">SSRC（Synchronization Source Identifier）：32 bits</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CSRC-List%EF%BC%88Contributing-Source-Identifiers%EF%BC%89%EF%BC%9A0-15-%C3%97-32-bits"><span class="toc-number">4.0.1.10.</span> <span class="toc-text">CSRC List（Contributing Source Identifiers）：0-15 × 32 bits</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%EF%BC%88Header-Extension%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 头部扩展（Header Extension）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BD%BD%E8%8D%B7%EF%BC%88Payload%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 载荷（Payload）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6%E8%A7%A3%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">4. 关键机制解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BA%8F%E5%88%97%E5%8F%B7%E4%B8%8E%E4%B8%A2%E5%8C%85%E6%A3%80%E6%B5%8B"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 序列号与丢包检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%97%B6%E9%97%B4%E6%88%B3%E4%B8%8E%E5%AA%92%E4%BD%93%E5%90%8C%E6%AD%A5"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 时间戳与媒体同步</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%92%AD%E6%94%BE%E6%97%B6%E5%BA%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">播放时序控制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9F%B3%E8%A7%86%E9%A2%91%E5%94%87%E5%BD%A2%E5%90%8C%E6%AD%A5%EF%BC%88Lip-Sync%EF%BC%89"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">音视频唇形同步（Lip Sync）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8D%E8%BF%9E%E7%BB%AD%E4%BC%A0%E8%BE%93%EF%BC%88DTX-Silence-Suppression%EF%BC%89"><span class="toc-number">5.0.2.3.</span> <span class="toc-text">不连续传输（DTX &#x2F; Silence Suppression）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-SSRC-%E4%B8%8E%E6%B5%81%E5%A4%8D%E7%94%A8"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 SSRC 与流复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-CSRC-%E4%B8%8E%E6%B7%B7%E9%9F%B3%E5%99%A8"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 CSRC 与混音器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Payload-Type%EF%BC%89%E4%BD%93%E7%B3%BB"><span class="toc-number">6.</span> <span class="toc-text">5. 载荷类型（Payload Type）体系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%9D%99%E6%80%81%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Static-PT%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 静态载荷类型（Static PT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%8A%A8%E6%80%81%E8%BD%BD%E8%8D%B7%E7%B1%BB%E5%9E%8B%EF%BC%88Dynamic-PT%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 动态载荷类型（Dynamic PT）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%97%B6%E9%92%9F%E9%A2%91%E7%8E%87%EF%BC%88Clock-Rate%EF%BC%89%E8%AF%B4%E6%98%8E"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 时钟频率（Clock Rate）说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-Profile-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.</span> <span class="toc-text">6. RTP Profile 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AMixer-%E4%B8%8E-Translator"><span class="toc-number">8.</span> <span class="toc-text">7. 中间件：Mixer 与 Translator</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Mixer%EF%BC%88%E6%B7%B7%E9%9F%B3%E5%99%A8%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">Mixer（混音器）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Translator%EF%BC%88%E8%BD%AC%E8%AF%91%E5%99%A8%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">Translator（转译器）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-RTP-%E6%89%A9%E5%B1%95%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. RTP 扩展机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-RFC-8285-%E7%B4%A7%E5%87%91%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 RFC 8285 紧凑头部扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#One-Byte-Header-%E6%A0%BC%E5%BC%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">9.0.1.1.</span> <span class="toc-text">One-Byte Header 格式（推荐）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Two-Byte-Header-%E6%A0%BC%E5%BC%8F"><span class="toc-number">9.0.1.2.</span> <span class="toc-text">Two-Byte Header 格式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">9.0.1.3.</span> <span class="toc-text">SDP 协商</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-RTX-%E9%87%8D%E4%BC%A0%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4588%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 RTX 重传格式（RFC 4588）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-RTP-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">10.</span> <span class="toc-text">9. RTP 在 WebRTC 中的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%88%B6%E4%BD%BF%E7%94%A8-SRTP%EF%BC%88RFC-8834%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 强制使用 SRTP（RFC 8834）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RTCP-MUX%EF%BC%88RFC-5761%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RTCP-MUX（RFC 5761）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-BUNDLE-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 BUNDLE 多路复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E5%B8%B8%E7%94%A8-WebRTC-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95"><span class="toc-number">10.0.4.</span> <span class="toc-text">9.4 常用 WebRTC RTP 头部扩展</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F"><span class="toc-number">11.</span> <span class="toc-text">10. 安全性考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-SRTP-%E5%BC%BA%E5%88%B6%E5%8A%A0%E5%AF%86"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 SRTP 强制加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-SSRC-%E9%9A%8F%E6%9C%BA%E5%8C%96"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 SSRC 随机化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%BA%8F%E5%88%97%E5%8F%B7%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%80%BC"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 序列号随机初始值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%BD%8D%E7%BD%AE%E4%B8%8E%E4%BA%A4%E4%BA%92%E5%85%B3%E7%B3%BB"><span class="toc-number">12.</span> <span class="toc-text">11. 协议栈位置与交互关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E8%B7%B5%EF%BC%9A%E7%94%A8-Wireshark-%E5%88%86%E6%9E%90-RTP-%E6%8A%A5%E6%96%87"><span class="toc-number">13.</span> <span class="toc-text">12. 实践：用 Wireshark 分析 RTP 报文</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8D%95%E8%8E%B7-WebRTC-%E6%B5%81%E9%87%8F"><span class="toc-number">13.0.1.</span> <span class="toc-text">捕获 WebRTC 流量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB-RTP-%E5%8C%85"><span class="toc-number">13.0.2.</span> <span class="toc-text">识别 RTP 包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">13.0.3.</span> <span class="toc-text">过滤表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E8%AF%BB%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">13.0.4.</span> <span class="toc-text">解读关键字段</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 相关 RFC 速查表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">小结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&text=RTP（Real-time Transport Protocol）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&is_video=false&description=RTP（Real-time Transport Protocol）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTP（Real-time Transport Protocol）&body=Check out this article: http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&title=RTP（Real-time Transport Protocol）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&name=RTP（Real-time Transport Protocol）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/&t=RTP（Real-time Transport Protocol）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

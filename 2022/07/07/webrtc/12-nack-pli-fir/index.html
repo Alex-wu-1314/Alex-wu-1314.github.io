@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景：为什么需要反馈机制 RTCP 反馈框架：RFC 4585 &#x2F; AVPF NACK —— 丢包重传请求 3.1 工作原理 3.2 报文格式（RFC 4585 §6.2.1） 3.3 PID 与 BLP 的位掩码编码 3.4 RTX：重传包的独立载荷格式（RFC 4588） 3.5 SDP 协商 3.6 适用场景与局限性   PLI —— 图像丢失指示 4.1 工作原理 4.2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NACK &#x2F; PLI &#x2F; FIR — 重传请求与关键帧请求机制">
+<meta property="og:url" content="http://example.com/2022/07/07/webrtc/12-nack-pli-fir/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景：为什么需要反馈机制 RTCP 反馈框架：RFC 4585 &#x2F; AVPF NACK —— 丢包重传请求 3.1 工作原理 3.2 报文格式（RFC 4585 §6.2.1） 3.3 PID 与 BLP 的位掩码编码 3.4 RTX：重传包的独立载荷格式（RFC 4588） 3.5 SDP 协商 3.6 适用场景与局限性   PLI —— 图像丢失指示 4.1 工作原理 4.2">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-07-07T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-28T00:32:48.681Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>NACK / PLI / FIR — 重传请求与关键帧请求机制</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/19/webrtc/13-sctp/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&text=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&is_video=false&description=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NACK / PLI / FIR — 重传请求与关键帧请求机制&body=Check out this article: http://example.com/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&name=NACK / PLI / FIR — 重传请求与关键帧请求机制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&t=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：为什么需要反馈机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RTCP-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6%EF%BC%9ARFC-4585-AVPF"><span class="toc-number">3.</span> <span class="toc-text">2. RTCP 反馈框架：RFC 4585 &#x2F; AVPF</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-NACK-%E2%80%94%E2%80%94-%E4%B8%A2%E5%8C%85%E9%87%8D%E4%BC%A0%E8%AF%B7%E6%B1%82"><span class="toc-number">4.</span> <span class="toc-text">3. NACK —— 丢包重传请求</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4585-%C2%A76-2-1%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 报文格式（RFC 4585 §6.2.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-PID-%E4%B8%8E-BLP-%E7%9A%84%E4%BD%8D%E6%8E%A9%E7%A0%81%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 PID 与 BLP 的位掩码编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-RTX%EF%BC%9A%E9%87%8D%E4%BC%A0%E5%8C%85%E7%9A%84%E7%8B%AC%E7%AB%8B%E8%BD%BD%E8%8D%B7%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4588%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 RTX：重传包的独立载荷格式（RFC 4588）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 适用场景与局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-PLI-%E2%80%94%E2%80%94-%E5%9B%BE%E5%83%8F%E4%B8%A2%E5%A4%B1%E6%8C%87%E7%A4%BA"><span class="toc-number">5.</span> <span class="toc-text">4. PLI —— 图像丢失指示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4585-%C2%A76-3-1%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 报文格式（RFC 4585 §6.3.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-FIR-%E2%80%94%E2%80%94-%E5%85%A8%E5%B8%A7%E5%86%85%E5%88%B7%E6%96%B0%E8%AF%B7%E6%B1%82"><span class="toc-number">6.</span> <span class="toc-text">5. FIR —— 全帧内刷新请求</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-5104-%C2%A74-3-1%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 报文格式（RFC 5104 §4.3.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-FMT-%E5%AD%97%E6%AE%B5%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 FMT 字段与序列号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-PLI-vs-FIR%EF%BC%9A%E8%AF%AD%E4%B9%89%E5%B7%AE%E5%BC%82%E4%B8%8E%E9%80%89%E7%94%A8%E5%8E%9F%E5%88%99"><span class="toc-number">7.</span> <span class="toc-text">6. PLI vs FIR：语义差异与选用原则</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-NACK-vs-PLI-FIR%EF%BC%9A%E5%88%86%E5%B1%82%E7%9A%84%E4%B8%A2%E5%8C%85%E6%81%A2%E5%A4%8D%E7%AD%96%E7%95%A5"><span class="toc-number">8.</span> <span class="toc-text">7. NACK vs PLI&#x2F;FIR：分层的丢包恢复策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%AE%9E%E8%B7%B5"><span class="toc-number">9.</span> <span class="toc-text">8. SFU 场景下的实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-NACK-%E7%9A%84-SFU-%E5%A4%84%E7%90%86"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 NACK 的 SFU 处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-PLI-FIR-%E7%9A%84-SFU-%E8%81%9A%E5%90%88"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 PLI&#x2F;FIR 的 SFU 聚合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Simulcast-%E5%9C%BA%E6%99%AF"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Simulcast 场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%8A%A5%E6%96%87%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">10.</span> <span class="toc-text">9. 报文流程图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-NACK-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%EF%BC%88%E5%90%AB-RTX%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 NACK 完整流程（含 RTX）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-PLI-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 PLI 完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-FIR-%E6%B5%81%E7%A8%8B%EF%BC%88SFU-%E6%96%B0%E8%AE%A2%E9%98%85%E8%80%85%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 FIR 流程（SFU 新订阅者场景）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与调试技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-NACK-%E4%BA%86%E4%BD%86%E6%B2%A1%E6%9C%89%E6%94%B6%E5%88%B0%E9%87%8D%E4%BC%A0%EF%BC%9F"><span class="toc-number">11.0.1.</span> <span class="toc-text">Q1：为什么 NACK 了但没有收到重传？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9APLI-%E9%A3%8E%E6%9A%B4%EF%BC%88PLI-Storm%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">Q2：PLI 风暴（PLI Storm）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E4%BD%95%E7%94%A8-Wireshark-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">11.0.3.</span> <span class="toc-text">Q3：如何用 Wireshark 抓包分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9ANACK-%E4%B8%8E-FEC-%E5%A6%82%E4%BD%95%E6%90%AD%E9%85%8D%EF%BC%9F"><span class="toc-number">11.0.4.</span> <span class="toc-text">Q4：NACK 与 FEC 如何搭配？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">12.</span> <span class="toc-text">11. 参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        NACK / PLI / FIR — 重传请求与关键帧请求机制
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-07T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-07-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6">背景：为什么需要反馈机制</a></li>
+<li><a href="#2-rtcp-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6rfc-4585--avpf">RTCP 反馈框架：RFC 4585 &#x2F; AVPF</a></li>
+<li><a href="#3-nack--%E4%B8%A2%E5%8C%85%E9%87%8D%E4%BC%A0%E8%AF%B7%E6%B1%82">NACK —— 丢包重传请求</a><ul>
+<li>3.1 <a href="#31-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li>3.2 <a href="#32-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8Frfc-4585-621">报文格式（RFC 4585 §6.2.1）</a></li>
+<li>3.3 <a href="#33-pid-%E4%B8%8E-blp-%E7%9A%84%E4%BD%8D%E6%8E%A9%E7%A0%81%E7%BC%96%E7%A0%81">PID 与 BLP 的位掩码编码</a></li>
+<li>3.4 <a href="#34-rtxrfc-4588">RTX：重传包的独立载荷格式（RFC 4588）</a></li>
+<li>3.5 <a href="#35-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+<li>3.6 <a href="#36-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7">适用场景与局限性</a></li>
+</ul>
+</li>
+<li><a href="#4-pli--%E5%9B%BE%E5%83%8F%E4%B8%A2%E5%A4%B1%E6%8C%87%E7%A4%BA">PLI —— 图像丢失指示</a><ul>
+<li>4.1 <a href="#41-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li>4.2 <a href="#42-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8Frfc-4585-631">报文格式（RFC 4585 §6.3.1）</a></li>
+<li>4.3 <a href="#43-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+</ul>
+</li>
+<li><a href="#5-fir--%E5%85%A8%E5%B8%A7%E5%86%85%E5%88%B7%E6%96%B0%E8%AF%B7%E6%B1%82">FIR —— 全帧内刷新请求</a><ul>
+<li>5.1 <a href="#51-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li>5.2 <a href="#52-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8Frfc-5104-431">报文格式（RFC 5104 §4.3.1）</a></li>
+<li>5.3 <a href="#53-fmt-%E5%AD%97%E6%AE%B5%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8F%B7">FMT 字段与序列号</a></li>
+<li>5.4 <a href="#54-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+</ul>
+</li>
+<li><a href="#6-pli-vs-fir%E8%AF%AD%E4%B9%89%E5%B7%AE%E5%BC%82%E4%B8%8E%E9%80%89%E7%94%A8%E5%8E%9F%E5%88%99">PLI vs FIR：语义差异与选用原则</a></li>
+<li><a href="#7-nack-vs-plifir%E5%88%86%E5%B1%82%E7%9A%84%E4%B8%A2%E5%8C%85%E6%81%A2%E5%A4%8D%E7%AD%96%E7%95%A5">NACK vs PLI&#x2F;FIR：分层的丢包恢复策略</a></li>
+<li><a href="#8-sfu-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%AE%9E%E8%B7%B5">SFU 场景下的实践</a></li>
+<li><a href="#9-%E6%8A%A5%E6%96%87%E6%B5%81%E7%A8%8B%E5%9B%BE">报文流程图</a></li>
+<li><a href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7">常见问题与调试技巧</a></li>
+<li><a href="#11-%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83">参考规范</a></li>
+</ol>
+<hr>
+<h1 id="1-背景：为什么需要反馈机制"><a href="#1-背景：为什么需要反馈机制" class="headerlink" title="1. 背景：为什么需要反馈机制"></a>1. 背景：为什么需要反馈机制</h1><p>RTP 本身是一个无连接的单向传输协议，不提供任何内置的可靠性保证。在真实网络中，数据包丢失不可避免。对于视频流而言，H.264 &#x2F; VP8 &#x2F; H.265 等编解码器大量使用帧间预测（P 帧、B 帧），一旦参考帧中的某个 RTP 包丢失，后续所有依赖该参考帧的帧都将无法正常解码，在屏幕上表现为马赛克、花屏或画面静止。</p>
+<p>传统的 RTCP RR（接收者报告）虽然可以周期性地汇报丢包率，但其反馈粒度是”统计级别”而非”包级别”，且发送间隔往往以秒计，无法驱动快速的错误修复。</p>
+<p>为此，IETF 定义了 <strong>AVPF（Audio-Visual Profile with Feedback）</strong> 扩展，允许接收端以近实时的方式向发送端发送细粒度反馈，由此催生了 NACK、PLI、FIR 等机制。</p>
+<hr>
+<h1 id="2-RTCP-反馈框架：RFC-4585-AVPF"><a href="#2-RTCP-反馈框架：RFC-4585-AVPF" class="headerlink" title="2. RTCP 反馈框架：RFC 4585 &#x2F; AVPF"></a>2. RTCP 反馈框架：RFC 4585 &#x2F; AVPF</h1><p><strong>RFC 4585</strong>（2006 年，标准轨道）是 NACK、PLI 等反馈消息的基础规范，正式名称为 *Extended RTP Profile for RTCP-Based Feedback (RTP&#x2F;AVPF)*。它在标准 AVP Profile（RFC 3551）的基础上增加了：</p>
+<ol>
+<li><strong>立即反馈模式（Immediate Feedback Mode）</strong>：当会话规模较小时，允许接收端在检测到丢包后几乎立即发出 RTCP 反馈包，而不必遵守严格的最小发送间隔限制。</li>
+<li><strong>早期反馈模式（Early RTCP Mode）</strong>：介于立即模式和常规 RTCP 轮询之间，允许提前发送（但仍受一定带宽约束）。</li>
+<li><strong>反馈消息分类</strong>：<ul>
+<li><strong>传输层反馈（Transport Layer FB，PT&#x3D;205）</strong>：与编解码器无关，如 Generic NACK。</li>
+<li><strong>载荷特定反馈（Payload-Specific FB，PT&#x3D;206）</strong>：与编解码器相关，如 PLI、FIR、SLI 等。</li>
+<li><strong>应用层反馈（Application Layer FB）</strong>：供应用自定义扩展使用。</li>
+</ul>
+</li>
+</ol>
+<p>所有 RTCP 反馈包共享一个<strong>通用头部格式</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT  |    PT         |          length                 |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  Feedback Control Information (FCI)           |</span><br><span class="line">|                          ....                                 |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>V=2</code>：RTP 版本号，固定为 2。</li>
+<li><code>P</code>：填充位。</li>
+<li><code>FMT</code>（5 bits）：反馈消息类型，在 PT&#x3D;205 和 PT&#x3D;206 两个命名空间下分别编号。</li>
+<li><code>PT</code>：205 &#x3D; RTPFB（传输层反馈），206 &#x3D; PSFB（载荷特定反馈）。</li>
+<li><code>SSRC of packet sender</code>：反馈消息发送方的 SSRC（即接收端）。</li>
+<li><code>SSRC of media source</code>：被反馈的媒体流的 SSRC（即发送端）。</li>
+<li><code>FCI</code>：各消息类型自定义的控制信息。</li>
+</ul>
+<hr>
+<h1 id="3-NACK-——-丢包重传请求"><a href="#3-NACK-——-丢包重传请求" class="headerlink" title="3. NACK —— 丢包重传请求"></a>3. NACK —— 丢包重传请求</h1><p><strong>Generic NACK（Negative ACKnowledgement）</strong> 是 RFC 4585 定义的唯一一条传输层反馈消息，类型标识为 <strong>PT&#x3D;205，FMT&#x3D;1</strong>。</p>
+<h3 id="3-1-工作原理"><a href="#3-1-工作原理" class="headerlink" title="3.1 工作原理"></a>3.1 工作原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发送端                                     接收端</span><br><span class="line">  |                                         |</span><br><span class="line">  |──── RTP #100 ──────────────────────────&gt;|</span><br><span class="line">  |──── RTP #101 ──────────────────────────&gt;|</span><br><span class="line">  |──── RTP #102  ×  (丢失)                  |</span><br><span class="line">  |──── RTP #103 ──────────────────────────&gt;|  ← 接收端检测到 #102 缺失</span><br><span class="line">  |                                         |</span><br><span class="line">  |&lt;─── RTCP NACK (PID=102, BLP=0) ───────  |  ← 立即发出 NACK</span><br><span class="line">  |                                         |</span><br><span class="line">  |──── RTP #102（重传）────────────────── &gt; |  ← 发送端从缓冲区取出重传</span><br><span class="line">  |                                         |</span><br></pre></td></tr></table></figure>
+
+<p>接收端的检测依据是 RTP 序列号的连续性。当收到序列号为 N+2 的包，而 N+1 的包从未到达时，即可判断 N+1 丢失，随即发送 NACK。发送端接收到 NACK 后，从其<strong>重传缓冲区（retransmission buffer）</strong> 中取出对应包进行重传。若该包已经超出缓冲区保留时长（由 <code>rtx-time</code> SDP 参数控制），则发送端可以选择忽略 NACK。</p>
+<blockquote>
+<p><strong>重要约束</strong>：发送端收到 NACK 后<strong>不保证</strong>一定重传，是否重传是实现层面的决策，取决于缓冲区状态和网络拥塞估计。</p>
+</blockquote>
+<h3 id="3-2-报文格式（RFC-4585-§6-2-1）"><a href="#3-2-报文格式（RFC-4585-§6-2-1）" class="headerlink" title="3.2 报文格式（RFC 4585 §6.2.1）"></a>3.2 报文格式（RFC 4585 §6.2.1）</h3><p>NACK 的 FCI 字段由一个或多个 <strong>NACK Item（每项 32 bits）</strong> 组成，格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|            PID                |             BLP               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PID</strong>（Packet ID）</td>
+<td>16 bits</td>
+<td>丢失包的 RTP 序列号</td>
+</tr>
+<tr>
+<td><strong>BLP</strong>（Bitmask of Lost Packets）</td>
+<td>16 bits</td>
+<td>PID 之后 16 个序列号的丢失位掩码</td>
+</tr>
+</tbody></table>
+<p>整个 RTCP 反馈包的 <code>length</code> 字段值为 <code>2 + n</code>，其中 n 为 FCI 中 NACK Item 的个数。</p>
+<h3 id="3-3-PID-与-BLP-的位掩码编码"><a href="#3-3-PID-与-BLP-的位掩码编码" class="headerlink" title="3.3 PID 与 BLP 的位掩码编码"></a>3.3 PID 与 BLP 的位掩码编码</h3><p>BLP 的每一位对应 PID+1 到 PID+16 的包是否丢失。以最低有效位（bit 1）对应 PID+1，最高有效位（bit 16）对应 PID+16：</p>
+<ul>
+<li>若 bit i &#x3D; 1，表示序列号 PID+i 的包<strong>也丢失了</strong>，同样需要重传。</li>
+<li>若 bit i &#x3D; 0，<strong>不代表</strong> PID+i 已被接收，只是接收端此时尚未报告它丢失。</li>
+</ul>
+<p><strong>编码示例</strong>：假设接收端丢失了序列号 680、681、682、684 这四个包，可以在单条 NACK Item 中表达：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">PID = 680</span><br><span class="line">BLP = 0b0000000000001011</span><br><span class="line">       ↑位16           ↑位1</span><br><span class="line">        ↑bit4=1 → 丢失 684</span><br><span class="line">              ↑bit2=1 → 丢失 682</span><br><span class="line">               ↑bit1=1 → 丢失 681</span><br></pre></td></tr></table></figure>
+
+<p>即 <code>BLP = 0x000B</code>（二进制 <code>0000 0000 0000 1011</code>）。</p>
+<p>这种设计使得单条 NACK Item 可以紧凑地表达最多 17 个连续丢包（PID 本身 + BLP 覆盖的 16 个），大幅减少了突发丢包场景下的 RTCP 带宽占用。</p>
+<h3 id="3-4-RTX：重传包的独立载荷格式（RFC-4588）"><a href="#3-4-RTX：重传包的独立载荷格式（RFC-4588）" class="headerlink" title="3.4 RTX：重传包的独立载荷格式（RFC 4588）"></a>3.4 RTX：重传包的独立载荷格式（RFC 4588）</h3><p>标准的 RTP 重传使用 <strong>RFC 4588</strong> 定义的 RTX（RTP Retransmission）格式。重传包通过一个<strong>独立的 SSRC</strong> 发送，其载荷头部携带<strong>原始包的序列号（OSN，Original Sequence Number）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|          OSN (Original Sequence Number)       |    payload... |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>RTX 流与原始流使用不同的载荷类型（payload type）和 SSRC，通过 SDP 中的 <code>apt</code>（associated payload type）参数关联：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96;rtx-time=3000</span><br></pre></td></tr></table></figure>
+
+<p><code>rtx-time=3000</code> 表示发送端会在重传缓冲区中保留已发包长达 3000 毫秒。接收端在决定是否发送 NACK 时，应将此值纳入考量，避免请求一个发送端已不再持有的包。</p>
+<h3 id="3-5-SDP-协商"><a href="#3-5-SDP-协商" class="headerlink" title="3.5 SDP 协商"></a>3.5 SDP 协商</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:96 nack          ; 表示对 payload type 96 支持 Generic NACK</span><br><span class="line">a=rtcp-fb:* nack           ; 对所有载荷类型支持 NACK（通配）</span><br></pre></td></tr></table></figure>
+
+<p>双端均需在 SDP offer&#x2F;answer 中声明支持，才能使用 NACK。</p>
+<h3 id="3-6-适用场景与局限性"><a href="#3-6-适用场景与局限性" class="headerlink" title="3.6 适用场景与局限性"></a>3.6 适用场景与局限性</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>最佳场景</strong></td>
+<td>低 RTT（&lt; 100ms）、中低丢包率（&lt; 5%）、视频流</td>
+</tr>
+<tr>
+<td><strong>局限性</strong></td>
+<td>需要至少一个 RTT 才能完成重传，RTT 过高时包可能重传到达时已错过解码窗口</td>
+</tr>
+<tr>
+<td><strong>音频适用性</strong></td>
+<td>较差。Opus 等音频编解码器有内置的 PLC，NACK 带来的延迟代价往往大于收益</td>
+</tr>
+<tr>
+<td><strong>与 FEC 的关系</strong></td>
+<td>FEC（前向纠错）主动冗余，NACK 被动请求；高丢包时 FEC 更优，低丢包时 NACK 更节约带宽</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="4-PLI-——-图像丢失指示"><a href="#4-PLI-——-图像丢失指示" class="headerlink" title="4. PLI —— 图像丢失指示"></a>4. PLI —— 图像丢失指示</h1><p><strong>PLI（Picture Loss Indication）</strong> 定义于 RFC 4585 §6.3.1，类型标识为 <strong>PT&#x3D;206（PSFB），FMT&#x3D;1</strong>。</p>
+<h3 id="4-1-工作原理"><a href="#4-1-工作原理" class="headerlink" title="4.1 工作原理"></a>4.1 工作原理</h3><p>当接收端检测到<strong>一帧或多帧视频数据丢失</strong>，导致解码器无法维持正常解码状态时，发送 PLI 通知发送端。发送端收到 PLI 后，<strong>可以</strong>（MAY）生成一个新的关键帧（I 帧&#x2F;IDR 帧）并发送给接收端，以重置解码上下文。</p>
+<p>PLI 是一种”礼貌性请求”——发送端可以忽略它，也可以根据自身的拥塞控制策略决定何时生成关键帧。这与 FIR 的强制语义形成对比。</p>
+<h3 id="4-2-报文格式（RFC-4585-§6-3-1）"><a href="#4-2-报文格式（RFC-4585-§6-3-1）" class="headerlink" title="4.2 报文格式（RFC 4585 §6.3.1）"></a>4.2 报文格式（RFC 4585 §6.3.1）</h3><p>PLI 的 FCI 字段为<strong>空</strong>（0 字节）。整个 PLI 报文结构如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=1 |   PT=206      |          length=2              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><code>length=2</code> 表示报文长度为 <code>(2+1) × 4 = 12</code> 字节（length 字段计算的是 4 字节字数，不含首个 32 bits，故 length&#x3D;2 表示共 3 个 32 bits &#x3D; 12 bytes）。</p>
+<p>PLI 是所有 RTCP 反馈消息中结构<strong>最简单</strong>的一种，因为触发条件本身（”画面丢失”）不需要携带额外参数。</p>
+<h3 id="4-3-SDP-协商"><a href="#4-3-SDP-协商" class="headerlink" title="4.3 SDP 协商"></a>4.3 SDP 协商</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:96 nack pli       ; 对 payload type 96 支持 PLI（在 nack 反馈族下）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="5-FIR-——-全帧内刷新请求"><a href="#5-FIR-——-全帧内刷新请求" class="headerlink" title="5. FIR —— 全帧内刷新请求"></a>5. FIR —— 全帧内刷新请求</h1><p><strong>FIR（Full Intra Request）</strong> 定义于 <strong>RFC 5104</strong>（2008 年，标准轨道），正式名称为 *Codec Control Messages in the RTP Audio-Visual Profile with Feedback (AVPF)*。类型标识为 <strong>PT&#x3D;206（PSFB），FMT&#x3D;4</strong>。</p>
+<blockquote>
+<p>注意：FIR 定义在 RFC 5104 而非 RFC 4585，但两者都使用 PT&#x3D;206 的 PSFB 命名空间。</p>
+</blockquote>
+<h3 id="5-1-工作原理"><a href="#5-1-工作原理" class="headerlink" title="5.1 工作原理"></a>5.1 工作原理</h3><p>FIR 向发送端发出<strong>强制性命令</strong>，要求其必须生成并发送一个解码器刷新点（decoder refresh point），即关键帧。与 PLI 不同，发送端<strong>不得</strong>以”当前网络拥塞”等理由拒绝 FIR——接到 FIR 必须响应（除非刚刚在 2×RTT 时间窗口内已响应过）。</p>
+<p>FIR 的设计语义是：<strong>系统状态需要从全新的关键帧重新建立解码上下文</strong>，而不仅仅是弥补丢失帧。RFC 5104 §4.3.1.2 明确规定：</p>
+<blockquote>
+<p><em>“FIR SHALL NOT be sent as a reaction to picture losses — it is RECOMMENDED to use PLI [RFC4585] instead. FIR SHOULD be used only in situations where not sending a decoder refresh point would render the video unusable for the users.”</em></p>
+</blockquote>
+<p>典型的 FIR 使用场景：</p>
+<ul>
+<li>多点会议中，新参与者加入时需要完整的第一帧。</li>
+<li>SFU 切换发言人时，新订阅方需要立即开始解码新的流。</li>
+<li>某些录制、转码场景中需要从关键帧重新建立时间轴。</li>
+</ul>
+<h3 id="5-2-报文格式（RFC-5104-§4-3-1）"><a href="#5-2-报文格式（RFC-5104-§4-3-1）" class="headerlink" title="5.2 报文格式（RFC 5104 §4.3.1）"></a>5.2 报文格式（RFC 5104 §4.3.1）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=4 |   PT=206      |          length               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source  (unused = 0)          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                              SSRC                             |  ← FCI 开始</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">| Seq nr.       |    Reserved                                   |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>FCI 中每个条目（8 字节）包含：</p>
+<ul>
+<li><strong>SSRC</strong>（32 bits）：被请求发送关键帧的媒体源 SSRC。</li>
+<li>**Seq nr.**（8 bits）：FIR 序列号，每次新的 FIR 请求递增。用于抑制重复响应。</li>
+<li><strong>Reserved</strong>（24 bits）：保留，置 0。</li>
+</ul>
+<h3 id="5-3-FMT-字段与序列号"><a href="#5-3-FMT-字段与序列号" class="headerlink" title="5.3 FMT 字段与序列号"></a>5.3 FMT 字段与序列号</h3><p>FIR 使用 <strong>FMT&#x3D;4</strong>，而不是 PLI 的 FMT&#x3D;1，两者同属 PT&#x3D;206 命名空间。</p>
+<p>FIR 报文中的 8 位序列号（Seq nr.）是一个关键设计——发送端收到与上一次响应的 FIR 序列号相同的重复请求时，若其在 2×RTT 内已生成过关键帧，可以安全忽略，以避免在突发性重复 FIR 场景下不必要地产生大量关键帧。</p>
+<h3 id="5-4-SDP-协商"><a href="#5-4-SDP-协商" class="headerlink" title="5.4 SDP 协商"></a>5.4 SDP 协商</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:96 ccm fir        ; CCM = Codec Control Message，表示支持 FIR</span><br></pre></td></tr></table></figure>
+
+<p>FIR 在 SDP 中通过 <code>ccm fir</code> 而非 <code>nack</code> 参数族声明，因为它属于编解码器控制消息（Codec Control Message）而不是反向确认机制。</p>
+<hr>
+<h1 id="6-PLI-vs-FIR：语义差异与选用原则"><a href="#6-PLI-vs-FIR：语义差异与选用原则" class="headerlink" title="6. PLI vs FIR：语义差异与选用原则"></a>6. PLI vs FIR：语义差异与选用原则</h1><p>尽管 PLI 和 FIR 在实践中通常都会导致发送端生成一个新关键帧，但两者在<strong>语义</strong>和<strong>协议约束</strong>上存在本质区别：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>PLI</th>
+<th>FIR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定义规范</strong></td>
+<td>RFC 4585</td>
+<td>RFC 5104</td>
+</tr>
+<tr>
+<td><strong>PT &#x2F; FMT</strong></td>
+<td>206 &#x2F; 1</td>
+<td>206 &#x2F; 4</td>
+</tr>
+<tr>
+<td><strong>SDP 属性</strong></td>
+<td><code>a=rtcp-fb:N nack pli</code></td>
+<td><code>a=rtcp-fb:N ccm fir</code></td>
+</tr>
+<tr>
+<td><strong>触发原因</strong></td>
+<td>接收端画面丢失（因丢包）</td>
+<td>需要全新的解码起点（与丢包无关）</td>
+</tr>
+<tr>
+<td><strong>强制程度</strong></td>
+<td>发送端 MAY 响应，可忽略</td>
+<td>发送端 MUST 响应（有重复抑制窗口）</td>
+</tr>
+<tr>
+<td><strong>使用限制</strong></td>
+<td>RFC 5104 明确建议用于丢包场景</td>
+<td><strong>明确禁止</strong>用于丢包恢复</td>
+</tr>
+<tr>
+<td><strong>FCI 大小</strong></td>
+<td>0 字节</td>
+<td>8 字节&#x2F;条目</td>
+</tr>
+<tr>
+<td><strong>序列号</strong></td>
+<td>无</td>
+<td>有（用于抑制重复响应）</td>
+</tr>
+<tr>
+<td><strong>典型场景</strong></td>
+<td>丢包导致解码失败，需要重建参考帧</td>
+<td>新用户加入会议、切换发言人</td>
+</tr>
+</tbody></table>
+<p><strong>选用原则（基于 RFC 5104 §4.3.1.2）</strong>：</p>
+<ul>
+<li>因<strong>丢包</strong>引发的解码失败 → 优先使用 <strong>PLI</strong>，其次 NACK。</li>
+<li>因<strong>系统状态切换</strong>（新订阅者、流切换）需要强制关键帧 → 使用 <strong>FIR</strong>。</li>
+<li>在实现了两者的系统中，许多发送端对 PLI 和 FIR 的响应方式在实践上并无区别，但协议层面的语义区分依然重要，有助于 SFU&#x2F;MCU 等中间节点作出正确的信令决策。</li>
+</ul>
+<hr>
+<h1 id="7-NACK-vs-PLI-FIR：分层的丢包恢复策略"><a href="#7-NACK-vs-PLI-FIR：分层的丢包恢复策略" class="headerlink" title="7. NACK vs PLI&#x2F;FIR：分层的丢包恢复策略"></a>7. NACK vs PLI&#x2F;FIR：分层的丢包恢复策略</h1><p>这三种机制形成了一个<strong>分层的丢包恢复体系</strong>，对应不同的丢包严重程度：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">丢包严重程度（由低到高）</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">┌────────────────────────────────────────────────────────┐</span><br><span class="line">│  轻度丢包（零星单包丢失）                                  │</span><br><span class="line">│  → NACK：请求重传单个 RTP 包                             │</span><br><span class="line">│    ✓ 代价最小，仅重传丢失包                               │</span><br><span class="line">│    ✓ 适合低 RTT 网络                                    │</span><br><span class="line">└────────────────────────────────────────────────────────┘</span><br><span class="line">        │（NACK 失败 / RTT 过高 / 连续多包丢失）</span><br><span class="line">        ▼</span><br><span class="line">┌───────────────────────────────────────────────────────┐</span><br><span class="line">│  中度丢包（帧级丢失，解码器失步）                          │</span><br><span class="line">│  → PLI：请求新关键帧                                    │</span><br><span class="line">│    ✓ 重置解码上下文                                     │</span><br><span class="line">│    ✗ 关键帧体积远大于普通帧，短期带宽峰值较高               │</span><br><span class="line">└───────────────────────────────────────────────────────┘</span><br><span class="line">        │（需要强制建立全新解码起点）</span><br><span class="line">        ▼</span><br><span class="line">┌───────────────────────────────────────────────────────┐</span><br><span class="line">│  系统状态迁移（新订阅者、流切换）                          │</span><br><span class="line">│  → FIR：强制全帧内刷新                                  │</span><br><span class="line">│    ✓ 语义明确，发送端必须响应                            │</span><br><span class="line">│    ✗ 代价最高，与 PLI 类似但有更严格的协议要求             │</span><br><span class="line">└───────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>一个合理的 WebRTC 视频接收端状态机示例（伪代码）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">on_rtp_gap_detected</span>(<span class="params">missing_seq: <span class="built_in">int</span>, rtt_ms: <span class="built_in">float</span></span>):</span><br><span class="line">    <span class="keyword">if</span> rtt_ms &lt; <span class="number">100</span> <span class="keyword">and</span> is_nack_enabled():</span><br><span class="line">        send_nack(pid=missing_seq)          <span class="comment"># 先尝试 NACK</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">on_decode_failure</span>(<span class="params">reason: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="keyword">if</span> reason == <span class="string">&quot;missing_reference_frame&quot;</span>:</span><br><span class="line">        send_pli()                           <span class="comment"># 解码失败 → PLI</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">on_new_subscriber_joined</span>():</span><br><span class="line">    send_fir()                               <span class="comment"># 新订阅者加入 → FIR</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="8-SFU-场景下的实践"><a href="#8-SFU-场景下的实践" class="headerlink" title="8. SFU 场景下的实践"></a>8. SFU 场景下的实践</h1><p>在 SFU（Selective Forwarding Unit）架构中，NACK&#x2F;PLI&#x2F;FIR 的处理比 P2P 复杂得多：</p>
+<h3 id="8-1-NACK-的-SFU-处理"><a href="#8-1-NACK-的-SFU-处理" class="headerlink" title="8.1 NACK 的 SFU 处理"></a>8.1 NACK 的 SFU 处理</h3><p>SFU 通常会<strong>终结（terminate）</strong> 来自下行订阅者的 NACK，自行维护一个已转发包的缓冲区，并在收到 NACK 时直接从缓冲区重传，而不是透明地将 NACK 转发给上行发布者。这样可以：</p>
+<ul>
+<li>避免重复的 NACK 请求淹没上行发布者（N 个订阅者同时 NACK 同一个包）。</li>
+<li>降低端到端 RTT（SFU 的缓存命中比转发 NACK 到发布者更快）。</li>
+</ul>
+<h3 id="8-2-PLI-FIR-的-SFU-聚合"><a href="#8-2-PLI-FIR-的-SFU-聚合" class="headerlink" title="8.2 PLI&#x2F;FIR 的 SFU 聚合"></a>8.2 PLI&#x2F;FIR 的 SFU 聚合</h3><p>当有 N 个订阅者同时发送 PLI 时，若 SFU 直接转发所有 PLI，将迫使发布者连续生成多个大体积关键帧，严重浪费带宽。正确做法是：</p>
+<ol>
+<li><strong>PLI 聚合（PLI Aggregation）</strong>：SFU 在一段时间窗口内将多个 PLI 合并为一个，再向发布者发送一次 PLI。</li>
+<li><strong>FIR 用于新订阅者</strong>：当新订阅者加入时，SFU 可以向发布者发送一个 FIR，而不是将关键帧请求错误地表达为 PLI。</li>
+<li><strong>缓存关键帧</strong>：SFU 可以缓存最近一次发布者发出的关键帧，在新订阅者加入时直接转发，无需再次请求。</li>
+</ol>
+<p>典型的 SFU PLI&#x2F;FIR 节流策略：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">收到 PLI/FIR → 检查距上次向发布者转发关键帧请求的时间间隔</span><br><span class="line">              ├── 间隔 &lt; 阈值（如 1s） → 丢弃/缓冲，不转发</span><br><span class="line">              └── 间隔 ≥ 阈值 → 向发布者发送 PLI 或 FIR</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-Simulcast-场景"><a href="#8-3-Simulcast-场景" class="headerlink" title="8.3 Simulcast 场景"></a>8.3 Simulcast 场景</h3><p>在 Simulcast（多路流）场景下，每一路流（高清&#x2F;中清&#x2F;低清）都有独立的 SSRC，NACK&#x2F;PLI&#x2F;FIR 必须针对<strong>具体流的 SSRC</strong> 发送，SFU 在层切换时还需要向新选中的层的发布者发送 FIR 以请求关键帧。</p>
+<hr>
+<h1 id="9-报文流程图"><a href="#9-报文流程图" class="headerlink" title="9. 报文流程图"></a>9. 报文流程图</h1><h3 id="9-1-NACK-完整流程（含-RTX）"><a href="#9-1-NACK-完整流程（含-RTX）" class="headerlink" title="9.1 NACK 完整流程（含 RTX）"></a>9.1 NACK 完整流程（含 RTX）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发送端                   网络                  接收端</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │──── RTP #200 ─────────┤─────────────────────&gt;│</span><br><span class="line">  │──── RTP #201 ─────────┤───×（丢失）           │</span><br><span class="line">  │──── RTP #202 ─────────┤─────────────────────&gt;│ ← 检测到 #201 缺失</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │&lt;─── RTCP NACK(201) ───┤──────────────────────│ ← 发送 NACK</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │──── RTX #201 ─────────┤─────────────────────&gt;│ ← 从缓冲区重传（RTX SSRC）</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │                       │             解码器恢复 │</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-PLI-完整流程"><a href="#9-2-PLI-完整流程" class="headerlink" title="9.2 PLI 完整流程"></a>9.2 PLI 完整流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">发送端                   网络                  接收端</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │──── P帧（依赖前帧）──×┤─────（多包丢失）         │</span><br><span class="line">  │──── P帧 ──────────────┤─────────────────────&gt;│ ← 解码失败</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │&lt;─── RTCP PLI ─────────┤──────────────────────│</span><br><span class="line">  │                       │                      │</span><br><span class="line">  │──── IDR/关键帧 ────────┤─────────────────────&gt;│ ← 重置解码器</span><br><span class="line">  │──── P帧 ──────────────┤─────────────────────&gt;│ ← 正常恢复</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-FIR-流程（SFU-新订阅者场景）"><a href="#9-3-FIR-流程（SFU-新订阅者场景）" class="headerlink" title="9.3 FIR 流程（SFU 新订阅者场景）"></a>9.3 FIR 流程（SFU 新订阅者场景）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">发布端          SFU              新订阅端</span><br><span class="line">  │              │                   │</span><br><span class="line">  │── P帧 ──────&gt;│                   │</span><br><span class="line">  │              │&lt;─── FIR ──────────│ ← 新用户加入，请求关键帧</span><br><span class="line">  │&lt;─── FIR ─────│                   │</span><br><span class="line">  │              │                   │</span><br><span class="line">  │── IDR ──────&gt;│── IDR ───────────&gt;│ ← 订阅端从关键帧开始解码</span><br><span class="line">  │── P帧 ───────&gt;│── P帧 ───────────&gt;│</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="10-常见问题与调试技巧"><a href="#10-常见问题与调试技巧" class="headerlink" title="10. 常见问题与调试技巧"></a>10. 常见问题与调试技巧</h1><h3 id="Q1：为什么-NACK-了但没有收到重传？"><a href="#Q1：为什么-NACK-了但没有收到重传？" class="headerlink" title="Q1：为什么 NACK 了但没有收到重传？"></a>Q1：为什么 NACK 了但没有收到重传？</h3><ul>
+<li>发送端的重传缓冲区（<code>rtx-time</code>）可能太短，目标包已被清出缓冲区。</li>
+<li>发送端实现可能未开启 NACK 响应（需检查 SDP 是否正确协商了 <code>a=rtcp-fb:N nack</code>）。</li>
+<li>RTT 过高，NACK 往返时间超过了解码缓冲的容忍窗口，发送端选择忽略。</li>
+<li>网络拥塞，发送端主动降低发送码率，放弃部分 NACK 重传。</li>
+</ul>
+<h3 id="Q2：PLI-风暴（PLI-Storm）"><a href="#Q2：PLI-风暴（PLI-Storm）" class="headerlink" title="Q2：PLI 风暴（PLI Storm）"></a>Q2：PLI 风暴（PLI Storm）</h3><p>在 SFU 场景下，如果多个订阅者同时发送 PLI，而 SFU 未做聚合直接转发，发布端会收到大量 PLI，导致频繁生成关键帧，每个关键帧体积可能是普通帧的 10 倍以上，迅速耗尽带宽并触发更多丢包，从而形成正反馈循环。解决方案是 SFU 实施 PLI 节流（throttling），最小间隔通常设置为 1~3 秒。</p>
+<h3 id="Q3：如何用-Wireshark-抓包分析？"><a href="#Q3：如何用-Wireshark-抓包分析？" class="headerlink" title="Q3：如何用 Wireshark 抓包分析？"></a>Q3：如何用 Wireshark 抓包分析？</h3><p>在 Wireshark 中：</p>
+<ul>
+<li>过滤 RTCP 反馈包：<code>rtcp.pt == 205</code> (RTPFB) 或 <code>rtcp.pt == 206</code> (PSFB)</li>
+<li>NACK：<code>rtcp.pt == 205 &amp;&amp; rtcp.rtpfb.fmt == 1</code></li>
+<li>PLI：<code>rtcp.pt == 206 &amp;&amp; rtcp.psfb.fmt == 1</code></li>
+<li>FIR：<code>rtcp.pt == 206 &amp;&amp; rtcp.psfb.fmt == 4</code></li>
+</ul>
+<p>也可以在 Chrome 中访问 <code>chrome://webrtc-internals</code>，在 Stats 面板中查看：</p>
+<ul>
+<li><code>RTCOutboundRtpVideoStream.nackCount</code>：发送端收到 NACK 的次数</li>
+<li><code>RTCInboundRtpVideoStream.nackCount</code>：接收端发送 NACK 的次数</li>
+<li><code>RTCInboundRtpVideoStream.pliCount</code>：接收端发送 PLI 的次数</li>
+<li><code>RTCInboundRtpVideoStream.firCount</code>：接收端发送 FIR 的次数</li>
+</ul>
+<h3 id="Q4：NACK-与-FEC-如何搭配？"><a href="#Q4：NACK-与-FEC-如何搭配？" class="headerlink" title="Q4：NACK 与 FEC 如何搭配？"></a>Q4：NACK 与 FEC 如何搭配？</h3><p>两者可以同时启用，互为补充：</p>
+<ul>
+<li><strong>FEC</strong> 在发送时主动添加冗余包，对突发丢包有更快的恢复速度（无需等待 RTT）。</li>
+<li><strong>NACK</strong> 在 FEC 无法覆盖的丢包场景下兜底，请求重传。</li>
+</ul>
+<p>在 WebRTC 中，通常根据网络质量动态调整两者的比例：丢包率高时增加 FEC 冗余，丢包率低时依赖 NACK 节省带宽。</p>
+<hr>
+<h1 id="11-参考规范"><a href="#11-参考规范" class="headerlink" title="11. 参考规范"></a>11. 参考规范</h1><table>
+<thead>
+<tr>
+<th>规范</th>
+<th>标题</th>
+<th>核心内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RFC 4585</strong></td>
+<td>Extended RTP Profile for RTCP-Based Feedback (RTP&#x2F;AVPF)</td>
+<td>AVPF 框架、Generic NACK、PLI、SLI、RPSI 的定义</td>
+</tr>
+<tr>
+<td><strong>RFC 5104</strong></td>
+<td>Codec Control Messages in AVPF</td>
+<td>FIR、TSTR、TSTN、TMMBR&#x2F;TMMBN 的定义</td>
+</tr>
+<tr>
+<td><strong>RFC 4588</strong></td>
+<td>RTP Retransmission Payload Format</td>
+<td>RTX 载荷格式（与 NACK 配合使用的重传包格式）</td>
+</tr>
+<tr>
+<td><strong>RFC 3550</strong></td>
+<td>RTP: A Transport Protocol for Real-Time Applications</td>
+<td>RTP&#x2F;RTCP 基础规范</td>
+</tr>
+<tr>
+<td><strong>RFC 8108</strong></td>
+<td>Sending Multiple Types of Media in a Single RTP Session</td>
+<td>更新了 RFC 4585 对多媒体流的处理</td>
+</tr>
+</tbody></table>
+<p>在线资源：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc4585">RFC 4585 全文（IETF Datatracker）</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5104">RFC 5104 全文（IETF Datatracker）</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc4588">RFC 4588 全文（IETF Datatracker）</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/docs/06-media-communication/">WebRTC for the Curious — Media Communication</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：为什么需要反馈机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RTCP-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6%EF%BC%9ARFC-4585-AVPF"><span class="toc-number">3.</span> <span class="toc-text">2. RTCP 反馈框架：RFC 4585 &#x2F; AVPF</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-NACK-%E2%80%94%E2%80%94-%E4%B8%A2%E5%8C%85%E9%87%8D%E4%BC%A0%E8%AF%B7%E6%B1%82"><span class="toc-number">4.</span> <span class="toc-text">3. NACK —— 丢包重传请求</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4585-%C2%A76-2-1%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 报文格式（RFC 4585 §6.2.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-PID-%E4%B8%8E-BLP-%E7%9A%84%E4%BD%8D%E6%8E%A9%E7%A0%81%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 PID 与 BLP 的位掩码编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-RTX%EF%BC%9A%E9%87%8D%E4%BC%A0%E5%8C%85%E7%9A%84%E7%8B%AC%E7%AB%8B%E8%BD%BD%E8%8D%B7%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4588%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 RTX：重传包的独立载荷格式（RFC 4588）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 适用场景与局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-PLI-%E2%80%94%E2%80%94-%E5%9B%BE%E5%83%8F%E4%B8%A2%E5%A4%B1%E6%8C%87%E7%A4%BA"><span class="toc-number">5.</span> <span class="toc-text">4. PLI —— 图像丢失指示</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-4585-%C2%A76-3-1%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 报文格式（RFC 4585 §6.3.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-FIR-%E2%80%94%E2%80%94-%E5%85%A8%E5%B8%A7%E5%86%85%E5%88%B7%E6%96%B0%E8%AF%B7%E6%B1%82"><span class="toc-number">6.</span> <span class="toc-text">5. FIR —— 全帧内刷新请求</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%EF%BC%88RFC-5104-%C2%A74-3-1%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 报文格式（RFC 5104 §4.3.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-FMT-%E5%AD%97%E6%AE%B5%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 FMT 字段与序列号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-PLI-vs-FIR%EF%BC%9A%E8%AF%AD%E4%B9%89%E5%B7%AE%E5%BC%82%E4%B8%8E%E9%80%89%E7%94%A8%E5%8E%9F%E5%88%99"><span class="toc-number">7.</span> <span class="toc-text">6. PLI vs FIR：语义差异与选用原则</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-NACK-vs-PLI-FIR%EF%BC%9A%E5%88%86%E5%B1%82%E7%9A%84%E4%B8%A2%E5%8C%85%E6%81%A2%E5%A4%8D%E7%AD%96%E7%95%A5"><span class="toc-number">8.</span> <span class="toc-text">7. NACK vs PLI&#x2F;FIR：分层的丢包恢复策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%AE%9E%E8%B7%B5"><span class="toc-number">9.</span> <span class="toc-text">8. SFU 场景下的实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-NACK-%E7%9A%84-SFU-%E5%A4%84%E7%90%86"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 NACK 的 SFU 处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-PLI-FIR-%E7%9A%84-SFU-%E8%81%9A%E5%90%88"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 PLI&#x2F;FIR 的 SFU 聚合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Simulcast-%E5%9C%BA%E6%99%AF"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Simulcast 场景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%8A%A5%E6%96%87%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">10.</span> <span class="toc-text">9. 报文流程图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-NACK-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%EF%BC%88%E5%90%AB-RTX%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 NACK 完整流程（含 RTX）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-PLI-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 PLI 完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-FIR-%E6%B5%81%E7%A8%8B%EF%BC%88SFU-%E6%96%B0%E8%AE%A2%E9%98%85%E8%80%85%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 FIR 流程（SFU 新订阅者场景）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与调试技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-NACK-%E4%BA%86%E4%BD%86%E6%B2%A1%E6%9C%89%E6%94%B6%E5%88%B0%E9%87%8D%E4%BC%A0%EF%BC%9F"><span class="toc-number">11.0.1.</span> <span class="toc-text">Q1：为什么 NACK 了但没有收到重传？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9APLI-%E9%A3%8E%E6%9A%B4%EF%BC%88PLI-Storm%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">Q2：PLI 风暴（PLI Storm）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E4%BD%95%E7%94%A8-Wireshark-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90%EF%BC%9F"><span class="toc-number">11.0.3.</span> <span class="toc-text">Q3：如何用 Wireshark 抓包分析？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9ANACK-%E4%B8%8E-FEC-%E5%A6%82%E4%BD%95%E6%90%AD%E9%85%8D%EF%BC%9F"><span class="toc-number">11.0.4.</span> <span class="toc-text">Q4：NACK 与 FEC 如何搭配？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">12.</span> <span class="toc-text">11. 参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&text=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&is_video=false&description=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NACK / PLI / FIR — 重传请求与关键帧请求机制&body=Check out this article: http://example.com/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&title=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&name=NACK / PLI / FIR — 重传请求与关键帧请求机制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/07/webrtc/12-nack-pli-fir/&t=NACK / PLI / FIR — 重传请求与关键帧请求机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

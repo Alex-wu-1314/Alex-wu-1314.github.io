@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 1. 前言：为什么 WebRTC 需要 SCTP？ 2. SCTP 的起源与标准化 3. SCTP 核心特性 3.1 多流（Multi-streaming） 3.2 消息边界保留（Message-oriented） 3.3 可配置的可靠性（Partial Reliability） 3.4 多宿（Multi-homing） 3.5 抗 SYN Flood 的四次握手   4. SCTP 协议架">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SCTP：WebRTC DataChannel 的底层传输协议">
+<meta property="og:url" content="http://example.com/2022/07/19/webrtc/13-sctp/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 1. 前言：为什么 WebRTC 需要 SCTP？ 2. SCTP 的起源与标准化 3. SCTP 核心特性 3.1 多流（Multi-streaming） 3.2 消息边界保留（Message-oriented） 3.3 可配置的可靠性（Partial Reliability） 3.4 多宿（Multi-homing） 3.5 抗 SYN Flood 的四次握手   4. SCTP 协议架">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-07-19T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-28T03:56:39.697Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>SCTP：WebRTC DataChannel 的底层传输协议</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/31/webrtc/14-datachannel/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/19/webrtc/13-sctp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/19/webrtc/13-sctp/&text=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/19/webrtc/13-sctp/&is_video=false&description=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SCTP：WebRTC DataChannel 的底层传输协议&body=Check out this article: http://example.com/2022/07/19/webrtc/13-sctp/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/19/webrtc/13-sctp/&name=SCTP：WebRTC DataChannel 的底层传输协议&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/19/webrtc/13-sctp/&t=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%89%8D%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-WebRTC-%E9%9C%80%E8%A6%81-SCTP%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 前言：为什么 WebRTC 需要 SCTP？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-SCTP-%E7%9A%84%E8%B5%B7%E6%BA%90%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96"><span class="toc-number">3.</span> <span class="toc-text">2. SCTP 的起源与标准化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SCTP-%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">4.</span> <span class="toc-text">3. SCTP 核心特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A4%9A%E6%B5%81%EF%BC%88Multi-streaming%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 多流（Multi-streaming）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B6%88%E6%81%AF%E8%BE%B9%E7%95%8C%E4%BF%9D%E7%95%99%EF%BC%88Message-oriented%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 消息边界保留（Message-oriented）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8F%AF%E9%85%8D%E7%BD%AE%E7%9A%84%E5%8F%AF%E9%9D%A0%E6%80%A7%EF%BC%88Partial-Reliability%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 可配置的可靠性（Partial Reliability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%A4%9A%E5%AE%BF%EF%BC%88Multi-homing%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 多宿（Multi-homing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%8A%97-SYN-Flood-%E7%9A%84%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 抗 SYN Flood 的四次握手</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-SCTP-%E5%8D%8F%E8%AE%AE%E6%9E%B6%E6%9E%84"><span class="toc-number">5.</span> <span class="toc-text">4. SCTP 协议架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%88%86%E5%B1%82%E5%8A%9F%E8%83%BD%E8%A7%86%E5%9B%BE"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 分层功能视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B3%E9%94%AE%E6%A6%82%E5%BF%B5"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 关键概念</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SCTP-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%BB%93%E6%9E%84"><span class="toc-number">6.</span> <span class="toc-text">5. SCTP 数据包结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%AC%E5%85%B1%E5%8C%85%E5%A4%B4%EF%BC%88Common-Header%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 公共包头（Common Header）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Chunk-%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Chunk 结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%BB%E8%A6%81-Chunk-%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 主要 Chunk 类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DATA-Chunk%EF%BC%88Type-0x00%EF%BC%89"><span class="toc-number">6.0.3.1.</span> <span class="toc-text">DATA Chunk（Type &#x3D; 0x00）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#INIT-Chunk%EF%BC%88Type-0x01%EF%BC%89"><span class="toc-number">6.0.3.2.</span> <span class="toc-text">INIT Chunk（Type &#x3D; 0x01）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#INIT-ACK-Chunk%EF%BC%88Type-0x02%EF%BC%89"><span class="toc-number">6.0.3.3.</span> <span class="toc-text">INIT ACK Chunk（Type &#x3D; 0x02）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SACK-Chunk%EF%BC%88Type-0x03%EF%BC%89"><span class="toc-number">6.0.3.4.</span> <span class="toc-text">SACK Chunk（Type &#x3D; 0x03）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HEARTBEAT-HEARTBEAT-ACK-Chunk%EF%BC%88Type-0x04-0x05%EF%BC%89"><span class="toc-number">6.0.3.5.</span> <span class="toc-text">HEARTBEAT &#x2F; HEARTBEAT ACK Chunk（Type &#x3D; 0x04 &#x2F; 0x05）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#COOKIE-ECHO-Chunk%EF%BC%88Type-0x0A%EF%BC%89"><span class="toc-number">6.0.3.6.</span> <span class="toc-text">COOKIE ECHO Chunk（Type &#x3D; 0x0A）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#COOKIE-ACK-Chunk%EF%BC%88Type-0x0B%EF%BC%89"><span class="toc-number">6.0.3.7.</span> <span class="toc-text">COOKIE ACK Chunk（Type &#x3D; 0x0B）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ABORT-Chunk%EF%BC%88Type-0x06%EF%BC%89"><span class="toc-number">6.0.3.8.</span> <span class="toc-text">ABORT Chunk（Type &#x3D; 0x06）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SHUTDOWN-SHUTDOWN-ACK-SHUTDOWN-COMPLETE%EF%BC%88Type-0x07-0x08-0x0E%EF%BC%89"><span class="toc-number">6.0.3.9.</span> <span class="toc-text">SHUTDOWN &#x2F; SHUTDOWN ACK &#x2F; SHUTDOWN COMPLETE（Type &#x3D; 0x07 &#x2F; 0x08 &#x2F; 0x0E）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FORWARD-TSN-Chunk%EF%BC%88Type-0xC0%EF%BC%89"><span class="toc-number">6.0.3.10.</span> <span class="toc-text">FORWARD TSN Chunk（Type &#x3D; 0xC0）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E8%BF%9E%E6%8E%A5%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">7.</span> <span class="toc-text">6. 连接生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%85%B3%E8%81%94%E5%BB%BA%E7%AB%8B%EF%BC%9A%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B-Cookie-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 关联建立：四次握手 + Cookie 机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E9%98%B6%E6%AE%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 数据传输阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%85%B3%E8%81%94%E5%85%B3%E9%97%AD%EF%BC%9A%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 关联关闭：三次握手</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%BF%83%E8%B7%B3%E4%BF%9D%E6%B4%BB%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 心跳保活机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 可靠性与重传机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-TSN-%E4%B8%8E-SACK"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 TSN 与 SACK</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-T3-rtx-%E9%87%8D%E4%BC%A0%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 T3-rtx 重传定时器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-PR-SCTP%EF%BC%9A%E9%83%A8%E5%88%86%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%89%A9%E5%B1%95%EF%BC%88RFC-3758%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 PR-SCTP：部分可靠性扩展（RFC 3758）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. 拥塞控制与流量控制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%EF%BC%88Flow-Control%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 流量控制（Flow Control）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%EF%BC%88Congestion-Control%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 拥塞控制（Congestion Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SCTP-over-DTLS%EF%BC%9AWebRTC-%E4%B8%AD%E7%9A%84%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8F"><span class="toc-number">10.</span> <span class="toc-text">9. SCTP over DTLS：WebRTC 中的封装方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B1%82%E6%AC%A1"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 协议栈层次</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RFC-8261-%E8%A7%84%E8%8C%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RFC 8261 规范要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-SDP-%E5%8D%8F%E5%95%86%EF%BC%88RFC-8841%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 SDP 协商（RFC 8841）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-SCTP-%E4%B8%8E-DataChannel-%E7%9A%84%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB"><span class="toc-number">11.</span> <span class="toc-text">10. SCTP 与 DataChannel 的映射关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-DataChannel-%E5%88%B0-SCTP-Stream-%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 DataChannel 到 SCTP Stream 的映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-PPID%EF%BC%9APayload-Protocol-Identifier"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 PPID：Payload Protocol Identifier</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-DCEP%EF%BC%9A%E6%95%B0%E6%8D%AE%E9%80%9A%E9%81%93%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AE%EF%BC%88RFC-8832%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 DCEP：数据通道建立协议（RFC 8832）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SCTP-%E4%B8%8E-TCP-UDP-%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">12.</span> <span class="toc-text">11. SCTP 与 TCP&#x2F;UDP 的横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="toc-number">13.</span> <span class="toc-text">12. 实现与调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E4%B8%BB%E6%B5%81%E5%AE%9E%E7%8E%B0%E5%BA%93"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 主流实现库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-Wireshark-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 Wireshark 抓包分析</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E7%9B%B8%E5%85%B3-RFC-%E7%B4%A2%E5%BC%95"><span class="toc-number">14.</span> <span class="toc-text">13. 相关 RFC 索引</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        SCTP：WebRTC DataChannel 的底层传输协议
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-19T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-07-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#1-%E5%89%8D%E8%A8%80%E4%B8%BA%E4%BB%80%E4%B9%88-webrtc-%E9%9C%80%E8%A6%81-sctp">1. 前言：为什么 WebRTC 需要 SCTP？</a></li>
+<li><a href="#2-sctp-%E7%9A%84%E8%B5%B7%E6%BA%90%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96">2. SCTP 的起源与标准化</a></li>
+<li><a href="#3-sctp-%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7">3. SCTP 核心特性</a><ul>
+<li><a href="#31-%E5%A4%9A%E6%B5%81multi-streaming">3.1 多流（Multi-streaming）</a></li>
+<li><a href="#32-%E6%B6%88%E6%81%AF%E8%BE%B9%E7%95%8C%E4%BF%9D%E7%95%99message-oriented">3.2 消息边界保留（Message-oriented）</a></li>
+<li><a href="#33-%E5%8F%AF%E9%85%8D%E7%BD%AE%E7%9A%84%E5%8F%AF%E9%9D%A0%E6%80%A7partial-reliability">3.3 可配置的可靠性（Partial Reliability）</a></li>
+<li><a href="#34-%E5%A4%9A%E5%AE%BFmulti-homing">3.4 多宿（Multi-homing）</a></li>
+<li><a href="#35-%E6%8A%97-syn-flood-%E7%9A%84%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B">3.5 抗 SYN Flood 的四次握手</a></li>
+</ul>
+</li>
+<li><a href="#4-sctp-%E5%8D%8F%E8%AE%AE%E6%9E%B6%E6%9E%84">4. SCTP 协议架构</a><ul>
+<li><a href="#41-%E5%88%86%E5%B1%82%E5%8A%9F%E8%83%BD%E8%A7%86%E5%9B%BE">4.1 分层功能视图</a></li>
+<li><a href="#42-%E5%85%B3%E9%94%AE%E6%A6%82%E5%BF%B5">4.2 关键概念</a></li>
+</ul>
+</li>
+<li><a href="#5-sctp-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%BB%93%E6%9E%84">5. SCTP 数据包结构</a><ul>
+<li><a href="#51-%E5%85%AC%E5%85%B1%E5%8C%85%E5%A4%B4common-header">5.1 公共包头（Common Header）</a></li>
+<li><a href="#52-chunk-%E7%BB%93%E6%9E%84">5.2 Chunk 结构</a></li>
+<li><a href="#53-%E4%B8%BB%E8%A6%81-chunk-%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3">5.3 主要 Chunk 类型详解</a></li>
+</ul>
+</li>
+<li><a href="#6-%E8%BF%9E%E6%8E%A5%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">6. 连接生命周期</a><ul>
+<li><a href="#61-%E5%85%B3%E8%81%94%E5%BB%BA%E7%AB%8B%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B--cookie-%E6%9C%BA%E5%88%B6">6.1 关联建立：四次握手 + Cookie 机制</a></li>
+<li><a href="#62-%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E9%98%B6%E6%AE%B5">6.2 数据传输阶段</a></li>
+<li><a href="#63-%E5%85%B3%E8%81%94%E5%85%B3%E9%97%AD%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B">6.3 关联关闭：三次握手</a></li>
+<li><a href="#64-%E5%BF%83%E8%B7%B3%E4%BF%9D%E6%B4%BB%E6%9C%BA%E5%88%B6">6.4 心跳保活机制</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6">7. 可靠性与重传机制</a><ul>
+<li><a href="#71-tsn-%E4%B8%8E-sack">7.1 TSN 与 SACK</a></li>
+<li><a href="#72-t3-rtx-%E9%87%8D%E4%BC%A0%E5%AE%9A%E6%97%B6%E5%99%A8">7.2 T3-rtx 重传定时器</a></li>
+<li><a href="#73-pr-sctp%E9%83%A8%E5%88%86%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%89%A9%E5%B1%95rfc-3758">7.3 PR-SCTP：部分可靠性扩展（RFC 3758）</a></li>
+</ul>
+</li>
+<li><a href="#8-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6">8. 拥塞控制与流量控制</a><ul>
+<li><a href="#81-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6flow-control">8.1 流量控制（Flow Control）</a></li>
+<li><a href="#82-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6congestion-control">8.2 拥塞控制（Congestion Control）</a></li>
+</ul>
+</li>
+<li><a href="#9-sctp-over-dtlswebrtc-%E4%B8%AD%E7%9A%84%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8F">9. SCTP over DTLS：WebRTC 中的封装方式</a><ul>
+<li><a href="#91-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B1%82%E6%AC%A1">9.1 协议栈层次</a></li>
+<li><a href="#92-rfc-8261-%E8%A7%84%E8%8C%83%E8%A6%81%E7%82%B9">9.2 RFC 8261 规范要点</a></li>
+<li><a href="#93-sdp-%E5%8D%8F%E5%95%86rfc-8841">9.3 SDP 协商（RFC 8841）</a></li>
+</ul>
+</li>
+<li><a href="#10-sctp-%E4%B8%8E-datachannel-%E7%9A%84%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB">10. SCTP 与 DataChannel 的映射关系</a><ul>
+<li><a href="#101-datachannel-%E5%88%B0-sctp-stream-%E7%9A%84%E6%98%A0%E5%B0%84">10.1 DataChannel 到 SCTP Stream 的映射</a></li>
+<li><a href="#102-ppidpayload-protocol-identifier">10.2 PPID：Payload Protocol Identifier</a></li>
+<li><a href="#103-dcep%E6%95%B0%E6%8D%AE%E9%80%9A%E9%81%93%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AErfc-8832">10.3 DCEP：数据通道建立协议（RFC 8832）</a></li>
+</ul>
+</li>
+<li><a href="#11-sctp-%E4%B8%8E-tcpudp-%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94">11. SCTP 与 TCP&#x2F;UDP 的横向对比</a></li>
+<li><a href="#12-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%B0%83%E8%AF%95">12. 实现与调试</a><ul>
+<li><a href="#121-%E4%B8%BB%E6%B5%81%E5%AE%9E%E7%8E%B0%E5%BA%93">12.1 主流实现库</a></li>
+<li><a href="#122-wireshark-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90">12.2 Wireshark 抓包分析</a></li>
+</ul>
+</li>
+<li><a href="#13-%E7%9B%B8%E5%85%B3-rfc-%E7%B4%A2%E5%BC%95">13. 相关 RFC 索引</a></li>
+<li><a href="#14-%E5%B0%8F%E7%BB%93">14. 小结</a></li>
+</ul>
+<hr>
+<h1 id="1-前言：为什么-WebRTC-需要-SCTP？"><a href="#1-前言：为什么-WebRTC-需要-SCTP？" class="headerlink" title="1. 前言：为什么 WebRTC 需要 SCTP？"></a>1. 前言：为什么 WebRTC 需要 SCTP？</h1><p>WebRTC 的媒体数据（音频、视频）走 <strong>SRTP over UDP</strong> 这条路，但当我们需要传输任意的应用层数据，比如游戏状态、文件片段、聊天消息、二进制帧，就需要另一套机制。</p>
+<p>最直觉的选择是 TCP 或 WebSocket，但它们有致命问题：</p>
+<ul>
+<li><strong>TCP 的队头阻塞（Head-of-Line Blocking）</strong>：一个丢失的包会阻塞整个字节流，即使后续数据已经到达。</li>
+<li><strong>TCP 是字节流</strong>：应用层需要自行分帧，增加实现复杂度。</li>
+<li><strong>WebSocket 基于 TCP</strong>：继承了上述所有问题。</li>
+<li><strong>UDP 没有可靠性保证</strong>：需要应用层自行处理重传、排序、拥塞控制。</li>
+</ul>
+<p>SCTP（Stream Control Transmission Protocol，流控制传输协议）正好填补了这个空白。它将 TCP 的可靠性与 UDP 的消息边界特性融合在一起，并额外提供多流、部分可靠性等高级功能，使其成为 WebRTC DataChannel 底层传输的理想选择。</p>
+<hr>
+<h1 id="2-SCTP-的起源与标准化"><a href="#2-SCTP-的起源与标准化" class="headerlink" title="2. SCTP 的起源与标准化"></a>2. SCTP 的起源与标准化</h1><p>SCTP 最初由 IETF <strong>SIGTRAN（Signaling Transport）工作组</strong>设计，目标是将 PSTN（公共交换电话网）的 SS7 信令消息承载在 IP 网络上。2000 年 10 月，SCTP 作为协议号 132 正式发布（RFC 2960）。</p>
+<p>主要标准演进：</p>
+<table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>时间</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RFC 2960</td>
+<td>2000年</td>
+<td>SCTP 初始规范</td>
+</tr>
+<tr>
+<td>RFC 3758</td>
+<td>2004年</td>
+<td>PR-SCTP 部分可靠性扩展</td>
+</tr>
+<tr>
+<td>RFC 4960</td>
+<td>2007年</td>
+<td>取代 RFC 2960，SCTP 修订版</td>
+</tr>
+<tr>
+<td><strong>RFC 9260</strong></td>
+<td><strong>2022年</strong></td>
+<td><strong>当前最新版本，取代 RFC 4960</strong></td>
+</tr>
+<tr>
+<td>RFC 8261</td>
+<td>2017年</td>
+<td>SCTP over DTLS 封装规范</td>
+</tr>
+<tr>
+<td>RFC 8831</td>
+<td>2021年</td>
+<td>WebRTC DataChannel 架构规范</td>
+</tr>
+<tr>
+<td>RFC 8832</td>
+<td>2021年</td>
+<td>DCEP 数据通道建立协议</td>
+</tr>
+<tr>
+<td>RFC 8841</td>
+<td>2021年</td>
+<td>SDP 中 SCTP-over-DTLS 的 Offer&#x2F;Answer</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：RFC 9260 是当前权威规范，但 WebRTC 实现文档（如 RFC 8831）仍引用 RFC 4960，两者在核心机制上是兼容的。</p>
+</blockquote>
+<hr>
+<h1 id="3-SCTP-核心特性"><a href="#3-SCTP-核心特性" class="headerlink" title="3. SCTP 核心特性"></a>3. SCTP 核心特性</h1><h3 id="3-1-多流（Multi-streaming）"><a href="#3-1-多流（Multi-streaming）" class="headerlink" title="3.1 多流（Multi-streaming）"></a>3.1 多流（Multi-streaming）</h3><p>这是 SCTP 最重要的特性，也是解决 TCP 队头阻塞的核心手段。</p>
+<p>在一个 SCTP <strong>关联（Association）</strong> 中可以同时维护多个独立的逻辑<strong>流（Stream）</strong>。每个流有自己独立的序列号空间（Stream Sequence Number，SSN）。一个流上的丢包<strong>不会阻塞</strong>其他流的数据交付。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">关联（Association）</span><br><span class="line">├── Stream 0  ──→ DataChannel &quot;chat&quot;      （有序、可靠）</span><br><span class="line">├── Stream 1  ──→ DataChannel &quot;gameState&quot; （无序、部分可靠）</span><br><span class="line">├── Stream 2  ──→ DataChannel &quot;fileTransfer&quot; （有序、可靠）</span><br><span class="line">└── Stream N  ──→ ...（最多 65535 个流）</span><br></pre></td></tr></table></figure>
+
+<p>WebRTC 规范要求每端支持至少 <strong>1024 个流</strong>，理论上限为 <strong>65534 个 DataChannel</strong>（奇偶编号分别由 offer 方和 answer 方使用，0 号预留）。</p>
+<h3 id="3-2-消息边界保留（Message-oriented）"><a href="#3-2-消息边界保留（Message-oriented）" class="headerlink" title="3.2 消息边界保留（Message-oriented）"></a>3.2 消息边界保留（Message-oriented）</h3><p>SCTP 以<strong>消息（Message）</strong> 为单位交付数据，而非字节流。发送方提交一个完整的应用层消息，接收方收到的也是这个完整消息，不需要应用层自己解帧。</p>
+<p>如果消息超过路径 MTU（PMTU），SCTP 会自动在发送端<strong>分片（Fragment）</strong>，并在接收端<strong>重组（Reassemble）</strong>，这对应用层透明。</p>
+<p>理论上，单条 SCTP 消息可以达到数 GB，但实际场景应根据 PMTU 和内存情况合理控制消息大小。</p>
+<h3 id="3-3-可配置的可靠性（Partial-Reliability）"><a href="#3-3-可配置的可靠性（Partial-Reliability）" class="headerlink" title="3.3 可配置的可靠性（Partial Reliability）"></a>3.3 可配置的可靠性（Partial Reliability）</h3><p>标准 SCTP 提供全可靠传输（类似 TCP）。<strong>PR-SCTP</strong>（RFC 3758）扩展允许发送方为每条消息单独配置可靠性策略：</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+<th>WebRTC DataChannel 类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>完全可靠（Full Reliability）</td>
+<td>无限重传直到确认</td>
+<td><code>DATA_CHANNEL_RELIABLE</code></td>
+</tr>
+<tr>
+<td>按重传次数限制（RTX）</td>
+<td>最多重传 N 次后放弃</td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT</code></td>
+</tr>
+<tr>
+<td>按时间限制（Timed）</td>
+<td>超过 T ms 后放弃</td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_TIMED</code></td>
+</tr>
+</tbody></table>
+<p>每种策略还可以叠加<strong>无序交付（Unordered）</strong>选项，对应 <code>_UNORDERED</code> 后缀。</p>
+<h3 id="3-4-多宿（Multi-homing）"><a href="#3-4-多宿（Multi-homing）" class="headerlink" title="3.4 多宿（Multi-homing）"></a>3.4 多宿（Multi-homing）</h3><p>SCTP 允许一个端点绑定<strong>多个 IP 地址</strong>，在主路径失效时自动切换到备用路径，实现传输层的故障转移。</p>
+<blockquote>
+<p>在 WebRTC 场景中，由于 SCTP 运行在 DTLS 之上（SCTP over DTLS），而 DTLS 连接已经由 ICE 完成了路径选择，<strong>多宿特性在 WebRTC 中并未被使用</strong>（RFC 8261 明确说明 SCTP 此时无法感知底层 IP 地址）。</p>
+</blockquote>
+<h3 id="3-5-抗-SYN-Flood-的四次握手"><a href="#3-5-抗-SYN-Flood-的四次握手" class="headerlink" title="3.5 抗 SYN Flood 的四次握手"></a>3.5 抗 SYN Flood 的四次握手</h3><p>TCP 三次握手在服务端回复 SYN-ACK 后即分配连接资源，容易遭受 SYN Flood 攻击。SCTP 采用<strong>四次握手 + 有状态 Cookie</strong> 机制，服务端在收到第三个包（COOKIE ECHO）之前<strong>不分配任何资源</strong>，有效防御此类攻击。</p>
+<hr>
+<h1 id="4-SCTP-协议架构"><a href="#4-SCTP-协议架构" class="headerlink" title="4. SCTP 协议架构"></a>4. SCTP 协议架构</h1><h3 id="4-1-分层功能视图"><a href="#4-1-分层功能视图" class="headerlink" title="4.1 分层功能视图"></a>4.1 分层功能视图</h3><p>RFC 9260 定义了 SCTP 传输服务的内部功能层次（自上而下）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SCTP User Application</span><br><span class="line">─────────────────────────────────────────────────────────────────</span><br><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│              Sequenced Delivery within Streams              │  ← 流内有序交付</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│                   User Data Fragmentation                   │  ← 消息分片/重组</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│          Acknowledgement and Congestion Avoidance           │  ← ACK + 拥塞控制</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│                      Chunk Bundling                         │  ← Chunk 打包</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│                     Packet Validation                       │  ← 包校验（CRC32c）</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│                      Path Management                        │  ← 路径管理</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br><span class="line">─────────────────────────────────────────────────────────────────</span><br><span class="line">     IP / DTLS（WebRTC 场景）</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-关键概念"><a href="#4-2-关键概念" class="headerlink" title="4.2 关键概念"></a>4.2 关键概念</h3><p><strong>关联（Association）</strong></p>
+<p>SCTP 中的”连接”称为关联，是两个 SCTP 端点之间共享状态的总称，等价于一个会话。关联由两端的<strong>验证标签（Verification Tag）</strong>唯一标识。</p>
+<p><strong>流（Stream）</strong></p>
+<p>关联内的单向逻辑信道，每个流有独立的 Stream Sequence Number（SSN）空间。注意：SCTP 的流是<strong>单向</strong>的，WebRTC DataChannel 是双向的，因此底层实际使用两个方向上对称的流 ID。</p>
+<p><strong>TSN（Transmission Sequence Number）</strong></p>
+<p>全局单调递增的 32 位序列号，标识每个 DATA Chunk。TSN 跨越所有流，用于确认和重传控制。</p>
+<p><strong>SSN（Stream Sequence Number）</strong></p>
+<p>每条流内部的 16 位有序序列号，仅在有序传输时使用，用于流内消息的顺序交付。</p>
+<p><strong>PPID（Payload Protocol Identifier）</strong></p>
+<p>每个 DATA Chunk 携带的 32 位标识，指示上层协议类型。WebRTC 使用 PPID 区分 DCEP 控制消息和用户数据。</p>
+<hr>
+<h1 id="5-SCTP-数据包结构"><a href="#5-SCTP-数据包结构" class="headerlink" title="5. SCTP 数据包结构"></a>5. SCTP 数据包结构</h1><h3 id="5-1-公共包头（Common-Header）"><a href="#5-1-公共包头（Common-Header）" class="headerlink" title="5.1 公共包头（Common Header）"></a>5.1 公共包头（Common Header）</h3><p>每个 SCTP 数据包以 12 字节的公共包头开始：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|          Source Port          |       Destination Port        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                       Verification Tag                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                           Checksum                            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>Source Port &#x2F; Destination Port</strong>：16 位端口号，与 TCP&#x2F;UDP 类似。</li>
+<li><strong>Verification Tag</strong>：32 位随机验证标签，在关联建立时协商，防止伪造包注入。</li>
+<li><strong>Checksum</strong>：CRC32c 校验和（比 TCP 的 16 位 Internet Checksum 更强）。</li>
+</ul>
+<p>公共包头之后跟随一个或多个 <strong>Chunk</strong>。一个 SCTP 数据包可以携带多个 Chunk（Chunk Bundling），提升效率。</p>
+<h3 id="5-2-Chunk-结构"><a href="#5-2-Chunk-结构" class="headerlink" title="5.2 Chunk 结构"></a>5.2 Chunk 结构</h3><p>每个 Chunk 都有统一的格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|   Chunk Type  |  Chunk Flags  |          Chunk Length         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">\                                                               \</span><br><span class="line">/                          Chunk Value                          /</span><br><span class="line">\                                                               \</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>Chunk Type</strong>（8 bit）：最高 2 位决定收到未知 Chunk 类型时的处理策略（丢弃&#x2F;报错&#x2F;忽略）。</li>
+<li><strong>Chunk Flags</strong>（8 bit）：各 Chunk 类型有不同含义的标志位。</li>
+<li><strong>Chunk Length</strong>（16 bit）：包含头部在内的 Chunk 总长度（字节），<strong>不含填充</strong>。</li>
+<li><strong>Chunk Value</strong>：Chunk 具体内容，4 字节对齐（不足时补零填充）。</li>
+</ul>
+<h3 id="5-3-主要-Chunk-类型详解"><a href="#5-3-主要-Chunk-类型详解" class="headerlink" title="5.3 主要 Chunk 类型详解"></a>5.3 主要 Chunk 类型详解</h3><h4 id="DATA-Chunk（Type-0x00）"><a href="#DATA-Chunk（Type-0x00）" class="headerlink" title="DATA Chunk（Type &#x3D; 0x00）"></a>DATA Chunk（Type &#x3D; 0x00）</h4><p>承载用户数据的核心 Chunk：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|   Type = 0    | Reserved|U|B|E|            Length             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                              TSN                              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|      Stream Identifier (SI)   |   Stream Sequence Number(SSN) |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  Payload Protocol Identifier                  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">\                                                               \</span><br><span class="line">/                            User Data                          /</span><br><span class="line">\                                                               \</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>Chunk Flags 含义：</p>
+<ul>
+<li><strong>U（Unordered）</strong>：置 1 时无序交付，忽略 SSN。</li>
+<li><strong>B（Beginning fragment）</strong>：消息第一个分片。</li>
+<li><strong>E（Ending fragment）</strong>：消息最后一个分片。</li>
+</ul>
+<p>当 B&#x3D;1 且 E&#x3D;1 时表示消息未分片，一个 Chunk 承载完整消息。</p>
+<h4 id="INIT-Chunk（Type-0x01）"><a href="#INIT-Chunk（Type-0x01）" class="headerlink" title="INIT Chunk（Type &#x3D; 0x01）"></a>INIT Chunk（Type &#x3D; 0x01）</h4><p>发起关联建立请求，包含：</p>
+<ul>
+<li><strong>Initiate Tag</strong>：本端的 Verification Tag，对端后续包必须使用此值。</li>
+<li><strong>a_rwnd</strong>：本端的接收窗口大小（Advertised Receiver Window Credit）。</li>
+<li><strong>Outbound Streams（OS）</strong>：本端期望使用的出向流数量。</li>
+<li><strong>Inbound Streams（MIS）</strong>：本端能接受的最大入向流数量。</li>
+<li><strong>Initial TSN</strong>：初始传输序列号（随机值）。</li>
+<li><strong>Optional Parameters</strong>：扩展参数，如 IP 地址列表、Cookie Preservative、支持的扩展等。</li>
+</ul>
+<h4 id="INIT-ACK-Chunk（Type-0x02）"><a href="#INIT-ACK-Chunk（Type-0x02）" class="headerlink" title="INIT ACK Chunk（Type &#x3D; 0x02）"></a>INIT ACK Chunk（Type &#x3D; 0x02）</h4><p>INIT 的响应，额外包含：</p>
+<ul>
+<li><strong>State Cookie</strong>：服务端生成的有状态 Cookie（包含完整关联参数的签名结构），发回给客户端，客户端须在 COOKIE ECHO 中原样返回。服务端在此阶段<strong>不保存任何状态</strong>。</li>
+</ul>
+<h4 id="SACK-Chunk（Type-0x03）"><a href="#SACK-Chunk（Type-0x03）" class="headerlink" title="SACK Chunk（Type &#x3D; 0x03）"></a>SACK Chunk（Type &#x3D; 0x03）</h4><p>选择性确认（Selective Acknowledgement），关键字段：</p>
+<ul>
+<li><strong>Cumulative TSN Ack</strong>：已连续收到的最高 TSN（期望下一个 TSN &#x3D; 此值 + 1）。</li>
+<li><strong>a_rwnd</strong>：当前接收窗口大小（动态更新）。</li>
+<li><strong>Gap Ack Blocks</strong>：已收到但尚有空洞的 TSN 范围列表，帮助发送端精确定位丢失包。</li>
+<li><strong>Duplicate TSNs</strong>：重复收到的 TSN 列表（用于诊断）。</li>
+</ul>
+<p>SACK 不会延迟超过 500ms，通常每两个 DATA 包 ACK 一次（类似 TCP 的延迟 ACK）。</p>
+<h4 id="HEARTBEAT-HEARTBEAT-ACK-Chunk（Type-0x04-0x05）"><a href="#HEARTBEAT-HEARTBEAT-ACK-Chunk（Type-0x04-0x05）" class="headerlink" title="HEARTBEAT &#x2F; HEARTBEAT ACK Chunk（Type &#x3D; 0x04 &#x2F; 0x05）"></a>HEARTBEAT &#x2F; HEARTBEAT ACK Chunk（Type &#x3D; 0x04 &#x2F; 0x05）</h4><p>用于路径存活检测。发送方携带一个不透明的信息块（Heartbeat Info），接收方原样回送。WebRTC 场景中此机制维持连接保活。</p>
+<h4 id="COOKIE-ECHO-Chunk（Type-0x0A）"><a href="#COOKIE-ECHO-Chunk（Type-0x0A）" class="headerlink" title="COOKIE ECHO Chunk（Type &#x3D; 0x0A）"></a>COOKIE ECHO Chunk（Type &#x3D; 0x0A）</h4><p>客户端将 INIT ACK 中收到的 State Cookie 原样发回，服务端验证后分配资源并完成四次握手。</p>
+<h4 id="COOKIE-ACK-Chunk（Type-0x0B）"><a href="#COOKIE-ACK-Chunk（Type-0x0B）" class="headerlink" title="COOKIE ACK Chunk（Type &#x3D; 0x0B）"></a>COOKIE ACK Chunk（Type &#x3D; 0x0B）</h4><p>服务端对 COOKIE ECHO 的确认，关联建立完成。</p>
+<h4 id="ABORT-Chunk（Type-0x06）"><a href="#ABORT-Chunk（Type-0x06）" class="headerlink" title="ABORT Chunk（Type &#x3D; 0x06）"></a>ABORT Chunk（Type &#x3D; 0x06）</h4><p>立即终止关联，不等待对端响应，类似 TCP RST。</p>
+<h4 id="SHUTDOWN-SHUTDOWN-ACK-SHUTDOWN-COMPLETE（Type-0x07-0x08-0x0E）"><a href="#SHUTDOWN-SHUTDOWN-ACK-SHUTDOWN-COMPLETE（Type-0x07-0x08-0x0E）" class="headerlink" title="SHUTDOWN &#x2F; SHUTDOWN ACK &#x2F; SHUTDOWN COMPLETE（Type &#x3D; 0x07 &#x2F; 0x08 &#x2F; 0x0E）"></a>SHUTDOWN &#x2F; SHUTDOWN ACK &#x2F; SHUTDOWN COMPLETE（Type &#x3D; 0x07 &#x2F; 0x08 &#x2F; 0x0E）</h4><p>有序关闭序列的三个 Chunk，确保数据全部交付后再关闭关联。</p>
+<h4 id="FORWARD-TSN-Chunk（Type-0xC0）"><a href="#FORWARD-TSN-Chunk（Type-0xC0）" class="headerlink" title="FORWARD TSN Chunk（Type &#x3D; 0xC0）"></a>FORWARD TSN Chunk（Type &#x3D; 0xC0）</h4><p>PR-SCTP 扩展（RFC 3758）新增，允许发送方指示接收方跳过某些 TSN（用于已放弃重传的消息），推进接收窗口。</p>
+<hr>
+<h1 id="6-连接生命周期"><a href="#6-连接生命周期" class="headerlink" title="6. 连接生命周期"></a>6. 连接生命周期</h1><h3 id="6-1-关联建立：四次握手-Cookie-机制"><a href="#6-1-关联建立：四次握手-Cookie-机制" class="headerlink" title="6.1 关联建立：四次握手 + Cookie 机制"></a>6.1 关联建立：四次握手 + Cookie 机制</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">客户端 (A)                      服务端 (B)</span><br><span class="line">    |                               |</span><br><span class="line">    |──── INIT ────────────────────&gt;|  A 发起，携带 Initiate Tag-A、初始参数</span><br><span class="line">    |                               |  B 生成 State Cookie（含所有协商参数的 HMAC 签名）</span><br><span class="line">    |                               |  B 不保存任何状态</span><br><span class="line">    |&lt;─── INIT ACK ─────────────────|  B 响应，携带 Initiate Tag-B 及 State Cookie</span><br><span class="line">    |                               |</span><br><span class="line">    |──── COOKIE ECHO ─────────────&gt;|  A 将 State Cookie 原样返回</span><br><span class="line">    |                               |  B 验证 Cookie 签名，分配 TCB（传输控制块）</span><br><span class="line">    |&lt;─── COOKIE ACK ───────────────|  B 确认，关联建立完成</span><br><span class="line">    |                               |</span><br><span class="line">    |═══ 双向数据传输（DATA / SACK）═══|</span><br></pre></td></tr></table></figure>
+
+<p><strong>Cookie 机制的安全意义</strong>：</p>
+<p>服务端在收到 COOKIE ECHO 并验证 Cookie 的 HMAC 签名之前，完全不分配内存资源。Cookie 内包含了关联所需的全部参数（双方 Verification Tag、初始 TSN 等），服务端通过验证 Cookie 即可重建完整状态，有效防御 SYN Flood 式的资源耗尽攻击。</p>
+<h3 id="6-2-数据传输阶段"><a href="#6-2-数据传输阶段" class="headerlink" title="6.2 数据传输阶段"></a>6.2 数据传输阶段</h3><p>数据传输阶段的核心交互模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">发送端                                  接收端</span><br><span class="line">   |──── DATA [TSN=100, SI=0, SSN=0] ──&gt;|</span><br><span class="line">   |──── DATA [TSN=101, SI=1, SSN=0] ──&gt;|  (不同流，乱序到达也不阻塞)</span><br><span class="line">   |──── DATA [TSN=102, SI=0, SSN=1] ──&gt;|</span><br><span class="line">   |                                    |</span><br><span class="line">   |&lt;─── SACK [CumAck=102, a_rwnd=X] ───|  确认 100-102，更新窗口</span><br><span class="line">   |                                    |</span><br><span class="line">   |──── DATA [TSN=103] ───────────────&gt;|</span><br><span class="line">   |──── DATA [TSN=104] ───────────────&gt;|</span><br><span class="line">   |    (TSN=103 丢失)                   |</span><br><span class="line">   |&lt;─── SACK [CumAck=102,              |</span><br><span class="line">   |           Gap=[104-104]] ──────────|  报告 104 已收，103 缺失</span><br><span class="line">   |──── DATA [TSN=103] ───────────────&gt;|  重传 103</span><br><span class="line">   |&lt;─── SACK [CumAck=104] ─────────────|  103、104 全部确认</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-关联关闭：三次握手"><a href="#6-3-关联关闭：三次握手" class="headerlink" title="6.3 关联关闭：三次握手"></a>6.3 关联关闭：三次握手</h3><p>与 TCP 四次挥手不同，SCTP 关闭使用三次握手：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">发起关闭方 (A)                  对端 (B)</span><br><span class="line">    |                               |</span><br><span class="line">    |──── SHUTDOWN ────────────────&gt;|  A 停止发新数据，通知 CumAck</span><br><span class="line">    |                               |  B 等待所有未决数据发送完毕</span><br><span class="line">    |&lt;─── SHUTDOWN ACK ─────────────|  B 确认，双方停止发数据</span><br><span class="line">    |──── SHUTDOWN COMPLETE ───────&gt;|  A 确认，关联彻底关闭</span><br></pre></td></tr></table></figure>
+
+<p>异常关闭则使用 ABORT Chunk，立即终止，无需对端响应。</p>
+<h3 id="6-4-心跳保活机制"><a href="#6-4-心跳保活机制" class="headerlink" title="6.4 心跳保活机制"></a>6.4 心跳保活机制</h3><p>关联建立后，SCTP 定期向对端发送 HEARTBEAT Chunk，对端必须回复 HEARTBEAT ACK。若在超时时间内未收到响应，则标记路径失效。在 WebRTC 场景中，心跳间隔通常为 30 秒。</p>
+<hr>
+<h1 id="7-可靠性与重传机制"><a href="#7-可靠性与重传机制" class="headerlink" title="7. 可靠性与重传机制"></a>7. 可靠性与重传机制</h1><h3 id="7-1-TSN-与-SACK"><a href="#7-1-TSN-与-SACK" class="headerlink" title="7.1 TSN 与 SACK"></a>7.1 TSN 与 SACK</h3><p>SCTP 使用 <strong>TSN + SACK</strong> 实现可靠传输，机制与 TCP 的序列号 + ACK 类似，但有两个关键区别：</p>
+<ol>
+<li><strong>TSN 是全局的</strong>，不绑定任何特定流，用于确认和重传控制。</li>
+<li><strong>SACK 携带 Gap Ack Blocks</strong>，允许精确报告非连续的已收数据范围，发送方可以精确知道哪些 TSN 丢失，无需等到超时即可触发快速重传。</li>
+</ol>
+<p>发送方维护一个<strong>发送窗口（cwnd）</strong>，受拥塞控制算法动态调整。接收方通过 SACK 中的 <code>a_rwnd</code> 字段通告可用的接收缓冲区大小，实现流量控制。</p>
+<h3 id="7-2-T3-rtx-重传定时器"><a href="#7-2-T3-rtx-重传定时器" class="headerlink" title="7.2 T3-rtx 重传定时器"></a>7.2 T3-rtx 重传定时器</h3><p>每个目标地址维护一个 <strong>T3-rtx 定时器</strong>（Retransmission Timer）：</p>
+<ul>
+<li>发送 DATA Chunk 时启动定时器。</li>
+<li>收到该 Chunk 的 SACK 时停止定时器。</li>
+<li>定时器超时则认为数据包丢失，触发重传，并将 cwnd 减半（慢启动）。</li>
+<li>RTO（Retransmission Timeout）使用指数退避（Exponential Backoff），初始值通常为 1 秒，最大不超过 60 秒。</li>
+</ul>
+<p>SCTP 同样支持<strong>快速重传</strong>：收到 4 个 Gap Ack Block 指示某 TSN 缺失时，立即重传该 TSN，无需等待 T3-rtx 超时。</p>
+<h3 id="7-3-PR-SCTP：部分可靠性扩展（RFC-3758）"><a href="#7-3-PR-SCTP：部分可靠性扩展（RFC-3758）" class="headerlink" title="7.3 PR-SCTP：部分可靠性扩展（RFC 3758）"></a>7.3 PR-SCTP：部分可靠性扩展（RFC 3758）</h3><p>标准 SCTP 会无限重传直到确认，这对实时应用（如游戏状态同步）不合适，一个已过时的帧即便最终送达也没有意义。PR-SCTP 扩展了两种放弃策略：</p>
+<p><strong>按重传次数（RTX Policy）</strong>：发送方为每条消息设置最大重传次数。超过次数后，发送方发送 FORWARD TSN Chunk，通知接收方跳过该 TSN，推进确认点。</p>
+<p><strong>按时间（Timed Policy）</strong>：发送方为每条消息设置生存时间（TTL）。超时后同样发送 FORWARD TSN 放弃该消息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">发送端                                  接收端</span><br><span class="line">   |──── DATA [TSN=200, TTL=100ms] ─────&gt;|  (丢失)</span><br><span class="line">   |    等待 100ms，消息已超时              |</span><br><span class="line">   |──── FORWARD TSN [NewCumTSN=200] ───&gt;|  跳过 TSN 200</span><br><span class="line">   |&lt;─── SACK [CumAck=200] ──────────────|  接收端推进确认点</span><br></pre></td></tr></table></figure>
+
+<p>这个机制使 WebRTC DataChannel 能够配置为”发完即忘”的不可靠信道，非常适合低延迟场景。</p>
+<hr>
+<h1 id="8-拥塞控制与流量控制"><a href="#8-拥塞控制与流量控制" class="headerlink" title="8. 拥塞控制与流量控制"></a>8. 拥塞控制与流量控制</h1><h3 id="8-1-流量控制（Flow-Control）"><a href="#8-1-流量控制（Flow-Control）" class="headerlink" title="8.1 流量控制（Flow Control）"></a>8.1 流量控制（Flow Control）</h3><p>SCTP 使用基于接收窗口的流量控制：</p>
+<ul>
+<li>接收端在每个 SACK 中通告 <code>a_rwnd</code>（可用接收缓冲区大小）。</li>
+<li>发送端在途未确认数据量（飞行中字节数，in-flight bytes）不得超过 <code>min(cwnd, a_rwnd)</code>。</li>
+<li>当接收端缓冲区满时，<code>a_rwnd = 0</code>，发送端停止发送（Zero Window Probe 探测除外）。</li>
+</ul>
+<h3 id="8-2-拥塞控制（Congestion-Control）"><a href="#8-2-拥塞控制（Congestion-Control）" class="headerlink" title="8.2 拥塞控制（Congestion Control）"></a>8.2 拥塞控制（Congestion Control）</h3><p>SCTP 的拥塞控制算法与 TCP Reno&#x2F;NewReno 类似，每个目标地址独立维护：</p>
+<p><strong>慢启动（Slow Start）</strong>：</p>
+<ul>
+<li>初始 <code>cwnd = min(4 * PMTU, max(2 * PMTU, 4380))</code>（字节）。</li>
+<li>每收到一个 SACK，<code>cwnd += min(outstanding_bytes, PMTU)</code>（指数增长）。</li>
+<li>直到 <code>cwnd &gt;= ssthresh</code>，进入拥塞避免。</li>
+</ul>
+<p><strong>拥塞避免（Congestion Avoidance）</strong>：</p>
+<ul>
+<li>每个往返时间（RTT）内，<code>cwnd += PMTU * PMTU / cwnd</code>（线性增长）。</li>
+</ul>
+<p><strong>丢包响应</strong>：</p>
+<ul>
+<li>T3-rtx 超时：<code>ssthresh = max(cwnd/2, 4*PMTU)</code>，<code>cwnd = PMTU</code>，重回慢启动。</li>
+<li>快速重传（收到 4 个 Gap）：<code>ssthresh = max(cwnd/2, 4*PMTU)</code>，<code>cwnd = ssthresh</code>，进入拥塞避免。</li>
+</ul>
+<p><strong>ECN（显式拥塞通知）</strong>：</p>
+<p>SCTP 支持 ECN（RFC 3168），网络设备可以在 IP 头部标记拥塞信号，SCTP 端点据此调整发送速率，避免实际丢包。</p>
+<hr>
+<h1 id="9-SCTP-over-DTLS：WebRTC-中的封装方式"><a href="#9-SCTP-over-DTLS：WebRTC-中的封装方式" class="headerlink" title="9. SCTP over DTLS：WebRTC 中的封装方式"></a>9. SCTP over DTLS：WebRTC 中的封装方式</h1><h3 id="9-1-协议栈层次"><a href="#9-1-协议栈层次" class="headerlink" title="9.1 协议栈层次"></a>9.1 协议栈层次</h3><p>WebRTC 的 DataChannel 协议栈从上到下为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────┐</span><br><span class="line">│         DataChannel API        │  ← 应用层 JS API</span><br><span class="line">├────────────────────────────────┤</span><br><span class="line">│    DCEP（RFC 8832）             │  ← 通道建立协议</span><br><span class="line">├────────────────────────────────┤</span><br><span class="line">│    SCTP（RFC 9260）             │  ← 传输层（多流、可靠性）</span><br><span class="line">├────────────────────────────────┤</span><br><span class="line">│    DTLS（RFC 6347）             │  ← 加密层（证书交换、密钥协商）</span><br><span class="line">├────────────────────────────────┤</span><br><span class="line">│    ICE / UDP（或 TCP）          │  ← 网络层（NAT 穿透、路径选择）</span><br><span class="line">└────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-RFC-8261-规范要点"><a href="#9-2-RFC-8261-规范要点" class="headerlink" title="9.2 RFC 8261 规范要点"></a>9.2 RFC 8261 规范要点</h3><p>RFC 8261 详细定义了 SCTP over DTLS 的封装规则：</p>
+<p><strong>SCTP 的无感知性</strong>：由于 SCTP 运行在 DTLS 之上，它<strong>感知不到底层 IP 地址</strong>。SCTP 的多宿特性因此无法在 WebRTC 中使用。ICE 负责处理多路径和 NAT 穿透，DTLS 连接建立在 ICE 选择的最优路径上，SCTP 只看到一个单一的 DTLS 传输。</p>
+<p><strong>端口号</strong>：在 SCTP over DTLS 模式下，SCTP 的源&#x2F;目的端口通常由实现内部管理，常见实现使用固定端口（如 5000），对外不感知。</p>
+<p><strong>PMTU 处理</strong>：SCTP 需要感知路径 MTU。在 DTLS 封装下，实际可用 PMTU 需减去 DTLS 和 UDP&#x2F;IP 报头的开销（通常约 60 字节），SCTP 应使用调整后的 PMTU 进行分片决策。</p>
+<p><strong>校验和</strong>：RFC 8261 建议在 SCTP over DTLS 场景下，可以禁用 SCTP 的 CRC32c 校验和（因为 DTLS 已提供完整性保护），但这是可选优化。</p>
+<h3 id="9-3-SDP-协商（RFC-8841）"><a href="#9-3-SDP-协商（RFC-8841）" class="headerlink" title="9.3 SDP 协商（RFC 8841）"></a>9.3 SDP 协商（RFC 8841）</h3><p>在 WebRTC 信令阶段，SCTP-over-DTLS 通过 SDP 进行协商。RFC 8841 定义了两个新的 SDP <code>proto</code> 值：</p>
+<ul>
+<li><code>UDP/DTLS/SCTP</code>：SCTP over DTLS over UDP（最常用）</li>
+<li><code>TCP/DTLS/SCTP</code>：SCTP over DTLS over TCP（用于 UDP 不可用时的降级）</li>
+</ul>
+<p>SDP 示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">m=application 54321 UDP/DTLS/SCTP webrtc-datachannel</span><br><span class="line">c=IN IP4 192.0.2.1</span><br><span class="line">a=sctp-port:5000</span><br><span class="line">a=max-message-size:262144</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=fingerprint:sha-256 xx:xx:xx:...</span><br></pre></td></tr></table></figure>
+
+<p>关键 SDP 属性：</p>
+<ul>
+<li><code>a=sctp-port</code>：SCTP 在 DTLS 层内使用的端口号（通常为 5000）。</li>
+<li><code>a=max-message-size</code>：支持的最大消息大小（字节），0 表示无限制（受实现限制）。</li>
+</ul>
+<hr>
+<h1 id="10-SCTP-与-DataChannel-的映射关系"><a href="#10-SCTP-与-DataChannel-的映射关系" class="headerlink" title="10. SCTP 与 DataChannel 的映射关系"></a>10. SCTP 与 DataChannel 的映射关系</h1><h3 id="10-1-DataChannel-到-SCTP-Stream-的映射"><a href="#10-1-DataChannel-到-SCTP-Stream-的映射" class="headerlink" title="10.1 DataChannel 到 SCTP Stream 的映射"></a>10.1 DataChannel 到 SCTP Stream 的映射</h3><p>每个 WebRTC DataChannel 对应一个 SCTP <strong>流（Stream）</strong>，且是双向的（实现上在两个方向使用相同的 Stream ID）。</p>
+<p>Stream ID 的分配遵循奇偶规则（RFC 8832）：</p>
+<ul>
+<li><strong>Offer 发起方</strong>使用<strong>偶数</strong> Stream ID（0, 2, 4, …）。</li>
+<li><strong>Answer 响应方</strong>使用<strong>奇数</strong> Stream ID（1, 3, 5, …）。</li>
+<li>这避免了两端同时创建 DataChannel 时的 ID 冲突。</li>
+</ul>
+<h3 id="10-2-PPID：Payload-Protocol-Identifier"><a href="#10-2-PPID：Payload-Protocol-Identifier" class="headerlink" title="10.2 PPID：Payload Protocol Identifier"></a>10.2 PPID：Payload Protocol Identifier</h3><p>WebRTC 使用以下 PPID 值（已在 IANA 注册）区分不同类型的数据：</p>
+<table>
+<thead>
+<tr>
+<th>PPID 值</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>50</td>
+<td><code>WebRTC DCEP</code></td>
+<td>DCEP 控制消息（通道建立）</td>
+</tr>
+<tr>
+<td>51</td>
+<td><code>WebRTC String</code></td>
+<td>DataChannel 字符串消息（非空）</td>
+</tr>
+<tr>
+<td>53</td>
+<td><code>WebRTC Binary</code></td>
+<td>DataChannel 二进制消息（非空）</td>
+</tr>
+<tr>
+<td>56</td>
+<td><code>WebRTC String Empty</code></td>
+<td>空字符串消息</td>
+</tr>
+<tr>
+<td>57</td>
+<td><code>WebRTC Binary Empty</code></td>
+<td>空二进制消息</td>
+</tr>
+</tbody></table>
+<p>空消息使用单独 PPID 是因为 SCTP DATA Chunk 要求 User Data 字段非空，通过 PPID 区分来表达零长度消息的语义。</p>
+<h3 id="10-3-DCEP：数据通道建立协议（RFC-8832）"><a href="#10-3-DCEP：数据通道建立协议（RFC-8832）" class="headerlink" title="10.3 DCEP：数据通道建立协议（RFC 8832）"></a>10.3 DCEP：数据通道建立协议（RFC 8832）</h3><p>SCTP 本身没有”通道名称”概念，DataChannel 的 label 和 protocol 等元数据由 DCEP 在带内传输（In-band）。DCEP 只有两个消息：</p>
+<p><strong>DATA_CHANNEL_OPEN（Message Type &#x3D; 0x03）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  Message Type |  Channel Type |            Priority           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                    Reliability Parameter                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|         Label Length          |       Protocol Length         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">/                             Label                             /</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">/                            Protocol                           /</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>Channel Type 枚举值（对应 PR-SCTP 策略）：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>名称</th>
+<th>语义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0x00</code></td>
+<td><code>DATA_CHANNEL_RELIABLE</code></td>
+<td>有序、全可靠</td>
+</tr>
+<tr>
+<td><code>0x80</code></td>
+<td><code>DATA_CHANNEL_RELIABLE_UNORDERED</code></td>
+<td>无序、全可靠</td>
+</tr>
+<tr>
+<td><code>0x01</code></td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT</code></td>
+<td>有序、按重传次数限制</td>
+</tr>
+<tr>
+<td><code>0x81</code></td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT_UNORDERED</code></td>
+<td>无序、按重传次数限制</td>
+</tr>
+<tr>
+<td><code>0x02</code></td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_TIMED</code></td>
+<td>有序、按时间限制</td>
+</tr>
+<tr>
+<td><code>0x82</code></td>
+<td><code>DATA_CHANNEL_PARTIAL_RELIABLE_TIMED_UNORDERED</code></td>
+<td>无序、按时间限制</td>
+</tr>
+</tbody></table>
+<p><strong>DATA_CHANNEL_ACK（Message Type &#x3D; 0x02）</strong>：</p>
+<p>接收方打开通道后，回复此单字节消息作为确认，通道正式激活。</p>
+<p>DCEP 消息通过 PPID&#x3D;50 的 SCTP DATA Chunk 传输，使用所对应流的 Stream ID。</p>
+<hr>
+<h1 id="11-SCTP-与-TCP-UDP-的横向对比"><a href="#11-SCTP-与-TCP-UDP-的横向对比" class="headerlink" title="11. SCTP 与 TCP&#x2F;UDP 的横向对比"></a>11. SCTP 与 TCP&#x2F;UDP 的横向对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>TCP</th>
+<th>UDP</th>
+<th>SCTP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>传输模型</strong></td>
+<td>字节流</td>
+<td>数据报</td>
+<td>消息（保留边界）</td>
+</tr>
+<tr>
+<td><strong>可靠性</strong></td>
+<td>全可靠</td>
+<td>不可靠</td>
+<td>可配置（全可靠 &#x2F; 部分可靠）</td>
+</tr>
+<tr>
+<td><strong>有序性</strong></td>
+<td>全局有序</td>
+<td>无序</td>
+<td>流内有序（可选无序）</td>
+</tr>
+<tr>
+<td><strong>队头阻塞</strong></td>
+<td>有（全局）</td>
+<td>无</td>
+<td>无（流间独立）</td>
+</tr>
+<tr>
+<td><strong>连接建立</strong></td>
+<td>三次握手</td>
+<td>无连接</td>
+<td>四次握手 + Cookie</td>
+</tr>
+<tr>
+<td><strong>多路复用</strong></td>
+<td>无（需多个 socket）</td>
+<td>无</td>
+<td>有（多流）</td>
+</tr>
+<tr>
+<td><strong>多宿支持</strong></td>
+<td>无</td>
+<td>无</td>
+<td>有（WebRTC 中未使用）</td>
+</tr>
+<tr>
+<td><strong>消息大小限制</strong></td>
+<td>无（字节流）</td>
+<td>64KB（IPv4）</td>
+<td>无限制（自动分片）</td>
+</tr>
+<tr>
+<td><strong>拥塞控制</strong></td>
+<td>有</td>
+<td>无</td>
+<td>有（类 TCP）</td>
+</tr>
+<tr>
+<td><strong>流量控制</strong></td>
+<td>有</td>
+<td>无</td>
+<td>有</td>
+</tr>
+<tr>
+<td><strong>SYN Flood 防护</strong></td>
+<td>弱（SYN Cookie 可选）</td>
+<td>—</td>
+<td>强（Cookie 机制）</td>
+</tr>
+<tr>
+<td><strong>WebRTC 中用途</strong></td>
+<td>信令（WebSocket）</td>
+<td>媒体（SRTP）</td>
+<td>DataChannel</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="12-实现与调试"><a href="#12-实现与调试" class="headerlink" title="12. 实现与调试"></a>12. 实现与调试</h1><h3 id="12-1-主流实现库"><a href="#12-1-主流实现库" class="headerlink" title="12.1 主流实现库"></a>12.1 主流实现库</h3><p><strong>usrsctp</strong>：由 Michael Tuexen 维护的用户空间 SCTP 实现，是 WebRTC 生态中最重要的 SCTP 库。Chromium、Firefox 和大多数 WebRTC 原生库都基于 usrsctp。</p>
+<ul>
+<li>项目地址：<a target="_blank" rel="noopener" href="https://github.com/sctplab/usrsctp">https://github.com/sctplab/usrsctp</a></li>
+<li>支持 PR-SCTP（RFC 3758）、流重置（RFC 6525）等扩展。</li>
+</ul>
+<p><strong>内核实现</strong>：Linux 内核（<code>net/sctp</code>）、FreeBSD（SCTP 参考实现）、Windows 均有内核级 SCTP 支持，但 WebRTC 通常使用用户空间实现以跨平台。</p>
+<h3 id="12-2-Wireshark-抓包分析"><a href="#12-2-Wireshark-抓包分析" class="headerlink" title="12.2 Wireshark 抓包分析"></a>12.2 Wireshark 抓包分析</h3><p>由于 WebRTC 的 SCTP 运行在 DTLS 之上，Wireshark 默认无法解密。调试步骤：</p>
+<ol>
+<li>导出 DTLS 会话密钥（通过 <code>SSLKEYLOGFILE</code> 环境变量或 WebRTC 内部接口）。</li>
+<li>在 Wireshark 中配置 Pre-Master Secret 文件路径（Edit → Preferences → Protocols → TLS）。</li>
+<li>解密后 Wireshark 能识别 SCTP over DTLS 协议，可以查看 INIT&#x2F;INIT ACK&#x2F;DATA&#x2F;SACK 等 Chunk 详情。</li>
+</ol>
+<p>也可以使用 <code>chrome://webrtc-internals</code> 中的统计数据监控 DataChannel 的收发状态：</p>
+<ul>
+<li><code>dataChannelMessagesSent</code> &#x2F; <code>dataChannelMessageReceived</code></li>
+<li><code>dataChannelBytesSent</code> &#x2F; <code>dataChannelBytesReceived</code></li>
+</ul>
+<hr>
+<h1 id="13-相关-RFC-索引"><a href="#13-相关-RFC-索引" class="headerlink" title="13. 相关 RFC 索引"></a>13. 相关 RFC 索引</h1><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc9260">RFC 9260</a></td>
+<td>Stream Control Transmission Protocol</td>
+<td>SCTP 当前权威规范（取代 RFC 4960）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4960">RFC 4960</a></td>
+<td>Stream Control Transmission Protocol</td>
+<td>SCTP 上一版规范（仍被广泛引用）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3758">RFC 3758</a></td>
+<td>SCTP Partial Reliability Extension</td>
+<td>PR-SCTP，部分可靠性扩展</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8261">RFC 8261</a></td>
+<td>DTLS Encapsulation of SCTP Packets</td>
+<td>SCTP over DTLS 封装规范</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8831">RFC 8831</a></td>
+<td>WebRTC Data Channels</td>
+<td>WebRTC DataChannel 架构</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8832">RFC 8832</a></td>
+<td>WebRTC Data Channel Establishment Protocol</td>
+<td>DCEP 规范</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8841">RFC 8841</a></td>
+<td>SDP O&#x2F;A for SCTP over DTLS</td>
+<td>SDP 协商规范</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6525">RFC 6525</a></td>
+<td>SCTP Stream Reconfiguration</td>
+<td>流重置扩展（DataChannel 关闭）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8260">RFC 8260</a></td>
+<td>Stream Schedulers and User Message Interleaving</td>
+<td>I-DATA Chunk，消息交错</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="14-小结"><a href="#14-小结" class="headerlink" title="14. 小结"></a>14. 小结</h1><p>SCTP 在 WebRTC DataChannel 中扮演着承上启下的关键角色。理解它的工作原理，有助于我们在以下场景做出正确决策：</p>
+<p><strong>选择 DataChannel 类型时</strong>：了解 PR-SCTP 的两种策略（RTX vs Timed）有助于根据应用需求精确配置可靠性。游戏状态同步适合 Timed 策略，文件传输适合全可靠模式，控制消息适合有序可靠。</p>
+<p><strong>排查延迟问题时</strong>：DataChannel 的延迟抖动往往来自 SCTP 的重传定时器（T3-rtx）或拥塞控制导致的发送暂停，结合 <code>webrtc-internals</code> 统计数据可以定位瓶颈。</p>
+<p><strong>理解 DataChannel 与媒体通道的关系时</strong>：媒体走 SRTP over UDP，DataChannel 走 SCTP over DTLS over UDP，两者共享同一个 ICE 通道（通过 DTLS 多路复用），但传输语义完全独立。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%89%8D%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-WebRTC-%E9%9C%80%E8%A6%81-SCTP%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 前言：为什么 WebRTC 需要 SCTP？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-SCTP-%E7%9A%84%E8%B5%B7%E6%BA%90%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96"><span class="toc-number">3.</span> <span class="toc-text">2. SCTP 的起源与标准化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SCTP-%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">4.</span> <span class="toc-text">3. SCTP 核心特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%A4%9A%E6%B5%81%EF%BC%88Multi-streaming%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 多流（Multi-streaming）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B6%88%E6%81%AF%E8%BE%B9%E7%95%8C%E4%BF%9D%E7%95%99%EF%BC%88Message-oriented%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 消息边界保留（Message-oriented）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8F%AF%E9%85%8D%E7%BD%AE%E7%9A%84%E5%8F%AF%E9%9D%A0%E6%80%A7%EF%BC%88Partial-Reliability%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 可配置的可靠性（Partial Reliability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%A4%9A%E5%AE%BF%EF%BC%88Multi-homing%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 多宿（Multi-homing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%8A%97-SYN-Flood-%E7%9A%84%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 抗 SYN Flood 的四次握手</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-SCTP-%E5%8D%8F%E8%AE%AE%E6%9E%B6%E6%9E%84"><span class="toc-number">5.</span> <span class="toc-text">4. SCTP 协议架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%88%86%E5%B1%82%E5%8A%9F%E8%83%BD%E8%A7%86%E5%9B%BE"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 分层功能视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B3%E9%94%AE%E6%A6%82%E5%BF%B5"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 关键概念</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SCTP-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%BB%93%E6%9E%84"><span class="toc-number">6.</span> <span class="toc-text">5. SCTP 数据包结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%AC%E5%85%B1%E5%8C%85%E5%A4%B4%EF%BC%88Common-Header%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 公共包头（Common Header）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Chunk-%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Chunk 结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%BB%E8%A6%81-Chunk-%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 主要 Chunk 类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DATA-Chunk%EF%BC%88Type-0x00%EF%BC%89"><span class="toc-number">6.0.3.1.</span> <span class="toc-text">DATA Chunk（Type &#x3D; 0x00）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#INIT-Chunk%EF%BC%88Type-0x01%EF%BC%89"><span class="toc-number">6.0.3.2.</span> <span class="toc-text">INIT Chunk（Type &#x3D; 0x01）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#INIT-ACK-Chunk%EF%BC%88Type-0x02%EF%BC%89"><span class="toc-number">6.0.3.3.</span> <span class="toc-text">INIT ACK Chunk（Type &#x3D; 0x02）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SACK-Chunk%EF%BC%88Type-0x03%EF%BC%89"><span class="toc-number">6.0.3.4.</span> <span class="toc-text">SACK Chunk（Type &#x3D; 0x03）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HEARTBEAT-HEARTBEAT-ACK-Chunk%EF%BC%88Type-0x04-0x05%EF%BC%89"><span class="toc-number">6.0.3.5.</span> <span class="toc-text">HEARTBEAT &#x2F; HEARTBEAT ACK Chunk（Type &#x3D; 0x04 &#x2F; 0x05）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#COOKIE-ECHO-Chunk%EF%BC%88Type-0x0A%EF%BC%89"><span class="toc-number">6.0.3.6.</span> <span class="toc-text">COOKIE ECHO Chunk（Type &#x3D; 0x0A）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#COOKIE-ACK-Chunk%EF%BC%88Type-0x0B%EF%BC%89"><span class="toc-number">6.0.3.7.</span> <span class="toc-text">COOKIE ACK Chunk（Type &#x3D; 0x0B）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ABORT-Chunk%EF%BC%88Type-0x06%EF%BC%89"><span class="toc-number">6.0.3.8.</span> <span class="toc-text">ABORT Chunk（Type &#x3D; 0x06）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SHUTDOWN-SHUTDOWN-ACK-SHUTDOWN-COMPLETE%EF%BC%88Type-0x07-0x08-0x0E%EF%BC%89"><span class="toc-number">6.0.3.9.</span> <span class="toc-text">SHUTDOWN &#x2F; SHUTDOWN ACK &#x2F; SHUTDOWN COMPLETE（Type &#x3D; 0x07 &#x2F; 0x08 &#x2F; 0x0E）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FORWARD-TSN-Chunk%EF%BC%88Type-0xC0%EF%BC%89"><span class="toc-number">6.0.3.10.</span> <span class="toc-text">FORWARD TSN Chunk（Type &#x3D; 0xC0）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E8%BF%9E%E6%8E%A5%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">7.</span> <span class="toc-text">6. 连接生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%85%B3%E8%81%94%E5%BB%BA%E7%AB%8B%EF%BC%9A%E5%9B%9B%E6%AC%A1%E6%8F%A1%E6%89%8B-Cookie-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 关联建立：四次握手 + Cookie 机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E9%98%B6%E6%AE%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 数据传输阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%85%B3%E8%81%94%E5%85%B3%E9%97%AD%EF%BC%9A%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 关联关闭：三次握手</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%BF%83%E8%B7%B3%E4%BF%9D%E6%B4%BB%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 心跳保活机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%AF%E9%9D%A0%E6%80%A7%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 可靠性与重传机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-TSN-%E4%B8%8E-SACK"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 TSN 与 SACK</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-T3-rtx-%E9%87%8D%E4%BC%A0%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 T3-rtx 重传定时器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-PR-SCTP%EF%BC%9A%E9%83%A8%E5%88%86%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%89%A9%E5%B1%95%EF%BC%88RFC-3758%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 PR-SCTP：部分可靠性扩展（RFC 3758）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. 拥塞控制与流量控制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%EF%BC%88Flow-Control%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 流量控制（Flow Control）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%EF%BC%88Congestion-Control%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 拥塞控制（Congestion Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SCTP-over-DTLS%EF%BC%9AWebRTC-%E4%B8%AD%E7%9A%84%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8F"><span class="toc-number">10.</span> <span class="toc-text">9. SCTP over DTLS：WebRTC 中的封装方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B1%82%E6%AC%A1"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 协议栈层次</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RFC-8261-%E8%A7%84%E8%8C%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RFC 8261 规范要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-SDP-%E5%8D%8F%E5%95%86%EF%BC%88RFC-8841%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 SDP 协商（RFC 8841）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-SCTP-%E4%B8%8E-DataChannel-%E7%9A%84%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB"><span class="toc-number">11.</span> <span class="toc-text">10. SCTP 与 DataChannel 的映射关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-DataChannel-%E5%88%B0-SCTP-Stream-%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 DataChannel 到 SCTP Stream 的映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-PPID%EF%BC%9APayload-Protocol-Identifier"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 PPID：Payload Protocol Identifier</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-DCEP%EF%BC%9A%E6%95%B0%E6%8D%AE%E9%80%9A%E9%81%93%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AE%EF%BC%88RFC-8832%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 DCEP：数据通道建立协议（RFC 8832）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SCTP-%E4%B8%8E-TCP-UDP-%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">12.</span> <span class="toc-text">11. SCTP 与 TCP&#x2F;UDP 的横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="toc-number">13.</span> <span class="toc-text">12. 实现与调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E4%B8%BB%E6%B5%81%E5%AE%9E%E7%8E%B0%E5%BA%93"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 主流实现库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-Wireshark-%E6%8A%93%E5%8C%85%E5%88%86%E6%9E%90"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 Wireshark 抓包分析</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E7%9B%B8%E5%85%B3-RFC-%E7%B4%A2%E5%BC%95"><span class="toc-number">14.</span> <span class="toc-text">13. 相关 RFC 索引</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/19/webrtc/13-sctp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/19/webrtc/13-sctp/&text=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/19/webrtc/13-sctp/&is_video=false&description=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SCTP：WebRTC DataChannel 的底层传输协议&body=Check out this article: http://example.com/2022/07/19/webrtc/13-sctp/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/19/webrtc/13-sctp/&title=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/19/webrtc/13-sctp/&name=SCTP：WebRTC DataChannel 的底层传输协议&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/19/webrtc/13-sctp/&t=SCTP：WebRTC DataChannel 的底层传输协议"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

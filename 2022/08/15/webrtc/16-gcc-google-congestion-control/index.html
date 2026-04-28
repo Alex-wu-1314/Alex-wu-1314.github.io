@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景与动机 标准化历程 系统模型与整体架构 反馈机制与信令扩展 发送引擎（Pacer） 基于延迟的控制器（Delay-based Controller） 6.1 到达时间模型（Arrival-time Model） 6.2 预过滤（Pre-filtering） 6.3 Kalman 滤波器（Arrival-time Filter） 6.4 过载检测器（Over-use Detector） 6">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法">
+<meta property="og:url" content="http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景与动机 标准化历程 系统模型与整体架构 反馈机制与信令扩展 发送引擎（Pacer） 基于延迟的控制器（Delay-based Controller） 6.1 到达时间模型（Arrival-time Model） 6.2 预过滤（Pre-filtering） 6.3 Kalman 滤波器（Arrival-time Filter） 6.4 过载检测器（Over-use Detector） 6">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-08-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-28T13:01:15.938Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&text=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&is_video=false&description=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法&body=Check out this article: http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&name=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&t=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与动机</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">2. 标准化历程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. 系统模型与整体架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%E4%B8%8E%E4%BF%A1%E4%BB%A4%E6%89%A9%E5%B1%95"><span class="toc-number">5.</span> <span class="toc-text">4. 反馈机制与信令扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Absolute-Send-Time%EF%BC%88abs-send-time%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Absolute Send Time（abs-send-time）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-REMB%EF%BC%88Receiver-Estimated-Maximum-Bitrate%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 REMB（Receiver Estimated Maximum Bitrate）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Transport-wide-Congestion-Control%EF%BC%88Transport-CC-TWCC%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 Transport-wide Congestion Control（Transport-CC &#x2F; TWCC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%91%E9%80%81%E5%BC%95%E6%93%8E%EF%BC%88Pacer%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 发送引擎（Pacer）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9F%BA%E4%BA%8E%E5%BB%B6%E8%BF%9F%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Delay-based-Controller%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 基于延迟的控制器（Delay-based Controller）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8B%EF%BC%88Arrival-time-Model%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 到达时间模型（Arrival-time Model）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E8%BF%87%E6%BB%A4%EF%BC%88Pre-filtering%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 预过滤（Pre-filtering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Kalman-%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Arrival-time-Filter%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Kalman 滤波器（Arrival-time Filter）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8%EF%BC%88Over-use-Detector%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 过载检测器（Over-use Detector）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E9%98%88%E5%80%BC"><span class="toc-number">7.0.4.1.</span> <span class="toc-text">自适应阈值</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%88Rate-Control%EF%BC%89"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 速率控制状态机（Rate Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%9F%BA%E4%BA%8E%E4%B8%A2%E5%8C%85%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Loss-based-Controller%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 基于丢包的控制器（Loss-based Controller）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C"><span class="toc-number">9.</span> <span class="toc-text">8. 两个控制器的协同工作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-GCC-%E7%9A%84%E4%B8%A4%E4%BB%A3%E6%BC%94%E8%BF%9B%EF%BC%9AREMB-GCC-%E4%B8%8E-TFB-GCC"><span class="toc-number">10.</span> <span class="toc-text">9. GCC 的两代演进：REMB-GCC 与 TFB-GCC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E4%BB%A3%EF%BC%9AREMB-GCC%EF%BC%88%E5%9F%BA%E4%BA%8E%E6%8E%A5%E6%94%B6%E7%AB%AF%E7%9A%84%E5%BB%B6%E8%BF%9F%E4%BC%B0%E8%AE%A1%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">第一代：REMB-GCC（基于接收端的延迟估计）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E4%BB%A3%EF%BC%9ATFB-GCC%EF%BC%88%E5%9F%BA%E4%BA%8E-Transport-CC-%E7%9A%84%E5%8F%91%E9%80%81%E7%AB%AF%E4%BC%B0%E8%AE%A1%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">第二代：TFB-GCC（基于 Transport-CC 的发送端估计）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E6%B1%87%E6%80%BB"><span class="toc-number">11.</span> <span class="toc-text">10. 关键参数汇总</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%80%A7%E8%83%BD%E7%89%B9%E6%80%A7%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 性能特性与局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E7%82%B9"><span class="toc-number">12.0.1.</span> <span class="toc-text">优点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">13.</span> <span class="toc-text">12. 与其他算法的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%9C%A8-WebRTC-%E6%BA%90%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">14.</span> <span class="toc-text">13. 在 WebRTC 源码中的位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-08-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-08-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA">背景与动机</a></li>
+<li><a href="#2-%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B">标准化历程</a></li>
+<li><a href="#3-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">系统模型与整体架构</a></li>
+<li><a href="#4-%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%E4%B8%8E%E4%BF%A1%E4%BB%A4%E6%89%A9%E5%B1%95">反馈机制与信令扩展</a></li>
+<li><a href="#5-%E5%8F%91%E9%80%81%E5%BC%95%E6%93%8Epacer">发送引擎（Pacer）</a></li>
+<li><a href="#6-%E5%9F%BA%E4%BA%8E%E5%BB%B6%E8%BF%9F%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8delay-based-controller">基于延迟的控制器（Delay-based Controller）</a><ul>
+<li>6.1 <a href="#61-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8Barrival-time-model">到达时间模型（Arrival-time Model）</a></li>
+<li>6.2 <a href="#62-%E9%A2%84%E8%BF%87%E6%BB%A4pre-filtering">预过滤（Pre-filtering）</a></li>
+<li>6.3 <a href="#63-kalman-%E6%BB%A4%E6%B3%A2%E5%99%A8arrival-time-filter">Kalman 滤波器（Arrival-time Filter）</a></li>
+<li>6.4 <a href="#64-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8over-use-detector">过载检测器（Over-use Detector）</a></li>
+<li>6.5 <a href="#65-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BArate-control">速率控制状态机（Rate Control）</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%9F%BA%E4%BA%8E%E4%B8%A2%E5%8C%85%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8loss-based-controller">基于丢包的控制器（Loss-based Controller）</a></li>
+<li><a href="#8-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C">两个控制器的协同工作</a></li>
+<li><a href="#9-gcc-%E7%9A%84%E4%B8%A4%E4%BB%A3%E6%BC%94%E8%BF%9Bremb-gcc-%E4%B8%8E-tfb-gcc">GCC 的两代演进：REMB-GCC 与 TFB-GCC</a></li>
+<li><a href="#10-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E6%B1%87%E6%80%BB">关键参数汇总</a></li>
+<li><a href="#11-%E6%80%A7%E8%83%BD%E7%89%B9%E6%80%A7%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7">性能特性与局限性</a></li>
+<li><a href="#12-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95%E7%9A%84%E5%AF%B9%E6%AF%94">与其他算法的对比</a></li>
+<li><a href="#13-%E5%9C%A8-webrtc-%E6%BA%90%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE">在 WebRTC 源码中的位置</a></li>
+</ol>
+<hr>
+<h1 id="1-背景与动机"><a href="#1-背景与动机" class="headerlink" title="1. 背景与动机"></a>1. 背景与动机</h1><p>实时音视频通信（RTC）的拥塞控制是一个极具挑战性的工程问题，其难点在于：</p>
+<ul>
+<li><strong>编码特性限制</strong>：媒体流的码率调整不像文件传输那样随意，通常只能按帧或关键帧边界进行调整，且调整粒度较大</li>
+<li><strong>丢包敏感性</strong>：视频帧对丢包极为敏感，而实时性要求又禁止使用 TCP 式的重传来修复丢包</li>
+<li><strong>低延迟要求</strong>：对话类场景要求端到端延迟在 150ms 以内，任何排队延迟都会直接损害用户体验</li>
+<li><strong>公平性要求</strong>：实时流量需要与同路径上的 TCP 流量和平共处，既不能被饿死，也不能无限占用带宽</li>
+</ul>
+<p>传统 TCP 的拥塞控制（CUBIC、Reno 等）基于<strong>丢包</strong>作为拥塞信号，本质上是”填满队列 → 丢包 → 降速”的被动响应模式，引入了大量排队延迟，不适合实时场景。</p>
+<p>GCC 的核心思路是<strong>主动探测</strong>：通过观察数据包的<strong>单向延迟变化趋势（delay gradient）</strong>来提前感知拥塞的苗头，在队列真正满溢（导致丢包）之前就开始降速，从而兼顾低延迟与高吞吐。</p>
+<hr>
+<h1 id="2-标准化历程"><a href="#2-标准化历程" class="headerlink" title="2. 标准化历程"></a>2. 标准化历程</h1><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>里程碑</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2012</td>
+<td>Chrome M23 首次内置 GCC，用于 Google Hangouts</td>
+</tr>
+<tr>
+<td>2013</td>
+<td>Alvestrand 在 IETF 提交首个草案 <code>draft-alvestrand-rtcweb-congestion-00</code></td>
+</tr>
+<tr>
+<td>2015</td>
+<td>草案转移至 RMCAT WG，发布 <code>draft-ietf-rmcat-gcc-00</code></td>
+</tr>
+<tr>
+<td>2016</td>
+<td>最终草案 <code>draft-ietf-rmcat-gcc-02</code> 发布（Stefan Holmer、Henrik Lundin 等，Google &amp; Politecnico di Bari）</td>
+</tr>
+<tr>
+<td>至今</td>
+<td>草案未推进为正式 RFC，但已成为 WebRTC 事实标准，Chrome&#x2F;Firefox&#x2F;Safari 均有实现</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：<code>draft-ietf-rmcat-gcc-02</code> 是目前最权威的公开规范文档，本文所有算法描述均以此为准。该草案虽已过期（Expired），但其算法实现已在各主流浏览器中稳定运行多年。</p>
+</blockquote>
+<hr>
+<h1 id="3-系统模型与整体架构"><a href="#3-系统模型与整体架构" class="headerlink" title="3. 系统模型与整体架构"></a>3. 系统模型与整体架构</h1><p>GCC 定义的系统中包含以下核心组件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发送端                                    接收端</span><br><span class="line">┌─────────────────────────────────┐      ┌─────────────────────────────────┐</span><br><span class="line">│  媒体编码器                       │      │  RTP 接收 &amp; 时间戳记录            │</span><br><span class="line">│       ↓                         │      │       ↓                         │</span><br><span class="line">│  Pacer（发包平滑）                │─RTP→ │  延迟测量 / 丢包统计               │</span><br><span class="line">│       ↓ ↑                       │      │       ↓                         │</span><br><span class="line">│  Loss-based Controller          │←──── │  RTCP Feedback                  │</span><br><span class="line">│       ↑                         │      │  (REMB / Transport-CC)          │</span><br><span class="line">│  Delay-based Controller         │      │                                 │</span><br><span class="line">│  (send-side 或 recv-side)        │      │  Delay-based Controller（旧）    │</span><br><span class="line">└─────────────────────────────────┘      └─────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>整体流程</strong>：</p>
+<ol>
+<li>发送端将媒体数据交给 <strong>Pacer</strong> 平滑发送</li>
+<li>接收端记录每个 RTP 包的到达时间，通过 <strong>RTCP 反馈</strong>（REMB 或 Transport-CC）发回发送端</li>
+<li><strong>Delay-based Controller</strong> 分析包间延迟变化，估算可用带宽上限 <code>A_r</code></li>
+<li><strong>Loss-based Controller</strong> 综合丢包率与 RTT，计算目标发送码率 <code>A_s</code></li>
+<li>最终目标码率 &#x3D; <code>min(A_r, A_s)</code>，传递给 Pacer 和编码器</li>
+</ol>
+<hr>
+<h1 id="4-反馈机制与信令扩展"><a href="#4-反馈机制与信令扩展" class="headerlink" title="4. 反馈机制与信令扩展"></a>4. 反馈机制与信令扩展</h1><p>GCC 依赖以下 RTP&#x2F;RTCP 扩展来获取网络测量数据：</p>
+<h3 id="4-1-Absolute-Send-Time（abs-send-time）"><a href="#4-1-Absolute-Send-Time（abs-send-time）" class="headerlink" title="4.1 Absolute Send Time（abs-send-time）"></a>4.1 Absolute Send Time（abs-send-time）</h3><ul>
+<li>定义：<code>http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</code></li>
+<li>作用：在每个 RTP 包头部携带发送端的绝对时间戳（24-bit，精度约 3.8μs）</li>
+<li>用途：接收端据此计算包间发送间隔 <code>T(i) - T(i-1)</code>，进而得出单向延迟变化量</li>
+</ul>
+<h3 id="4-2-REMB（Receiver-Estimated-Maximum-Bitrate）"><a href="#4-2-REMB（Receiver-Estimated-Maximum-Bitrate）" class="headerlink" title="4.2 REMB（Receiver Estimated Maximum Bitrate）"></a>4.2 REMB（Receiver Estimated Maximum Bitrate）</h3><ul>
+<li>定义：<code>draft-alvestrand-rmcat-remb</code>（未标准化，但所有主流浏览器支持）</li>
+<li>作用：接收端将 Delay-based Controller 估算出的可用带宽上限，通过 RTCP 消息反馈给发送端</li>
+<li>格式：RTCP PSFB（Payload-Specific Feedback），包含估计码率（mantissa + exponent 格式）</li>
+<li>推荐发送频率：检测到拥塞时立即发送，否则至少每秒一次</li>
+</ul>
+<h3 id="4-3-Transport-wide-Congestion-Control（Transport-CC-TWCC）"><a href="#4-3-Transport-wide-Congestion-Control（Transport-CC-TWCC）" class="headerlink" title="4.3 Transport-wide Congestion Control（Transport-CC &#x2F; TWCC）"></a>4.3 Transport-wide Congestion Control（Transport-CC &#x2F; TWCC）</h3><ul>
+<li>定义：<code>draft-holmer-rmcat-transport-wide-cc-extensions</code></li>
+<li>作用：接收端为每个 RTP 包（跨所有媒体流）打上传输层序号，并将到达时间戳批量反馈给发送端</li>
+<li>优势：所有计算在发送端完成，延迟更低，且对多路复用场景更友好</li>
+<li>推荐反馈间隔：每收到一个视频帧反馈一次，或至少每 30ms 一次（仅音频或多路流场景）；带宽受限时可放宽至每 100ms 一次</li>
+</ul>
+<hr>
+<h1 id="5-发送引擎（Pacer）"><a href="#5-发送引擎（Pacer）" class="headerlink" title="5. 发送引擎（Pacer）"></a>5. 发送引擎（Pacer）</h1><p>Pacer 负责将编码器产生的数据”平滑”地发送到网络，避免突发流量引发人工拥塞：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">编码器输出 → Pacer 队列 → 网络（每 burst_time ms 发送一批）</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键参数</strong>：</p>
+<ul>
+<li><code>burst_time</code>：推荐值 <strong>5 ms</strong>，即每 5ms 发送一批数据包</li>
+<li>每批发送量：<code>目标码率 × burst_time</code></li>
+</ul>
+<p>Pacer 与拥塞控制器紧密协作：控制器计算出目标码率后，Pacer 按此节奏匀速释放数据包。这样既能避免短时突发撑满缓冲区，又能保证测量到的包间延迟真实反映网络状态，而非发送端自身造成的抖动。</p>
+<blockquote>
+<p>当编码器输出码率高于目标时，Pacer 允许以 <code>1.5 × 目标码率</code> 的速率排空队列，避免因队列积压引入额外延迟。</p>
+</blockquote>
+<hr>
+<h1 id="6-基于延迟的控制器（Delay-based-Controller）"><a href="#6-基于延迟的控制器（Delay-based-Controller）" class="headerlink" title="6. 基于延迟的控制器（Delay-based Controller）"></a>6. 基于延迟的控制器（Delay-based Controller）</h1><p>这是 GCC 的核心创新，分为四个串联模块：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">原始包到达时间 → 预过滤 → Kalman 滤波 → 过载检测 → 速率控制</span><br><span class="line">                                 ↓              ↓</span><br><span class="line">                            延迟梯度 m(i)    过载信号</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-1-到达时间模型（Arrival-time-Model）"><a href="#6-1-到达时间模型（Arrival-time-Model）" class="headerlink" title="6.1 到达时间模型（Arrival-time Model）"></a>6.1 到达时间模型（Arrival-time Model）</h3><p>定义以下核心变量：</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>T(i)</code></td>
+<td>第 i 组包的最后一个包的<strong>发送</strong>时间戳</td>
+</tr>
+<tr>
+<td><code>t(i)</code></td>
+<td>第 i 组包的最后一个包的<strong>到达</strong>时间戳</td>
+</tr>
+<tr>
+<td><code>T(i) - T(i-1)</code></td>
+<td>包组间<strong>发送</strong>时间间隔（inter-departure time）</td>
+</tr>
+<tr>
+<td><code>t(i) - t(i-1)</code></td>
+<td>包组间<strong>到达</strong>时间间隔（inter-arrival time）</td>
+</tr>
+<tr>
+<td><code>d(i)</code></td>
+<td>包组间<strong>单向延迟变化量</strong>（inter-group delay variation）</td>
+</tr>
+</tbody></table>
+<p>核心公式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d(i) = [t(i) - t(i-1)] - [T(i) - T(i-1)]</span><br></pre></td></tr></table></figure>
+
+<p><strong>直觉理解</strong>：</p>
+<ul>
+<li><code>d(i) &gt; 0</code>：包到达间隔比发送间隔更长 → 路径上有新的排队延迟产生 → 可能过载</li>
+<li><code>d(i) &lt; 0</code>：包到达比预期更快 → 之前的队列正在被清空 → 带宽有余量</li>
+<li><code>d(i) ≈ 0</code>：网络状态稳定</li>
+</ul>
+<p>将 <code>d(i)</code> 建模为随机过程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d(i) = m(i) + v(i)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>m(i)</code>：延迟梯度的<strong>均值</strong>（congestion trend），是真正想估计的量</li>
+<li><code>v(i)</code>：网络抖动等噪声，建模为零均值高斯白噪声</li>
+</ul>
+<p>当网络过载时，<code>m(i)</code> 会持续增大；当队列排空时，<code>m(i)</code> 减小；无拥塞时，<code>m(i)</code> 接近零。</p>
+<h3 id="6-2-预过滤（Pre-filtering）"><a href="#6-2-预过滤（Pre-filtering）" class="headerlink" title="6.2 预过滤（Pre-filtering）"></a>6.2 预过滤（Pre-filtering）</h3><p>预过滤的目的是处理<strong>网络中断后突发恢复</strong>等异常场景，避免误判。</p>
+<p>将以下情况的包合并为同一个”包组”：</p>
+<ol>
+<li>在 <code>burst_time</code> 时间窗口内发送的连续包</li>
+<li>到达时间间隔小于 <code>burst_time</code> <strong>且</strong> <code>d(i) &lt; 0</code> 的包（判断为同批到达的突发包）</li>
+</ol>
+<p>这样处理后，突发恢复不会产生大量连续的负 <code>d(i)</code>，避免错误触发”欠载”状态。</p>
+<h3 id="6-3-Kalman-滤波器（Arrival-time-Filter）"><a href="#6-3-Kalman-滤波器（Arrival-time-Filter）" class="headerlink" title="6.3 Kalman 滤波器（Arrival-time Filter）"></a>6.3 Kalman 滤波器（Arrival-time Filter）</h3><p>使用 <strong>Kalman 滤波器</strong>从带噪的 <code>d(i)</code> 序列中提取平滑的延迟梯度估计 <code>m_hat(i)</code>。</p>
+<p><strong>状态转移模型</strong>（假设 <code>m(i)</code> 缓慢漂移）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m(i+1) = m(i) + u(i)</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>u(i)</code> 为状态噪声，方差 <code>q(i) = E&#123;u(i)²&#125;</code>，推荐值为 <code>10⁻³</code>。</p>
+<p><strong>Kalman 递推公式</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">z(i) = d(i) - m_hat(i-1)                    // 新息（innovation / residual）</span><br><span class="line"></span><br><span class="line">k(i) = (e(i-1) + q(i)) / (var_v_hat(i) + e(i-1) + q(i))   // Kalman 增益</span><br><span class="line"></span><br><span class="line">m_hat(i) = m_hat(i-1) + z(i) * k(i)         // 状态更新</span><br><span class="line"></span><br><span class="line">e(i) = (1 - k(i)) * (e(i-1) + q(i))         // 误差协方差更新</span><br></pre></td></tr></table></figure>
+
+<p><strong>测量噪声方差自适应估计</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var_v_hat(i) = max(α * var_v_hat(i-1) + (1-α) * z(i)², 1)</span><br><span class="line"></span><br><span class="line">α = (1 - chi)^(30 / (1000 * f_max))</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>f_max</code>：最近 K 个包组中最高的接收频率</li>
+<li><code>chi</code>：滤波系数，推荐范围 <code>[0.001, 0.1]</code></li>
+<li>异常值保护：当 <code>z(i) &gt; 3√var_v_hat</code> 时，用 <code>3√var_v_hat</code> 代替 <code>z(i)</code> 更新方差，防止偶发大延迟污染滤波器</li>
+</ul>
+<p><strong>Kalman 滤波器的优势</strong>：能够动态权衡”信任历史估计”与”信任当前观测”，在网络稳定时趋于平滑，在状态突变时快速跟踪。</p>
+<h3 id="6-4-过载检测器（Over-use-Detector）"><a href="#6-4-过载检测器（Over-use-Detector）" class="headerlink" title="6.4 过载检测器（Over-use Detector）"></a>6.4 过载检测器（Over-use Detector）</h3><p>将 <code>m_hat(i)</code> 与<strong>自适应阈值</strong> <code>del_var_th(i)</code> 比较，得出三种状态：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>m_hat(i) &gt; del_var_th(i)</code> 且持续超过 <code>overuse_time_th</code></td>
+<td><strong>Over-use（过载）</strong></td>
+</tr>
+<tr>
+<td><code>m_hat(i) &lt; -del_var_th(i)</code></td>
+<td><strong>Under-use（欠载）</strong></td>
+</tr>
+<tr>
+<td>其他</td>
+<td><strong>Normal（正常）</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>重要细节</strong>：即使满足过载条件，若 <code>m_hat(i) &lt; m_hat(i-1)</code>（延迟梯度在下降），也不触发过载信号，避免在恢复阶段误降码率。</p>
+</blockquote>
+<h4 id="自适应阈值"><a href="#自适应阈值" class="headerlink" title="自适应阈值"></a>自适应阈值</h4><p>使用<strong>固定阈值</strong>会导致 GCC 在与 TCP 竞争时被饿死——TCP 的大量突发会撑大队列，GCC 会持续降速最终失去带宽。因此阈值必须动态调整：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">del_var_th(i) = del_var_th(i-1) + (t(i) - t(i-1)) × K(i) × (|m_hat(i)| - del_var_th(i-1))</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">K(i) = K_u   if |m_hat(i)| &gt;= del_var_th(i-1)   // 超出阈值时快速上调</span><br><span class="line">K(i) = K_d   if |m_hat(i)| &lt;  del_var_th(i-1)   // 回到阈值内时缓慢下调</span><br></pre></td></tr></table></figure>
+
+<p><strong>约束条件</strong>：</p>
+<ul>
+<li>当 <code>|m_hat(i)| - del_var_th(i) &gt; 15ms</code> 时，<strong>不更新</strong>阈值（防止阈值被单次异常值拉偏）</li>
+<li>阈值被钳位到 <code>[6ms, 600ms]</code> 范围内</li>
+</ul>
+<p><strong>推荐参数值</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>del_var_th(0)</code></td>
+<td>12.5 ms</td>
+<td>初始阈值</td>
+</tr>
+<tr>
+<td><code>overuse_time_th</code></td>
+<td>10 ms</td>
+<td>过载持续确认时间</td>
+</tr>
+<tr>
+<td><code>K_u</code></td>
+<td>0.01</td>
+<td>阈值上调速率（比 <code>K_d</code> 大，快速响应 TCP 竞争）</td>
+</tr>
+<tr>
+<td><code>K_d</code></td>
+<td>0.00018</td>
+<td>阈值下调速率</td>
+</tr>
+</tbody></table>
+<p><code>K_u &gt; K_d</code> 是关键设计：阈值上调快、下调慢，使得面对突发 TCP 流时 GCC 不会迅速被饿死，而是逐渐”学习”到更合适的工作点。</p>
+<h3 id="6-5-速率控制状态机（Rate-Control）"><a href="#6-5-速率控制状态机（Rate-Control）" class="headerlink" title="6.5 速率控制状态机（Rate Control）"></a>6.5 速率控制状态机（Rate Control）</h3><p>Delay-based Controller 的速率控制模块是一个<strong>三状态机</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">         Over-use                   Over-use</span><br><span class="line">  ┌─────────────────────┐   ┌──────────────┐</span><br><span class="line">  ↓                     │   ↓              │</span><br><span class="line">Hold ──Normal──→ Increase   Decrease ──Normal──→ Hold</span><br><span class="line">  ↑             ↓ Under-use              ↑ Under-use</span><br><span class="line">  └─────────────┘                        └──────────</span><br></pre></td></tr></table></figure>
+
+<p><strong>状态转移表</strong>（来自 <code>draft-ietf-rmcat-gcc-02</code> 第 5.5 节）：</p>
+<table>
+<thead>
+<tr>
+<th>当前状态 \ 检测信号</th>
+<th>Over-use</th>
+<th>Normal</th>
+<th>Under-use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Hold</strong></td>
+<td>Decrease</td>
+<td>Increase</td>
+<td>Hold</td>
+</tr>
+<tr>
+<td><strong>Increase</strong></td>
+<td>Decrease</td>
+<td>Increase</td>
+<td>Hold</td>
+</tr>
+<tr>
+<td><strong>Decrease</strong></td>
+<td>Decrease</td>
+<td>Hold</td>
+<td>Hold</td>
+</tr>
+</tbody></table>
+<p><strong>各状态行为</strong>：</p>
+<p><strong>Increase（增加）</strong>：码率向上探测，分两种模式：</p>
+<ul>
+<li><strong>乘性增加（Multiplicative Increase）</strong>：远离收敛点时使用<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A_hat(i) = η * A_hat(i-1)     // η 推荐值：1.08（即每次增加 8%）</span><br></pre></td></tr></table></figure></li>
+<li><strong>加性增加（Additive Increase）</strong>：接近收敛点时使用，更保守<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A_hat(i) = A_hat(i-1) + 0.5 * kbps_per_second</span><br></pre></td></tr></table></figure>
+其中 <code>kbps_per_second</code> 推荐值为 <code>0.5 * response_time * expected_packet_size_bits / response_time²</code></li>
+</ul>
+<p><strong>判断是否接近收敛点</strong>：若当前入站码率 <code>R_hat(i)</code> 落在”历史最大码率均值 ± 3个标准差”范围内，则认为接近收敛，切换到加性增加。均值和标准差用平滑因子 0.95 的指数移动平均估计。</p>
+<p><strong>Decrease（减少）</strong>：检测到过载时，乘性降低：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A_hat(i) = β * R_hat(i)     // β 推荐值：0.85</span><br></pre></td></tr></table></figure>
+<p>注意：降速参考的是<strong>当前入站码率</strong> <code>R_hat(i)</code>（实测值），而非之前的估计值，避免因之前估计偏高而降速不够。</p>
+<p><strong>Hold（保持）</strong>：维持当前码率，等待队列排空后再进入 Increase 状态。</p>
+<hr>
+<h1 id="7-基于丢包的控制器（Loss-based-Controller）"><a href="#7-基于丢包的控制器（Loss-based-Controller）" class="headerlink" title="7. 基于丢包的控制器（Loss-based Controller）"></a>7. 基于丢包的控制器（Loss-based Controller）</h1><p>Loss-based Controller 在发送端运行，基于 RTCP Receiver Report 中的丢包率 <code>p</code> 调整发送码率估计 <code>A_s_hat</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">         ┌  A_s_hat(i-1)              ,  2% ≤ p &lt; 10%    // 轻微丢包，维持</span><br><span class="line">A_s_hat = ┤  A_s_hat(i-1) × (1 - 0.5p) ,  p ≥ 10%        // 严重丢包，降速</span><br><span class="line">         └  1.05 × A_s_hat(i-1)       ,  p &lt; 2%          // 无明显丢包，缓慢增加</span><br></pre></td></tr></table></figure>
+
+<p><strong>设计逻辑</strong>：</p>
+<ul>
+<li><code>p &lt; 2%</code>：认为丢包是随机噪声（非拥塞），以 <strong>5%&#x2F;次</strong> 的速率缓慢增加码率</li>
+<li><code>2% ≤ p &lt; 10%</code>：认为网络处于轻微拥塞边缘，维持当前码率，等待更多信息</li>
+<li><code>p ≥ 10%</code>：明确拥塞，以 <code>0.5p</code> 的比例乘性降低码率（例如 10% 丢包 → 降至原来的 95%；20% 丢包 → 降至原来的 90%）</li>
+</ul>
+<blockquote>
+<p><strong>为什么 2%-10% 区间不响应</strong>？论文作者指出：若传输信道因过载产生少量丢包，这个比例很快就会超过 10%。如果丢包率长时间维持在 2%-10% 而不上升，说明丢包更可能来自随机信道误差（如无线信道），而非拥塞，因此不应贸然降速。</p>
+</blockquote>
+<hr>
+<h1 id="8-两个控制器的协同工作"><a href="#8-两个控制器的协同工作" class="headerlink" title="8. 两个控制器的协同工作"></a>8. 两个控制器的协同工作</h1><p>两个控制器分别产生各自的码率估计，最终目标码率取<strong>较小值</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">目标码率 = min(Delay-based A_r, Loss-based A_s_hat)</span><br></pre></td></tr></table></figure>
+
+<p><strong>职责分工</strong>：</p>
+<ul>
+<li><strong>Delay-based Controller</strong>：提前感知拥塞趋势（低延迟但信噪比较低），给出带宽上限</li>
+<li><strong>Loss-based Controller</strong>：在真实丢包发生时作为保底兜底（信号滞后但确定），确保不会因盲目增加码率而导致大量丢包</li>
+</ul>
+<p>两者形成互补：延迟控制器主导”无拥塞 → 探测 → 轻微拥塞”阶段，丢包控制器在”严重拥塞”时强制介入。</p>
+<hr>
+<h1 id="9-GCC-的两代演进：REMB-GCC-与-TFB-GCC"><a href="#9-GCC-的两代演进：REMB-GCC-与-TFB-GCC" class="headerlink" title="9. GCC 的两代演进：REMB-GCC 与 TFB-GCC"></a>9. GCC 的两代演进：REMB-GCC 与 TFB-GCC</h1><h3 id="第一代：REMB-GCC（基于接收端的延迟估计）"><a href="#第一代：REMB-GCC（基于接收端的延迟估计）" class="headerlink" title="第一代：REMB-GCC（基于接收端的延迟估计）"></a>第一代：REMB-GCC（基于接收端的延迟估计）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">接收端：Delay-based Controller（Kalman 滤波）→ REMB → 发送端：Loss-based Controller</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Delay-based Controller 运行在<strong>接收端</strong></li>
+<li>计算结果通过 REMB 消息反馈给发送端</li>
+<li>发送端的 Loss-based Controller 以 REMB 值作为上限</li>
+</ul>
+<p><strong>缺点</strong>：RTT 附加延迟导致反馈不及时；REMB 消息粒度较粗；多流场景下效率低。</p>
+<h3 id="第二代：TFB-GCC（基于-Transport-CC-的发送端估计）"><a href="#第二代：TFB-GCC（基于-Transport-CC-的发送端估计）" class="headerlink" title="第二代：TFB-GCC（基于 Transport-CC 的发送端估计）"></a>第二代：TFB-GCC（基于 Transport-CC 的发送端估计）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">接收端：记录到达时间 + 序号 → Transport-CC → 发送端：Delay-based + Loss-based Controllers</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>所有控制逻辑移到发送端</strong></li>
+<li>接收端仅负责记录到达时间戳并通过 Transport-CC 反馈</li>
+<li>发送端实现趋势线滤波器（Trendline Filter）取代 Kalman 滤波，通过<strong>线性回归</strong>估计延迟趋势</li>
+<li>支持多路流共享同一个拥塞控制器</li>
+</ul>
+<p><strong>Trendline Filter</strong>（TFB-GCC 的延迟估计核心）：</p>
+<p>对最近 N 个包的单向延迟变化量 <code>d(i)</code> 进行线性回归，斜率即为拥塞趋势：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delay_slope = linear_regression(d(1), d(2), ..., d(N)) / time_span</span><br></pre></td></tr></table></figure>
+
+<p>斜率持续为正 → 排队延迟在增长 → 过载信号。</p>
+<p>这种方式对噪声更鲁棒，也更容易跨多路流汇总计算。</p>
+<blockquote>
+<p>目前（2024年）Chrome 默认使用 TFB-GCC（Transport-CC + 发送端估计）。旧的 REMB-GCC 路径已被标记为 deprecated，但因兼容性需要仍然保留。</p>
+</blockquote>
+<hr>
+<h1 id="10-关键参数汇总"><a href="#10-关键参数汇总" class="headerlink" title="10. 关键参数汇总"></a>10. 关键参数汇总</h1><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+<th>所属模块</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>burst_time</code></td>
+<td>5 ms</td>
+<td>Pacer</td>
+<td>发包间隔</td>
+</tr>
+<tr>
+<td><code>q(i)</code></td>
+<td>10⁻³</td>
+<td>Kalman Filter</td>
+<td>状态噪声方差</td>
+</tr>
+<tr>
+<td><code>chi</code></td>
+<td>[0.001, 0.1]</td>
+<td>Kalman Filter</td>
+<td>测量噪声更新系数</td>
+</tr>
+<tr>
+<td><code>del_var_th(0)</code></td>
+<td>12.5 ms</td>
+<td>Over-use Detector</td>
+<td>初始自适应阈值</td>
+</tr>
+<tr>
+<td><code>overuse_time_th</code></td>
+<td>10 ms</td>
+<td>Over-use Detector</td>
+<td>过载确认窗口</td>
+</tr>
+<tr>
+<td><code>K_u</code></td>
+<td>0.01</td>
+<td>Over-use Detector</td>
+<td>阈值上调速率</td>
+</tr>
+<tr>
+<td><code>K_d</code></td>
+<td>0.00018</td>
+<td>Over-use Detector</td>
+<td>阈值下调速率</td>
+</tr>
+<tr>
+<td><code>del_var_th</code> 范围</td>
+<td>[6ms, 600ms]</td>
+<td>Over-use Detector</td>
+<td>阈值钳位范围</td>
+</tr>
+<tr>
+<td><code>η</code></td>
+<td>1.08</td>
+<td>Rate Control</td>
+<td>乘性增加因子</td>
+</tr>
+<tr>
+<td><code>β</code></td>
+<td>0.85</td>
+<td>Rate Control</td>
+<td>乘性降低因子</td>
+</tr>
+<tr>
+<td>EMA 平滑系数</td>
+<td>0.95</td>
+<td>Rate Control</td>
+<td>最大码率统计</td>
+</tr>
+<tr>
+<td>丢包低阈值</td>
+<td>2%</td>
+<td>Loss-based Controller</td>
+<td>维持&#x2F;增加边界</td>
+</tr>
+<tr>
+<td>丢包高阈值</td>
+<td>10%</td>
+<td>Loss-based Controller</td>
+<td>维持&#x2F;降低边界</td>
+</tr>
+<tr>
+<td>码率增加系数</td>
+<td>1.05 (5%)</td>
+<td>Loss-based Controller</td>
+<td>低丢包时增速</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="11-性能特性与局限性"><a href="#11-性能特性与局限性" class="headerlink" title="11. 性能特性与局限性"></a>11. 性能特性与局限性</h1><h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><p><strong>收敛性</strong>：GCC 能在均匀网络条件下（无并发竞争流）收敛到接近链路容量的稳定工作点。</p>
+<p><strong>公平性</strong>：多路 GCC 流共享同一瓶颈链路时，能获得较公平的带宽分配（intra-protocol fairness）。</p>
+<p><strong>低延迟</strong>：相比 TCP 类算法，GCC 保持的队列深度更小，端到端延迟更低。</p>
+<p><strong>鲁棒性</strong>：对随机丢包（如无线链路）有一定抵抗力，不会因偶发丢包大幅降速。</p>
+<p><strong>与 TCP 共存</strong>：自适应阈值机制使 GCC 能在 TCP 流量压力下保持基本的带宽份额，避免饿死。</p>
+<h3 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h3><p><strong>收敛速度慢</strong>：当链路带宽突然增大时，GCC 需要约 20-30 秒才能重新探测到新的可用带宽，期间视频质量无法充分利用新增带宽。</p>
+<p><strong>锯齿抖动</strong>：由于 AIMD（Additive Increase &#x2F; Multiplicative Decrease）的固有特性，在动态链路上码率呈锯齿状波动，视频质量不够稳定。</p>
+<p><strong>与 TCP 竞争处于劣势</strong>：虽然自适应阈值有所缓解，但在与激进的 TCP CUBIC 流竞争时，GCC 流仍然倾向于获得更少的带宽份额，表现出不完全的 TCP 友好性。</p>
+<p><strong>反向路径干扰</strong>：反向路径（RTCP 反馈路径）的拥塞会影响到 REMB 消息的及时性，间接影响拥塞控制的响应速度。</p>
+<hr>
+<h1 id="12-与其他算法的对比"><a href="#12-与其他算法的对比" class="headerlink" title="12. 与其他算法的对比"></a>12. 与其他算法的对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>GCC</th>
+<th>SCReAM</th>
+<th>NADA</th>
+<th>BBR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拥塞信号</td>
+<td>延迟梯度 + 丢包</td>
+<td>单向延迟 + 丢包</td>
+<td>聚合延迟</td>
+<td>带宽 + RTT</td>
+</tr>
+<tr>
+<td>控制器位置</td>
+<td>发送端（TFB）&#x2F; 接收端（REMB）</td>
+<td>发送端</td>
+<td>发送端</td>
+<td>发送端</td>
+</tr>
+<tr>
+<td>与 TCP 竞争</td>
+<td>中等</td>
+<td>较弱</td>
+<td>中等</td>
+<td>激进</td>
+</tr>
+<tr>
+<td>收敛速度</td>
+<td>慢（~25s）</td>
+<td>中等</td>
+<td>中等</td>
+<td>快</td>
+</tr>
+<tr>
+<td>带宽利用率</td>
+<td>高（~82% @ 5% 丢包）</td>
+<td>较低</td>
+<td>中等</td>
+<td>高</td>
+</tr>
+<tr>
+<td>随机丢包鲁棒性</td>
+<td>好</td>
+<td>较差</td>
+<td>中等</td>
+<td>好</td>
+</tr>
+<tr>
+<td>WebRTC 标准化</td>
+<td>事实标准</td>
+<td>RMCAT 候选</td>
+<td>RMCAT 候选（RFC 8698）</td>
+<td>非 RMCAT</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="13-在-WebRTC-源码中的位置"><a href="#13-在-WebRTC-源码中的位置" class="headerlink" title="13. 在 WebRTC 源码中的位置"></a>13. 在 WebRTC 源码中的位置</h1><p>GCC 已在 Chromium 开源代码库中完整实现，核心文件位于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">webrtc/modules/congestion_controller/</span><br><span class="line">├── goog_cc/</span><br><span class="line">│   ├── goog_cc_network_control.cc       // 顶层控制器</span><br><span class="line">│   ├── delay_based_bwe.cc               // Delay-based Controller（TFB 版本）</span><br><span class="line">│   ├── trendline_estimator.cc           // Trendline Filter（替代 Kalman）</span><br><span class="line">│   ├── loss_based_bwe_v2.cc             // Loss-based Controller（改进版）</span><br><span class="line">│   ├── send_side_bandwidth_estimation.cc// 发送端带宽估计汇总</span><br><span class="line">│   └── inter_arrival_delta.cc           // 包间延迟差计算</span><br><span class="line">└── remb_throttler.cc                    // REMB 发送节流</span><br></pre></td></tr></table></figure>
+
+<p>旧版 Kalman Filter 实现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">webrtc/modules/remote_bitrate_estimator/</span><br><span class="line">├── inter_arrival.cc                     // 到达时间差计算</span><br><span class="line">└── overuse_estimator.cc                 // Kalman 滤波器实现</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><p><strong>[draft-ietf-rmcat-gcc-02]</strong> Holmer, S., Lundin, H., Carlucci, G., De Cicco, L., Mascolo, S., <em>“A Google Congestion Control Algorithm for Real-Time Communication”</em>, IETF Internet-Draft, July 2016.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02">https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02</a></p>
+</li>
+<li><p><strong>[draft-alvestrand-rmcat-remb]</strong> Alvestrand, H., <em>“RTCP message for Receiver Estimated Maximum Bitrate”</em>.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-alvestrand-rmcat-remb">https://datatracker.ietf.org/doc/html/draft-alvestrand-rmcat-remb</a></p>
+</li>
+<li><p><strong>[draft-holmer-rmcat-transport-wide-cc-extensions]</strong> Holmer, S., et al., <em>“RTP Extensions for Transport-wide Congestion Control”</em>.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions">https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions</a></p>
+</li>
+<li><p><strong>[RFC 3550]</strong> Schulzrinne, H., et al., <em>“RTP: A Transport Protocol for Real-Time Applications”</em>, RFC 3550, 2003.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3550">https://datatracker.ietf.org/doc/html/rfc3550</a></p>
+</li>
+<li><p><strong>[RFC 2914]</strong> Floyd, S., <em>“Congestion Control Principles”</em>, BCP 41, RFC 2914, 2000.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc2914">https://datatracker.ietf.org/doc/html/rfc2914</a></p>
+</li>
+<li><p><strong>[RFC 8698]</strong> Zhu, X., et al., <em>“Network-Assisted Dynamic Adaptation (NADA): A Unified Congestion Control Scheme for Real-Time Media”</em>, RFC 8698, 2020.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8698">https://datatracker.ietf.org/doc/html/rfc8698</a></p>
+</li>
+<li><p><strong>[RFC 8699]</strong> Islam, S., et al., <em>“Coupled Congestion Control for RTP Media”</em>, RFC 8699, 2020.<br>→ <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8699">https://datatracker.ietf.org/doc/html/rfc8699</a></p>
+</li>
+<li><p><strong>[GCC-Analysis]</strong> De Cicco, L., Carlucci, G., Mascolo, S., <em>“Analysis and Design of the Google Congestion Control for Web Real-Time Communication”</em>, ACM MMSys 2016.<br>→ <a target="_blank" rel="noopener" href="https://c3lab.poliba.it/images/6/65/Gcc-analysis.pdf">https://c3lab.poliba.it/images/6/65/Gcc-analysis.pdf</a></p>
+</li>
+<li><p><strong>[WebRTC for the Curious]</strong> <em>“Media Communication”</em> Chapter.<br>→ <a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/docs/06-media-communication/">https://webrtcforthecurious.com/docs/06-media-communication/</a></p>
+</li>
+<li><p><strong>[webrtcHacks]</strong> <em>“Probing WebRTC Bandwidth Probing – why and how in GCC”</em>.<br>→ <a target="_blank" rel="noopener" href="https://webrtchacks.com/probing-webrtc-bandwidth-probing-why-and-how-in-gcc/">https://webrtchacks.com/probing-webrtc-bandwidth-probing-why-and-how-in-gcc/</a></p>
+</li>
+<li><p><strong>[Chromium WebRTC Source]</strong><br>→ <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/">https://chromium.googlesource.com/external/webrtc/</a></p>
+</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与动机</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">2. 标准化历程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. 系统模型与整体架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%8F%8D%E9%A6%88%E6%9C%BA%E5%88%B6%E4%B8%8E%E4%BF%A1%E4%BB%A4%E6%89%A9%E5%B1%95"><span class="toc-number">5.</span> <span class="toc-text">4. 反馈机制与信令扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Absolute-Send-Time%EF%BC%88abs-send-time%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Absolute Send Time（abs-send-time）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-REMB%EF%BC%88Receiver-Estimated-Maximum-Bitrate%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 REMB（Receiver Estimated Maximum Bitrate）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Transport-wide-Congestion-Control%EF%BC%88Transport-CC-TWCC%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 Transport-wide Congestion Control（Transport-CC &#x2F; TWCC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%91%E9%80%81%E5%BC%95%E6%93%8E%EF%BC%88Pacer%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 发送引擎（Pacer）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9F%BA%E4%BA%8E%E5%BB%B6%E8%BF%9F%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Delay-based-Controller%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 基于延迟的控制器（Delay-based Controller）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8B%EF%BC%88Arrival-time-Model%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 到达时间模型（Arrival-time Model）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E8%BF%87%E6%BB%A4%EF%BC%88Pre-filtering%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 预过滤（Pre-filtering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Kalman-%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Arrival-time-Filter%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Kalman 滤波器（Arrival-time Filter）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8%EF%BC%88Over-use-Detector%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 过载检测器（Over-use Detector）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%87%AA%E9%80%82%E5%BA%94%E9%98%88%E5%80%BC"><span class="toc-number">7.0.4.1.</span> <span class="toc-text">自适应阈值</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%88Rate-Control%EF%BC%89"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 速率控制状态机（Rate Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%9F%BA%E4%BA%8E%E4%B8%A2%E5%8C%85%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Loss-based-Controller%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 基于丢包的控制器（Loss-based Controller）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C"><span class="toc-number">9.</span> <span class="toc-text">8. 两个控制器的协同工作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-GCC-%E7%9A%84%E4%B8%A4%E4%BB%A3%E6%BC%94%E8%BF%9B%EF%BC%9AREMB-GCC-%E4%B8%8E-TFB-GCC"><span class="toc-number">10.</span> <span class="toc-text">9. GCC 的两代演进：REMB-GCC 与 TFB-GCC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E4%BB%A3%EF%BC%9AREMB-GCC%EF%BC%88%E5%9F%BA%E4%BA%8E%E6%8E%A5%E6%94%B6%E7%AB%AF%E7%9A%84%E5%BB%B6%E8%BF%9F%E4%BC%B0%E8%AE%A1%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">第一代：REMB-GCC（基于接收端的延迟估计）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E4%BB%A3%EF%BC%9ATFB-GCC%EF%BC%88%E5%9F%BA%E4%BA%8E-Transport-CC-%E7%9A%84%E5%8F%91%E9%80%81%E7%AB%AF%E4%BC%B0%E8%AE%A1%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">第二代：TFB-GCC（基于 Transport-CC 的发送端估计）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E6%B1%87%E6%80%BB"><span class="toc-number">11.</span> <span class="toc-text">10. 关键参数汇总</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%80%A7%E8%83%BD%E7%89%B9%E6%80%A7%E4%B8%8E%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 性能特性与局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E7%82%B9"><span class="toc-number">12.0.1.</span> <span class="toc-text">优点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">13.</span> <span class="toc-text">12. 与其他算法的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%9C%A8-WebRTC-%E6%BA%90%E7%A0%81%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">14.</span> <span class="toc-text">13. 在 WebRTC 源码中的位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&text=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&is_video=false&description=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法&body=Check out this article: http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&title=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&name=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/08/15/webrtc/16-gcc-google-congestion-control/&t=GCC（Google Congestion Control）— WebRTC 默认拥塞控制算法"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

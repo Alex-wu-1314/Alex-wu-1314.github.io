@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 为什么需要带宽估计 基本概念与术语 BWE 的整体架构 REMB：接收端带宽估计（第一代） 4.1 工作原理 4.2 RTCP REMB 报文格式 4.3 局限性   Transport-CC：发送端带宽估计（第二代） 5.1 设计动机 5.2 RTP 头部扩展：Transport-Wide Sequence Number 5.3 RTCP Transport-CC 反馈报文 5.4 SDP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整">
+<meta property="og:url" content="http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 为什么需要带宽估计 基本概念与术语 BWE 的整体架构 REMB：接收端带宽估计（第一代） 4.1 工作原理 4.2 RTCP REMB 报文格式 4.3 局限性   Transport-CC：发送端带宽估计（第二代） 5.1 设计动机 5.2 RTP 头部扩展：Transport-Wide Sequence Number 5.3 RTCP Transport-CC 反馈报文 5.4 SDP">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-08-09T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-28T13:04:39.362Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/31/webrtc/14-datachannel/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&text=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&is_video=false&description=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整&body=Check out this article: http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&name=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&t=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要带宽估计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E4%B8%8E%E6%9C%AF%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">2. 基本概念与术语</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-BWE-%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. BWE 的整体架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-REMB%EF%BC%9A%E6%8E%A5%E6%94%B6%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%EF%BC%88%E7%AC%AC%E4%B8%80%E4%BB%A3%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. REMB：接收端带宽估计（第一代）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-RTCP-REMB-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 RTCP REMB 报文格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Transport-CC%EF%BC%9A%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%EF%BC%88%E7%AC%AC%E4%BA%8C%E4%BB%A3%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. Transport-CC：发送端带宽估计（第二代）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 设计动机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%EF%BC%9ATransport-Wide-Sequence-Number"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 RTP 头部扩展：Transport-Wide Sequence Number</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-RTCP-Transport-CC-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 RTCP Transport-CC 反馈报文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-GCC-%E7%AE%97%E6%B3%95%EF%BC%9ABWE-%E7%9A%84%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">7.</span> <span class="toc-text">6. GCC 算法：BWE 的核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 系统模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%BB%B6%E8%BF%9F%E6%A2%AF%E5%BA%A6%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Delay-based-Controller%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 延迟梯度控制器（Delay-based Controller）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-1-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8B%EF%BC%88Arrival-time-Model%EF%BC%89"><span class="toc-number">7.0.2.1.</span> <span class="toc-text">6.2.1 到达时间模型（Arrival-time Model）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-2-%E9%A2%84%E8%BF%87%E6%BB%A4%EF%BC%88Pre-filtering%EF%BC%89"><span class="toc-number">7.0.2.2.</span> <span class="toc-text">6.2.2 预过滤（Pre-filtering）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-3-%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Arrival-time-Filter%EF%BC%89"><span class="toc-number">7.0.2.3.</span> <span class="toc-text">6.2.3 卡尔曼滤波器（Arrival-time Filter）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-4-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8%EF%BC%88Over-use-Detector%EF%BC%89"><span class="toc-number">7.0.2.4.</span> <span class="toc-text">6.2.4 过载检测器（Over-use Detector）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-5-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Rate-Controller%EF%BC%89"><span class="toc-number">7.0.2.5.</span> <span class="toc-text">6.2.5 速率控制器（Rate Controller）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%A2%E5%8C%85%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Loss-based-Controller%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 丢包控制器（Loss-based Controller）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 两个控制器的协同</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%B8%A6%E5%AE%BD%E6%8E%A2%E6%B5%8B%EF%BC%88Bandwidth-Probing%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 带宽探测（Bandwidth Probing）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%8E%A2%E6%B5%8B"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 为什么需要探测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%8E%A2%E6%B5%8B%E6%9C%BA%E5%88%B6"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 探测机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%88%9D%E5%A7%8B%E6%8E%A2%E6%B5%8B%E4%B8%8E%E5%91%A8%E6%9C%9F%E6%8E%A2%E6%B5%8B"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 初始探测与周期探测</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-BWE-%E4%B8%8E%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E8%81%94%E5%8A%A8"><span class="toc-number">9.</span> <span class="toc-text">8. BWE 与编码器的联动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-RMCAT-%E5%B7%A5%E4%BD%9C%E7%BB%84%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95"><span class="toc-number">10.</span> <span class="toc-text">9. RMCAT 工作组与其他算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-SCReAM"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 SCReAM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-NADA"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 NADA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-GCC-%E7%9A%84%E6%A0%87%E5%87%86%E5%8C%96%E7%8A%B6%E6%80%81"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 GCC 的标准化状态</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-BWE-%E5%9C%A8-SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E6%8C%91%E6%88%98"><span class="toc-number">11.</span> <span class="toc-text">10. BWE 在 SFU 场景下的挑战</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 调试与可观测性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-chrome-webrtc-internals"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 chrome:&#x2F;&#x2F;webrtc-internals</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-RTC-Event-Log"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 RTC Event Log</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%85%B3%E9%94%AE%E6%8C%87%E6%A0%87%E7%9B%91%E6%8E%A7"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 关键指标监控</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IETF-RFC-%E6%96%87%E6%A1%A3"><span class="toc-number">13.0.1.</span> <span class="toc-text">IETF &#x2F; RFC 文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E6%9C%AF%E8%AE%BA%E6%96%87"><span class="toc-number">13.0.2.</span> <span class="toc-text">学术论文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E8%B5%84%E6%96%99"><span class="toc-number">13.0.3.</span> <span class="toc-text">工程资料</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%8F%82%E8%80%83"><span class="toc-number">13.0.4.</span> <span class="toc-text">源码参考</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-08-09T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-08-09</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1">为什么需要带宽估计</a></li>
+<li><a href="#2-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E4%B8%8E%E6%9C%AF%E8%AF%AD">基本概念与术语</a></li>
+<li><a href="#3-bwe-%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">BWE 的整体架构</a></li>
+<li><a href="#4-remb%E6%8E%A5%E6%94%B6%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%E7%AC%AC%E4%B8%80%E4%BB%A3">REMB：接收端带宽估计（第一代）</a><ul>
+<li>4.1 <a href="#41-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li>4.2 <a href="#42-rtcp-remb-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F">RTCP REMB 报文格式</a></li>
+<li>4.3 <a href="#43-%E5%B1%80%E9%99%90%E6%80%A7">局限性</a></li>
+</ul>
+</li>
+<li><a href="#5-transport-cc%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%E7%AC%AC%E4%BA%8C%E4%BB%A3">Transport-CC：发送端带宽估计（第二代）</a><ul>
+<li>5.1 <a href="#51-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA">设计动机</a></li>
+<li>5.2 <a href="#52-rtp-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95transport-wide-sequence-number">RTP 头部扩展：Transport-Wide Sequence Number</a></li>
+<li>5.3 <a href="#53-rtcp-transport-cc-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87">RTCP Transport-CC 反馈报文</a></li>
+<li>5.4 <a href="#54-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+</ul>
+</li>
+<li><a href="#6-gcc-%E7%AE%97%E6%B3%95bwe-%E7%9A%84%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0">GCC 算法：BWE 的核心实现</a><ul>
+<li>6.1 <a href="#61-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B">系统模型</a></li>
+<li>6.2 <a href="#62-%E5%BB%B6%E8%BF%9F%E6%A2%AF%E5%BA%A6%E6%8E%A7%E5%88%B6%E5%99%A8delay-based-controller">延迟梯度控制器（Delay-based Controller）</a><ul>
+<li>6.2.1 <a href="#621-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8Barrival-time-model">到达时间模型（Arrival-time Model）</a></li>
+<li>6.2.2 <a href="#622-%E9%A2%84%E8%BF%87%E6%BB%A4pre-filtering">预过滤（Pre-filtering）</a></li>
+<li>6.2.3 <a href="#623-%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%E5%99%A8arrival-time-filter">卡尔曼滤波器（Arrival-time Filter）</a></li>
+<li>6.2.4 <a href="#624-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8over-use-detector">过载检测器（Over-use Detector）</a></li>
+<li>6.2.5 <a href="#625-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E5%99%A8rate-controller">速率控制器（Rate Controller）</a></li>
+</ul>
+</li>
+<li>6.3 <a href="#63-%E4%B8%A2%E5%8C%85%E6%8E%A7%E5%88%B6%E5%99%A8loss-based-controller">丢包控制器（Loss-based Controller）</a></li>
+<li>6.4 <a href="#64-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C">两个控制器的协同</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%B8%A6%E5%AE%BD%E6%8E%A2%E6%B5%8Bbandwidth-probing">带宽探测（Bandwidth Probing）</a><ul>
+<li>7.1 <a href="#71-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%8E%A2%E6%B5%8B">为什么需要探测</a></li>
+<li>7.2 <a href="#72-%E6%8E%A2%E6%B5%8B%E6%9C%BA%E5%88%B6">探测机制</a></li>
+<li>7.3 <a href="#73-%E5%88%9D%E5%A7%8B%E6%8E%A2%E6%B5%8B%E4%B8%8E%E5%91%A8%E6%9C%9F%E6%8E%A2%E6%B5%8B">初始探测与周期探测</a></li>
+</ul>
+</li>
+<li><a href="#8-bwe-%E4%B8%8E%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E8%81%94%E5%8A%A8">BWE 与编码器的联动</a></li>
+<li><a href="#9-rmcat-%E5%B7%A5%E4%BD%9C%E7%BB%84%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95">RMCAT 工作组与其他算法</a><ul>
+<li>9.1 <a href="#91-scream">SCReAM</a></li>
+<li>9.2 <a href="#92-nada">NADA</a></li>
+</ul>
+</li>
+<li><a href="#10-bwe-%E5%9C%A8-sfu-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E6%8C%91%E6%88%98">BWE 在 SFU 场景下的挑战</a></li>
+<li><a href="#11-%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7">调试与可观测性</a></li>
+</ol>
+<hr>
+<h1 id="1-为什么需要带宽估计"><a href="#1-为什么需要带宽估计" class="headerlink" title="1. 为什么需要带宽估计"></a>1. 为什么需要带宽估计</h1><p>互联网是一个”尽力而为”（best-effort）的网络，IP 协议本身不对可用带宽作任何保证，且网络状况会在通话过程中动态变化，用户可能从 Wi-Fi 切换到 LTE，或者与他人共享一条家庭宽带。</p>
+<p>实时媒体传输面临一个根本性矛盾：</p>
+<ul>
+<li><strong>发送太多</strong>：超过网络容量，导致路由器队列溢出、丢包、延迟飙升，用户体验急剧恶化；</li>
+<li><strong>发送太少</strong>：画质不必要地降低，浪费了可用带宽，同样影响体验。</li>
+</ul>
+<p>带宽估计（BWE, Bandwidth Estimation）正是为了解决这一矛盾而生的模块。它持续测量当前网络的可用容量，并将估计结果反馈给编码器和发送引擎，实现<strong>自适应码率（ABR, Adaptive Bitrate）</strong>调整，在任意时刻以最接近网络容量的码率传输，既不拥塞网络，也不浪费资源。</p>
+<blockquote>
+<p><strong>与 TCP 的区别</strong>：TCP 有内置的拥塞控制机制（如慢启动、AIMD），但 WebRTC 使用 UDP，因为实时媒体无法接受重传带来的延迟。这意味着 WebRTC 必须自己实现拥塞控制，BWE 就是这套机制的核心。</p>
+</blockquote>
+<hr>
+<h1 id="2-基本概念与术语"><a href="#2-基本概念与术语" class="headerlink" title="2. 基本概念与术语"></a>2. 基本概念与术语</h1><table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>BWE</strong></td>
+<td>Bandwidth Estimation，带宽估计，WebRTC 中指整个带宽估计与拥塞控制子系统</td>
+</tr>
+<tr>
+<td><strong>GCC</strong></td>
+<td>Google Congestion Control，Google 拥塞控制算法，BWE 的主要实现，详见第 16 篇</td>
+</tr>
+<tr>
+<td><strong>REMB</strong></td>
+<td>Receiver Estimated Maximum Bitrate，接收端估计最大码率，一种旧的反馈机制</td>
+</tr>
+<tr>
+<td><strong>TWCC &#x2F; Transport-CC</strong></td>
+<td>Transport-Wide Congestion Control，传输层拥塞控制，现代 BWE 使用的反馈机制</td>
+</tr>
+<tr>
+<td><strong>RTCP</strong></td>
+<td>RTP 控制协议，承载 BWE 所需的各类反馈报文</td>
+</tr>
+<tr>
+<td><strong>RTT</strong></td>
+<td>Round-Trip Time，往返延迟，带宽估计的重要参考指标</td>
+</tr>
+<tr>
+<td><strong>OWD</strong></td>
+<td>One-Way Delay，单向延迟，延迟梯度分析的基础</td>
+</tr>
+<tr>
+<td><strong>Inter-group delay variation</strong></td>
+<td>包组间延迟变化量，GCC 延迟控制器的核心指标，通常记为 <code>d(i)</code></td>
+</tr>
+<tr>
+<td><strong>RMCAT</strong></td>
+<td>RTP Media Congestion Avoidance Techniques，IETF 工作组，负责标准化实时媒体拥塞控制</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-BWE-的整体架构"><a href="#3-BWE-的整体架构" class="headerlink" title="3. BWE 的整体架构"></a>3. BWE 的整体架构</h1><p>WebRTC 的 BWE 模块并非单一算法，而是由多个子模块组成的流水线：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────────┐</span><br><span class="line">│                          发送端（Sender）                         │</span><br><span class="line">│                                                                 │</span><br><span class="line">│  ┌──────────┐    ┌──────────┐    ┌───────────────────────────┐  │</span><br><span class="line">│  │  编码器   │───▶│  Pacer   │───▶│    RTP + 头部扩展（TWCC）  │  │</span><br><span class="line">│  └──────────┘    └──────────┘    └───────────────────────────┘  │</span><br><span class="line">│        ▲                                        │               │</span><br><span class="line">│        │                                        ▼  (网络)        │</span><br><span class="line">│  ┌─────────────────────────────────────────┐   ...              │</span><br><span class="line">│  │         BWE 核心（GCC）                   │                   │</span><br><span class="line">│  │  ┌──────────────────┐  ┌─────────────┐  │                    │</span><br><span class="line">│  │  │ 延迟控制器        │  │ 丢包控制器   │  │                     │</span><br><span class="line">│  │  │ (Delay-based)    │  │ (Loss-based)│  │                    │</span><br><span class="line">│  │  └──────────────────┘  └─────────────┘  │                    │</span><br><span class="line">│  │           ▲                    ▲         │                   │</span><br><span class="line">│  └───────────┼────────────────────┼─────────┘                   │</span><br><span class="line">│              │    RTCP Feedback   │                             │</span><br><span class="line">└──────────────┼────────────────────┼─────────────────────────────┘</span><br><span class="line">               │                    │</span><br><span class="line">               │    (网络反向路径)    │</span><br><span class="line">               │                    │</span><br><span class="line">┌──────────────┼────────────────────┼──────────────────────────────┐</span><br><span class="line">│              │  接收端（Receiver）  │                              │</span><br><span class="line">│   ┌──────────┴──────────────────────────────────────────────┐    │</span><br><span class="line">│   │  RTCP 模块                                               │    │</span><br><span class="line">│   │  - 记录每包到达时间戳                                      │    │</span><br><span class="line">│   │  - 生成 Transport-CC 反馈（或 REMB）                      │    │</span><br><span class="line">│   └─────────────────────────────────────────────────────────┘    │</span><br><span class="line">│                                                                  │</span><br><span class="line">│  ┌──────────────────────────────────────────────────────────┐    │</span><br><span class="line">│  │  RTP 解码 + Jitter Buffer + 播放                          │    │</span><br><span class="line">│  └──────────────────────────────────────────────────────────┘    │</span><br><span class="line">└──────────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>整个流程可以概括为：</p>
+<ol>
+<li><strong>发送端</strong>为每个 RTP 包打上传输层序列号（TWCC header extension）；</li>
+<li><strong>接收端</strong>记录每包的精确到达时间，定期通过 RTCP 反馈给发送端；</li>
+<li><strong>发送端 GCC</strong> 根据反馈信息，通过延迟梯度分析和丢包分析，估算当前可用带宽；</li>
+<li>BWE 结果驱动 <strong>Pacer</strong> 调整发送节奏，并通知<strong>编码器</strong>调整目标码率。</li>
+</ol>
+<hr>
+<h1 id="4-REMB：接收端带宽估计（第一代）"><a href="#4-REMB：接收端带宽估计（第一代）" class="headerlink" title="4. REMB：接收端带宽估计（第一代）"></a>4. REMB：接收端带宽估计（第一代）</h1><h3 id="4-1-工作原理"><a href="#4-1-工作原理" class="headerlink" title="4.1 工作原理"></a>4.1 工作原理</h3><p>REMB（Receiver Estimated Maximum Bitrate）是 WebRTC 早期使用的带宽反馈机制，由<strong>接收端</strong>负责估算带宽并告知发送端。</p>
+<p>基本流程：</p>
+<ol>
+<li>发送端为每个视频 RTP 包添加 <code>abs-send-time</code> 头部扩展（<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5450">RFC 5450</a> 定义绝对发送时间格式），携带 24-bit 精度的绝对发送时间；</li>
+<li>接收端收到包后，记录本地到达时间；</li>
+<li>接收端对比发送时间与到达时间，计算<strong>包组间延迟变化量</strong> <code>d(i)</code>；</li>
+<li>接收端运行 GCC 延迟控制器，得出估算带宽；</li>
+<li>接收端通过 RTCP REMB 报文将估算结果回传给发送端；</li>
+<li>发送端结合 REMB 值与 RTCP 丢包报告，调整最终目标码率。</li>
+</ol>
+<h3 id="4-2-RTCP-REMB-报文格式"><a href="#4-2-RTCP-REMB-报文格式" class="headerlink" title="4.2 RTCP REMB 报文格式"></a>4.2 RTCP REMB 报文格式</h3><p>REMB 报文使用 RTCP PSFB（Payload-Specific Feedback）的 AFB（Application Layer Feedback）类型，其 FCI 字段格式如下（参考 <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-alvestrand-rmcat-remb">draft-alvestrand-rmcat-remb</a>）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P| FMT=15  |    PT=206     |             length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source (0)                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  Unique identifier &#x27;R&#x27; &#x27;E&#x27; &#x27;M&#x27; &#x27;B&#x27;                            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  Num SSRC     | BR Exp    |  BR Mantissa                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|   SSRC feedback                                               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>其中，最大码率通过浮点格式编码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MaxBitrate = BR_Mantissa * 2^(BR_Exp)   (单位：bps)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>BR_Exp</code>：6-bit 指数，范围 0–63；</li>
+<li><code>BR_Mantissa</code>：18-bit 尾数。</li>
+</ul>
+<p><strong>发送时机</strong>：检测到拥塞时立即发送；否则至少每秒发送一次。</p>
+<h3 id="4-3-局限性"><a href="#4-3-局限性" class="headerlink" title="4.3 局限性"></a>4.3 局限性</h3><p>REMB 存在以下不足，促使社区转向 Transport-CC：</p>
+<ul>
+<li><strong>估算逻辑在接收端</strong>：SFU 等中间节点难以介入或优化算法；</li>
+<li><strong>每路流独立反馈</strong>：无法跨流统一视角，多路 Simulcast 时估计不准确；</li>
+<li><strong>反馈粒度粗</strong>：仅返回估算码率，发送端无法自行做更精细分析；</li>
+<li><strong>未正式标准化</strong>：仍为过期 Internet-Draft，但所有主流浏览器均实现了它。</li>
+</ul>
+<hr>
+<h1 id="5-Transport-CC：发送端带宽估计（第二代）"><a href="#5-Transport-CC：发送端带宽估计（第二代）" class="headerlink" title="5. Transport-CC：发送端带宽估计（第二代）"></a>5. Transport-CC：发送端带宽估计（第二代）</h1><h3 id="5-1-设计动机"><a href="#5-1-设计动机" class="headerlink" title="5.1 设计动机"></a>5.1 设计动机</h3><p>Transport-CC（也称 TWCC，Transport-Wide Congestion Control）将带宽估算的逻辑<strong>从接收端移到发送端</strong>。接收端只负责如实上报每个包的到达时间，发送端拥有完整的发送时间信息，因此可以更准确地分析延迟梯度，同时也更便于 SFU 实现和算法迭代。</p>
+<p>这一机制定义在 <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions"><code>draft-holmer-rmcat-transport-wide-cc-extensions-01</code></a>，同样未正式标准化，但已是 libwebrtc（Chrome &#x2F; Firefox）和主流媒体服务器的默认实现。</p>
+<h3 id="5-2-RTP-头部扩展：Transport-Wide-Sequence-Number"><a href="#5-2-RTP-头部扩展：Transport-Wide-Sequence-Number" class="headerlink" title="5.2 RTP 头部扩展：Transport-Wide Sequence Number"></a>5.2 RTP 头部扩展：Transport-Wide Sequence Number</h3><p>发送端为<strong>所有 RTP 包</strong>（音频、视频均包含）添加一个 16-bit 的传输层全局序列号：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  ID   | L=1   |transport-wide |</span><br><span class="line">|       |       | sequence number</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>与 RTP 层的序列号不同，这个序列号是<strong>跨所有媒体流的全局序号</strong>，接收端可以精确感知任意包的丢失和乱序，不受 SSRC 边界限制。</p>
+<p>SDP 中的协商行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-RTCP-Transport-CC-反馈报文"><a href="#5-3-RTCP-Transport-CC-反馈报文" class="headerlink" title="5.3 RTCP Transport-CC 反馈报文"></a>5.3 RTCP Transport-CC 反馈报文</h3><p>接收端以 <code>&#123;sequence_number → arrival_time&#125;</code> 的形式，定期回传所有已收包的到达时间。报文采用了高度紧凑的差分编码格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=15 |    PT=205     |           length              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                 SSRC of packet sender                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                 SSRC of media source                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|          base sequence number         |    packet status count|</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                 reference time                |fb pkt. count  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|          packet chunk             |         ...               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|         recv delta                |         ...               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>关键字段说明：</p>
+<ul>
+<li><strong>base sequence number</strong>：本次反馈覆盖的起始序列号；</li>
+<li><strong>reference time</strong>：参考基准时间，单位 64ms，用于对齐绝对时间；</li>
+<li><strong>packet chunk</strong>：使用 Run-length 或 2-bit vector 压缩编码各包状态（已收&#x2F;未收）；</li>
+<li><strong>recv delta</strong>：相邻包到达时间差，精度 <strong>0.25ms</strong>，1-byte 或 2-byte 编码。</li>
+</ul>
+<p><strong>反馈频率</strong>：默认约 100ms 一次，动态调整为占用 5% 可用带宽（最小 50ms，最大 250ms）。</p>
+<h3 id="5-4-SDP-协商"><a href="#5-4-SDP-协商" class="headerlink" title="5.4 SDP 协商"></a>5.4 SDP 协商</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 声明支持 transport-cc 反馈</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line"></span><br><span class="line"># 声明头部扩展（ID 可协商）</span><br><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="6-GCC-算法：BWE-的核心实现"><a href="#6-GCC-算法：BWE-的核心实现" class="headerlink" title="6. GCC 算法：BWE 的核心实现"></a>6. GCC 算法：BWE 的核心实现</h1><p>GCC（Google Congestion Control）是 WebRTC BWE 的实际实现算法，规范见 IETF Internet-Draft <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02"><code>draft-ietf-rmcat-gcc-02</code></a>（Holmer, Lundin et al., Google &#x2F; Politecnico di Bari, 2016）。</p>
+<p>GCC 包含两个子控制器，串联工作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Transport-CC Feedback</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">┌──────────────────────┐       最大允许码率（A_r）</span><br><span class="line">│  延迟控制器            │ ─────────────────────────────▶ ┌───────────────────┐</span><br><span class="line">│  (Delay-based)       │                                 │  丢包控制器         │</span><br><span class="line">│  - 到达时间模型        │                                 │  (Loss-based)     │</span><br><span class="line">│  - 卡尔曼滤波          │                                 │  最终目标码率(A_s)  │</span><br><span class="line">│  - 过载检测            │◀─────────────────────────────  └───────────────────┘</span><br><span class="line">│  - 速率控制            │       RTCP RR（丢包率 / RTT）           │</span><br><span class="line">└──────────────────────┘                                        │</span><br><span class="line">                                                                ▼</span><br><span class="line">                                                         编码器 / Pacer</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-1-系统模型"><a href="#6-1-系统模型" class="headerlink" title="6.1 系统模型"></a>6.1 系统模型</h3><p>GCC 将网络路径抽象为一个队列系统，用<strong>包组（group of packets）</strong>而非单包为单位进行分析。</p>
+<p>一个包组定义为：在 <code>burst_time</code>（推荐 5ms）窗口内发出的一批 RTP 包。对每个包组，定义：</p>
+<ul>
+<li><code>T(i)</code>：第 i 组最后一包的<strong>发送时间</strong>（sender side）；</li>
+<li><code>t(i)</code>：第 i 组最后一包的<strong>到达时间</strong>（receiver side）；</li>
+<li><strong>包组间延迟变化量（inter-group delay variation）</strong>：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d(i) = [t(i) - t(i-1)] - [T(i) - T(i-1)]</span><br></pre></td></tr></table></figure>
+
+<p>直觉上，<code>d(i) &gt; 0</code> 意味着这组包比上一组多花了时间，队列在积累；<code>d(i) &lt; 0</code> 意味着队列在排空；<code>d(i) ≈ 0</code> 意味着网络稳定。</p>
+<h3 id="6-2-延迟梯度控制器（Delay-based-Controller）"><a href="#6-2-延迟梯度控制器（Delay-based-Controller）" class="headerlink" title="6.2 延迟梯度控制器（Delay-based Controller）"></a>6.2 延迟梯度控制器（Delay-based Controller）</h3><p>延迟控制器分为四个阶段：预过滤 → 到达时间滤波 → 过载检测 → 速率控制。</p>
+<h4 id="6-2-1-到达时间模型（Arrival-time-Model）"><a href="#6-2-1-到达时间模型（Arrival-time-Model）" class="headerlink" title="6.2.1 到达时间模型（Arrival-time Model）"></a>6.2.1 到达时间模型（Arrival-time Model）</h4><p>GCC 将 <code>d(i)</code> 建模为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d(i) = m(i) + v(i)</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>m(i)</code>：队列积累&#x2F;排空趋势的均值，是我们真正想估计的量；</li>
+<li><code>v(i)</code>：零均值高斯白噪声，代表网络抖动和测量误差。</li>
+</ul>
+<p>当 <code>m(i)</code> 持续增大时，说明发送速率超过了网络容量（over-use）；当 <code>m(i)</code> 持续减小时，说明网络有富余（under-use）；当 <code>m(i) ≈ 0</code> 时，说明正好（normal）。</p>
+<h4 id="6-2-2-预过滤（Pre-filtering）"><a href="#6-2-2-预过滤（Pre-filtering）" class="headerlink" title="6.2.2 预过滤（Pre-filtering）"></a>6.2.2 预过滤（Pre-filtering）</h4><p>网络中断（outage）恢复时，积压的包会突发到达，造成虚假的大 <code>d(i)</code>。预过滤将以下情况的包合并为同一组，以消除此类噪声：</p>
+<ul>
+<li>连续包的发送时间差 &lt; <code>burst_time</code>；</li>
+<li>包的 <code>d(i) &lt; 0</code>（队列在排空，属于正常赶上，不是新的拥塞）。</li>
+</ul>
+<h4 id="6-2-3-卡尔曼滤波器（Arrival-time-Filter）"><a href="#6-2-3-卡尔曼滤波器（Arrival-time-Filter）" class="headerlink" title="6.2.3 卡尔曼滤波器（Arrival-time Filter）"></a>6.2.3 卡尔曼滤波器（Arrival-time Filter）</h4><p>为了从嘈杂的 <code>d(i)</code> 序列中平滑地估计出 <code>m(i)</code>，GCC 使用<strong>卡尔曼滤波器</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 状态预测</span><br><span class="line">z(i) = d(i) - m_hat(i-1)</span><br><span class="line"></span><br><span class="line">// 卡尔曼增益</span><br><span class="line">k(i) = (e(i-1) + q(i)) / (var_v_hat(i) + e(i-1) + q(i))</span><br><span class="line"></span><br><span class="line">// 状态更新</span><br><span class="line">m_hat(i) = m_hat(i-1) + z(i) * k(i)</span><br><span class="line"></span><br><span class="line">// 误差协方差更新</span><br><span class="line">e(i) = (1 - k(i)) * (e(i-1) + q(i))</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>m_hat(i)</code>：<code>m(i)</code> 的最优估计；</li>
+<li><code>q(i)</code>：过程噪声方差，推荐值 <code>10^-3</code>；</li>
+<li><code>var_v_hat(i)</code>：测量噪声方差，用指数移动平均估计：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var_v_hat(i) = max(α * var_v_hat(i-1) + (1-α) * z(i)^2, 1)</span><br><span class="line">α = (1 - χ)^(30 / (1000 * f_max))</span><br></pre></td></tr></table></figure>
+
+<p><code>χ</code> 取值范围 [0.001, 0.1]，<code>f_max</code> 为近 K 个包组的最高接收频率。</p>
+<p>为了处理异常值（如短暂网络抖动导致 <code>z(i)</code> 极大），当 <code>z(i) &gt; 3 * sqrt(var_v_hat)</code> 时，用 <code>3 * sqrt(var_v_hat)</code> 代替 <code>z(i)</code> 更新噪声方差。</p>
+<h4 id="6-2-4-过载检测器（Over-use-Detector）"><a href="#6-2-4-过载检测器（Over-use-Detector）" class="headerlink" title="6.2.4 过载检测器（Over-use Detector）"></a>6.2.4 过载检测器（Over-use Detector）</h4><p>过载检测器将 <code>m_hat(i)</code> 与自适应阈值 <code>del_var_th(i)</code> 比较，输出三种信号：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>信号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>m_hat(i) &gt; del_var_th(i)</code> 且持续超过 <code>overuse_time_th</code> ms</td>
+<td><strong>over-use（过载）</strong></td>
+</tr>
+<tr>
+<td><code>m_hat(i) &lt; -del_var_th(i)</code></td>
+<td><strong>under-use（欠载）</strong></td>
+</tr>
+<tr>
+<td>其他</td>
+<td><strong>normal（正常）</strong></td>
+</tr>
+</tbody></table>
+<p><strong>自适应阈值</strong>是 GCC 的关键创新之一，避免固定阈值在不同网络环境下的失准：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">del_var_th(i) = del_var_th(i-1) + (t(i) - t(i-1)) * K(i) * (|m_hat(i)| - del_var_th(i-1))</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>当 <code>|m_hat(i)| &lt; del_var_th(i-1)</code> 时，<code>K(i) = K_d</code>（阈值下降速率，推荐 0.039）；</li>
+<li>否则 <code>K(i) = K_u</code>（阈值上升速率，推荐 0.01）。</li>
+<li><code>del_var_th</code> 限制在 <code>[6ms, 600ms]</code> 范围内。</li>
+</ul>
+<p><strong><code>overuse_time_th</code></strong> 推荐值为 <strong>10ms</strong>。即使 <code>m_hat(i)</code> 超过阈值，也需要维持超过 10ms 才真正触发 over-use 信号（且 <code>m_hat(i)</code> 还在增大），避免误判。</p>
+<h4 id="6-2-5-速率控制器（Rate-Controller）"><a href="#6-2-5-速率控制器（Rate-Controller）" class="headerlink" title="6.2.5 速率控制器（Rate Controller）"></a>6.2.5 速率控制器（Rate Controller）</h4><p>速率控制器根据过载检测器的信号和当前状态机，计算最大允许码率 <code>A_r</code>：</p>
+<p><strong>状态机（三状态）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">         over-use</span><br><span class="line">  ┌──────────────────────────────────┐</span><br><span class="line">  │                                  ▼</span><br><span class="line">Hold ←── normal ──► Increase    Decrease</span><br><span class="line">  │                     │           │</span><br><span class="line">  │                     │           │</span><br><span class="line">  └─────────────────────┘           │</span><br><span class="line">           normal                   │</span><br><span class="line">  ┌────────────────────────────────-─┘</span><br><span class="line">  ▼         over-use</span><br><span class="line">Hold</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>当前状态</th>
+<th>下一状态</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>over-use</td>
+<td>任意</td>
+<td>Decrease</td>
+<td>乘法降低码率</td>
+</tr>
+<tr>
+<td>normal</td>
+<td>Decrease</td>
+<td>Hold</td>
+<td>维持当前码率</td>
+</tr>
+<tr>
+<td>normal</td>
+<td>Hold</td>
+<td>Increase</td>
+<td>切换到增加模式</td>
+</tr>
+<tr>
+<td>under-use</td>
+<td>Increase</td>
+<td>Increase</td>
+<td>继续增加</td>
+</tr>
+</tbody></table>
+<p><strong>速率调整策略（AIMD）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 检测到 over-use：乘法减少（Multiplicative Decrease）</span><br><span class="line">A_r(i) = β * A_hat(i-1)     （β 推荐 0.85）</span><br><span class="line"></span><br><span class="line">// 正常时：加法增加（Additive Increase）</span><br><span class="line">A_r(i) = A_r(i-1) + min(α * (A_r(i-1) * T), max_response)</span><br><span class="line"></span><br><span class="line">// 其中 α 约为 0.08 bps/s，T 为时间间隔（秒）</span><br></pre></td></tr></table></figure>
+
+<p><code>A_hat(i-1)</code> 是过去 1 秒内的<strong>接收端实测吞吐量</strong>，乘以 <code>β</code> 作为降码起点，避免降得过猛。</p>
+<p>推荐参数小结：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>β</code>（降码因子）</td>
+<td>0.85</td>
+</tr>
+<tr>
+<td><code>overuse_time_th</code></td>
+<td>10 ms</td>
+</tr>
+<tr>
+<td><code>del_var_th</code> 初始值</td>
+<td>12.5 ms</td>
+</tr>
+<tr>
+<td><code>K_u</code>（阈值上升速率）</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td><code>K_d</code>（阈值下降速率）</td>
+<td>0.039</td>
+</tr>
+<tr>
+<td><code>q</code>（过程噪声方差）</td>
+<td>10^-3</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-丢包控制器（Loss-based-Controller）"><a href="#6-3-丢包控制器（Loss-based-Controller）" class="headerlink" title="6.3 丢包控制器（Loss-based Controller）"></a>6.3 丢包控制器（Loss-based Controller）</h3><p>丢包控制器运行在发送端，基于 RTCP Receiver Report（或 Transport-CC 反馈中的序号缺失）计算<strong>丢包率</strong>，并据此调整最终目标码率 <code>A_s</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 伪代码（参考 libwebrtc send_side_bandwidth_estimation.cc）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">on_feedback</span>(<span class="params">loss_rate, bwe_from_delay_controller</span>):</span><br><span class="line">    <span class="keyword">if</span> loss_rate &lt; <span class="number">0.02</span>:          <span class="comment"># 丢包率 &lt; 2%：缓慢增加</span></span><br><span class="line">        video_bitrate *= <span class="number">1.08</span></span><br><span class="line">    <span class="keyword">elif</span> loss_rate &gt; <span class="number">0.10</span>:        <span class="comment"># 丢包率 &gt; 10%：快速降低</span></span><br><span class="line">        video_bitrate *= (<span class="number">1</span> - <span class="number">0.5</span> * loss_rate)</span><br><span class="line">    <span class="comment"># 不超过延迟控制器给出的上限</span></span><br><span class="line">    video_bitrate = <span class="built_in">min</span>(video_bitrate, bwe_from_delay_controller)</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键特性</strong>：</p>
+<ul>
+<li>丢包 &lt; 2%：每个反馈周期乘以 1.08，缓慢爬升；</li>
+<li>丢包 2%~10%：维持当前码率，观望；</li>
+<li>丢包 &gt; 10%：快速下调，降幅随丢包率线性增加；</li>
+<li>丢包控制器的输出<strong>不能超过</strong>延迟控制器给出的上限 <code>A_r</code>，两者取最小值。</li>
+</ul>
+<h3 id="6-4-两个控制器的协同"><a href="#6-4-两个控制器的协同" class="headerlink" title="6.4 两个控制器的协同"></a>6.4 两个控制器的协同</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">延迟控制器输出：A_r（最大允许码率，基于 d(i) 分析）</span><br><span class="line">丢包控制器输出：A_s（目标发送码率）</span><br><span class="line"></span><br><span class="line">最终关系：A_s ≤ A_r</span><br><span class="line"></span><br><span class="line">发送端实际编码目标 = min(A_s, A_r)</span><br></pre></td></tr></table></figure>
+
+<p>两个控制器各司其职：</p>
+<ul>
+<li><strong>延迟控制器</strong>预判拥塞，在队列溢出（丢包）发生之前就开始降码，更加主动；</li>
+<li><strong>丢包控制器</strong>在丢包已经发生时兜底，确保码率不超过网络实际承载能力。</li>
+</ul>
+<hr>
+<h1 id="7-带宽探测（Bandwidth-Probing）"><a href="#7-带宽探测（Bandwidth-Probing）" class="headerlink" title="7. 带宽探测（Bandwidth Probing）"></a>7. 带宽探测（Bandwidth Probing）</h1><h3 id="7-1-为什么需要探测"><a href="#7-1-为什么需要探测" class="headerlink" title="7.1 为什么需要探测"></a>7.1 为什么需要探测</h3><p>BWE 的估计本质上是被动的——它依赖已发送的流量来推断网络容量。但有一种场景无法被动感知：当前发送码率<strong>远低于</strong>实际网络容量时（例如屏幕共享中内容静止，几乎没有流量），延迟控制器无法收到足够的数据来判断是否可以提高码率。</p>
+<p>如果不主动探测，BWE 估计值会长期保持在较低水平，无法利用富余带宽。</p>
+<h3 id="7-2-探测机制"><a href="#7-2-探测机制" class="headerlink" title="7.2 探测机制"></a>7.2 探测机制</h3><p>libwebrtc 通过发送<strong>探测包（probe cluster）</strong>来主动试探网络容量：</p>
+<ol>
+<li>将目标探测码率设为当前 BWE 估计值的某个倍数（如 1.5×、2×）；</li>
+<li>在很短的时间窗口内（约 15ms）集中发送足够多的包，使得<strong>发送速率等于探测目标码率</strong>；</li>
+<li>接收端通过 Transport-CC 反馈这些探测包的到达时间；</li>
+<li>发送端分析探测包的到达情况，判断网络是否能承受探测码率。</li>
+</ol>
+<p>探测包可以是：</p>
+<ul>
+<li>真实的媒体包（最常见）；</li>
+<li>填充包（padding）：当媒体流量不足时，用空包凑足探测码率。</li>
+</ul>
+<h3 id="7-3-初始探测与周期探测"><a href="#7-3-初始探测与周期探测" class="headerlink" title="7.3 初始探测与周期探测"></a>7.3 初始探测与周期探测</h3><p><strong>初始探测（Connection startup）</strong>：通话建立时，BWE 初始值硬编码为约 300 kbps。为了快速收敛到合理估计，libwebrtc 在通话开始时会执行一系列探测，逐步提高目标码率（指数增长），直到检测到拥塞迹象。</p>
+<p><strong>周期探测（Periodic probing）</strong>：当媒体流量长期低于 BWE 估计值时（如静态屏幕共享），libwebrtc 每 <strong>5 秒</strong>发送一次探测，以维持对网络容量的感知，防止估计值不必要地衰减。</p>
+<hr>
+<h1 id="8-BWE-与编码器的联动"><a href="#8-BWE-与编码器的联动" class="headerlink" title="8. BWE 与编码器的联动"></a>8. BWE 与编码器的联动</h1><p>BWE 的输出最终要作用于<strong>编码器</strong>，改变实际视频&#x2F;音频的编码码率。这个闭环是 ABR 的核心：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">BWE 估计值变化</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">WebRTC 层（libwebrtc）调用 SetBitrate() 通知各 RTP stream</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">编码器适配：</span><br><span class="line">  - 视频（H.264 / VP8 / VP9 / AV1）：调整量化参数（QP）、帧率、分辨率</span><br><span class="line">  - 音频（Opus）：调整比特率（2.5 kbps ~ 512 kbps），Opus 自适应能力极强</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">Pacer 以新目标码率平滑发包</span><br></pre></td></tr></table></figure>
+
+<p>联动中的注意事项：</p>
+<ul>
+<li><strong>编码器调整有滞后</strong>：编码器通常以帧为单位工作，码率变化不能在单帧内立即生效；</li>
+<li><strong>分辨率&#x2F;帧率 vs 质量</strong>：在码率降低时，可以选择降分辨率（减少像素）或降质量（增加 QP），WebRTC 默认优先保帧率、其次降分辨率、最后降质量；</li>
+<li><strong>Simulcast 集成</strong>：在 SFU 场景下，BWE 还会触发 Simulcast 层切换，详见第 29 篇。</li>
+</ul>
+<hr>
+<h1 id="9-RMCAT-工作组与其他算法"><a href="#9-RMCAT-工作组与其他算法" class="headerlink" title="9. RMCAT 工作组与其他算法"></a>9. RMCAT 工作组与其他算法</h1><p>IETF 专门成立了 <strong>RMCAT（RTP Media Congestion Avoidance Techniques）工作组</strong> 来标准化实时媒体拥塞控制。该工作组已结束，产出了几个重要文档：</p>
+<h3 id="9-1-SCReAM"><a href="#9-1-SCReAM" class="headerlink" title="9.1 SCReAM"></a>9.1 SCReAM</h3><p><strong>Self-Clocked Rate Adaptation for Multimedia</strong>，<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8298">RFC 8298</a>。</p>
+<p>SCReAM 借鉴了 LEDBAT 的思路，使用单向延迟（OWD）作为主要信号，目标是最小化队列占用。它已成为正式 RFC，但在实际 WebRTC 部署中使用较少。</p>
+<h3 id="9-2-NADA"><a href="#9-2-NADA" class="headerlink" title="9.2 NADA"></a>9.2 NADA</h3><p><strong>Network-Assisted Dynamic Adaptation</strong>，<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8698">RFC 8698</a>。</p>
+<p>NADA 结合了延迟和丢包信号，并支持显式拥塞通知（ECN）辅助。同样已成为正式 RFC，有在 Firefox 实验性版本中尝试集成的记录，但需要依赖 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8888">RFC 8888</a> 定义的 RTCP 反馈格式，而现有 WebRTC 实现均不支持该格式，导致实用性有限。</p>
+<h3 id="9-3-GCC-的标准化状态"><a href="#9-3-GCC-的标准化状态" class="headerlink" title="9.3 GCC 的标准化状态"></a>9.3 GCC 的标准化状态</h3><p>GCC（draft-ietf-rmcat-gcc-02）仅是一个<strong>已过期的 Internet-Draft</strong>，从未成为正式 RFC。然而它是 libwebrtc 的唯一实现，因此也是几乎所有 WebRTC 端点实际使用的算法。标准化状态与实际部署之间的落差，在 WebRTC 生态中是一个公开的讨论话题。</p>
+<hr>
+<h1 id="10-BWE-在-SFU-场景下的挑战"><a href="#10-BWE-在-SFU-场景下的挑战" class="headerlink" title="10. BWE 在 SFU 场景下的挑战"></a>10. BWE 在 SFU 场景下的挑战</h1><p>在点对点（P2P）通话中，BWE 相对简单：发送端直接感知到接收端的反馈。但在 SFU（Selective Forwarding Unit）场景下，情况更为复杂：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Publisher ──RTP──▶ SFU ──RTP──▶ Subscriber A</span><br><span class="line">                        ──RTP──▶ Subscriber B</span><br><span class="line">                        ──RTP──▶ Subscriber C</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Publisher 的 BWE 感知的是 Publisher → SFU 的上行链路；</li>
+<li>每个 Subscriber 各自有独立的 SFU → Subscriber 下行链路，带宽状况完全独立；</li>
+<li>SFU 需要分别为每个下行链路运行 BWE，并根据估计结果决定向该 Subscriber 转发哪一层 Simulcast 流。</li>
+</ul>
+<p>SFU 侧实现 BWE 的挑战：</p>
+<ol>
+<li><strong>SFU 是转发者，不是编码者</strong>：它不能直接调整编码码率，只能在转发的 Simulcast 层之间切换；</li>
+<li><strong>需要实现完整的 GCC 逻辑</strong>：序号管理、Transport-CC 生成、延迟分析等，实现复杂度较高；</li>
+<li><strong>探测需要主动注入 padding 包</strong>：SFU 需在媒体流量不足时发送填充包以触发探测，会增加带宽开销。</li>
+</ol>
+<hr>
+<h1 id="11-调试与可观测性"><a href="#11-调试与可观测性" class="headerlink" title="11. 调试与可观测性"></a>11. 调试与可观测性</h1><h3 id="11-1-chrome-webrtc-internals"><a href="#11-1-chrome-webrtc-internals" class="headerlink" title="11.1 chrome:&#x2F;&#x2F;webrtc-internals"></a>11.1 chrome:&#x2F;&#x2F;webrtc-internals</h3><p>Chrome 内置的 <code>chrome://webrtc-internals</code> 提供了丰富的 BWE 实时图表，包括：</p>
+<ul>
+<li><code>googAvailableSendBandwidth</code>：当前 BWE 估计值；</li>
+<li><code>googTransmitBitrate</code>：实际发送码率；</li>
+<li><code>googActualEncBitrate</code>：编码器实际码率；</li>
+<li><code>googTargetEncBitrate</code>：目标编码码率；</li>
+<li><code>googBucketDelay</code>：Pacer 队列延迟。</li>
+</ul>
+<h3 id="11-2-RTC-Event-Log"><a href="#11-2-RTC-Event-Log" class="headerlink" title="11.2 RTC Event Log"></a>11.2 RTC Event Log</h3><p>libwebrtc 支持将所有 BWE 相关事件记录到 RTC Event Log（<code>chrome://flags</code> 中启用），包括：</p>
+<ul>
+<li>每次 BWE 更新；</li>
+<li>探测请求和结果；</li>
+<li>目标码率变化。</li>
+</ul>
+<p>可使用 <a target="_blank" rel="noopener" href="https://fippo.github.io/webrtc-dump-importer/">WebRTC Internals Exporter</a> 或 <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/+/master/rtc_tools/">Google RTC Event Log Visualizer</a> 进行可视化分析。</p>
+<h3 id="11-3-关键指标监控"><a href="#11-3-关键指标监控" class="headerlink" title="11.3 关键指标监控"></a>11.3 关键指标监控</h3><p>在生产系统中，应重点监控以下指标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>健康范围</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BWE 估计值稳定性</td>
+<td>波动 &lt; 10%</td>
+<td>剧烈波动说明网络不稳定或算法调参问题</td>
+</tr>
+<tr>
+<td>实际发送码率 &#x2F; BWE</td>
+<td>80%–100%</td>
+<td>显著低于 100% 说明编码能力或 Pacer 有瓶颈</td>
+</tr>
+<tr>
+<td>目标码率与实际码率的差</td>
+<td>&lt; 5%</td>
+<td>过大的差距说明编码器响应慢</td>
+</tr>
+<tr>
+<td>探测成功率</td>
+<td>&gt; 80%</td>
+<td>频繁失败的探测说明网络容量接近上限</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><h3 id="IETF-RFC-文档"><a href="#IETF-RFC-文档" class="headerlink" title="IETF &#x2F; RFC 文档"></a>IETF &#x2F; RFC 文档</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02"><code>draft-ietf-rmcat-gcc-02</code></a> — S. Holmer, H. Lundin, G. Carlucci, L. De Cicco, S. Mascolo. <em>A Google Congestion Control Algorithm for Real-Time Communication</em>. IETF RMCAT WG, 2016.</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-alvestrand-rmcat-remb"><code>draft-alvestrand-rmcat-remb</code></a> — H. Alvestrand. <em>RTCP message for Receiver Estimated Maximum Bitrate</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions"><code>draft-holmer-rmcat-transport-wide-cc-extensions-01</code></a> — S. Holmer et al. <em>RTP Extensions for Transport-wide Congestion Control</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8298">RFC 8298</a> — I. Johansson, Z. Sarker. <em>Self-Clocked Rate Adaptation for Multimedia (SCReAM)</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8698">RFC 8698</a> — X. Zhu, R. Pan, M. Ramalho, S. Mena. <em>Network-Assisted Dynamic Adaptation (NADA)</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8699">RFC 8699</a> — S. Islam, M. Welzl, S. Gjessing. <em>Coupled Congestion Control for RTP Media</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3550">RFC 3550</a> — H. Schulzrinne et al. <em>RTP: A Transport Protocol for Real-Time Applications</em>.</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5450">RFC 5450</a> — D. Singer, H. Desineni. <em>Transmission Time Offsets in RTP Streams</em>.</li>
+</ul>
+<h3 id="学术论文"><a href="#学术论文" class="headerlink" title="学术论文"></a>学术论文</h3><ul>
+<li>G. Carlucci, L. De Cicco, S. Holmer, S. Mascolo. <em><a target="_blank" rel="noopener" href="https://c3lab.poliba.it/images/6/65/Gcc-analysis.pdf">Analysis and Design of the Google Congestion Control for Web Real-time Communication</a></em>. ACM MMSys, 2016.</li>
+</ul>
+<h3 id="工程资料"><a href="#工程资料" class="headerlink" title="工程资料"></a>工程资料</h3><ul>
+<li>Lorenzo Miniero, Meetecho. <em><a target="_blank" rel="noopener" href="https://www.meetecho.com/blog/bwe-janus/">Bandwidth Estimation (BWE) and Janus</a></em>. 2023.</li>
+<li>Kaustav Ghosh, webrtcHacks. <em><a target="_blank" rel="noopener" href="https://webrtchacks.com/probing-webrtc-bandwidth-probing-why-and-how-in-gcc/">Probing WebRTC Bandwidth Probing – why and how in gcc</a></em>. 2024.</li>
+<li>Tsahi Levent-Levi, BlogGeek.me. <em><a target="_blank" rel="noopener" href="https://bloggeek.me/webrtcglossary/bwe/">BWE (Bandwidth Estimation)</a></em>.</li>
+<li>Sergio Garcia Murillo. <em><a target="_blank" rel="noopener" href="http://www.rtcbits.com/2017/01/bandwidth-estimation-in-webrtc-and-new.html">Bandwidth Estimation in WebRTC (and the new Sender Side BWE)</a></em>. 2017.</li>
+<li><em><a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/docs/06-media-communication/">WebRTC for the Curious – Media Communication</a></em>. 2025.</li>
+</ul>
+<h3 id="源码参考"><a href="#源码参考" class="headerlink" title="源码参考"></a>源码参考</h3><ul>
+<li>libwebrtc: <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/+/master/modules/congestion_controller/"><code>modules/congestion_controller/</code></a></li>
+<li>libwebrtc: <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/+/master/modules/bitrate_controller/"><code>modules/bitrate_controller/send_side_bandwidth_estimation.cc</code></a></li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要带宽估计</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E4%B8%8E%E6%9C%AF%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">2. 基本概念与术语</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-BWE-%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. BWE 的整体架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-REMB%EF%BC%9A%E6%8E%A5%E6%94%B6%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%EF%BC%88%E7%AC%AC%E4%B8%80%E4%BB%A3%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. REMB：接收端带宽估计（第一代）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-RTCP-REMB-%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 RTCP REMB 报文格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Transport-CC%EF%BC%9A%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%EF%BC%88%E7%AC%AC%E4%BA%8C%E4%BB%A3%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. Transport-CC：发送端带宽估计（第二代）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 设计动机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-RTP-%E5%A4%B4%E9%83%A8%E6%89%A9%E5%B1%95%EF%BC%9ATransport-Wide-Sequence-Number"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 RTP 头部扩展：Transport-Wide Sequence Number</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-RTCP-Transport-CC-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 RTCP Transport-CC 反馈报文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-GCC-%E7%AE%97%E6%B3%95%EF%BC%9ABWE-%E7%9A%84%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">7.</span> <span class="toc-text">6. GCC 算法：BWE 的核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 系统模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%BB%B6%E8%BF%9F%E6%A2%AF%E5%BA%A6%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Delay-based-Controller%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 延迟梯度控制器（Delay-based Controller）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-1-%E5%88%B0%E8%BE%BE%E6%97%B6%E9%97%B4%E6%A8%A1%E5%9E%8B%EF%BC%88Arrival-time-Model%EF%BC%89"><span class="toc-number">7.0.2.1.</span> <span class="toc-text">6.2.1 到达时间模型（Arrival-time Model）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-2-%E9%A2%84%E8%BF%87%E6%BB%A4%EF%BC%88Pre-filtering%EF%BC%89"><span class="toc-number">7.0.2.2.</span> <span class="toc-text">6.2.2 预过滤（Pre-filtering）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-3-%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Arrival-time-Filter%EF%BC%89"><span class="toc-number">7.0.2.3.</span> <span class="toc-text">6.2.3 卡尔曼滤波器（Arrival-time Filter）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-4-%E8%BF%87%E8%BD%BD%E6%A3%80%E6%B5%8B%E5%99%A8%EF%BC%88Over-use-Detector%EF%BC%89"><span class="toc-number">7.0.2.4.</span> <span class="toc-text">6.2.4 过载检测器（Over-use Detector）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-5-%E9%80%9F%E7%8E%87%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Rate-Controller%EF%BC%89"><span class="toc-number">7.0.2.5.</span> <span class="toc-text">6.2.5 速率控制器（Rate Controller）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%A2%E5%8C%85%E6%8E%A7%E5%88%B6%E5%99%A8%EF%BC%88Loss-based-Controller%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 丢包控制器（Loss-based Controller）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E4%B8%A4%E4%B8%AA%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9A%84%E5%8D%8F%E5%90%8C"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 两个控制器的协同</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%B8%A6%E5%AE%BD%E6%8E%A2%E6%B5%8B%EF%BC%88Bandwidth-Probing%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 带宽探测（Bandwidth Probing）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%8E%A2%E6%B5%8B"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 为什么需要探测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%8E%A2%E6%B5%8B%E6%9C%BA%E5%88%B6"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 探测机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%88%9D%E5%A7%8B%E6%8E%A2%E6%B5%8B%E4%B8%8E%E5%91%A8%E6%9C%9F%E6%8E%A2%E6%B5%8B"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 初始探测与周期探测</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-BWE-%E4%B8%8E%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E8%81%94%E5%8A%A8"><span class="toc-number">9.</span> <span class="toc-text">8. BWE 与编码器的联动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-RMCAT-%E5%B7%A5%E4%BD%9C%E7%BB%84%E4%B8%8E%E5%85%B6%E4%BB%96%E7%AE%97%E6%B3%95"><span class="toc-number">10.</span> <span class="toc-text">9. RMCAT 工作组与其他算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-SCReAM"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 SCReAM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-NADA"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 NADA</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-GCC-%E7%9A%84%E6%A0%87%E5%87%86%E5%8C%96%E7%8A%B6%E6%80%81"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 GCC 的标准化状态</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-BWE-%E5%9C%A8-SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E6%8C%91%E6%88%98"><span class="toc-number">11.</span> <span class="toc-text">10. BWE 在 SFU 场景下的挑战</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 调试与可观测性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-chrome-webrtc-internals"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 chrome:&#x2F;&#x2F;webrtc-internals</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-RTC-Event-Log"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 RTC Event Log</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%85%B3%E9%94%AE%E6%8C%87%E6%A0%87%E7%9B%91%E6%8E%A7"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 关键指标监控</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IETF-RFC-%E6%96%87%E6%A1%A3"><span class="toc-number">13.0.1.</span> <span class="toc-text">IETF &#x2F; RFC 文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E6%9C%AF%E8%AE%BA%E6%96%87"><span class="toc-number">13.0.2.</span> <span class="toc-text">学术论文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E7%A8%8B%E8%B5%84%E6%96%99"><span class="toc-number">13.0.3.</span> <span class="toc-text">工程资料</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%8F%82%E8%80%83"><span class="toc-number">13.0.4.</span> <span class="toc-text">源码参考</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&text=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&is_video=false&description=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整&body=Check out this article: http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&title=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&name=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/&t=BWE（Bandwidth Estimation）— 带宽估计核心机制，驱动自适应码率调整"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

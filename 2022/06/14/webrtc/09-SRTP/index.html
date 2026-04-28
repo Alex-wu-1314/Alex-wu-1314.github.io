@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 为什么需要 SRTP 协议概览与核心 RFC SRTP 包格式 密码学上下文（Cryptographic Context） 密钥体系：Master Key 与 Session Key 加密算法 AES Counter Mode（AES-CM） AES f8 Mode AES-GCM（RFC 7714）   消息认证：HMAC-SHA1 防重放保护 SRTCP 密钥协商：DTLS-SRTP（R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRTP（Secure Real-time Transport Protocol）">
+<meta property="og:url" content="http://example.com/2022/06/14/webrtc/09-SRTP/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 为什么需要 SRTP 协议概览与核心 RFC SRTP 包格式 密码学上下文（Cryptographic Context） 密钥体系：Master Key 与 Session Key 加密算法 AES Counter Mode（AES-CM） AES f8 Mode AES-GCM（RFC 7714）   消息认证：HMAC-SHA1 防重放保护 SRTCP 密钥协商：DTLS-SRTP（R">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-14T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-27T00:24:37.099Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>SRTP（Secure Real-time Transport Protocol）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/05/29/webrtc/08-dtls/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/14/webrtc/09-SRTP/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/14/webrtc/09-SRTP/&text=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/14/webrtc/09-SRTP/&is_video=false&description=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SRTP（Secure Real-time Transport Protocol）&body=Check out this article: http://example.com/2022/06/14/webrtc/09-SRTP/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/14/webrtc/09-SRTP/&name=SRTP（Secure Real-time Transport Protocol）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/14/webrtc/09-SRTP/&t=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-SRTP"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 SRTP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%A7%88%E4%B8%8E%E6%A0%B8%E5%BF%83-RFC"><span class="toc-number">3.</span> <span class="toc-text">2. 协议概览与核心 RFC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83-RFC-%E4%BD%93%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">核心 RFC 体系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SRTP-%E5%8C%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">3. SRTP 包格式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B8%8A%E4%B8%8B%E6%96%87%EF%BC%88Cryptographic-Context%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 密码学上下文（Cryptographic Context）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E5%8F%98%E6%8D%A2%E6%97%A0%E5%85%B3%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%88Transform-independent-Parameters%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">与变换无关的参数（Transform-independent Parameters）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AF%86%E9%92%A5%E4%BD%93%E7%B3%BB%EF%BC%9AMaster-Key-%E4%B8%8E-Session-Key"><span class="toc-number">6.</span> <span class="toc-text">5. 密钥体系：Master Key 与 Session Key</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E9%92%A5%E6%B4%BE%E7%94%9F%E7%AE%97%E6%B3%95%EF%BC%88KDF%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">密钥派生算法（KDF）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-number">7.</span> <span class="toc-text">6. 加密算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-AES-Counter-Mode%EF%BC%88AES-CM%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 AES Counter Mode（AES-CM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-AES-f8-Mode"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 AES f8 Mode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-AES-GCM%EF%BC%88RFC-7714%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 AES-GCM（RFC 7714）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%EF%BC%9AHMAC-SHA1"><span class="toc-number">8.</span> <span class="toc-text">7. 消息认证：HMAC-SHA1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E9%98%B2%E9%87%8D%E6%94%BE%E4%BF%9D%E6%8A%A4"><span class="toc-number">9.</span> <span class="toc-text">8. 防重放保护</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SRTCP"><span class="toc-number">10.</span> <span class="toc-text">9. SRTCP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SRTCP-%E5%8C%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">10.0.1.</span> <span class="toc-text">SRTCP 包格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SRTCP-%E7%9A%84%E9%87%8D%E8%A6%81%E5%B7%AE%E5%BC%82"><span class="toc-number">10.0.2.</span> <span class="toc-text">SRTCP 的重要差异</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%EF%BC%9ADTLS-SRTP%EF%BC%88RFC-5764%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. 密钥协商：DTLS-SRTP（RFC 5764）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DTLS-SRTP-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">11.0.1.</span> <span class="toc-text">DTLS-SRTP 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%85%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88Demultiplexing%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">包多路复用（Demultiplexing）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-WebRTC-%E4%B8%AD%E7%9A%84-SRTP-%E5%AE%9E%E8%B7%B5"><span class="toc-number">12.</span> <span class="toc-text">11. WebRTC 中的 SRTP 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82"><span class="toc-number">12.0.1.</span> <span class="toc-text">强制要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WebRTC-Native%EF%BC%88libwebrtc%EF%BC%89%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">12.0.2.</span> <span class="toc-text">WebRTC Native（libwebrtc）中的实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E5%AF%86%E7%A0%81%E5%A5%97%E4%BB%B6"><span class="toc-number">12.0.3.</span> <span class="toc-text">支持的密码套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E4%B8%AD%E7%9A%84-SRTP-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">12.0.4.</span> <span class="toc-text">SDP 中的 SRTP 相关属性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-SRTP-%E6%8A%A5%E6%96%87%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">13.</span> <span class="toc-text">12. SRTP 报文处理流程详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%91%E9%80%81%E6%96%B9%E6%B5%81%E7%A8%8B%EF%BC%88Sender%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">发送方流程（Sender）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E6%94%B6%E6%96%B9%E6%B5%81%E7%A8%8B%EF%BC%88Receiver%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">接收方流程（Receiver）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">14.</span> <span class="toc-text">13. 安全性分析与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E4%BB%A4%E5%B1%82%E6%98%AF%E6%9C%80%E5%A4%A7%E6%94%BB%E5%87%BB%E9%9D%A2"><span class="toc-number">14.0.1.</span> <span class="toc-text">信令层是最大攻击面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSRC-%E7%A2%B0%E6%92%9E%EF%BC%88Two-Time-Pad-%E9%A3%8E%E9%99%A9%EF%BC%89"><span class="toc-number">14.0.2.</span> <span class="toc-text">SSRC 碰撞（Two-Time Pad 风险）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Master-Key-%E4%BD%BF%E7%94%A8%E9%87%8F%E9%99%90%E5%88%B6"><span class="toc-number">14.0.3.</span> <span class="toc-text">Master Key 使用量限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Header-Extension-%E5%8A%A0%E5%AF%86%EF%BC%88RFC-6904%EF%BC%89"><span class="toc-number">14.0.4.</span> <span class="toc-text">Header Extension 加密（RFC 6904）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%8A%A0%E5%AF%86"><span class="toc-number">14.0.5.</span> <span class="toc-text">SFU 场景下的端到端加密</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5"><span class="toc-number">15.</span> <span class="toc-text">14. 相关 RFC 速查</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%EF%BC%9A"><span class="toc-number">17.</span> <span class="toc-text">参考资料：</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        SRTP（Secure Real-time Transport Protocol）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-06-14T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-06-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-srtp">为什么需要 SRTP</a></li>
+<li><a href="#2-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%A7%88%E4%B8%8E%E6%A0%B8%E5%BF%83-rfc">协议概览与核心 RFC</a></li>
+<li><a href="#3-srtp-%E5%8C%85%E6%A0%BC%E5%BC%8F">SRTP 包格式</a></li>
+<li><a href="#4-%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B8%8A%E4%B8%8B%E6%96%87cryptographic-context">密码学上下文（Cryptographic Context）</a></li>
+<li><a href="#5-%E5%AF%86%E9%92%A5%E4%BD%93%E7%B3%BBmaster-key-%E4%B8%8E-session-key">密钥体系：Master Key 与 Session Key</a></li>
+<li><a href="#6-%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95">加密算法</a><ul>
+<li><a href="#61-aes-counter-modeaes-cm">AES Counter Mode（AES-CM）</a></li>
+<li><a href="#62-aes-f8-mode">AES f8 Mode</a></li>
+<li><a href="#63-aes-gcmrfc-7714">AES-GCM（RFC 7714）</a></li>
+</ul>
+</li>
+<li><a href="#7-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81hmac-sha1">消息认证：HMAC-SHA1</a></li>
+<li><a href="#8-%E9%98%B2%E9%87%8D%E6%94%BE%E4%BF%9D%E6%8A%A4">防重放保护</a></li>
+<li><a href="#9-srtccp">SRTCP</a></li>
+<li><a href="#10-%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86dtls-srtprfc-5764">密钥协商：DTLS-SRTP（RFC 5764）</a></li>
+<li><a href="#11-webrtc-%E4%B8%AD%E7%9A%84-srtp-%E5%AE%9E%E8%B7%B5">WebRTC 中的 SRTP 实践</a></li>
+<li><a href="#12-srtp-%E6%8A%A5%E6%96%87%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3">SRTP 报文处理流程详解</a></li>
+<li><a href="#13-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">安全性分析与注意事项</a></li>
+<li><a href="#14-%E7%9B%B8%E5%85%B3-rfc-%E9%80%9F%E6%9F%A5">相关 RFC 速查</a></li>
+<li><a href="#15-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-为什么需要-SRTP"><a href="#1-为什么需要-SRTP" class="headerlink" title="1. 为什么需要 SRTP"></a>1. 为什么需要 SRTP</h1><p>RTP（Real-time Transport Protocol）本身是明文协议。一个经典的 RTP 数据包在网络上传输时，任何能抓到数据包的中间人都可以：</p>
+<ul>
+<li><strong>窃听（Eavesdropping）</strong>：还原出音视频流的原始内容；</li>
+<li><strong>篡改（Tampering）</strong>：修改音视频数据，注入噪声或伪造内容；</li>
+<li><strong>重放攻击（Replay Attack）</strong>：将合法的历史数据包重新注入网络。</li>
+</ul>
+<p>RTP 设计之初（RFC 3550，2003年）是面向受信任网络的，安全性留给上层应用解决。随着 VoIP、视频会议在公共互联网上的大规模部署，明文传输的风险变得不可忽视。</p>
+<p>SRTP（Secure Real-time Transport Protocol）就是为此而生的。它在 <strong>不改变 RTP 头部结构、不引入显著延迟和带宽开销</strong> 的前提下，为 RTP 数据流提供：</p>
+<table>
+<thead>
+<tr>
+<th>安全特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>机密性（Confidentiality）</strong></td>
+<td>对 RTP&#x2F;RTCP 载荷加密，防止窃听</td>
+</tr>
+<tr>
+<td><strong>消息认证与完整性（Authentication &amp; Integrity）</strong></td>
+<td>检测篡改，确保包来自合法发送方</td>
+</tr>
+<tr>
+<td><strong>防重放（Replay Protection）</strong></td>
+<td>拒绝接受已处理过的历史数据包</td>
+</tr>
+</tbody></table>
+<p>SRTP 由 Cisco 与 Ericsson Research 联合设计，2004 年 3 月发布为 <strong>RFC 3711</strong>，是 IETF AVT 工作组的标准轨道（Standards Track）文档。WebRTC 规范（RFC 8827）强制要求所有媒体流均使用 SRTP，且必须通过 DTLS-SRTP 完成密钥协商，这使 SRTP 成为现代实时音视频安全的基石。</p>
+<hr>
+<h1 id="2-协议概览与核心-RFC"><a href="#2-协议概览与核心-RFC" class="headerlink" title="2. 协议概览与核心 RFC"></a>2. 协议概览与核心 RFC</h1><p>SRTP 在协议栈中的位置可以理解为 RTP 的一个 “<strong>stack bump（堆栈中间层）</strong>“：从应用层看，仍然是发送&#x2F;接收 RTP 包；SRTP 层在发送时对载荷加密并附加认证标签，在接收时验证并解密后还原为普通 RTP 包交给上层处理。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">应用层（编解码器）</span><br><span class="line">      ↕  RTP 包</span><br><span class="line">  [ SRTP 层 ]  ← 加密 / 解密 / 认证</span><br><span class="line">      ↕  SRTP/SRTCP 包</span><br><span class="line">  UDP / ICE / DTLS（传输层）</span><br></pre></td></tr></table></figure>
+
+<p>SRTP 本身 <strong>不处理密钥交换</strong>，密钥由外部密钥管理协议提供，在 WebRTC 场景中即 DTLS-SRTP（RFC 5764）。</p>
+<h3 id="核心-RFC-体系"><a href="#核心-RFC-体系" class="headerlink" title="核心 RFC 体系"></a>核心 RFC 体系</h3><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>发布年份</th>
+<th>内容摘要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RFC 3711</strong></td>
+<td>2004</td>
+<td>SRTP 核心规范，定义基础框架、AES-CM 加密、HMAC-SHA1 认证、密钥派生</td>
+</tr>
+<tr>
+<td><strong>RFC 5764</strong></td>
+<td>2010</td>
+<td>DTLS-SRTP：通过 DTLS 握手为 SRTP 建立密钥，WebRTC 强制使用</td>
+</tr>
+<tr>
+<td><strong>RFC 6904</strong></td>
+<td>2013</td>
+<td>扩展：对 RTP 头部扩展字段加密（此前只加密载荷）</td>
+</tr>
+<tr>
+<td><strong>RFC 7714</strong></td>
+<td>2015</td>
+<td>引入 AES-GCM AEAD 算法，提供更高效的认证加密</td>
+</tr>
+<tr>
+<td><strong>RFC 8723</strong></td>
+<td>2020</td>
+<td>Double Encryption：为 SFU 场景提供端到端 + 跳到跳的双层加密</td>
+</tr>
+<tr>
+<td><strong>RFC 9335</strong></td>
+<td>2023</td>
+<td>完全加密 RTP 头部扩展与 CSRC</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-SRTP-包格式"><a href="#3-SRTP-包格式" class="headerlink" title="3. SRTP 包格式"></a>3. SRTP 包格式</h1><p>SRTP 包格式与 RTP 高度兼容，<strong>头部字段完全保留</strong>，加密仅作用于载荷（Payload），并在包尾附加可选的 MKI 和认证标签。RFC 3711 Section 3.1 给出了完整的包结构图：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ←┐</span><br><span class="line">|V=2|P|X|  CC   |M|     PT      |       sequence number         |  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |</span><br><span class="line">|                           timestamp                           |  | 认证范围</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |（Authenticated Portion）</span><br><span class="line">|           synchronization source (SSRC) identifier            |  |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+  |</span><br><span class="line">|            contributing source (CSRC) identifiers             |  |</span><br><span class="line">|                               ....                            |  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ←┼→ 加密范围起点</span><br><span class="line">|                   RTP extension (OPTIONAL)                    |  |  （Encrypted Portion）</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |</span><br><span class="line">|                     [ 加密后的 payload ]                       |  |</span><br><span class="line">|                          ...                                  |  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ←┘</span><br><span class="line">~                   MKI（Master Key Indicator，可选）            ~</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">:             Authentication Tag（强烈推荐，默认 80 bit）        :</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键字段说明：</strong></p>
+<ul>
+<li><strong>Encrypted Portion（加密部分）</strong>：仅包含 RTP 载荷（及 RTP padding）。RTP 头部本身不被加密（默认情况下），这使得中间节点可以在不解密的情况下读取序列号、SSRC 等路由信息。</li>
+<li><strong>Authenticated Portion（认证部分）</strong>：涵盖整个 RTP 头部 + 加密后的载荷，认证标签保护的范围比加密更广，这意味着头部篡改也会导致认证失败。</li>
+<li><strong>MKI（Master Key Indicator，可选）</strong>：长度可配置，用于在有多个 Master Key 的场景中标识当前使用的密钥，便于密钥轮换（re-keying）。MKI 本身不受完整性保护。</li>
+<li><strong>Authentication Tag（认证标签，强烈推荐）</strong>：默认 80 bit（HMAC-SHA1 截断），也支持 32 bit（仅限某些场景）。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：加密在先，认证在后（Encrypt-then-MAC）。发送方先对载荷加密，再对”头部 + 加密后载荷”计算认证标签；接收方先验证标签，通过后再解密。这一顺序对安全性至关重要。</p>
+</blockquote>
+<hr>
+<h1 id="4-密码学上下文（Cryptographic-Context）"><a href="#4-密码学上下文（Cryptographic-Context）" class="headerlink" title="4. 密码学上下文（Cryptographic Context）"></a>4. 密码学上下文（Cryptographic Context）</h1><p>每一条 SRTP 流都拥有独立的 <strong>密码学上下文（Cryptographic Context）</strong>，用于维护所有与加密&#x2F;认证相关的状态信息。</p>
+<p>根据 RFC 3711 Section 3.2.3，上下文通过三元组唯一标识：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">context_id = &lt;SSRC, 目标网络地址, 目标传输端口&gt;</span><br></pre></td></tr></table></figure>
+
+<p>上下文包含的主要参数：</p>
+<h3 id="与变换无关的参数（Transform-independent-Parameters）"><a href="#与变换无关的参数（Transform-independent-Parameters）" class="headerlink" title="与变换无关的参数（Transform-independent Parameters）"></a>与变换无关的参数（Transform-independent Parameters）</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ROC（Rollover Counter，32 bit）</strong></td>
+<td>记录 16 bit 序列号翻转次数，解决序列号回绕问题</td>
+</tr>
+<tr>
+<td><strong>s_l（16 bit）</strong></td>
+<td>接收方维护，记录当前已收到的最高序列号</td>
+</tr>
+<tr>
+<td><strong>加密算法标识</strong></td>
+<td>当前使用的加密算法，如 AES-CM &#x2F; AES-GCM</td>
+</tr>
+<tr>
+<td><strong>消息认证算法标识</strong></td>
+<td>如 HMAC-SHA1</td>
+</tr>
+<tr>
+<td><strong>重放列表（Replay List）</strong></td>
+<td>接收方维护，存储最近收到并验证的包索引（位图实现）</td>
+</tr>
+<tr>
+<td><strong>MKI 指示位及长度</strong></td>
+<td>是否启用 MKI 及其字节长度</td>
+</tr>
+<tr>
+<td><strong>Master Key(s)</strong></td>
+<td>随机秘密，由外部密钥管理提供</td>
+</tr>
+<tr>
+<td><strong>n_e, n_a</strong></td>
+<td>加密密钥和认证密钥的长度（bit）</td>
+</tr>
+<tr>
+<td><strong>Master Salt</strong></td>
+<td>用于密钥派生的随机盐值，强烈推荐使用，防止预计算攻击</td>
+</tr>
+<tr>
+<td><strong>key_derivation_rate</strong></td>
+<td>密钥派生频率，取值为 {0, 1, 2, 4, …, 2^24}，0 表示只派生一次</td>
+</tr>
+</tbody></table>
+<p><strong>包索引（Packet Index）</strong> 是 SRTP 中一个关键概念，定义为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">i = 2^16 × ROC + SEQ</span><br></pre></td></tr></table></figure>
+
+<p>这是一个 48 bit 的全局索引，解决了 RTP 16 bit 序列号仅能表示 65536 个包的局限，使整个会话中的每个包都有唯一编号，是防重放和 IV 生成的基础。</p>
+<hr>
+<h1 id="5-密钥体系：Master-Key-与-Session-Key"><a href="#5-密钥体系：Master-Key-与-Session-Key" class="headerlink" title="5. 密钥体系：Master Key 与 Session Key"></a>5. 密钥体系：Master Key 与 Session Key</h1><p>SRTP 使用两层密钥结构，这是其设计亮点之一：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">外部密钥管理（DTLS-SRTP）</span><br><span class="line">          ↓</span><br><span class="line">    Master Key（主密钥）+ Master Salt（主盐）</span><br><span class="line">          ↓  KDF（密钥派生函数，基于 AES-CM PRF）</span><br><span class="line">          ↓</span><br><span class="line">  ┌───────────────────────────────────────┐</span><br><span class="line">  │  k_e  : SRTP 加密会话密钥               │</span><br><span class="line">  │  k_a  : SRTP 认证会话密钥               │</span><br><span class="line">  │  k_s  : SRTP 加密盐值                  │</span><br><span class="line">  │  k_e&#x27; : SRTCP 加密会话密钥              │</span><br><span class="line">  │  k_a&#x27; : SRTCP 认证会话密钥              │</span><br><span class="line">  │  k_s&#x27; : SRTCP 加密盐值                 │</span><br><span class="line">  └───────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>设计目的：</strong></p>
+<ol>
+<li><strong>最小化密钥暴露量</strong>：单个 Master Key 派生出多个用途不同的 Session Key，每个密钥只用于特定操作，减少攻击面。</li>
+<li><strong>SRTP 与 SRTCP 使用不同 Session Key</strong>：即使 Master Key 相同，两者的加密&#x2F;认证密钥完全隔离。</li>
+<li><strong>周期性密钥刷新</strong>：通过 <code>key_derivation_rate</code> 配置，SRTP 可以定期重新派生 Session Key，限制攻击者可收集的同一密钥下的密文量。</li>
+</ol>
+<h3 id="密钥派生算法（KDF）"><a href="#密钥派生算法（KDF）" class="headerlink" title="密钥派生算法（KDF）"></a>密钥派生算法（KDF）</h3><p>RFC 3711 Section 4.3 定义的密钥派生使用 <strong>AES Counter Mode PRF</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PRF_n(k_master, x) = AES-CM(k_master, label || r)</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>label</code> 是不同用途的标签（如 <code>0x00</code> 表示加密密钥，<code>0x01</code> 表示认证密钥，<code>0x02</code> 表示盐值），<code>r</code> 是基于包索引和派生速率计算的参数。</p>
+<p>这确保了从单一 Master Key 派生出的六个 Session Key 在密码学上相互独立。</p>
+<hr>
+<h1 id="6-加密算法"><a href="#6-加密算法" class="headerlink" title="6. 加密算法"></a>6. 加密算法</h1><p>RFC 3711 预定义了三种加密算法，并允许通过新的配套 RFC 扩展更多算法。</p>
+<h3 id="6-1-AES-Counter-Mode（AES-CM）"><a href="#6-1-AES-Counter-Mode（AES-CM）" class="headerlink" title="6.1 AES Counter Mode（AES-CM）"></a>6.1 AES Counter Mode（AES-CM）</h3><p><strong>默认且强制实现</strong>的加密算法，将 AES 块密码用作流密码（Stream Cipher）。</p>
+<p><strong>核心思想</strong>：生成伪随机密钥流（keystream），与明文 XOR 得到密文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keystream_block(i) = AES(k_e, IV(i))</span><br></pre></td></tr></table></figure>
+
+<p>其中 IV（初始化向量）由以下字段拼接并 XOR 盐值构造：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">IV = (k_s XOR (SSRC * 2^64 XOR i * 2^16)) * 2^16</span><br><span class="line"></span><br><span class="line">即：</span><br><span class="line">IV[127:16] = SSRC || packet_index || 0x0000</span><br><span class="line">             与盐值 k_s 异或</span><br><span class="line">IV[15:0]   = 块计数器（block counter）</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点：</strong></p>
+<ul>
+<li>流密码模式，加密载荷任意长度无需 padding；</li>
+<li>支持随机访问和并行加密；</li>
+<li>抗丢包：即使前一包丢失，后续包仍可独立解密；</li>
+<li>AES 硬件加速（AES-NI）成熟，性能极高。</li>
+</ul>
+<p><strong>注意</strong>：AES-CM 仅提供机密性，不提供完整性保护。完整性需依赖 HMAC-SHA1 认证标签。</p>
+<h3 id="6-2-AES-f8-Mode"><a href="#6-2-AES-f8-Mode" class="headerlink" title="6.2 AES f8 Mode"></a>6.2 AES f8 Mode</h3><p>专为移动通信场景（3GPP）设计的变体，基于 AES 的 f8 运行模式，主要应用于特定电信标准，WebRTC 中较少使用。</p>
+<p>其 IV 构造更为复杂，将 RTP 头部字段（包括 PT、序列号、时间戳、SSRC）编码进 IV，提供隐式头部绑定，无需单独的认证即可部分防止头部替换。</p>
+<h3 id="6-3-AES-GCM（RFC-7714）"><a href="#6-3-AES-GCM（RFC-7714）" class="headerlink" title="6.3 AES-GCM（RFC 7714）"></a>6.3 AES-GCM（RFC 7714）</h3><p>2015 年 RFC 7714 引入了 <strong>AES-GCM（Galois&#x2F;Counter Mode）</strong>，这是一种 <strong>AEAD（Authenticated Encryption with Associated Data）</strong> 算法，将加密和认证合并为单一操作。</p>
+<p><strong>关键特性：</strong></p>
+<ul>
+<li>同时提供机密性 + 完整性，不需要单独的 HMAC；</li>
+<li>认证标签长度为 128 bit（比 HMAC-SHA1 的 80 bit 更长，更安全）；</li>
+<li>GCM 的认证操作（GHASH）天然适合硬件并行实现，性能优越；</li>
+<li>不允许截断认证标签（RFC 7714 明确禁止），避免弱认证风险。</li>
+</ul>
+<p><strong>IV 构造（12 字节）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IV = SSRC（4字节）|| ROC（4字节）|| SEQ（2字节）  XOR  salt（12字节）</span><br></pre></td></tr></table></figure>
+
+<p><strong>支持的密码套件（DTLS-SRTP 注册名）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>套件标识</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SRTP_AEAD_AES_128_GCM</code></td>
+<td>AES-128-GCM，密钥 16B，盐 12B，认证标签 16B</td>
+</tr>
+<tr>
+<td><code>SRTP_AEAD_AES_256_GCM</code></td>
+<td>AES-256-GCM，密钥 32B，盐 12B，认证标签 16B</td>
+</tr>
+</tbody></table>
+<p>由于 AES-GCM 将认证嵌入密文中，SRTP 包结构发生变化：认证标签不再单独附加，而是包含在”加密部分”末尾。</p>
+<hr>
+<h1 id="7-消息认证：HMAC-SHA1"><a href="#7-消息认证：HMAC-SHA1" class="headerlink" title="7. 消息认证：HMAC-SHA1"></a>7. 消息认证：HMAC-SHA1</h1><p>针对 AES-CM（非 AES-GCM）加密，SRTP 使用 <strong>HMAC-SHA1</strong>（RFC 2104）提供消息认证。</p>
+<p>RFC 3711 Section 4.2.1 规定：</p>
+<ol>
+<li>HMAC 的计算范围 <strong>M</strong> &#x3D; RTP 头部 || 加密后的载荷（即 Authenticated Portion）；</li>
+<li>使用会话认证密钥 <code>k_a</code> 计算：<code>HMAC-SHA1(k_a, M)</code>；</li>
+<li>HMAC-SHA1 输出 160 bit，截断为 <strong>80 bit</strong>（默认，即 <code>n_tag = 80</code>）附加到包尾；</li>
+<li>也支持 32 bit 截断（<code>SRTP_AES128_CM_HMAC_SHA1_32</code>），但安全性较低，WebRTC 中不推荐用于视频流。</li>
+</ol>
+<p><strong>重要说明</strong>：SRTP 的消息认证在严格意义上是 <strong>完整性保护（Integrity Protection）</strong>，而非数据源认证（Data Origin Authentication）。在组播场景中，多个参与者共享同一密钥，收到认证通过的包只能证明包来自”知道密钥的某方”，不能确认具体发送者。</p>
+<hr>
+<h1 id="8-防重放保护"><a href="#8-防重放保护" class="headerlink" title="8. 防重放保护"></a>8. 防重放保护</h1><p>重放攻击（Replay Attack）是将合法的历史数据包重新注入网络，可导致语音&#x2F;视频抖动、回声，甚至欺骗应用逻辑。</p>
+<p>SRTP 通过<strong>滑动窗口（Sliding Window）+ 重放列表（Replay List）</strong> 防御重放攻击：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">接收窗口示意（窗口大小默认 64）：</span><br><span class="line"></span><br><span class="line">... [已处理] [窗口左边界] ... [期望接收区域] ... [窗口右边界]</span><br><span class="line">      丢弃         ↑                                   ↑</span><br><span class="line">                  已接收位图（bitmap 标记）</span><br></pre></td></tr></table></figure>
+
+<p><strong>处理逻辑（RFC 3711 Section 3.3）：</strong></p>
+<ol>
+<li>根据当前 ROC 和接收到的 SEQ 重建 48 bit 包索引 <code>i</code>；</li>
+<li>若 <code>i</code> 早于窗口左边界 → <strong>直接丢弃</strong>（过旧）；</li>
+<li>若 <code>i</code> 在窗口内且对应位已置 1 → <strong>丢弃</strong>（已接收过）；</li>
+<li>通过认证标签验证（必须通过认证才能更新状态）；</li>
+<li>认证通过后，更新重放列表位图，必要时滑动窗口。</li>
+</ol>
+<p><strong>关键原则</strong>：只有通过认证的包才会更新重放列表，防止攻击者通过注入伪造包污染重放状态。</p>
+<hr>
+<h1 id="9-SRTCP"><a href="#9-SRTCP" class="headerlink" title="9. SRTCP"></a>9. SRTCP</h1><p>RTCP 承载统计信息、成员控制、反馈信令等，若被篡改可导致码率控制被破坏、成员信息被伪造，危害不亚于媒体数据的泄露。因此 RFC 3711 同步定义了 <strong>SRTCP（Secure RTCP）</strong>。</p>
+<h3 id="SRTCP-包格式"><a href="#SRTCP-包格式" class="headerlink" title="SRTCP 包格式"></a>SRTCP 包格式</h3><p>SRTCP 在 RTCP 包尾追加三个<strong>强制字段</strong>和一个可选字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ 原始 RTCP 头部 + 载荷（可选加密）]</span><br><span class="line">    SRTCP Index（31 bit）| E flag（1 bit）</span><br><span class="line">    MKI（可选）</span><br><span class="line">    Authentication Tag（必须）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>SRTCP Index（31 bit）</strong>：显式携带序列号（不像 SRTP 那样需要从 ROC+SEQ 推算），接收方直接读取，无需估算。</li>
+<li><strong>E（Encrypt Flag，1 bit）</strong>：标识 RTCP 载荷是否被加密，SRTCP 支持选择性不加密（使用 NULL cipher）。</li>
+<li><strong>Authentication Tag</strong>：SRTCP 的消息认证是 <strong>强制的（MANDATORY）</strong>，即使不加密也必须认证。</li>
+</ul>
+<h3 id="SRTCP-的重要差异"><a href="#SRTCP-的重要差异" class="headerlink" title="SRTCP 的重要差异"></a>SRTCP 的重要差异</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>SRTP</th>
+<th>SRTCP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>序列号</td>
+<td>隐式（从 RTP SEQ + ROC 推算）</td>
+<td>显式（SRTCP Index 字段）</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>强烈推荐（RECOMMENDED）</td>
+<td><strong>强制（MANDATORY）</strong></td>
+</tr>
+<tr>
+<td>加密</td>
+<td>默认开启</td>
+<td>可选（E flag 控制）</td>
+</tr>
+<tr>
+<td>密钥</td>
+<td>独立 Session Key 集合</td>
+<td>独立 Session Key 集合（可共享 Master Key）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="10-密钥协商：DTLS-SRTP（RFC-5764）"><a href="#10-密钥协商：DTLS-SRTP（RFC-5764）" class="headerlink" title="10. 密钥协商：DTLS-SRTP（RFC 5764）"></a>10. 密钥协商：DTLS-SRTP（RFC 5764）</h1><p><strong>SRTP 本身不包含密钥交换机制</strong>，这是其设计哲学之一：将安全协议与密钥管理解耦。在 WebRTC 中，密钥交换强制使用 <strong>DTLS-SRTP</strong>（RFC 5764）。</p>
+<h3 id="DTLS-SRTP-工作原理"><a href="#DTLS-SRTP-工作原理" class="headerlink" title="DTLS-SRTP 工作原理"></a>DTLS-SRTP 工作原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">发起方（Offerer）                         应答方（Answerer）</span><br><span class="line">      |                                        |</span><br><span class="line">      |──── SDP Offer（含 DTLS 指纹）──────→     |  信令层（WebSocket/HTTP）</span><br><span class="line">      |←─── SDP Answer（含 DTLS 指纹）──────     |</span><br><span class="line">      |                                        |</span><br><span class="line">      |═══════════ ICE 建立 UDP 通道 ══════════ |  数据面（UDP）</span><br><span class="line">      |                                        |</span><br><span class="line">      |──── DTLS ClientHello ─────────────→    |</span><br><span class="line">      |←─── DTLS ServerHello + Certificate ──  |  DTLS 握手（同一 UDP 端口）</span><br><span class="line">      |──── DTLS Certificate + Finished ─→     |</span><br><span class="line">      |←─── DTLS Finished ────────────────     |</span><br><span class="line">      |                                        |</span><br><span class="line">      |  DTLS 握手完成，双方提取 SRTP keying material |</span><br><span class="line">      |  ↓ use_srtp 扩展导出：                   |</span><br><span class="line">      |  Master Key（主密钥）+ Master Salt（盐）  |</span><br><span class="line">      |                                        |</span><br><span class="line">      |══════════ SRTP/SRTCP 媒体流 ═══════════ |</span><br></pre></td></tr></table></figure>
+
+<p><strong>DTLS-SRTP 的关键机制：</strong></p>
+<ol>
+<li><strong><code>use_srtp</code> DTLS 扩展</strong>：在 ClientHello&#x2F;ServerHello 中协商 SRTP 密码套件（Protection Profile），如 <code>SRTP_AES128_CM_HMAC_SHA1_80</code>；</li>
+<li><strong>Keying Material 导出</strong>：DTLS 握手完成后，双方通过 TLS PRF（伪随机函数）导出密钥材料，分别生成发送方和接收方的 Master Key 及 Master Salt；</li>
+<li><strong>指纹验证（Fingerprint）</strong>：SDP 中携带对端证书的指纹（如 <code>a=fingerprint:sha-256 &lt;hash&gt;</code>），接收方在 DTLS 握手时验证对端证书是否与 SDP 中的指纹匹配，防止中间人攻击。</li>
+</ol>
+<h3 id="包多路复用（Demultiplexing）"><a href="#包多路复用（Demultiplexing）" class="headerlink" title="包多路复用（Demultiplexing）"></a>包多路复用（Demultiplexing）</h3><p>DTLS 握手包与 SRTP 媒体包复用同一 UDP 端口，依靠<strong>首字节</strong>区分协议类型（RFC 5764 Section 5.1.2）：</p>
+<table>
+<thead>
+<tr>
+<th>首字节范围</th>
+<th>协议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[0, 3]</td>
+<td>STUN</td>
+</tr>
+<tr>
+<td>[16, 19]</td>
+<td>ZRTP</td>
+</tr>
+<tr>
+<td>[20, 63]</td>
+<td>DTLS</td>
+</tr>
+<tr>
+<td>[64, 79]</td>
+<td>TURN</td>
+</tr>
+<tr>
+<td>[128, 191]</td>
+<td>RTP&#x2F;RTCP</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="11-WebRTC-中的-SRTP-实践"><a href="#11-WebRTC-中的-SRTP-实践" class="headerlink" title="11. WebRTC 中的 SRTP 实践"></a>11. WebRTC 中的 SRTP 实践</h1><h3 id="强制要求"><a href="#强制要求" class="headerlink" title="强制要求"></a>强制要求</h3><p>根据 <strong>RFC 8827（WebRTC Security Architecture）</strong>：</p>
+<ul>
+<li>WebRTC 实现必须支持 SRTP，且必须使用 DTLS-SRTP 进行密钥协商；</li>
+<li>禁止以不加密的 RTP 传输真实媒体（调试模式需显式配置）；</li>
+<li>必须支持 <code>SRTP_AES128_CM_HMAC_SHA1_80</code> 密码套件。</li>
+</ul>
+<h3 id="WebRTC-Native（libwebrtc）中的实现"><a href="#WebRTC-Native（libwebrtc）中的实现" class="headerlink" title="WebRTC Native（libwebrtc）中的实现"></a>WebRTC Native（libwebrtc）中的实现</h3><p>WebRTC 官方实现（Chromium &#x2F; libwebrtc）的 SRTP 层：</p>
+<ul>
+<li>底层加密库：<strong>libsrtp</strong>（Cisco 开源，<a target="_blank" rel="noopener" href="https://github.com/cisco/libsrtp%EF%BC%89%EF%BC%9B">https://github.com/cisco/libsrtp）；</a></li>
+<li>核心类：<code>webrtc::SrtpSession</code>，封装 libsrtp 的加解密接口；</li>
+<li>上层类：<code>webrtc::DtlsSrtpTransport</code>，在 DTLS 握手完成时提取密钥材料，调用 <code>SrtpSession::SetSend</code> &#x2F; <code>SetRecv</code> 配置密钥；</li>
+<li>加解密均为<strong>原地操作（in-place）</strong>，避免额外内存拷贝：<code>ProtectRtp</code> &#x2F; <code>UnprotectRtp</code>。</li>
+</ul>
+<h3 id="支持的密码套件"><a href="#支持的密码套件" class="headerlink" title="支持的密码套件"></a>支持的密码套件</h3><table>
+<thead>
+<tr>
+<th>套件名</th>
+<th>密钥长度</th>
+<th>认证</th>
+<th>默认启用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SRTP_AES128_CM_HMAC_SHA1_80</code></td>
+<td>AES-128</td>
+<td>HMAC-SHA1（80 bit tag）</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>SRTP_AEAD_AES_128_GCM</code></td>
+<td>AES-128</td>
+<td>GCM（128 bit tag）</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>SRTP_AEAD_AES_256_GCM</code></td>
+<td>AES-256</td>
+<td>GCM（128 bit tag）</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>SRTP_AES128_CM_HMAC_SHA1_32</code></td>
+<td>AES-128</td>
+<td>HMAC-SHA1（32 bit tag）</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>两个 WebRTC 端点互通时默认协商 <code>SRTP_AES128_CM_HMAC_SHA1_80</code>；GCM 套件可被非 WebRTC 对端优先选择。</p>
+</blockquote>
+<h3 id="SDP-中的-SRTP-相关属性"><a href="#SDP-中的-SRTP-相关属性" class="headerlink" title="SDP 中的 SRTP 相关属性"></a>SDP 中的 SRTP 相关属性</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111</span><br><span class="line">a=fingerprint:sha-256 AB:CD:EF:...（DTLS 证书指纹）</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=rtcp-mux</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>UDP/TLS/RTP/SAVPF</code>：表示使用 DTLS-SRTP（TLS over UDP）；</li>
+<li><code>a=fingerprint</code>：对端 DTLS 证书的指纹，用于防中间人；</li>
+<li><code>a=rtcp-mux</code>：RTCP 与 RTP 复用同一端口，SRTCP 也通过同一 DTLS 关联保护；</li>
+<li>无需 <code>a=crypto</code>（SDES 方式，已不推荐）。</li>
+</ul>
+<hr>
+<h1 id="12-SRTP-报文处理流程详解"><a href="#12-SRTP-报文处理流程详解" class="headerlink" title="12. SRTP 报文处理流程详解"></a>12. SRTP 报文处理流程详解</h1><h3 id="发送方流程（Sender）"><a href="#发送方流程（Sender）" class="headerlink" title="发送方流程（Sender）"></a>发送方流程（Sender）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">输入：明文 RTP 包（头部 + 载荷）</span><br><span class="line"></span><br><span class="line">1. 确定包索引 i</span><br><span class="line">   i = 2^16 × ROC + SEQ</span><br><span class="line">   若 SEQ 翻转（0xFFFF → 0），ROC++</span><br><span class="line"></span><br><span class="line">2. 派生 IV（基于 SSRC、i、k_s）</span><br><span class="line"></span><br><span class="line">3. 加密载荷</span><br><span class="line">   encrypted_payload = AES-CM(k_e, IV, plaintext_payload)</span><br><span class="line">   [或 AES-GCM 同时加密+认证]</span><br><span class="line"></span><br><span class="line">4. 构造认证消息 M</span><br><span class="line">   M = RTP Header || encrypted_payload</span><br><span class="line"></span><br><span class="line">5. 计算认证标签（若使用 AES-CM）</span><br><span class="line">   tag = HMAC-SHA1(k_a, M)[0:80bit]</span><br><span class="line"></span><br><span class="line">6. 组装 SRTP 包</span><br><span class="line">   SRTP = RTP Header || encrypted_payload || [MKI] || tag</span><br><span class="line"></span><br><span class="line">7. 更新包计数器（用于监控 Master Key 使用量）</span><br><span class="line"></span><br><span class="line">输出：SRTP 包 → UDP → 网络</span><br></pre></td></tr></table></figure>
+
+<h3 id="接收方流程（Receiver）"><a href="#接收方流程（Receiver）" class="headerlink" title="接收方流程（Receiver）"></a>接收方流程（Receiver）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">输入：网络接收到的 SRTP 包</span><br><span class="line"></span><br><span class="line">1. 解析 RTP 头，提取 SEQ、SSRC</span><br><span class="line"></span><br><span class="line">2. 重建包索引 i</span><br><span class="line">   使用 ROC、s_l 和当前 SEQ 估算（详见 RFC 3711 Appendix A 伪码）</span><br><span class="line"></span><br><span class="line">3. 防重放检查</span><br><span class="line">   若 i 已在重放列表中 → 丢弃</span><br><span class="line"></span><br><span class="line">4. 验证认证标签</span><br><span class="line">   重新计算 HMAC-SHA1(k_a, RTP Header || encrypted_payload)</span><br><span class="line">   与包中 tag 比对 → 不匹配则丢弃</span><br><span class="line"></span><br><span class="line">5. 解密载荷</span><br><span class="line">   plaintext_payload = AES-CM(k_e, IV(i), encrypted_payload)</span><br><span class="line"></span><br><span class="line">6. 更新 s_l、ROC（必要时）和重放列表</span><br><span class="line"></span><br><span class="line">7. 组装原始 RTP 包交给上层</span><br><span class="line"></span><br><span class="line">输出：明文 RTP 包 → 解码器</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="13-安全性分析与注意事项"><a href="#13-安全性分析与注意事项" class="headerlink" title="13. 安全性分析与注意事项"></a>13. 安全性分析与注意事项</h1><h3 id="信令层是最大攻击面"><a href="#信令层是最大攻击面" class="headerlink" title="信令层是最大攻击面"></a>信令层是最大攻击面</h3><p>DTLS-SRTP 的媒体加密本身很难被直接攻破，<strong>现实中的攻击更多针对信令层</strong>：</p>
+<ul>
+<li>若 SDP 通过明文 WebSocket（<code>ws://</code>）传输，攻击者可替换 SDP 中的 DTLS 指纹，实施中间人攻击（MITM）；</li>
+<li>防御：信令必须使用 <code>wss://</code>（WebSocket over TLS）或等效加密通道，并严格校验 DTLS 指纹与 SDP 中的一致性。</li>
+</ul>
+<h3 id="SSRC-碰撞（Two-Time-Pad-风险）"><a href="#SSRC-碰撞（Two-Time-Pad-风险）" class="headerlink" title="SSRC 碰撞（Two-Time Pad 风险）"></a>SSRC 碰撞（Two-Time Pad 风险）</h3><p>AES-CM 是流密码，若两个不同的 RTP 包使用<strong>相同的 IV</strong>（即相同的 SSRC + 相同的包索引），则会产生”密钥流重用”（Two-Time Pad）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C1 XOR C2 = P1 XOR P2  （可被攻击者利用还原明文）</span><br></pre></td></tr></table></figure>
+
+<p><strong>缓解措施（RFC 3711 Section 9.1）：</strong></p>
+<ul>
+<li>同一会话中不同 SSRC 的流必须使用不同的 Session Key，或确保 SSRC 不碰撞；</li>
+<li>WebRTC 中，不同 MediaStream 使用不同的加密上下文，规避此风险。</li>
+</ul>
+<h3 id="Master-Key-使用量限制"><a href="#Master-Key-使用量限制" class="headerlink" title="Master Key 使用量限制"></a>Master Key 使用量限制</h3><p>每个 Master Key 保护的包数量存在上限（与 AES-CM 的密钥流长度相关），超出限制后必须触发 re-keying，否则安全性下降。RFC 3711 建议实现方监控 Master Key 的包计数器。</p>
+<h3 id="Header-Extension-加密（RFC-6904）"><a href="#Header-Extension-加密（RFC-6904）" class="headerlink" title="Header Extension 加密（RFC 6904）"></a>Header Extension 加密（RFC 6904）</h3><p>标准 SRTP 默认不加密 RTP 头部扩展（如 audio level、video orientation），这些字段在明文状态下可被 SFU 读取用于路由，但也可能泄露元数据。RFC 6904 扩展了 SRTP 以支持对特定头部扩展的选择性加密。</p>
+<h3 id="SFU-场景下的端到端加密"><a href="#SFU-场景下的端到端加密" class="headerlink" title="SFU 场景下的端到端加密"></a>SFU 场景下的端到端加密</h3><p>在 SFU（Selective Forwarding Unit）架构中，SRTP 只保护客户端到 SFU 这一跳，SFU 需要解密后才能转发。若需要真正的端到端加密，可使用 <strong>RFC 8723 Double Encryption</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">E2E 加密（inner）：Client ←──────────────────→ Client</span><br><span class="line">HBH 加密（outer）：Client ←──→ SFU ←──→ Client</span><br></pre></td></tr></table></figure>
+
+<p>SFU 只能处理外层（hop-by-hop）加密，无法访问内层（end-to-end）媒体内容。</p>
+<hr>
+<h1 id="14-相关-RFC-速查"><a href="#14-相关-RFC-速查" class="headerlink" title="14. 相关 RFC 速查"></a>14. 相关 RFC 速查</h1><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RFC 3550</strong></td>
+<td>RTP 核心规范</td>
+<td>SRTP 的保护对象，基础协议</td>
+</tr>
+<tr>
+<td><strong>RFC 3711</strong></td>
+<td>SRTP 核心规范</td>
+<td>框架、AES-CM、HMAC-SHA1、密钥派生</td>
+</tr>
+<tr>
+<td><strong>RFC 4568</strong></td>
+<td>SDES（SDP Security Descriptions）</td>
+<td>旧式密钥协商方式，WebRTC 不推荐</td>
+</tr>
+<tr>
+<td><strong>RFC 5764</strong></td>
+<td>DTLS-SRTP</td>
+<td>WebRTC 强制使用的密钥协商方式</td>
+</tr>
+<tr>
+<td><strong>RFC 5763</strong></td>
+<td>DTLS-SRTP in SIP&#x2F;SDP</td>
+<td>DTLS-SRTP 在 SDP 中的信令方法</td>
+</tr>
+<tr>
+<td><strong>RFC 6188</strong></td>
+<td>AES-192&#x2F;AES-256 in SRTP</td>
+<td>更长密钥的支持</td>
+</tr>
+<tr>
+<td><strong>RFC 6904</strong></td>
+<td>Header Extension Encryption</td>
+<td>RTP 头部扩展字段加密</td>
+</tr>
+<tr>
+<td><strong>RFC 7714</strong></td>
+<td>AES-GCM for SRTP</td>
+<td>AEAD 模式，现代推荐加密套件</td>
+</tr>
+<tr>
+<td><strong>RFC 8723</strong></td>
+<td>Double Encryption</td>
+<td>SFU 场景端到端加密方案</td>
+</tr>
+<tr>
+<td><strong>RFC 8827</strong></td>
+<td>WebRTC Security Architecture</td>
+<td>强制 SRTP 使用的顶层规范</td>
+</tr>
+<tr>
+<td><strong>RFC 9335</strong></td>
+<td>Completely Encrypting RTP Header</td>
+<td>完全加密 RTP 头部扩展和 CSRC</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h1><p>SRTP 是 WebRTC 媒体安全的核心执行层，其设计理念值得细细品味：</p>
+<ul>
+<li><strong>最小开销原则</strong>：仅加密载荷，保留头部路由信息；认证标签尽量短（80 bit）；流密码避免 padding；整体 per-packet 开销仅增加约 14 字节。</li>
+<li><strong>解耦设计</strong>：将加密框架与密钥管理彻底分离，SRTP 只管”用密钥做什么”，密钥来源（DTLS-SRTP &#x2F; SDES &#x2F; MIKEY）可替换。</li>
+<li><strong>可扩展性</strong>：通过配套 RFC 机制（Section 6）不断引入新算法（AES-GCM、双层加密等），保持协议的长期生命力。</li>
+</ul>
+<p>在 WebRTC 的完整安全链路中，<strong>DTLS 负责握手与密钥协商，SRTP 负责每一个媒体包的实际加解密</strong>。理解 SRTP 的包格式、密钥派生、IV 构造以及与 DTLS 的配合关系，是排查 WebRTC 媒体加密问题、优化加密性能的必要基础。</p>
+<hr>
+<h1 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h1><ul>
+<li><em>RFC 3711: <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3711">https://datatracker.ietf.org/doc/html/rfc3711</a></em></li>
+<li><em>RFC 5764: <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5764">https://datatracker.ietf.org/doc/html/rfc5764</a></em></li>
+<li><em>RFC 7714: <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7714">https://datatracker.ietf.org/doc/html/rfc7714</a></em></li>
+<li><em>RFC 8827: <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8827">https://datatracker.ietf.org/doc/html/rfc8827</a></em></li>
+<li><em>WebRTC SRTP Implementation Notes: <a target="_blank" rel="noopener" href="https://webrtc.googlesource.com/src/+/refs/heads/lkgr/pc/g3doc/srtp.md">https://webrtc.googlesource.com/src/+/refs/heads/lkgr/pc/g3doc/srtp.md</a></em></li>
+<li><em>libsrtp: <a target="_blank" rel="noopener" href="https://github.com/cisco/libsrtp">https://github.com/cisco/libsrtp</a></em></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-SRTP"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 SRTP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%A7%88%E4%B8%8E%E6%A0%B8%E5%BF%83-RFC"><span class="toc-number">3.</span> <span class="toc-text">2. 协议概览与核心 RFC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83-RFC-%E4%BD%93%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">核心 RFC 体系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SRTP-%E5%8C%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">3. SRTP 包格式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B8%8A%E4%B8%8B%E6%96%87%EF%BC%88Cryptographic-Context%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 密码学上下文（Cryptographic Context）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E%E5%8F%98%E6%8D%A2%E6%97%A0%E5%85%B3%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%88Transform-independent-Parameters%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">与变换无关的参数（Transform-independent Parameters）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%AF%86%E9%92%A5%E4%BD%93%E7%B3%BB%EF%BC%9AMaster-Key-%E4%B8%8E-Session-Key"><span class="toc-number">6.</span> <span class="toc-text">5. 密钥体系：Master Key 与 Session Key</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E9%92%A5%E6%B4%BE%E7%94%9F%E7%AE%97%E6%B3%95%EF%BC%88KDF%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">密钥派生算法（KDF）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95"><span class="toc-number">7.</span> <span class="toc-text">6. 加密算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-AES-Counter-Mode%EF%BC%88AES-CM%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 AES Counter Mode（AES-CM）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-AES-f8-Mode"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 AES f8 Mode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-AES-GCM%EF%BC%88RFC-7714%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 AES-GCM（RFC 7714）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%B6%88%E6%81%AF%E8%AE%A4%E8%AF%81%EF%BC%9AHMAC-SHA1"><span class="toc-number">8.</span> <span class="toc-text">7. 消息认证：HMAC-SHA1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E9%98%B2%E9%87%8D%E6%94%BE%E4%BF%9D%E6%8A%A4"><span class="toc-number">9.</span> <span class="toc-text">8. 防重放保护</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SRTCP"><span class="toc-number">10.</span> <span class="toc-text">9. SRTCP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SRTCP-%E5%8C%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">10.0.1.</span> <span class="toc-text">SRTCP 包格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SRTCP-%E7%9A%84%E9%87%8D%E8%A6%81%E5%B7%AE%E5%BC%82"><span class="toc-number">10.0.2.</span> <span class="toc-text">SRTCP 的重要差异</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%EF%BC%9ADTLS-SRTP%EF%BC%88RFC-5764%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. 密钥协商：DTLS-SRTP（RFC 5764）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DTLS-SRTP-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">11.0.1.</span> <span class="toc-text">DTLS-SRTP 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8C%85%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88Demultiplexing%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">包多路复用（Demultiplexing）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-WebRTC-%E4%B8%AD%E7%9A%84-SRTP-%E5%AE%9E%E8%B7%B5"><span class="toc-number">12.</span> <span class="toc-text">11. WebRTC 中的 SRTP 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82"><span class="toc-number">12.0.1.</span> <span class="toc-text">强制要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WebRTC-Native%EF%BC%88libwebrtc%EF%BC%89%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">12.0.2.</span> <span class="toc-text">WebRTC Native（libwebrtc）中的实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E5%AF%86%E7%A0%81%E5%A5%97%E4%BB%B6"><span class="toc-number">12.0.3.</span> <span class="toc-text">支持的密码套件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E4%B8%AD%E7%9A%84-SRTP-%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7"><span class="toc-number">12.0.4.</span> <span class="toc-text">SDP 中的 SRTP 相关属性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-SRTP-%E6%8A%A5%E6%96%87%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">13.</span> <span class="toc-text">12. SRTP 报文处理流程详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%91%E9%80%81%E6%96%B9%E6%B5%81%E7%A8%8B%EF%BC%88Sender%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">发送方流程（Sender）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E6%94%B6%E6%96%B9%E6%B5%81%E7%A8%8B%EF%BC%88Receiver%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">接收方流程（Receiver）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%89%E5%85%A8%E6%80%A7%E5%88%86%E6%9E%90%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">14.</span> <span class="toc-text">13. 安全性分析与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E4%BB%A4%E5%B1%82%E6%98%AF%E6%9C%80%E5%A4%A7%E6%94%BB%E5%87%BB%E9%9D%A2"><span class="toc-number">14.0.1.</span> <span class="toc-text">信令层是最大攻击面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SSRC-%E7%A2%B0%E6%92%9E%EF%BC%88Two-Time-Pad-%E9%A3%8E%E9%99%A9%EF%BC%89"><span class="toc-number">14.0.2.</span> <span class="toc-text">SSRC 碰撞（Two-Time Pad 风险）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Master-Key-%E4%BD%BF%E7%94%A8%E9%87%8F%E9%99%90%E5%88%B6"><span class="toc-number">14.0.3.</span> <span class="toc-text">Master Key 使用量限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Header-Extension-%E5%8A%A0%E5%AF%86%EF%BC%88RFC-6904%EF%BC%89"><span class="toc-number">14.0.4.</span> <span class="toc-text">Header Extension 加密（RFC 6904）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SFU-%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%AB%AF%E5%88%B0%E7%AB%AF%E5%8A%A0%E5%AF%86"><span class="toc-number">14.0.5.</span> <span class="toc-text">SFU 场景下的端到端加密</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5"><span class="toc-number">15.</span> <span class="toc-text">14. 相关 RFC 速查</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%EF%BC%9A"><span class="toc-number">17.</span> <span class="toc-text">参考资料：</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/14/webrtc/09-SRTP/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/14/webrtc/09-SRTP/&text=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/14/webrtc/09-SRTP/&is_video=false&description=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SRTP（Secure Real-time Transport Protocol）&body=Check out this article: http://example.com/2022/06/14/webrtc/09-SRTP/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/14/webrtc/09-SRTP/&title=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/14/webrtc/09-SRTP/&name=SRTP（Secure Real-time Transport Protocol）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/14/webrtc/09-SRTP/&t=SRTP（Secure Real-time Transport Protocol）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述：为什么需要 DataChannel 协议栈与架构 SCTP 在 WebRTC 中的角色 DataChannel 建立协议（DCEP） 可靠性模型与传输语义 SDP 协商 RTCDataChannel Web API 流量控制与背压 安全性 典型应用场景与最佳实践 关键 RFC 与规范索引   1. 概述：为什么需要 DataChannelWebRTC 的初期印象往往是”浏览器视频通话”">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DataChannel —— WebRTC 数据通道详解">
+<meta property="og:url" content="http://example.com/2022/07/31/webrtc/14-datachannel/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述：为什么需要 DataChannel 协议栈与架构 SCTP 在 WebRTC 中的角色 DataChannel 建立协议（DCEP） 可靠性模型与传输语义 SDP 协商 RTCDataChannel Web API 流量控制与背压 安全性 典型应用场景与最佳实践 关键 RFC 与规范索引   1. 概述：为什么需要 DataChannelWebRTC 的初期印象往往是”浏览器视频通话”">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-07-31T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-28T13:05:24.818Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>DataChannel —— WebRTC 数据通道详解</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/08/09/webrtc/15%20bwe%20bandwidth%20estimation/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/19/webrtc/13-sctp/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/31/webrtc/14-datachannel/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/31/webrtc/14-datachannel/&text=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/31/webrtc/14-datachannel/&is_video=false&description=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=DataChannel —— WebRTC 数据通道详解&body=Check out this article: http://example.com/2022/07/31/webrtc/14-datachannel/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/31/webrtc/14-datachannel/&name=DataChannel —— WebRTC 数据通道详解&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/31/webrtc/14-datachannel/&t=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-DataChannel"><span class="toc-number">2.</span> <span class="toc-text">1. 概述：为什么需要 DataChannel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%8E%E7%8E%B0%E6%9C%89%E6%96%B9%E6%A1%88%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 与现有方案的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%B8%E5%BF%83%E4%BB%B7%E5%80%BC"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 核心价值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E6%9E%B6%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">2. 协议栈与架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SCTP-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">4.</span> <span class="toc-text">3. SCTP 在 WebRTC 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-SCTP"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 为什么选择 SCTP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-WebRTC-%E5%AF%B9-SCTP-%E7%9A%84%E8%A3%81%E5%89%AA"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 WebRTC 对 SCTP 的裁剪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-SCTP-%E7%9A%84-PPID%EF%BC%88Payload-Protocol-Identifier%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 SCTP 的 PPID（Payload Protocol Identifier）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%B6%88%E6%81%AF%E5%A4%A7%E5%B0%8F%E4%B8%8E%E4%BA%A4%E7%BB%87"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 消息大小与交织</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-DataChannel-%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AE%EF%BC%88DCEP%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. DataChannel 建立协议（DCEP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B8%A6%E5%86%85%E5%8D%8F%E5%95%86%EF%BC%88In-band-Negotiation%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 带内协商（In-band Negotiation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-DATA-CHANNEL-OPEN-%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 DATA_CHANNEL_OPEN 消息格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B8%A6%E5%A4%96%E5%8D%8F%E5%95%86%EF%BC%88Out-of-band-Negotiation%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 带外协商（Out-of-band Negotiation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E4%BC%A0%E8%BE%93%E8%AF%AD%E4%B9%89"><span class="toc-number">6.</span> <span class="toc-text">5. 可靠性模型与传输语义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Channel-Type-%E6%9E%9A%E4%B8%BE%EF%BC%88%E6%9D%A5%E8%87%AA-RFC-8832%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 Channel Type 枚举（来自 RFC 8832）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 三种模式详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 如何选择传输模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.</span> <span class="toc-text">6. SDP 协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-m-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 m&#x3D; 行格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SDP-%E5%B8%A6%E5%A4%96%E5%8D%8F%E5%95%86%EF%BC%88RFC-8864%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SDP 带外协商（RFC 8864）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-RTCDataChannel-Web-API"><span class="toc-number">8.</span> <span class="toc-text">7. RTCDataChannel Web API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%88%9B%E5%BB%BA-DataChannel"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 创建 DataChannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 关键属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%BA%8B%E4%BB%B6"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 事件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%8F%91%E9%80%81%E6%95%B0%E6%8D%AE"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 发送数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%85%B3%E9%97%AD-DataChannel"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 关闭 DataChannel</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%83%8C%E5%8E%8B"><span class="toc-number">9.</span> <span class="toc-text">8. 流量控制与背压</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%9F%BA%E4%BA%8E-bufferedAmount-%E7%9A%84%E8%83%8C%E5%8E%8B%E6%8E%A7%E5%88%B6"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 基于 bufferedAmount 的背压控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%A4%A7%E6%96%87%E4%BB%B6%E5%88%86%E7%89%87%E4%BC%A0%E8%BE%93"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 大文件分片传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%A4%9A%E9%80%9A%E9%81%93%E5%88%86%E7%A6%BB%E5%85%B3%E6%B3%A8%E7%82%B9"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 多通道分离关注点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">10.</span> <span class="toc-text">9. 安全性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%88%B6-DTLS-%E5%8A%A0%E5%AF%86"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 强制 DTLS 加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-P2P-%E4%BC%A0%E8%BE%93%E7%9A%84%E9%9A%90%E7%A7%81%E4%BC%98%E5%8A%BF"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 P2P 传输的隐私优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%BA%94%E7%94%A8%E5%B1%82%E5%AE%89%E5%85%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 应用层安全注意事项</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 典型应用场景与最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%AE%9E%E6%97%B6%E5%A4%9A%E4%BA%BA%E6%B8%B8%E6%88%8F"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 实时多人游戏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-P2P-%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 P2P 文件传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%AE%9E%E6%97%B6%E5%8D%8F%E5%90%8C%E7%BC%96%E8%BE%91"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 实时协同编辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E9%9F%B3%E8%A7%86%E9%A2%91%E9%80%9A%E8%AF%9D%E4%B8%AD%E7%9A%84%E8%BE%85%E5%8A%A9%E6%95%B0%E6%8D%AE"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 音视频通话中的辅助数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%85%B3%E9%94%AE-RFC-%E4%B8%8E%E8%A7%84%E8%8C%83%E7%B4%A2%E5%BC%95"><span class="toc-number">12.</span> <span class="toc-text">11. 关键 RFC 与规范索引</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">小结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        DataChannel —— WebRTC 数据通道详解
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-31T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-07-31</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-datachannel">概述：为什么需要 DataChannel</a></li>
+<li><a href="#2-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E6%9E%B6%E6%9E%84">协议栈与架构</a></li>
+<li><a href="#3-sctp-%E5%9C%A8-webrtc-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2">SCTP 在 WebRTC 中的角色</a></li>
+<li><a href="#4-datachannel-%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AEdcep">DataChannel 建立协议（DCEP）</a></li>
+<li><a href="#5-%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E4%BC%A0%E8%BE%93%E8%AF%AD%E4%B9%89">可靠性模型与传输语义</a></li>
+<li><a href="#6-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+<li><a href="#7-rtcdatachannel-web-api">RTCDataChannel Web API</a></li>
+<li><a href="#8-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%83%8C%E5%8E%8B">流量控制与背压</a></li>
+<li><a href="#9-%E5%AE%89%E5%85%A8%E6%80%A7">安全性</a></li>
+<li><a href="#10-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">典型应用场景与最佳实践</a></li>
+<li><a href="#11-%E5%85%B3%E9%94%AE-rfc-%E4%B8%8E%E8%A7%84%E8%8C%83%E7%B4%A2%E5%BC%95">关键 RFC 与规范索引</a></li>
+</ol>
+<hr>
+<h1 id="1-概述：为什么需要-DataChannel"><a href="#1-概述：为什么需要-DataChannel" class="headerlink" title="1. 概述：为什么需要 DataChannel"></a>1. 概述：为什么需要 DataChannel</h1><p>WebRTC 的初期印象往往是”浏览器视频通话”，但其规范同时定义了一套完整的<strong>任意数据对等传输</strong>机制：DataChannel。</p>
+<h3 id="1-1-与现有方案的对比"><a href="#1-1-与现有方案的对比" class="headerlink" title="1.1 与现有方案的对比"></a>1.1 与现有方案的对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>WebSocket</th>
+<th>HTTP&#x2F;AJAX</th>
+<th>DataChannel</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>传输方向</td>
+<td>双向（Client ↔ Server）</td>
+<td>单向请求&#x2F;响应</td>
+<td>双向（Peer ↔ Peer）</td>
+</tr>
+<tr>
+<td>拓扑</td>
+<td>必须经过服务器</td>
+<td>必须经过服务器</td>
+<td><strong>真正 P2P</strong>，无需中间服务器</td>
+</tr>
+<tr>
+<td>底层协议</td>
+<td>TCP</td>
+<td>TCP</td>
+<td><strong>SCTP over DTLS over UDP</strong></td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>仅可靠有序</td>
+<td>仅可靠有序</td>
+<td><strong>可配置</strong>（可靠&#x2F;部分可靠&#x2F;不可靠）</td>
+</tr>
+<tr>
+<td>加密</td>
+<td>TLS（可选）</td>
+<td>TLS（可选）</td>
+<td><strong>DTLS 强制</strong></td>
+</tr>
+<tr>
+<td>延迟</td>
+<td>受 TCP 队头阻塞影响</td>
+<td>受 TCP 队头阻塞影响</td>
+<td><strong>低</strong>，基于 UDP，无队头阻塞</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-核心价值"><a href="#1-2-核心价值" class="headerlink" title="1.2 核心价值"></a>1.2 核心价值</h3><p>DataChannel 的设计目标来自 RFC 8831 定义的实际需求：</p>
+<ul>
+<li><strong>实时游戏</strong>：通过一个或多个不可靠数据通道发送位置和对象状态信息</li>
+<li><strong>P2P 文件传输</strong>：不经过服务器，直接在浏览器间传输文件</li>
+<li><strong>实时文本聊天</strong>：作为音视频通话的配套文字频道</li>
+<li><strong>协同编辑</strong>：低延迟同步编辑操作</li>
+<li><strong>IoT &#x2F; 遥测</strong>：传输传感器数据或控制指令</li>
+</ul>
+<p>单个 <code>RTCPeerConnection</code> 最多可同时创建 <strong>65,534</strong> 个 DataChannel，这为多路复用提供了充足空间。</p>
+<hr>
+<h1 id="2-协议栈与架构"><a href="#2-协议栈与架构" class="headerlink" title="2. 协议栈与架构"></a>2. 协议栈与架构</h1><p>DataChannel 的协议栈是一个精心设计的分层结构，每一层解决不同的问题：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">+-----------------------------------+</span><br><span class="line">|         Web Application           |  ← 应用层（JavaScript）</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|          DataChannel API          |  ← RTCDataChannel 接口</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|    DCEP (Data Channel Est. Proto) |  ← 通道建立协议（RFC 8832）</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|               SCTP                |  ← 流控制传输协议（RFC 4960）</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|               DTLS                |  ← 数据报传输层安全（RFC 6347）</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|               ICE                 |  ← 交互式连通性建立（RFC 8445）</span><br><span class="line">+-----------------------------------+</span><br><span class="line">|           UDP / IP                |  ← 网络层</span><br><span class="line">+-----------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>与媒体传输（RTP&#x2F;SRTP）类似，DataChannel 共享同一个 <code>RTCPeerConnection</code>，因此可以<strong>复用相同的 ICE 候选和 DTLS 握手</strong>，无需额外的连接建立开销。在实现层面，SCTP 关联和媒体传输可以共享同一个 UDP 端口，这是通过 DTLS 层的多路复用完成的。</p>
+<hr>
+<h1 id="3-SCTP-在-WebRTC-中的角色"><a href="#3-SCTP-在-WebRTC-中的角色" class="headerlink" title="3. SCTP 在 WebRTC 中的角色"></a>3. SCTP 在 WebRTC 中的角色</h1><h3 id="3-1-为什么选择-SCTP"><a href="#3-1-为什么选择-SCTP" class="headerlink" title="3.1 为什么选择 SCTP"></a>3.1 为什么选择 SCTP</h3><p>WebRTC DataChannel 选择 SCTP（Stream Control Transmission Protocol，RFC 4960）而非 TCP 或 UDP，原因在于 SCTP 天然具备以下特性，精确匹配 DataChannel 的需求：</p>
+<p><strong>多流（Multi-streaming）</strong>：SCTP 在单个关联（Association）内支持多个独立的流（Stream），每个流可以独立配置可靠性和顺序性。WebRTC 的每个 DataChannel 正是对应一个 SCTP 流。这样，一个大文件的传输不会阻塞同一连接上的游戏状态消息。</p>
+<p><strong>消息边界保留</strong>：与 TCP 的字节流不同，SCTP 是面向消息的协议，发送方发送一条消息，接收方就完整收到一条消息，无需应用层自己处理粘包&#x2F;拆包。</p>
+<p><strong>原生可靠性配置</strong>：通过 PR-SCTP（Partial Reliability SCTP，RFC 3758），SCTP 支持部分可靠传输，可以按重传次数或超时时间限制重传。</p>
+<p><strong>头部阻塞规避</strong>：由于 SCTP 运行在 UDP 之上，不同流之间相互独立，避免了 TCP 的队头阻塞（Head-of-Line Blocking）。</p>
+<h3 id="3-2-WebRTC-对-SCTP-的裁剪"><a href="#3-2-WebRTC-对-SCTP-的裁剪" class="headerlink" title="3.2 WebRTC 对 SCTP 的裁剪"></a>3.2 WebRTC 对 SCTP 的裁剪</h3><p>WebRTC 并未使用 SCTP 的全部特性。具体地，WebRTC <strong>不使用</strong> SCTP 的多宿主（Multi-homing）功能，路径选择交由 ICE 负责。WebRTC 使用的 SCTP 关键扩展如下：</p>
+<table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>扩展</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RFC 3758</td>
+<td>PR-SCTP</td>
+<td>部分可靠传输</td>
+</tr>
+<tr>
+<td>RFC 6525</td>
+<td>Re-configuration</td>
+<td>动态增加流数量；重置单个流（关闭 DataChannel）</td>
+</tr>
+<tr>
+<td>RFC 8260</td>
+<td>I-DATA &#x2F; 消息交织</td>
+<td>避免大消息独占关联，支持流优先级调度</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-SCTP-的-PPID（Payload-Protocol-Identifier）"><a href="#3-3-SCTP-的-PPID（Payload-Protocol-Identifier）" class="headerlink" title="3.3 SCTP 的 PPID（Payload Protocol Identifier）"></a>3.3 SCTP 的 PPID（Payload Protocol Identifier）</h3><p>SCTP 用 PPID 区分不同上层协议的数据。WebRTC 中使用以下五个 PPID：</p>
+<table>
+<thead>
+<tr>
+<th>PPID 值</th>
+<th>名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>50</td>
+<td>WebRTC DCEP</td>
+<td>DataChannel 建立协议消息</td>
+</tr>
+<tr>
+<td>51</td>
+<td>WebRTC String</td>
+<td>DataChannel 字符串消息（UTF-8）</td>
+</tr>
+<tr>
+<td>53</td>
+<td>WebRTC Binary</td>
+<td>DataChannel 二进制消息</td>
+</tr>
+<tr>
+<td>56</td>
+<td>WebRTC String Empty</td>
+<td>空字符串消息（SCTP 不支持发送空消息，故特殊处理）</td>
+</tr>
+<tr>
+<td>57</td>
+<td>WebRTC Binary Empty</td>
+<td>空二进制消息</td>
+</tr>
+</tbody></table>
+<p>注意：PPID 在 JavaScript API 层面<strong>不可直接访问</strong>，由浏览器底层自动处理。</p>
+<h3 id="3-4-消息大小与交织"><a href="#3-4-消息大小与交织" class="headerlink" title="3.4 消息大小与交织"></a>3.4 消息大小与交织</h3><p>RFC 8831 指出，SCTP 基础协议（RFC 4960）<strong>不支持用户消息交织</strong>。这意味着发送一条大消息时，会独占整个 SCTP 关联，阻塞其他流的消息。为此：</p>
+<ul>
+<li>应用<strong>应当</strong>启用 RFC 8260 定义的消息交织扩展（<code>I-DATA</code> chunk）</li>
+<li>若交织扩展不可用，发送方<strong>应当</strong>将单条消息大小限制在 <strong>16 KB</strong> 以下</li>
+<li>最大消息大小可通过 SDP 的 <code>max-message-size</code> 属性（RFC 8841）协商，默认值为 <strong>64 KB</strong>；设为 0 表示不限大小</li>
+</ul>
+<hr>
+<h1 id="4-DataChannel-建立协议（DCEP）"><a href="#4-DataChannel-建立协议（DCEP）" class="headerlink" title="4. DataChannel 建立协议（DCEP）"></a>4. DataChannel 建立协议（DCEP）</h1><p>DCEP（Data Channel Establishment Protocol）由 RFC 8832 定义，是在 SCTP 关联建立后，用于<strong>协商单个 DataChannel 参数</strong>的应用层协议。</p>
+<h3 id="4-1-带内协商（In-band-Negotiation）"><a href="#4-1-带内协商（In-band-Negotiation）" class="headerlink" title="4.1 带内协商（In-band Negotiation）"></a>4.1 带内协商（In-band Negotiation）</h3><p>这是默认方式，由浏览器自动完成，无需开发者干预。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">浏览器 A（DTLS 客户端）        浏览器 B（DTLS 服务端）</span><br><span class="line">     |                              |</span><br><span class="line">     |--- DATA_CHANNEL_OPEN -------&gt;|   （PPID=50，偶数流 ID）</span><br><span class="line">     |                              |</span><br><span class="line">     |&lt;-- DATA_CHANNEL_ACK ---------|   （同一流 ID 上返回）</span><br><span class="line">     |                              |</span><br><span class="line">     |=== DataChannel 正式开放 ======|</span><br><span class="line">     |--- 用户数据（PPID=51/53）-----&gt;|</span><br></pre></td></tr></table></figure>
+
+<p><strong>流 ID 的奇偶性规则</strong>（RFC 8832）：为避免双方同时打开时的流 ID 冲突：</p>
+<ul>
+<li>DTLS 客户端一方：使用<strong>偶数</strong>流 ID（0, 2, 4, …）发送 <code>DATA_CHANNEL_OPEN</code></li>
+<li>DTLS 服务端一方：使用<strong>奇数</strong>流 ID（1, 3, 5, …）发送 <code>DATA_CHANNEL_OPEN</code></li>
+</ul>
+<p>开启方可以在收到 <code>DATA_CHANNEL_ACK</code> 之前就开始发送用户数据，降低握手延迟。</p>
+<h3 id="4-2-DATA-CHANNEL-OPEN-消息格式"><a href="#4-2-DATA-CHANNEL-OPEN-消息格式" class="headerlink" title="4.2 DATA_CHANNEL_OPEN 消息格式"></a>4.2 DATA_CHANNEL_OPEN 消息格式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">| Message Type  |  Channel Type |            Priority           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                    Reliability Parameter                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|         Label Length          |       Protocol Length         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                                                               |</span><br><span class="line">|                             Label                             |</span><br><span class="line">|                                                               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                                                               |</span><br><span class="line">|                            Protocol                           |</span><br><span class="line">|                                                               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>各字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Message Type</code></td>
+<td>固定为 <code>0x03</code>（OPEN）</td>
+</tr>
+<tr>
+<td><code>Channel Type</code></td>
+<td>通道可靠性类型（见下一节）</td>
+</tr>
+<tr>
+<td><code>Priority</code></td>
+<td>优先级，建议取值：128（低）、256（普通）、512（高）、1024（极高）</td>
+</tr>
+<tr>
+<td><code>Reliability Parameter</code></td>
+<td>若为 REXMIT 类型则为最大重传次数；若为 TIMED 则为超时毫秒数</td>
+</tr>
+<tr>
+<td><code>Label</code></td>
+<td>通道名称（UTF-8，可为空）</td>
+</tr>
+<tr>
+<td><code>Protocol</code></td>
+<td>子协议名（参照 WebSocket 子协议注册表，RFC 6455）</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-带外协商（Out-of-band-Negotiation）"><a href="#4-3-带外协商（Out-of-band-Negotiation）" class="headerlink" title="4.3 带外协商（Out-of-band Negotiation）"></a>4.3 带外协商（Out-of-band Negotiation）</h3><p>当开发者在 <code>createDataChannel()</code> 中指定 <code>negotiated: true</code> 并手动提供 <code>id</code> 时，双方跳过 DCEP 握手，直接在应用层约定参数。此方式更灵活，可以让两端的通道拥有不同属性，或通过 SDP 的 <code>a=dcmap</code> 属性（RFC 8864）进行声明式协商。</p>
+<hr>
+<h1 id="5-可靠性模型与传输语义"><a href="#5-可靠性模型与传输语义" class="headerlink" title="5. 可靠性模型与传输语义"></a>5. 可靠性模型与传输语义</h1><p>这是 DataChannel 相比 WebSocket 最核心的差异化能力。DataChannel 支持三大类传输语义，通过 <code>createDataChannel()</code> 的选项控制。</p>
+<h3 id="5-1-Channel-Type-枚举（来自-RFC-8832）"><a href="#5-1-Channel-Type-枚举（来自-RFC-8832）" class="headerlink" title="5.1 Channel Type 枚举（来自 RFC 8832）"></a>5.1 Channel Type 枚举（来自 RFC 8832）</h3><table>
+<thead>
+<tr>
+<th>Channel Type 值</th>
+<th>可靠性</th>
+<th>顺序性</th>
+<th>Reliability Parameter</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0x00</code> DATA_CHANNEL_RELIABLE</td>
+<td>完全可靠</td>
+<td>有序</td>
+<td>忽略</td>
+</tr>
+<tr>
+<td><code>0x80</code> DATA_CHANNEL_RELIABLE_UNORDERED</td>
+<td>完全可靠</td>
+<td><strong>无序</strong></td>
+<td>忽略</td>
+</tr>
+<tr>
+<td><code>0x01</code> DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT</td>
+<td>部分可靠（按重传次数）</td>
+<td>有序</td>
+<td>最大重传次数</td>
+</tr>
+<tr>
+<td><code>0x81</code> DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT_UNORDERED</td>
+<td>部分可靠（按重传次数）</td>
+<td><strong>无序</strong></td>
+<td>最大重传次数</td>
+</tr>
+<tr>
+<td><code>0x02</code> DATA_CHANNEL_PARTIAL_RELIABLE_TIMED</td>
+<td>部分可靠（按超时）</td>
+<td>有序</td>
+<td>超时毫秒数</td>
+</tr>
+<tr>
+<td><code>0x82</code> DATA_CHANNEL_PARTIAL_RELIABLE_TIMED_UNORDERED</td>
+<td>部分可靠（按超时）</td>
+<td><strong>无序</strong></td>
+<td>超时毫秒数</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-三种模式详解"><a href="#5-2-三种模式详解" class="headerlink" title="5.2 三种模式详解"></a>5.2 三种模式详解</h3><p><strong>模式一：完全可靠有序（TCP-like，默认）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;chat&quot;</span>);</span><br><span class="line"><span class="comment">// 等价于：&#123; ordered: true, maxRetransmits: null, maxPacketLifeTime: null &#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>适用场景：聊天消息、文件传输、信令数据。消息保证送达且按序交付，但在高丢包网络下延迟可能较高（类似 TCP 的行为）。</p>
+<p><strong>模式二：完全可靠无序</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;reliable-unordered&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>消息保证全部送达，但不保证顺序。适用于每条消息相互独立、无序关系的场景，例如独立的事务请求。相比有序模式，避免了队头阻塞：一条消息的丢失不会阻塞后续消息的交付。</p>
+<p><strong>模式三：部分可靠（按重传次数）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;game-state&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">maxRetransmits</span>: <span class="number">0</span>  <span class="comment">// 不重传，即 UDP-like</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;important-but-not-critical&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">maxRetransmits</span>: <span class="number">3</span>  <span class="comment">// 最多重传 3 次</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>maxRetransmits: 0</code> 相当于纯 UDP 语义：发送后不等待 ACK，不重传。适合游戏中的位置更新、鼠标坐标等”旧数据没有意义”的场景。</p>
+<p><strong>模式四：部分可靠（按超时）</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;realtime-control&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">maxPacketLifeTime</span>: <span class="number">500</span>  <span class="comment">// 500ms 内若未送达则放弃</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>发送方在 <code>maxPacketLifeTime</code> 毫秒后停止重传该消息。适合对新鲜度敏感但又比纯 UDP 稍微可靠一些的数据。</p>
+<blockquote>
+<p><strong>注意</strong>：<code>maxRetransmits</code> 和 <code>maxPacketLifeTime</code> 不能同时设置，二者互斥（RFC 8832）。</p>
+</blockquote>
+<h3 id="5-3-如何选择传输模式"><a href="#5-3-如何选择传输模式" class="headerlink" title="5.3 如何选择传输模式"></a>5.3 如何选择传输模式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">                     是否允许数据丢失？</span><br><span class="line">                    /               \</span><br><span class="line">                  否                 是</span><br><span class="line">                  |                  |</span><br><span class="line">         是否要求严格顺序？     是否需要限制延迟？</span><br><span class="line">        /          \              /        \</span><br><span class="line">      是            否          按超时      按次数</span><br><span class="line">      |              |         限制         限制</span><br><span class="line">RELIABLE         RELIABLE   TIMED         REXMIT</span><br><span class="line">(默认)          _UNORDERED  _UNORDERED    _UNORDERED</span><br><span class="line">                            (游戏实时状态) (容忍少量丢失)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="6-SDP-协商"><a href="#6-SDP-协商" class="headerlink" title="6. SDP 协商"></a>6. SDP 协商</h1><h3 id="6-1-m-行格式"><a href="#6-1-m-行格式" class="headerlink" title="6.1 m&#x3D; 行格式"></a>6.1 m&#x3D; 行格式</h3><p>DataChannel 在 SDP 中通过一个独立的 <code>m=application</code> 行表示（RFC 8841）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">m=application 54111 UDP/DTLS/SCTP webrtc-datachannel</span><br><span class="line">c=IN IP4 192.0.2.1</span><br><span class="line">a=max-message-size:262144</span><br><span class="line">a=sctp-port:5000</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=fingerprint:SHA-256 A1:B2:C3:...</span><br></pre></td></tr></table></figure>
+
+<p>各关键属性说明：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>UDP/DTLS/SCTP</code></td>
+<td>协议栈：UDP 承载 DTLS，DTLS 承载 SCTP</td>
+</tr>
+<tr>
+<td><code>webrtc-datachannel</code></td>
+<td>媒体格式标识符，固定值</td>
+</tr>
+<tr>
+<td><code>a=sctp-port</code></td>
+<td>SCTP 端口（逻辑端口，不是 UDP 端口）</td>
+</tr>
+<tr>
+<td><code>a=max-message-size</code></td>
+<td>本端愿意接收的最大 SCTP 消息大小（字节），0 表示不限</td>
+</tr>
+<tr>
+<td><code>a=setup</code></td>
+<td>DTLS 角色协商（actpass&#x2F;active&#x2F;passive）</td>
+</tr>
+</tbody></table>
+<p>一个 DTLS 关联上只能建立<strong>一个</strong> SCTP 关联，但该 SCTP 关联可以承载所有 DataChannel。</p>
+<h3 id="6-2-SDP-带外协商（RFC-8864）"><a href="#6-2-SDP-带外协商（RFC-8864）" class="headerlink" title="6.2 SDP 带外协商（RFC 8864）"></a>6.2 SDP 带外协商（RFC 8864）</h3><p>当使用 <code>negotiated: true</code> 进行带外协商时，DataChannel 的映射关系通过 <code>a=dcmap</code> 属性声明：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">m=application 54111 UDP/DTLS/SCTP webrtc-datachannel</span><br><span class="line">a=sctp-port:5000</span><br><span class="line">a=max-message-size:100000</span><br><span class="line">a=dcmap:2 subprotocol=&quot;chat&quot;;label=&quot;main-chat&quot;;ordered=true</span><br><span class="line">a=dcmap:4 subprotocol=&quot;game&quot;;label=&quot;game-state&quot;;ordered=false</span><br></pre></td></tr></table></figure>
+
+<p><code>a=dcmap</code> 的格式为：<code>a=dcmap:&lt;stream-id&gt; [属性列表]</code>。</p>
+<hr>
+<h1 id="7-RTCDataChannel-Web-API"><a href="#7-RTCDataChannel-Web-API" class="headerlink" title="7. RTCDataChannel Web API"></a>7. RTCDataChannel Web API</h1><h3 id="7-1-创建-DataChannel"><a href="#7-1-创建-DataChannel" class="headerlink" title="7.1 创建 DataChannel"></a>7.1 创建 DataChannel</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 发起方（Offerer）创建 DataChannel</span></span><br><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>(configuration);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带内协商（默认，浏览器自动完成 DCEP 握手）</span></span><br><span class="line"><span class="keyword">const</span> dc = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;my-channel&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">true</span>,           <span class="comment">// 是否有序（默认 true）</span></span><br><span class="line">  <span class="attr">maxRetransmits</span>: <span class="literal">null</span>,    <span class="comment">// 最大重传次数（与 maxPacketLifeTime 互斥）</span></span><br><span class="line">  <span class="attr">maxPacketLifeTime</span>: <span class="literal">null</span>, <span class="comment">// 最大传输时间（ms，与 maxRetransmits 互斥）</span></span><br><span class="line">  <span class="attr">negotiated</span>: <span class="literal">false</span>,       <span class="comment">// 是否带外协商（默认 false）</span></span><br><span class="line">  <span class="attr">id</span>: <span class="literal">null</span>,                <span class="comment">// 流 ID（带外协商时必须指定）</span></span><br><span class="line">  <span class="attr">protocol</span>: <span class="string">&quot;&quot;</span>,            <span class="comment">// 子协议名</span></span><br><span class="line">  <span class="attr">priority</span>: <span class="string">&quot;low&quot;</span>,         <span class="comment">// 优先级：&quot;very-low&quot;|&quot;low&quot;|&quot;medium&quot;|&quot;high&quot;</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>接收方监听 <code>datachannel</code> 事件：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 接收方（Answerer）</span></span><br><span class="line">pc.<span class="title function_">addEventListener</span>(<span class="string">&quot;datachannel&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> dc = event.<span class="property">channel</span>;</span><br><span class="line">  <span class="title function_">setupDataChannel</span>(dc);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-关键属性"><a href="#7-2-关键属性" class="headerlink" title="7.2 关键属性"></a>7.2 关键属性</h3><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td>通道名称，只读</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td><code>number</code></td>
+<td>SCTP 流 ID（0–65534），只读</td>
+</tr>
+<tr>
+<td><code>readyState</code></td>
+<td><code>string</code></td>
+<td><code>connecting</code> &#x2F; <code>open</code> &#x2F; <code>closing</code> &#x2F; <code>closed</code></td>
+</tr>
+<tr>
+<td><code>ordered</code></td>
+<td><code>boolean</code></td>
+<td>是否有序交付，只读</td>
+</tr>
+<tr>
+<td><code>maxRetransmits</code></td>
+<td><code>number|null</code></td>
+<td>最大重传次数，只读</td>
+</tr>
+<tr>
+<td><code>maxPacketLifeTime</code></td>
+<td><code>number|null</code></td>
+<td>最大传输时间（ms），只读</td>
+</tr>
+<tr>
+<td><code>protocol</code></td>
+<td><code>string</code></td>
+<td>子协议名，只读</td>
+</tr>
+<tr>
+<td><code>negotiated</code></td>
+<td><code>boolean</code></td>
+<td>是否带外协商，只读</td>
+</tr>
+<tr>
+<td><code>bufferedAmount</code></td>
+<td><code>number</code></td>
+<td>当前待发送缓冲区字节数，只读</td>
+</tr>
+<tr>
+<td><code>bufferedAmountLowThreshold</code></td>
+<td><code>number</code></td>
+<td>触发 <code>bufferedamountlow</code> 事件的阈值，可读写</td>
+</tr>
+<tr>
+<td><code>binaryType</code></td>
+<td><code>string</code></td>
+<td>接收二进制数据的类型：<code>&quot;blob&quot;</code> 或 <code>&quot;arraybuffer&quot;</code></td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td><code>string</code></td>
+<td><code>&quot;very-low&quot;</code> &#x2F; <code>&quot;low&quot;</code> &#x2F; <code>&quot;medium&quot;</code> &#x2F; <code>&quot;high&quot;</code></td>
+</tr>
+</tbody></table>
+<h3 id="7-3-事件"><a href="#7-3-事件" class="headerlink" title="7.3 事件"></a>7.3 事件</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">setupDataChannel</span>(<span class="params">dc</span>) &#123;</span><br><span class="line">  dc.<span class="property">binaryType</span> = <span class="string">&quot;arraybuffer&quot;</span>; <span class="comment">// 推荐统一设为 arraybuffer</span></span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;open&quot;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;DataChannel 已打开&quot;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;message&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> event.<span class="property">data</span> === <span class="string">&quot;string&quot;</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到文本:&quot;</span>, event.<span class="property">data</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;收到二进制:&quot;</span>, event.<span class="property">data</span>); <span class="comment">// ArrayBuffer</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;bufferedamountlow&quot;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 缓冲区已降至阈值以下，可以恢复发送</span></span><br><span class="line">    <span class="title function_">resumeSending</span>();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;error&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&quot;DataChannel 错误:&quot;</span>, event.<span class="property">error</span>);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;close&quot;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;DataChannel 已关闭&quot;</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-发送数据"><a href="#7-4-发送数据" class="headerlink" title="7.4 发送数据"></a>7.4 发送数据</h3><p><code>send()</code> 方法支持多种数据类型：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 发送文本（自动编码为 UTF-8）</span></span><br><span class="line">dc.<span class="title function_">send</span>(<span class="string">&quot;Hello, World!&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 JSON</span></span><br><span class="line">dc.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; <span class="attr">type</span>: <span class="string">&quot;position&quot;</span>, <span class="attr">x</span>: <span class="number">100</span>, <span class="attr">y</span>: <span class="number">200</span> &#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 ArrayBuffer（推荐用于二进制数据）</span></span><br><span class="line"><span class="keyword">const</span> buffer = <span class="keyword">new</span> <span class="title class_">ArrayBuffer</span>(<span class="number">16</span>);</span><br><span class="line"><span class="keyword">const</span> view = <span class="keyword">new</span> <span class="title class_">Uint8Array</span>(buffer);</span><br><span class="line">dc.<span class="title function_">send</span>(buffer);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 TypedArray</span></span><br><span class="line">dc.<span class="title function_">send</span>(<span class="keyword">new</span> <span class="title class_">Uint8Array</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 Blob（适合文件数据）</span></span><br><span class="line">dc.<span class="title function_">send</span>(<span class="keyword">new</span> <span class="title class_">Blob</span>([fileData], &#123; <span class="attr">type</span>: <span class="string">&quot;application/octet-stream&quot;</span> &#125;));</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-关闭-DataChannel"><a href="#7-5-关闭-DataChannel" class="headerlink" title="7.5 关闭 DataChannel"></a>7.5 关闭 DataChannel</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dc.<span class="title function_">close</span>();</span><br><span class="line"><span class="comment">// readyState 变为 &quot;closing&quot;，然后 &quot;closed&quot;</span></span><br><span class="line"><span class="comment">// 底层通过 SCTP 的 Stream Reset（RFC 6525）关闭对应流</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="8-流量控制与背压"><a href="#8-流量控制与背压" class="headerlink" title="8. 流量控制与背压"></a>8. 流量控制与背压</h1><p>DataChannel 的发送是<strong>异步</strong>的。调用 <code>send()</code> 后数据进入发送缓冲区，由浏览器在事件循环中实际发出。在网络速度跟不上发送速度时，缓冲区会持续增长，最终耗尽内存。因此，应用层<strong>必须</strong>实现背压（Backpressure）控制。</p>
+<h3 id="8-1-基于-bufferedAmount-的背压控制"><a href="#8-1-基于-bufferedAmount-的背压控制" class="headerlink" title="8.1 基于 bufferedAmount 的背压控制"></a>8.1 基于 bufferedAmount 的背压控制</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">BUFFER_THRESHOLD</span> = <span class="number">16</span> * <span class="number">1024</span>; <span class="comment">// 16 KB</span></span><br><span class="line">dc.<span class="property">bufferedAmountLowThreshold</span> = <span class="variable constant_">BUFFER_THRESHOLD</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sendChunk</span>(<span class="params">data</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (dc.<span class="property">bufferedAmount</span> &gt; <span class="variable constant_">BUFFER_THRESHOLD</span>) &#123;</span><br><span class="line">    <span class="comment">// 缓冲区过大，暂停发送，等待 bufferedamountlow 事件</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  dc.<span class="title function_">send</span>(data);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;bufferedamountlow&quot;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 缓冲区已降至阈值，恢复发送</span></span><br><span class="line">  <span class="title function_">sendNextChunk</span>();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-大文件分片传输"><a href="#8-2-大文件分片传输" class="headerlink" title="8.2 大文件分片传输"></a>8.2 大文件分片传输</h3><p>由于单条消息大小的跨浏览器兼容性问题（RFC 8831 建议未开启消息交织时限制在 16 KB），大文件传输需要在应用层分片：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">CHUNK_SIZE</span> = <span class="number">16</span> * <span class="number">1024</span>; <span class="comment">// 16 KB，最稳妥的跨浏览器值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">sendFile</span>(<span class="params">dc, file</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> totalChunks = <span class="title class_">Math</span>.<span class="title function_">ceil</span>(file.<span class="property">size</span> / <span class="variable constant_">CHUNK_SIZE</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 发送元数据头</span></span><br><span class="line">  dc.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;file-meta&quot;</span>,</span><br><span class="line">    <span class="attr">name</span>: file.<span class="property">name</span>,</span><br><span class="line">    <span class="attr">size</span>: file.<span class="property">size</span>,</span><br><span class="line">    totalChunks,</span><br><span class="line">  &#125;));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> offset = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">let</span> chunkIndex = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (offset &lt; file.<span class="property">size</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> slice = file.<span class="title function_">slice</span>(offset, offset + <span class="variable constant_">CHUNK_SIZE</span>);</span><br><span class="line">    <span class="keyword">const</span> buffer = <span class="keyword">await</span> slice.<span class="title function_">arrayBuffer</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 背压控制</span></span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">waitForBuffer</span>(dc);</span><br><span class="line">    dc.<span class="title function_">send</span>(buffer);</span><br><span class="line"></span><br><span class="line">    offset += <span class="variable constant_">CHUNK_SIZE</span>;</span><br><span class="line">    chunkIndex++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可选：发送进度通知</span></span><br><span class="line">    <span class="keyword">const</span> progress = <span class="title class_">Math</span>.<span class="title function_">round</span>((chunkIndex / totalChunks) * <span class="number">100</span>);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`发送进度: <span class="subst">$&#123;progress&#125;</span>%`</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  dc.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; <span class="attr">type</span>: <span class="string">&quot;file-end&quot;</span> &#125;));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">waitForBuffer</span>(<span class="params">dc</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (dc.<span class="property">bufferedAmount</span> &lt;= dc.<span class="property">bufferedAmountLowThreshold</span>) &#123;</span><br><span class="line">      <span class="title function_">resolve</span>();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;bufferedamountlow&quot;</span>, resolve, &#123; <span class="attr">once</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-多通道分离关注点"><a href="#8-3-多通道分离关注点" class="headerlink" title="8.3 多通道分离关注点"></a>8.3 多通道分离关注点</h3><p>一个最佳实践是<strong>为不同类型的数据开辟独立的 DataChannel</strong>，而不是混用一个通道：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 控制/信令通道：可靠有序，优先级高</span></span><br><span class="line"><span class="keyword">const</span> controlChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;control&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">priority</span>: <span class="string">&quot;high&quot;</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 游戏状态通道：不可靠无序，优先级普通</span></span><br><span class="line"><span class="keyword">const</span> stateChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;game-state&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">maxPacketLifeTime</span>: <span class="number">100</span>,</span><br><span class="line">  <span class="attr">priority</span>: <span class="string">&quot;medium&quot;</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 文件传输通道：可靠有序，优先级低</span></span><br><span class="line"><span class="keyword">const</span> fileChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;file-transfer&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">priority</span>: <span class="string">&quot;low&quot;</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这样，高优先级的控制消息不会被低优先级的大文件传输阻塞（SCTP RFC 8260 调度器保证）。</p>
+<hr>
+<h1 id="9-安全性"><a href="#9-安全性" class="headerlink" title="9. 安全性"></a>9. 安全性</h1><h3 id="9-1-强制-DTLS-加密"><a href="#9-1-强制-DTLS-加密" class="headerlink" title="9.1 强制 DTLS 加密"></a>9.1 强制 DTLS 加密</h3><p>RFC 8831 明确要求：DataChannel 的所有数据<strong>必须</strong>通过 DTLS 加密传输。DTLS 保护完整的 SCTP 数据包，提供以下安全保证：</p>
+<ul>
+<li><strong>机密性</strong>：数据内容对中间人不可见</li>
+<li><strong>完整性</strong>：数据不可被篡改</li>
+<li><strong>源认证</strong>：通过证书指纹（<code>a=fingerprint</code>）验证对端身份</li>
+</ul>
+<p>DTLS 的安全性等同于 HTTPS&#x2F;TLS，因为它基于相同的 TLS 密码套件。</p>
+<h3 id="9-2-P2P-传输的隐私优势"><a href="#9-2-P2P-传输的隐私优势" class="headerlink" title="9.2 P2P 传输的隐私优势"></a>9.2 P2P 传输的隐私优势</h3><p>由于 DataChannel 是真正的点对点传输（直连时），数据<strong>不经过任何服务器</strong>。即使是应用的后端服务器也无法监听传输内容。这使得 DataChannel 非常适合端到端加密的私密通信场景。</p>
+<p>当然，若 ICE 无法直连而需要 TURN 中继，数据会经过 TURN 服务器，但 DTLS 层的加密保证了 TURN 服务器也无法解密内容。</p>
+<h3 id="9-3-应用层安全注意事项"><a href="#9-3-应用层安全注意事项" class="headerlink" title="9.3 应用层安全注意事项"></a>9.3 应用层安全注意事项</h3><p>DTLS 保护的是传输层安全，应用层仍需注意：</p>
+<ul>
+<li>对接收的消息进行严格的<strong>输入验证</strong>，不要盲目信任对端数据</li>
+<li>使用结构化消息格式（如带类型字段的 JSON 或自定义二进制协议），防止注入攻击</li>
+<li>若在 DataChannel 上实现子协议，应在 <code>protocol</code> 字段中声明，便于双方验证</li>
+</ul>
+<hr>
+<h1 id="10-典型应用场景与最佳实践"><a href="#10-典型应用场景与最佳实践" class="headerlink" title="10. 典型应用场景与最佳实践"></a>10. 典型应用场景与最佳实践</h1><h3 id="10-1-实时多人游戏"><a href="#10-1-实时多人游戏" class="headerlink" title="10.1 实时多人游戏"></a>10.1 实时多人游戏</h3><p>游戏场景对延迟极度敏感，通常将数据分为两类：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 位置/状态更新：无序不可靠，容忍丢失，只关心最新状态</span></span><br><span class="line"><span class="keyword">const</span> stateChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;state&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">maxRetransmits</span>: <span class="number">0</span>, <span class="comment">// 不重传</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 重要事件（击中、道具、技能）：可靠无序，不容忍丢失但无需严格顺序</span></span><br><span class="line"><span class="keyword">const</span> eventChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;events&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">false</span>, <span class="comment">// 无序避免队头阻塞</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 心跳/存活检测</span></span><br><span class="line"><span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (stateChannel.<span class="property">readyState</span> === <span class="string">&quot;open&quot;</span>) &#123;</span><br><span class="line">    stateChannel.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">      <span class="attr">type</span>: <span class="string">&quot;heartbeat&quot;</span>,</span><br><span class="line">      <span class="attr">timestamp</span>: <span class="title class_">Date</span>.<span class="title function_">now</span>(),</span><br><span class="line">    &#125;));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-P2P-文件传输"><a href="#10-2-P2P-文件传输" class="headerlink" title="10.2 P2P 文件传输"></a>10.2 P2P 文件传输</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 接收方：重组文件分片</span></span><br><span class="line"><span class="keyword">let</span> receivedChunks = [];</span><br><span class="line"><span class="keyword">let</span> fileMetadata = <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">let</span> receivedSize = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">dc.<span class="title function_">addEventListener</span>(<span class="string">&quot;message&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> event.<span class="property">data</span> === <span class="string">&quot;string&quot;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> msg = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(event.<span class="property">data</span>);</span><br><span class="line">    <span class="keyword">if</span> (msg.<span class="property">type</span> === <span class="string">&quot;file-meta&quot;</span>) &#123;</span><br><span class="line">      fileMetadata = msg;</span><br><span class="line">      receivedChunks = [];</span><br><span class="line">      receivedSize = <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (msg.<span class="property">type</span> === <span class="string">&quot;file-end&quot;</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> blob = <span class="keyword">new</span> <span class="title class_">Blob</span>(receivedChunks);</span><br><span class="line">      <span class="keyword">const</span> url = <span class="variable constant_">URL</span>.<span class="title function_">createObjectURL</span>(blob);</span><br><span class="line">      <span class="title function_">triggerDownload</span>(url, fileMetadata.<span class="property">name</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// ArrayBuffer 分片</span></span><br><span class="line">    receivedChunks.<span class="title function_">push</span>(event.<span class="property">data</span>);</span><br><span class="line">    receivedSize += event.<span class="property">data</span>.<span class="property">byteLength</span>;</span><br><span class="line">    <span class="keyword">const</span> progress = (receivedSize / fileMetadata.<span class="property">size</span> * <span class="number">100</span>).<span class="title function_">toFixed</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="title function_">updateProgressUI</span>(progress);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">triggerDownload</span>(<span class="params">url, filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> a = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">  a.<span class="property">href</span> = url;</span><br><span class="line">  a.<span class="property">download</span> = filename;</span><br><span class="line">  a.<span class="title function_">click</span>();</span><br><span class="line">  <span class="variable constant_">URL</span>.<span class="title function_">revokeObjectURL</span>(url);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-实时协同编辑"><a href="#10-3-实时协同编辑" class="headerlink" title="10.3 实时协同编辑"></a>10.3 实时协同编辑</h3><p>通过 DataChannel 同步操作变换（Operational Transformation）或 CRDT 数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> syncChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;ot-sync&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">ordered</span>: <span class="literal">true</span>, <span class="comment">// OT 依赖操作顺序</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">broadcastOperation</span>(<span class="params">op</span>) &#123;</span><br><span class="line">  syncChannel.<span class="title function_">send</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;operation&quot;</span>,</span><br><span class="line">    <span class="attr">op</span>: op,</span><br><span class="line">    <span class="attr">clock</span>: vectorClock.<span class="title function_">tick</span>(),</span><br><span class="line">    <span class="attr">author</span>: localUserId,</span><br><span class="line">  &#125;));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">syncChannel.<span class="title function_">addEventListener</span>(<span class="string">&quot;message&quot;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; type, op, clock, author &#125; = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(event.<span class="property">data</span>);</span><br><span class="line">  <span class="keyword">if</span> (type === <span class="string">&quot;operation&quot;</span> &amp;&amp; author !== localUserId) &#123;</span><br><span class="line">    <span class="title function_">applyRemoteOperation</span>(op, clock);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-4-音视频通话中的辅助数据"><a href="#10-4-音视频通话中的辅助数据" class="headerlink" title="10.4 音视频通话中的辅助数据"></a>10.4 音视频通话中的辅助数据</h3><p>DataChannel 最常见的搭配是与音视频流共存于同一 <code>RTCPeerConnection</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>(config);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加媒体轨道</span></span><br><span class="line"><span class="keyword">const</span> stream = <span class="keyword">await</span> navigator.<span class="property">mediaDevices</span>.<span class="title function_">getUserMedia</span>(&#123; <span class="attr">video</span>: <span class="literal">true</span>, <span class="attr">audio</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">stream.<span class="title function_">getTracks</span>().<span class="title function_">forEach</span>(<span class="function"><span class="params">track</span> =&gt;</span> pc.<span class="title function_">addTrack</span>(track, stream));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 同时创建数据通道</span></span><br><span class="line"><span class="keyword">const</span> chatChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;chat&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> fileChannel = pc.<span class="title function_">createDataChannel</span>(<span class="string">&quot;file-transfer&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 共享同一个 ICE 连接，无额外连接开销</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-关键-RFC-与规范索引"><a href="#11-关键-RFC-与规范索引" class="headerlink" title="11. 关键 RFC 与规范索引"></a>11. 关键 RFC 与规范索引</h1><p>深入理解 DataChannel 的标准依据：</p>
+<table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>核心内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RFC 8831</strong></td>
+<td>WebRTC Data Channels</td>
+<td>DataChannel 整体架构规范，SCTP 在 WebRTC 中的使用方式</td>
+</tr>
+<tr>
+<td><strong>RFC 8832</strong></td>
+<td>WebRTC Data Channel Establishment Protocol</td>
+<td>DCEP 协议，DATA_CHANNEL_OPEN&#x2F;ACK 消息格式</td>
+</tr>
+<tr>
+<td><strong>RFC 8841</strong></td>
+<td>SDP-Based “SCTP over DTLS” Data Channel Negotiation</td>
+<td>SDP m&#x3D;application 行格式，max-message-size 属性</td>
+</tr>
+<tr>
+<td><strong>RFC 8864</strong></td>
+<td>Negotiation Data Channels Using SDP</td>
+<td>带外协商，a&#x3D;dcmap 属性</td>
+</tr>
+<tr>
+<td><strong>RFC 8260</strong></td>
+<td>SCTP Stream Schedulers and User Message Interleaving</td>
+<td>消息交织，流优先级调度</td>
+</tr>
+<tr>
+<td><strong>RFC 4960</strong></td>
+<td>SCTP（Stream Control Transmission Protocol）</td>
+<td>SCTP 基础协议</td>
+</tr>
+<tr>
+<td><strong>RFC 3758</strong></td>
+<td>SCTP Partial Reliability Extension（PR-SCTP）</td>
+<td>部分可靠传输扩展</td>
+</tr>
+<tr>
+<td><strong>RFC 6525</strong></td>
+<td>SCTP Stream Reconfiguration</td>
+<td>流重置，用于关闭单个 DataChannel</td>
+</tr>
+<tr>
+<td><strong>RFC 8261</strong></td>
+<td>Datagram Transport Layer Security (DTLS) Encapsulation of SCTP Packets</td>
+<td>DTLS 封装 SCTP</td>
+</tr>
+<tr>
+<td><strong>W3C WebRTC</strong></td>
+<td><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/#rtcdatachannel">RTCDataChannel API 规范</a></td>
+<td>JavaScript API 定义</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>WebRTC DataChannel 将 SCTP 的多流、消息边界保留、可配置可靠性等特性，通过 DTLS 加密后搭载在 ICE 建立的 UDP 路径上，最终以简洁的 Web API 暴露给开发者。</p>
+<p>其核心价值在于三点：</p>
+<p><strong>真正的 P2P</strong>：数据直接在对等端间传输，不经过应用服务器，降低延迟并节省带宽成本。</p>
+<p><strong>灵活的可靠性</strong>：从完全可靠有序（类 TCP），到不可靠无序（类 UDP），到各种部分可靠模式，开发者可以精确匹配业务需求。游戏状态同步用不可靠通道降低延迟，文件传输用可靠通道保证完整性。</p>
+<p><strong>与媒体的无缝集成</strong>：DataChannel 与音视频轨道共享同一个 <code>RTCPeerConnection</code>，复用 ICE 和 DTLS 基础设施，无额外连接建立开销。</p>
+<p>在实际工程中，常见的坑是<strong>忽视背压控制</strong>，务必通过 <code>bufferedAmount</code> 和 <code>bufferedAmountLowThreshold</code> 实现发送节流，以及<strong>消息分片</strong>，单条消息保持在 16 KB 以内以获得最佳跨浏览器兼容性。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-DataChannel"><span class="toc-number">2.</span> <span class="toc-text">1. 概述：为什么需要 DataChannel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%8E%E7%8E%B0%E6%9C%89%E6%96%B9%E6%A1%88%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 与现有方案的对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%B8%E5%BF%83%E4%BB%B7%E5%80%BC"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 核心价值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E6%9E%B6%E6%9E%84"><span class="toc-number">3.</span> <span class="toc-text">2. 协议栈与架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SCTP-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">4.</span> <span class="toc-text">3. SCTP 在 WebRTC 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-SCTP"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 为什么选择 SCTP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-WebRTC-%E5%AF%B9-SCTP-%E7%9A%84%E8%A3%81%E5%89%AA"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 WebRTC 对 SCTP 的裁剪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-SCTP-%E7%9A%84-PPID%EF%BC%88Payload-Protocol-Identifier%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 SCTP 的 PPID（Payload Protocol Identifier）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%B6%88%E6%81%AF%E5%A4%A7%E5%B0%8F%E4%B8%8E%E4%BA%A4%E7%BB%87"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 消息大小与交织</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-DataChannel-%E5%BB%BA%E7%AB%8B%E5%8D%8F%E8%AE%AE%EF%BC%88DCEP%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. DataChannel 建立协议（DCEP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%B8%A6%E5%86%85%E5%8D%8F%E5%95%86%EF%BC%88In-band-Negotiation%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 带内协商（In-band Negotiation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-DATA-CHANNEL-OPEN-%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 DATA_CHANNEL_OPEN 消息格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B8%A6%E5%A4%96%E5%8D%8F%E5%95%86%EF%BC%88Out-of-band-Negotiation%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 带外协商（Out-of-band Negotiation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%A8%A1%E5%9E%8B%E4%B8%8E%E4%BC%A0%E8%BE%93%E8%AF%AD%E4%B9%89"><span class="toc-number">6.</span> <span class="toc-text">5. 可靠性模型与传输语义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Channel-Type-%E6%9E%9A%E4%B8%BE%EF%BC%88%E6%9D%A5%E8%87%AA-RFC-8832%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 Channel Type 枚举（来自 RFC 8832）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 三种模式详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 如何选择传输模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.</span> <span class="toc-text">6. SDP 协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-m-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 m&#x3D; 行格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SDP-%E5%B8%A6%E5%A4%96%E5%8D%8F%E5%95%86%EF%BC%88RFC-8864%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SDP 带外协商（RFC 8864）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-RTCDataChannel-Web-API"><span class="toc-number">8.</span> <span class="toc-text">7. RTCDataChannel Web API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%88%9B%E5%BB%BA-DataChannel"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 创建 DataChannel</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 关键属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%BA%8B%E4%BB%B6"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 事件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%8F%91%E9%80%81%E6%95%B0%E6%8D%AE"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 发送数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E5%85%B3%E9%97%AD-DataChannel"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 关闭 DataChannel</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%E4%B8%8E%E8%83%8C%E5%8E%8B"><span class="toc-number">9.</span> <span class="toc-text">8. 流量控制与背压</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%9F%BA%E4%BA%8E-bufferedAmount-%E7%9A%84%E8%83%8C%E5%8E%8B%E6%8E%A7%E5%88%B6"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 基于 bufferedAmount 的背压控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%A4%A7%E6%96%87%E4%BB%B6%E5%88%86%E7%89%87%E4%BC%A0%E8%BE%93"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 大文件分片传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%A4%9A%E9%80%9A%E9%81%93%E5%88%86%E7%A6%BB%E5%85%B3%E6%B3%A8%E7%82%B9"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 多通道分离关注点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">10.</span> <span class="toc-text">9. 安全性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%BC%BA%E5%88%B6-DTLS-%E5%8A%A0%E5%AF%86"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 强制 DTLS 加密</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-P2P-%E4%BC%A0%E8%BE%93%E7%9A%84%E9%9A%90%E7%A7%81%E4%BC%98%E5%8A%BF"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 P2P 传输的隐私优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%BA%94%E7%94%A8%E5%B1%82%E5%AE%89%E5%85%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 应用层安全注意事项</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 典型应用场景与最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%AE%9E%E6%97%B6%E5%A4%9A%E4%BA%BA%E6%B8%B8%E6%88%8F"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 实时多人游戏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-P2P-%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 P2P 文件传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%AE%9E%E6%97%B6%E5%8D%8F%E5%90%8C%E7%BC%96%E8%BE%91"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 实时协同编辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E9%9F%B3%E8%A7%86%E9%A2%91%E9%80%9A%E8%AF%9D%E4%B8%AD%E7%9A%84%E8%BE%85%E5%8A%A9%E6%95%B0%E6%8D%AE"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 音视频通话中的辅助数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%85%B3%E9%94%AE-RFC-%E4%B8%8E%E8%A7%84%E8%8C%83%E7%B4%A2%E5%BC%95"><span class="toc-number">12.</span> <span class="toc-text">11. 关键 RFC 与规范索引</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">小结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/31/webrtc/14-datachannel/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/31/webrtc/14-datachannel/&text=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/31/webrtc/14-datachannel/&is_video=false&description=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=DataChannel —— WebRTC 数据通道详解&body=Check out this article: http://example.com/2022/07/31/webrtc/14-datachannel/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/31/webrtc/14-datachannel/&title=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/31/webrtc/14-datachannel/&name=DataChannel —— WebRTC 数据通道详解&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/31/webrtc/14-datachannel/&t=DataChannel —— WebRTC 数据通道详解"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

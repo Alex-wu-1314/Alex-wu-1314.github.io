@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述与背景 RTCP 的核心职责 传输模型与端口约定 通用报文头格式 复合 RTCP 包（Compound RTCP Packet） 标准报文类型详解 6.1 SR：Sender Report（发送方报告） 6.2 RR：Receiver Report（接收方报告） 6.3 SDES：Source Description（源描述） 6.4 BYE：离会通知 6.5 APP：应用自定义   发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RTCP（RTP Control Protocol）">
+<meta property="og:url" content="http://example.com/2022/07/02/webrtc/11-rtcp/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述与背景 RTCP 的核心职责 传输模型与端口约定 通用报文头格式 复合 RTCP 包（Compound RTCP Packet） 标准报文类型详解 6.1 SR：Sender Report（发送方报告） 6.2 RR：Receiver Report（接收方报告） 6.3 SDES：Source Description（源描述） 6.4 BYE：离会通知 6.5 APP：应用自定义   发">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-07-02T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-27T23:08:23.652Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>RTCP（RTP Control Protocol）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/07/webrtc/12-nack-pli-fir/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/01/webrtc/10-rtp-real-time-transport-protocol/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol）&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RTCP-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3"><span class="toc-number">3.</span> <span class="toc-text">2. RTCP 的核心职责</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BC%A0%E8%BE%93%E8%B4%A8%E9%87%8F%E5%8F%8D%E9%A6%88%EF%BC%88QoS-Feedback%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 传输质量反馈（QoS Feedback）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8C%81%E4%B9%85%E6%A0%87%E8%AF%86%E7%AC%A6%EF%BC%88CNAME%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 持久标识符（CNAME）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BC%9A%E8%AF%9D%E6%88%90%E5%91%98%E6%95%B0%E9%87%8F%E4%BC%B0%E8%AE%A1%EF%BC%88Session-Size-Estimation%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 会话成员数量估计（Session Size Estimation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%9C%80%E5%B0%8F%E5%8C%96%E4%BC%9A%E8%AF%9D%E6%8E%A7%E5%88%B6%EF%BC%88Minimal-Session-Control%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 最小化会话控制（Minimal Session Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%AB%AF%E5%8F%A3%E7%BA%A6%E5%AE%9A"><span class="toc-number">4.</span> <span class="toc-text">3. 传输模型与端口约定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BB%8F%E5%85%B8%E5%8F%8C%E7%AB%AF%E5%8F%A3%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 经典双端口模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8D%95%E7%AB%AF%E5%8F%A3%E5%A4%8D%E7%94%A8%EF%BC%88rtcp-mux%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 单端口复用（rtcp-mux）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-BUNDLE-%E4%B8%8E%E5%8D%95%E4%B8%80%E4%BC%A0%E8%BE%93"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 BUNDLE 与单一传输</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%80%9A%E7%94%A8%E6%8A%A5%E6%96%87%E5%A4%B4%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.</span> <span class="toc-text">4. 通用报文头格式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%A4%8D%E5%90%88-RTCP-%E5%8C%85%EF%BC%88Compound-RTCP-Packet%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 复合 RTCP 包（Compound RTCP Packet）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%A0%87%E5%87%86%E6%8A%A5%E6%96%87%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">7.</span> <span class="toc-text">6. 标准报文类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-SR%EF%BC%9ASender-Report%EF%BC%88%E5%8F%91%E9%80%81%E6%96%B9%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 SR：Sender Report（发送方报告）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RR%EF%BC%9AReceiver-Report%EF%BC%88%E6%8E%A5%E6%94%B6%E6%96%B9%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RR：Receiver Report（接收方报告）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-SDES%EF%BC%9ASource-Description%EF%BC%88%E6%BA%90%E6%8F%8F%E8%BF%B0%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 SDES：Source Description（源描述）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-BYE%EF%BC%9A%E7%A6%BB%E4%BC%9A%E9%80%9A%E7%9F%A5"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 BYE：离会通知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-APP%EF%BC%9A%E5%BA%94%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 APP：应用自定义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%91%E9%80%81%E9%97%B4%E9%9A%94%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">8.</span> <span class="toc-text">7. 发送间隔控制算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%B8%A6%E5%AE%BD%E5%88%86%E9%85%8D"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 带宽分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%97%B4%E9%9A%94%E8%AE%A1%E7%AE%97"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 间隔计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8A%96%E5%8A%A8"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 随机化抖动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Reverse-Reconsideration"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 Reverse Reconsideration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-WebRTC-RFC-4585-%E7%9A%84%E7%AE%80%E5%8C%96"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 WebRTC&#x2F;RFC 4585 的简化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%BE%80%E8%BF%94%E6%97%B6%E5%BB%B6%EF%BC%88RTT%EF%BC%89%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="toc-number">9.</span> <span class="toc-text">8. 往返时延（RTT）的计算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 计算流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-RTT-%E5%85%AC%E5%BC%8F"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 RTT 公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%8D%95%E4%BD%8D%E6%8D%A2%E7%AE%97"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 单位换算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%8A%96%E5%8A%A8%EF%BC%88Jitter%EF%BC%89%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="toc-number">10.</span> <span class="toc-text">9. 抖动（Jitter）的计算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E7%AE%97%E6%B3%95%E5%AE%9A%E4%B9%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 算法定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%AE%9E%E7%8E%B0%E8%A6%81%E7%82%B9"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 实现要点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87%EF%BC%9ARFC-4585-%E5%8F%8D%E9%A6%88%E6%B6%88%E6%81%AF%EF%BC%88RTCP-FB%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. 扩展报文：RFC 4585 反馈消息（RTCP-FB）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-RTPFB%EF%BC%88PT-205%EF%BC%89%EF%BC%9A%E4%BC%A0%E8%BE%93%E5%B1%82%E5%8F%8D%E9%A6%88"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 RTPFB（PT &#x3D; 205）：传输层反馈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-PSFB%EF%BC%88PT-206%EF%BC%89%EF%BC%9A%E8%B4%9F%E8%BD%BD%E7%89%B9%E5%AE%9A%E5%8F%8D%E9%A6%88"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 PSFB（PT &#x3D; 206）：负载特定反馈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87%EF%BC%9ARTCP-XR%EF%BC%88RFC-3611%EF%BC%89"><span class="toc-number">12.</span> <span class="toc-text">11. 扩展报文：RTCP XR（RFC 3611）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-WebRTC-%E4%B8%AD%E7%9A%84-RTCP-%E5%AE%9E%E8%B7%B5"><span class="toc-number">13.</span> <span class="toc-text">12. WebRTC 中的 RTCP 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82%E7%9A%84-RTCP-%E7%89%B9%E6%80%A7"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 强制要求的 RTCP 特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%85%B8%E5%9E%8B-WebRTC-SDP-%E4%B8%AD%E7%9A%84-RTCP-%E9%85%8D%E7%BD%AE"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 典型 WebRTC SDP 中的 RTCP 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-RTCP-%E5%9C%A8-WebRTC-%E6%95%B0%E6%8D%AE%E6%B5%81%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 RTCP 在 WebRTC 数据流中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-RTCP-%E4%B8%8E%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%E8%81%94%E5%8A%A8"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 RTCP 与拥塞控制的联动</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%89%E5%85%A8%EF%BC%9ASRTCP"><span class="toc-number">14.</span> <span class="toc-text">13. 安全：SRTCP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">15.</span> <span class="toc-text">14. 相关 RFC 速查表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        RTCP（RTP Control Protocol）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-02T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-07-02</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF">概述与背景</a></li>
+<li><a href="#2-rtcp-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3">RTCP 的核心职责</a></li>
+<li><a href="#3-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%AB%AF%E5%8F%A3%E7%BA%A6%E5%AE%9A">传输模型与端口约定</a></li>
+<li><a href="#4-%E9%80%9A%E7%94%A8%E6%8A%A5%E6%96%87%E5%A4%B4%E6%A0%BC%E5%BC%8F">通用报文头格式</a></li>
+<li><a href="#5-%E5%A4%8D%E5%90%88-rtcp-%E5%8C%85compound-rtcp-packet">复合 RTCP 包（Compound RTCP Packet）</a></li>
+<li><a href="#6-%E6%A0%87%E5%87%86%E6%8A%A5%E6%96%87%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3">标准报文类型详解</a><ul>
+<li>6.1 <a href="#61-srsender-report%E5%8F%91%E9%80%81%E6%96%B9%E6%8A%A5%E5%91%8A">SR：Sender Report（发送方报告）</a></li>
+<li>6.2 <a href="#62-rrreceiver-report%E6%8E%A5%E6%94%B6%E6%96%B9%E6%8A%A5%E5%91%8A">RR：Receiver Report（接收方报告）</a></li>
+<li>6.3 <a href="#63-sdessource-description%E6%BA%90%E6%8F%8F%E8%BF%B0">SDES：Source Description（源描述）</a></li>
+<li>6.4 <a href="#64-bye%E7%A6%BB%E4%BC%9A%E9%80%9A%E7%9F%A5">BYE：离会通知</a></li>
+<li>6.5 <a href="#65-app%E5%BA%94%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89">APP：应用自定义</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%8F%91%E9%80%81%E9%97%B4%E9%9A%94%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95">发送间隔控制算法</a></li>
+<li><a href="#8-%E5%BE%80%E8%BF%94%E6%97%B6%E5%BB%B6rtt%E7%9A%84%E8%AE%A1%E7%AE%97">往返时延（RTT）的计算</a></li>
+<li><a href="#9-%E6%8A%96%E5%8A%A8jitter%E7%9A%84%E8%AE%A1%E7%AE%97">抖动（Jitter）的计算</a></li>
+<li><a href="#10-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87rfc-4585-%E5%8F%8D%E9%A6%88%E6%B6%88%E6%81%AFrtcp-fb">扩展报文：RFC 4585 反馈消息（RTCP-FB）</a></li>
+<li><a href="#11-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87rtcp-xrrfc-3611">扩展报文：RTCP XR（RFC 3611）</a></li>
+<li><a href="#12-webrtc-%E4%B8%AD%E7%9A%84-rtcp-%E5%AE%9E%E8%B7%B5">WebRTC 中的 RTCP 实践</a></li>
+<li><a href="#13-%E5%AE%89%E5%85%A8srtcp">安全：SRTCP</a></li>
+<li><a href="#14-%E7%9B%B8%E5%85%B3-rfc-%E9%80%9F%E6%9F%A5%E8%A1%A8">相关 RFC 速查表</a></li>
+<li><a href="#15-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h1><p>实时传输协议（RTP）负责将媒体数据从发送端搬运到接收端，但它本身并不提供任何质量反馈机制，它既不知道接收端收到了多少包，也不清楚网络的抖动和时延状况。为此，IETF 在同一份规范里为 RTP 配套设计了 <strong>RTCP（RTP Control Protocol，RTP 控制协议）</strong>，二者共同定义于 <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3550">RFC 3550</a>（2003 年，废止并替代了 1996 年的 RFC 1889）。</p>
+<p>RTCP 是一个带外（out-of-band）控制协议，<strong>它自身不传输任何媒体数据</strong>，只传输关于会话质量的统计信息与控制指令。从架构上看，每一路 RTP 媒体流都应该有一路并行的 RTCP 控制流与之对应，构成一个完整的”媒体传输 + 质量反馈”闭环。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">┌────────────┐    RTP (媒体数据)    ┌────────────┐</span><br><span class="line">│  Sender    │ ──────────────────► │  Receiver  │</span><br><span class="line">│            │ ◄────────────────── │            │</span><br><span class="line">└────────────┘    RTCP (质量反馈)   └────────────┘</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>设计哲学</strong>：RTCP 的带宽消耗被严格限制在整个会话带宽的 <strong>5%</strong> 以内（其中 25% 的 RTCP 带宽保留给发送方），并通过动态调整发送间隔来适应不同规模的会话，确保在数千人的多播会话中协议本身不会成为网络瓶颈。</p>
+</blockquote>
+<hr>
+<h1 id="2-RTCP-的核心职责"><a href="#2-RTCP-的核心职责" class="headerlink" title="2. RTCP 的核心职责"></a>2. RTCP 的核心职责</h1><p>RFC 3550 §6 定义了 RTCP 的四大核心功能：</p>
+<h3 id="2-1-传输质量反馈（QoS-Feedback）"><a href="#2-1-传输质量反馈（QoS-Feedback）" class="headerlink" title="2.1 传输质量反馈（QoS Feedback）"></a>2.1 传输质量反馈（QoS Feedback）</h3><p>这是 RTCP <strong>最主要的职责</strong>。接收端周期性地向发送端汇报丢包率、累计丢包数、到达间隔抖动（interarrival jitter）等统计数据，发送端可以据此做出自适应调整，例如：</p>
+<ul>
+<li>降低编码码率；</li>
+<li>切换编解码器；</li>
+<li>触发拥塞控制算法（如 GCC）。</li>
+</ul>
+<h3 id="2-2-持久标识符（CNAME）"><a href="#2-2-持久标识符（CNAME）" class="headerlink" title="2.2 持久标识符（CNAME）"></a>2.2 持久标识符（CNAME）</h3><p>RTP 使用 SSRC（Synchronization Source Identifier）来区分不同的媒体流，但 SSRC 可能在会话过程中发生冲突或重分配。RTCP 的 <strong>SDES（Source Description）</strong> 报文携带了 <strong>CNAME（Canonical End-Point Identifier）</strong>，为每个端点提供一个在整个应用实例生命周期内唯一的持久标识符。</p>
+<p>CNAME 还是多路媒体流（音频、视频）做<strong>唇音同步（lip-sync）</strong> 的关键：接收端通过 CNAME 将不同的 RTP 流关联到同一个端点，再结合 SR 中的 NTP 时间戳与 RTP 时间戳的对应关系，实现精确的音视频同步。</p>
+<h3 id="2-3-会话成员数量估计（Session-Size-Estimation）"><a href="#2-3-会话成员数量估计（Session-Size-Estimation）" class="headerlink" title="2.3 会话成员数量估计（Session Size Estimation）"></a>2.3 会话成员数量估计（Session Size Estimation）</h3><p>由于所有参与者都发送 RTCP 包，每个端点都可以通过监听来独立估计当前会话的规模，进而动态调整自己的 RTCP 发送间隔，防止大型多播会话被 RTCP 流量淹没。</p>
+<h3 id="2-4-最小化会话控制（Minimal-Session-Control）"><a href="#2-4-最小化会话控制（Minimal-Session-Control）" class="headerlink" title="2.4 最小化会话控制（Minimal Session Control）"></a>2.4 最小化会话控制（Minimal Session Control）</h3><p>这是可选功能，例如通过 BYE 报文通知其他参与者某个源已离开会话，或通过 APP 报文传递应用特定的控制信息。</p>
+<hr>
+<h1 id="3-传输模型与端口约定"><a href="#3-传输模型与端口约定" class="headerlink" title="3. 传输模型与端口约定"></a>3. 传输模型与端口约定</h1><h3 id="3-1-经典双端口模型"><a href="#3-1-经典双端口模型" class="headerlink" title="3.1 经典双端口模型"></a>3.1 经典双端口模型</h3><p>RFC 3550 的传统约定是：RTP 使用<strong>偶数</strong>端口号，RTCP 使用<strong>紧邻的奇数</strong>端口号（RTP 端口 + 1）。例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">RTP  → UDP 端口 5004</span><br><span class="line">RTCP → UDP 端口 5005</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-单端口复用（rtcp-mux）"><a href="#3-2-单端口复用（rtcp-mux）" class="headerlink" title="3.2 单端口复用（rtcp-mux）"></a>3.2 单端口复用（rtcp-mux）</h3><p>随着 NAT 穿透场景的普及，维护两个 UDP 端口的成本越来越高。<a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5761">RFC 5761</a> 定义了将 RTP 和 RTCP 复用到<strong>同一个 UDP 端口</strong>的机制，通过 SDP 中的 <code>a=rtcp-mux</code> 属性来协商：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">m=audio 5004 RTP/SAVPF 111</span><br><span class="line">a=rtcp-mux</span><br></pre></td></tr></table></figure>
+
+<p><strong>WebRTC 强制要求实现此机制</strong>（RFC 8834 §4.5），这大幅简化了 ICE 候选收集、NAT 穿透和防火墙配置。区分同一端口上的 RTP 与 RTCP 数据包时，依据 RFC 5761 §4 的规则，主要通过 Payload Type 字段范围来判断：RTCP 的 PT 值范围为 64–95（实际使用 200–213），与 RTP 动态 PT（96–127）不重叠。</p>
+<h3 id="3-3-BUNDLE-与单一传输"><a href="#3-3-BUNDLE-与单一传输" class="headerlink" title="3.3 BUNDLE 与单一传输"></a>3.3 BUNDLE 与单一传输</h3><p>在 WebRTC 的 BUNDLE 扩展（RFC 8843）中，音频、视频、数据通道的所有 RTP&#x2F;RTCP 流都被复用到<strong>同一个 ICE&#x2F;DTLS 传输连接</strong>上，进一步压缩了所需端口数到 1。</p>
+<hr>
+<h1 id="4-通用报文头格式"><a href="#4-通用报文头格式" class="headerlink" title="4. 通用报文头格式"></a>4. 通用报文头格式</h1><p>所有 RTCP 报文都以一个固定的 4 字节公共头开始（RFC 3550 §6.1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|    RC   |      PT       |             length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         SSRC / CSRC                           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                    报文类型特定字段 ...                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>各字段含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位宽</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>V</strong>（Version）</td>
+<td>2</td>
+<td>固定为 <code>2</code>，标识 RTP&#x2F;RTCP 版本</td>
+</tr>
+<tr>
+<td><strong>P</strong>（Padding）</td>
+<td>1</td>
+<td>若为 1，报文末尾有填充字节（最后一个字节指示填充数量），通常用于加密对齐</td>
+</tr>
+<tr>
+<td><strong>RC &#x2F; SC &#x2F; IC</strong>（Count）</td>
+<td>5</td>
+<td>根据报文类型，表示 Reception Report Block 数量（RC）、SDES Chunk 数量（SC）等，各类型含义不同</td>
+</tr>
+<tr>
+<td><strong>PT</strong>（Packet Type）</td>
+<td>8</td>
+<td>标识 RTCP 报文类型，核心值见下表</td>
+</tr>
+<tr>
+<td><strong>length</strong></td>
+<td>16</td>
+<td>报文总长度（含头）以 <strong>32-bit word 为单位减去 1</strong>，即 <code>(length + 1) × 4</code> 字节为实际字节数</td>
+</tr>
+<tr>
+<td><strong>SSRC</strong></td>
+<td>32</td>
+<td>发送该 RTCP 报文的源的 SSRC</td>
+</tr>
+</tbody></table>
+<p><strong>核心 PT 值汇总：</strong></p>
+<table>
+<thead>
+<tr>
+<th>PT 值</th>
+<th>报文类型</th>
+<th>定义来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>200</td>
+<td>SR（Sender Report）</td>
+<td>RFC 3550</td>
+</tr>
+<tr>
+<td>201</td>
+<td>RR（Receiver Report）</td>
+<td>RFC 3550</td>
+</tr>
+<tr>
+<td>202</td>
+<td>SDES（Source Description）</td>
+<td>RFC 3550</td>
+</tr>
+<tr>
+<td>203</td>
+<td>BYE</td>
+<td>RFC 3550</td>
+</tr>
+<tr>
+<td>204</td>
+<td>APP</td>
+<td>RFC 3550</td>
+</tr>
+<tr>
+<td>205</td>
+<td>RTPFB（传输层反馈）</td>
+<td>RFC 4585</td>
+</tr>
+<tr>
+<td>206</td>
+<td>PSFB（负载特定反馈）</td>
+<td>RFC 4585</td>
+</tr>
+<tr>
+<td>207</td>
+<td>XR（扩展报告）</td>
+<td>RFC 3611</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="5-复合-RTCP-包（Compound-RTCP-Packet）"><a href="#5-复合-RTCP-包（Compound-RTCP-Packet）" class="headerlink" title="5. 复合 RTCP 包（Compound RTCP Packet）"></a>5. 复合 RTCP 包（Compound RTCP Packet）</h1><p>RFC 3550 §6.1 明确规定，RTCP 报文<strong>必须</strong>以<strong>复合包（compound packet）</strong> 的形式发送，即将多个 RTCP 单包拼接在同一个底层 UDP 数据报中，每个单包的边界由各自的 <code>length</code> 字段界定。</p>
+<p>规范要求复合包遵循如下顺序：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[可选：加密前缀（32 bits 随机数）]</span><br><span class="line"> ─────────────────────────────────────────────</span><br><span class="line"> 1. SR 或 RR（必须，即使没有数据也发送空 RR）</span><br><span class="line"> 2. 追加 RR（若 SR/RR 的接收报告块超过 31 个时）</span><br><span class="line"> 3. SDES（必须，且必须含 CNAME 条目）</span><br><span class="line"> 4. BYE 或 APP（可选，BYE 应置于末尾）</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么这样设计？</strong> 三点原因：</p>
+<ol>
+<li>让接收统计信息（SR&#x2F;RR）尽量频繁地被发送，提高反馈分辨率。</li>
+<li>新加入的接收端能尽快获取发送端的 CNAME，用于媒体同步。</li>
+<li>将 SR&#x2F;RR 置于首位可以提高包头校验成功率，有效过滤被误投的 RTP 数据包。</li>
+</ol>
+<blockquote>
+<p><strong>RFC 4585 的例外</strong>：针对实时反馈场景（如立即请求关键帧），RFC 4585 引入了<strong>最小复合 RTCP 包（Minimal Compound RTCP）</strong>，只需要包含 RR 和 SDES(CNAME) 即可，以减少反馈时延。</p>
+</blockquote>
+<hr>
+<h1 id="6-标准报文类型详解"><a href="#6-标准报文类型详解" class="headerlink" title="6. 标准报文类型详解"></a>6. 标准报文类型详解</h1><h3 id="6-1-SR：Sender-Report（发送方报告）"><a href="#6-1-SR：Sender-Report（发送方报告）" class="headerlink" title="6.1 SR：Sender Report（发送方报告）"></a>6.1 SR：Sender Report（发送方报告）</h3><p>PT &#x3D; <strong>200</strong>，适用于<strong>既发送也接收</strong>的参与者。SR 由两部分组成：<strong>Sender Info Block</strong> 和零到多个 <strong>Report Block</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|    RC   |   PT=200      |             length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         SSRC of sender                        |  ← 本机 SSRC</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                      ★ Sender Info Block ★                    |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|              NTP timestamp, most significant word             |  ← 64-bit NTP 高32位</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|             NTP timestamp, least significant word             |  ← 64-bit NTP 低32位</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         RTP timestamp                         |  ← 对应的 RTP 时间戳</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     sender&#x27;s packet count                     |  ← 已发送总包数</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                      sender&#x27;s octet count                     |  ← 已发送总字节数（不含头）</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                  ★ Report Block 1（0–31个）★                  |</span><br><span class="line">|                           ...                                 |</span><br></pre></td></tr></table></figure>
+
+<p><strong>Sender Info Block 各字段说明：</strong></p>
+<ul>
+<li><p><strong>NTP timestamp（64 bits）</strong>：发送该 SR 时的绝对挂钟时间（wall-clock time），格式为网络时间协议（NTP）时间戳，单位为自 1970-01-01 00:00 UTC 以来的秒数（高 32 位）和秒的小数部分（低 32 位，精度约 232 皮秒）。这是<strong>音视频同步（lipsync）</strong> 的基础。</p>
+</li>
+<li><p><strong>RTP timestamp（32 bits）</strong>：与 NTP 时间戳<strong>时刻对应</strong>的 RTP 时间戳，接收端通过两者的映射关系可以将不同媒体流（音频、视频）的 RTP 时间戳换算到同一绝对时间轴，从而实现精确的唇音同步。</p>
+</li>
+<li><p><strong>sender’s packet count（32 bits）</strong>：自会话开始（或 SSRC 最后一次改变）以来，本发送端发出的 RTP 数据包总数。接收端可用它与自身统计的收包数做差，得出丢包总量。</p>
+</li>
+<li><p><strong>sender’s octet count（32 bits）</strong>：已发送的 RTP 有效负载字节总数（<strong>不含</strong> RTP 头）。</p>
+</li>
+</ul>
+<p><strong>Report Block（接收报告块）</strong>，SR 和 RR 共用同一结构，每个 Block 针对<strong>一路被接收的 RTP 流</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                 SSRC_1 (被报告流的 SSRC)                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">| fraction lost |       cumulative number of packets lost       |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|           extended highest sequence number received           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                      interarrival jitter                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         last SR (LSR)                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                   delay since last SR (DLSR)                  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>各字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位宽</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>fraction lost</strong></td>
+<td>8</td>
+<td>自上次 Report Block 以来的<strong>近期丢包率</strong>：<code>floor(丢包数/期望包数 × 256)</code>，值域 0–255，对应 0%–~100%</td>
+</tr>
+<tr>
+<td><strong>cumulative packets lost</strong></td>
+<td>24</td>
+<td><strong>累计</strong>丢失包数（有符号，从会话开始统计）。序列号回绕等情况可能导致该值为负，上限为 0x7FFFFF</td>
+</tr>
+<tr>
+<td><strong>extended highest seq</strong></td>
+<td>32</td>
+<td>高 16 位为序列号循环计数，低 16 位为收到的最大序列号</td>
+</tr>
+<tr>
+<td><strong>interarrival jitter</strong></td>
+<td>32</td>
+<td>到达间隔抖动估计，单位为 RTP 时间戳单位（见第 9 节算法详解）</td>
+</tr>
+<tr>
+<td><strong>last SR (LSR)</strong></td>
+<td>32</td>
+<td>最近收到的 SR 中 NTP 时间戳的<strong>中间 32 位</strong>（高 16 位为秒数低 16 位，低 16 位为秒小数高 16 位）；未收到过 SR 则为 0</td>
+</tr>
+<tr>
+<td><strong>delay since last SR (DLSR)</strong></td>
+<td>32</td>
+<td>从收到最近一个 SR 到发送此 Report Block 之间的时延，单位为 <strong>1&#x2F;65536 秒</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="6-2-RR：Receiver-Report（接收方报告）"><a href="#6-2-RR：Receiver-Report（接收方报告）" class="headerlink" title="6.2 RR：Receiver Report（接收方报告）"></a>6.2 RR：Receiver Report（接收方报告）</h3><p>PT &#x3D; <strong>201</strong>，适用于<strong>只接收不发送</strong>的参与者，或在 SR 中 Report Block 数量超过 31 个时追加使用。结构比 SR 简单，去掉了 Sender Info Block，只有公共头和 Report Block 列表。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|    RC   |   PT=201      |             length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     SSRC of packet sender                     |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                    Report Block 1 ... N                       |</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-3-SDES：Source-Description（源描述）"><a href="#6-3-SDES：Source-Description（源描述）" class="headerlink" title="6.3 SDES：Source Description（源描述）"></a>6.3 SDES：Source Description（源描述）</h3><p>PT &#x3D; <strong>202</strong>，携带关于媒体源的文本描述信息。SDES 由一个 3 层结构组成：RTCP 头 → 一或多个 Chunk → 每个 Chunk 包含一或多个 Item。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  SC   |    PT=202     |            length               |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                          SSRC/CSRC_1                          |  ← Chunk 1 开始</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  CNAME=1    |   length      |  user@example.com ...           |  ← CNAME item</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|    NAME=2   |   length      |  &quot;Alice&quot; ...                    |  ← NAME item（可选）</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|     END=0   |  (padding to 32-bit boundary)                   |  ← 结束标记</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                          SSRC/CSRC_2 ...                      |  ← Chunk 2（可选）</span><br></pre></td></tr></table></figure>
+
+<p><strong>SDES Item 类型：</strong></p>
+<table>
+<thead>
+<tr>
+<th>类型码</th>
+<th>名称</th>
+<th>必须性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>END</td>
+<td>必须</td>
+<td>Chunk 结束标记，后跟填充至 32 位对齐</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>CNAME</strong></td>
+<td><strong>强制</strong></td>
+<td>规范端点标识符，格式建议为 <code>user@host</code>；必须在每个复合包中携带</td>
+</tr>
+<tr>
+<td>2</td>
+<td>NAME</td>
+<td>可选</td>
+<td>用户真实姓名</td>
+</tr>
+<tr>
+<td>3</td>
+<td>EMAIL</td>
+<td>可选</td>
+<td>电子邮件地址</td>
+</tr>
+<tr>
+<td>4</td>
+<td>PHONE</td>
+<td>可选</td>
+<td>电话号码</td>
+</tr>
+<tr>
+<td>5</td>
+<td>LOC</td>
+<td>可选</td>
+<td>地理位置</td>
+</tr>
+<tr>
+<td>6</td>
+<td>TOOL</td>
+<td>可选</td>
+<td>应用程序名称和版本</td>
+</tr>
+<tr>
+<td>7</td>
+<td>NOTE</td>
+<td>可选</td>
+<td>状态注释</td>
+</tr>
+<tr>
+<td>8</td>
+<td>PRIV</td>
+<td>可选</td>
+<td>私有扩展，前缀为应用标识前缀</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>WebRTC 中 CNAME 的生成</strong>：RFC 8834 §4.9 规定，WebRTC 实现<strong>必须</strong>为 CNAME 使用足够随机的值（至少 96 bits 熵），以保证隐私性，防止被用于跨会话跟踪。</p>
+</blockquote>
+<hr>
+<h3 id="6-4-BYE：离会通知"><a href="#6-4-BYE：离会通知" class="headerlink" title="6.4 BYE：离会通知"></a>6.4 BYE：离会通知</h3><p>PT &#x3D; <strong>203</strong>，当一个端点结束发送时，通知其他参与者移除对应的 SSRC 状态。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|    SC   |   PT=203      |             length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                          SSRC/CSRC                            |  ← 一或多个 SSRC</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|     length    |               reason for leaving...           |  ← 可选：离会原因文本</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>规范指出，接收到 BYE 后不应立即删除该 SSRC 的状态，而应先打上标记，等待一段时间后再清理，以防止迟到的 RTP 数据包引发状态重建。</p>
+<h3 id="6-5-APP：应用自定义"><a href="#6-5-APP：应用自定义" class="headerlink" title="6.5 APP：应用自定义"></a>6.5 APP：应用自定义</h3><p>PT &#x3D; <strong>204</strong>，为应用程序提供扩展 RTCP 的机制，包含一个 4 字节的 ASCII 应用名称和应用自定义的数据体。由于缺乏互操作标准，APP 在实践中使用较少，更规范的做法是定义独立的 RTCP 扩展报文类型（如 RFC 4585 的 RTPFB&#x2F;PSFB）。</p>
+<hr>
+<h1 id="7-发送间隔控制算法"><a href="#7-发送间隔控制算法" class="headerlink" title="7. 发送间隔控制算法"></a>7. 发送间隔控制算法</h1><p>RTCP 的发送间隔不是固定的，而是<strong>自适应</strong>的，其目的是将所有参与者的 RTCP 总带宽控制在会话带宽的 5% 以内。RFC 3550 §6.2 描述了完整算法，核心逻辑如下：</p>
+<h3 id="7-1-带宽分配"><a href="#7-1-带宽分配" class="headerlink" title="7.1 带宽分配"></a>7.1 带宽分配</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RTCP_BW = Session_BW × 5%</span><br><span class="line"></span><br><span class="line">其中：</span><br><span class="line">  25% 的 RTCP_BW 分配给发送方（senders）</span><br><span class="line">  75% 的 RTCP_BW 分配给接收方（receivers）</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-间隔计算"><a href="#7-2-间隔计算" class="headerlink" title="7.2 间隔计算"></a>7.2 间隔计算</h3><p>每个参与者的发送间隔 <code>T</code> 由以下因素决定：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">avg_rtcp_size：本参与者发出/收到的 RTCP 复合包的滑动平均大小（字节）</span><br><span class="line">n：当前会话估计参与者数</span><br><span class="line"></span><br><span class="line">T_min = 5 秒（最小 RTCP 发送间隔，防止过于频繁）</span><br><span class="line">T = max(T_min, avg_rtcp_size / (RTCP_BW / n))</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-随机化抖动"><a href="#7-3-随机化抖动" class="headerlink" title="7.3 随机化抖动"></a>7.3 随机化抖动</h3><p>为了防止所有参与者同时发送（synchronization）导致的短暂流量爆发，实际发送时间在 <code>[0.5T, 1.5T]</code> 区间内均匀随机化。这一机制被称为 <strong>“定时器重新考量（Timer Reconsideration）”</strong> 。</p>
+<h3 id="7-4-Reverse-Reconsideration"><a href="#7-4-Reverse-Reconsideration" class="headerlink" title="7.4 Reverse Reconsideration"></a>7.4 Reverse Reconsideration</h3><p>当参与者数量<strong>突然减少</strong>时（例如大量 BYE 报文同时到来），每个参与者都应提前重新计算下次发送时间，避免发送间隔因为参与者数量减少而收窄，导致下一次发送时间变得合理但当前等待时间过长。</p>
+<h3 id="7-5-WebRTC-RFC-4585-的简化"><a href="#7-5-WebRTC-RFC-4585-的简化" class="headerlink" title="7.5 WebRTC&#x2F;RFC 4585 的简化"></a>7.5 WebRTC&#x2F;RFC 4585 的简化</h3><p>在 WebRTC 等点对点或 SFU 场景中，参与者数量有限，复杂的自适应间隔算法意义不大。RFC 4585（AVPF）取消了强制的 5 秒最小间隔限制，允许根据网络反馈需要<strong>立即发送（Early RTCP）</strong> 反馈消息（但有防止反馈洪泛的退避机制）。</p>
+<hr>
+<h1 id="8-往返时延（RTT）的计算"><a href="#8-往返时延（RTT）的计算" class="headerlink" title="8. 往返时延（RTT）的计算"></a>8. 往返时延（RTT）的计算</h1><p>RTCP 内置了一套无需额外协议的 RTT 测量机制，利用 SR 中的 NTP 时间戳和 Report Block 中的 LSR&#x2F;DLSR 字段共同完成（RFC 3550 §6.4.1）。</p>
+<h3 id="8-1-计算流程"><a href="#8-1-计算流程" class="headerlink" title="8.1 计算流程"></a>8.1 计算流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">时序：</span><br><span class="line"></span><br><span class="line">    发送方 A                             接收方 B</span><br><span class="line">        │                                   │</span><br><span class="line">   T1   ├── SR (NTP_A = T1) ───────────────►│</span><br><span class="line">        │                                   │ B 收到 SR，记录 NTP 中间 32 位为 LSR</span><br><span class="line">        │                                   │ 经过处理时间 D</span><br><span class="line">   T2   │◄── RR (LSR=mid32(T1), DLSR=D) ────┤</span><br><span class="line">        │                                   │</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-RTT-公式"><a href="#8-2-RTT-公式" class="headerlink" title="8.2 RTT 公式"></a>8.2 RTT 公式</h3><p>设 A 在时刻 <code>T2</code>（NTP 格式）收到包含 LSR 和 DLSR 的 RR，则：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RTT = T2 - LSR - DLSR</span><br><span class="line"></span><br><span class="line">其中：</span><br><span class="line">  T2   ：收到 RR 时的当前时间（NTP 中间 32 位）</span><br><span class="line">  LSR  ：Report Block 中记录的最近一次 SR 的 NTP 中间 32 位</span><br><span class="line">  DLSR ：从收到 SR 到发出 RR 之间的时延，单位 1/65536 秒</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-单位换算"><a href="#8-3-单位换算" class="headerlink" title="8.3 单位换算"></a>8.3 单位换算</h3><p>LSR 和 DLSR 均采用 NTP 时间戳<strong>中间 32 位</strong>（高 16 位对应秒，低 16 位对应秒的小数）表示，精度约为 <strong>15.26 微秒</strong>（1&#x2F;65536 秒）。</p>
+<blockquote>
+<p><strong>注意</strong>：若 LSR 为 0（从未收到 SR），则无法计算 RTT。这也是为什么规范强制要求发送方必须定期发送 SR，即使暂时没有媒体数据要发送。</p>
+</blockquote>
+<hr>
+<h1 id="9-抖动（Jitter）的计算"><a href="#9-抖动（Jitter）的计算" class="headerlink" title="9. 抖动（Jitter）的计算"></a>9. 抖动（Jitter）的计算</h1><p>到达间隔抖动（interarrival jitter）是衡量网络延迟稳定性的关键指标。RFC 3550 Appendix A.8 给出了推荐的在线算法，采用<strong>指数加权滑动平均</strong>（非真正的标准差）：</p>
+<h3 id="9-1-算法定义"><a href="#9-1-算法定义" class="headerlink" title="9.1 算法定义"></a>9.1 算法定义</h3><p>设：</p>
+<ul>
+<li><code>Si</code>：包 <code>i</code> 的 RTP 发送时间戳（单位：RTP 时间戳的 tick）</li>
+<li><code>Ri</code>：包 <code>i</code> 在接收端的实际到达时间（也转换为 RTP 时间戳单位）</li>
+<li><code>Di</code>：包 <code>i</code> 与包 <code>i-1</code> 之间的相对传输时延差</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">D(i-1, i) = (Ri - Ri-1) - (Si - Si-1)</span><br><span class="line">           = (Ri - Si) - (Ri-1 - Si-1)</span><br><span class="line"></span><br><span class="line">J(i) = J(i-1) + (|D(i-1, i)| - J(i-1)) / 16</span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>1/16</code> 的权重系数使得算法对短时波动不过于敏感，同时能跟踪趋势变化。</p>
+<h3 id="9-2-实现要点"><a href="#9-2-实现要点" class="headerlink" title="9.2 实现要点"></a>9.2 实现要点</h3><ul>
+<li>计算前需要将接收时间戳换算到与 RTP 时间戳相同的单位（例如，音频 48 kHz 流的 1 tick &#x3D; 1&#x2F;48000 秒）。</li>
+<li>序列号不连续（丢包）时，仍然基于实际到达的包对计算，跳过的包不参与计算。</li>
+<li>初始值 <code>J(0) = 0</code>。</li>
+</ul>
+<hr>
+<h1 id="10-扩展报文：RFC-4585-反馈消息（RTCP-FB）"><a href="#10-扩展报文：RFC-4585-反馈消息（RTCP-FB）" class="headerlink" title="10. 扩展报文：RFC 4585 反馈消息（RTCP-FB）"></a>10. 扩展报文：RFC 4585 反馈消息（RTCP-FB）</h1><p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4585.html">RFC 4585</a>（Extended RTP Profile for RTCP-Based Feedback，RTP&#x2F;AVPF）为 RTCP 引入了<strong>即时反馈消息</strong>机制，定义了两类新的报文类型：</p>
+<h3 id="10-1-RTPFB（PT-205）：传输层反馈"><a href="#10-1-RTPFB（PT-205）：传输层反馈" class="headerlink" title="10.1 RTPFB（PT &#x3D; 205）：传输层反馈"></a>10.1 RTPFB（PT &#x3D; 205）：传输层反馈</h3><p>这类反馈与具体的媒体编码格式无关，关注传输层事件：</p>
+<p><strong>Generic NACK（FMT &#x3D; 1）</strong>（RFC 4585）</p>
+<p>通知发送方哪些包丢失，请求重传：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=1  |    PT=205    |             length             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|            PID (丢失包的序列号)           |  BLP (位图掩码)      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>PID</strong>（16 bits）：丢失包的起始序列号</li>
+<li><strong>BLP</strong>（16 bits）：位图，每一位对应 PID+1 到 PID+16，为 1 表示对应偏移的包也丢失</li>
+</ul>
+<p>一个 NACK 包可以包含多个 PID+BLP 对，高效地报告批量丢包。</p>
+<p><strong>TMMBR &#x2F; TMMBN（FMT &#x3D; 3&#x2F;4）</strong>（RFC 5104）</p>
+<p>临时最大媒体流码率请求（Temporary Maximum Media Stream Bit Rate Request），接收端向发送端请求限速：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TMMBR: 接收端 → 发送端，请求降至 X bps</span><br><span class="line">TMMBN: 发送端 → 接收端，通知已接受的码率限制</span><br></pre></td></tr></table></figure>
+
+<p><strong>Transport-CC（FMT &#x3D; 15）</strong>（draft-ietf-rmcat-transport-cc）</p>
+<p>传输层拥塞控制反馈，接收端将每个收到的 RTP 包的精确到达时间戳反馈给发送端，发送端在本端运行 GCC 或 NADA 算法估算可用带宽（详见 Transport-CC）。</p>
+<h3 id="10-2-PSFB（PT-206）：负载特定反馈"><a href="#10-2-PSFB（PT-206）：负载特定反馈" class="headerlink" title="10.2 PSFB（PT &#x3D; 206）：负载特定反馈"></a>10.2 PSFB（PT &#x3D; 206）：负载特定反馈</h3><p>这类反馈依赖于特定的媒体编码，主要用于视频：</p>
+<p><strong>PLI（FMT &#x3D; 1）</strong>（RFC 4585）：Picture Loss Indication</p>
+<p>接收端告知发送端，由于丢包导致当前帧无法解码，请求发送一个<strong>关键帧（Intra Frame）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=1  |    PT=206    |             length=2           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>PLI 没有 FCI（Feedback Control Information）字段，结构极其简单。</p>
+<p><strong>FIR（FMT &#x3D; 4）</strong>（RFC 5104）：Full Intra Request</p>
+<p>与 PLI 语义不同：FIR 请求发送端发出一个完整的关键帧，但原因<strong>不是丢包</strong>，而是有新的接收者加入（如 SFU 新成员入会），或者解码器状态被重置。RFC 5104 明确禁止在丢包时使用 FIR，这种场景应当使用 PLI。</p>
+<p><strong>SLI（FMT &#x3D; 2）</strong>（RFC 4585）：Slice Loss Indication</p>
+<p>报告视频切片级别的丢包，指示哪些宏块区域的数据丢失，适用于 H.261 等支持切片级修复的编码器。</p>
+<p><strong>RPSI（FMT &#x3D; 3）</strong>（RFC 4585）：Reference Picture Selection Indication</p>
+<p>接收端向发送端指示哪个参考帧仍然有效，帮助编码器选择合适的参考帧以避免错误传播。</p>
+<p><strong>REMB（FMT &#x3D; 15）</strong>（draft-alvestrand-rmcat-remb）：Receiver Estimated Maximum Bitrate</p>
+<p>接收端基于本地带宽估计，主动告知发送端其认为可接受的最大码率。REMB 是早期 WebRTC 拥塞控制的核心机制，但目前逐渐被 Transport-CC 取代：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P| FMT=15  |    PT=206    |              length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of packet sender                        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                  SSRC of media source (0)                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  Unique identifier &#x27;R&#x27; &#x27;E&#x27; &#x27;M&#x27; &#x27;B&#x27;                           |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  Num SSRC     | BR Exp    |  BR Mantissa                      |  ← 估算码率</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  SSRC feedback ...                                            |</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-SDP-协商"><a href="#10-3-SDP-协商" class="headerlink" title="10.3 SDP 协商"></a>10.3 SDP 协商</h3><p>使用 RTCP-FB 消息前，双方必须通过 SDP 中的 <code>a=rtcp-fb</code> 属性协商支持哪些类型（RFC 4585 §4）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 nack            ← 支持 Generic NACK</span><br><span class="line">a=rtcp-fb:96 nack pli        ← 支持 PLI</span><br><span class="line">a=rtcp-fb:96 ccm fir         ← 支持 FIR（通过 CCM 机制）</span><br><span class="line">a=rtcp-fb:96 goog-remb       ← 支持 REMB（Google 扩展）</span><br><span class="line">a=rtcp-fb:96 transport-cc    ← 支持 Transport-CC</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-扩展报文：RTCP-XR（RFC-3611）"><a href="#11-扩展报文：RTCP-XR（RFC-3611）" class="headerlink" title="11. 扩展报文：RTCP XR（RFC 3611）"></a>11. 扩展报文：RTCP XR（RFC 3611）</h1><p><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3611">RFC 3611</a>（2003 年）定义了 <strong>RTCP XR（Extended Reports，扩展报告）</strong>，PT &#x3D; <strong>207</strong>，提供比 SR&#x2F;RR 更精细的质量度量，主要面向 VoIP 监控、多播质量推断等场景。</p>
+<p>XR 包由报告块（Report Block）列表组成，每个块有自己的 <strong>BT（Block Type）</strong> 字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P| reserved|   PT=207     |             length             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                              SSRC                             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|      BT       |   type spec.  |         block length          |  ← 报告块 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         block data ...                        |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|      BT       |   type spec.  |         block length          |  ← 报告块 2</span><br></pre></td></tr></table></figure>
+
+<p><strong>RFC 3611 定义的 7 种块类型：</strong></p>
+<table>
+<thead>
+<tr>
+<th>BT</th>
+<th>名称</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Loss RLE Report Block</td>
+<td>以游程编码描述详细的包丢失分布</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Duplicate RLE Report Block</td>
+<td>描述重复包的分布</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Packet Receipt Times Report Block</td>
+<td>报告各包的实际到达时间戳</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong>Receiver Reference Time Report Block</strong></td>
+<td>接收端的 NTP 时间戳，配合 BT&#x3D;5 计算接收端 RTT</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td><strong>DLRR Report Block</strong></td>
+<td>对 BT&#x3D;4 的响应，包含 LRR 和 DLRR 字段</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Statistics Summary Report Block</td>
+<td>序列号、丢包、重复、抖动、TTL 等统计摘要</td>
+</tr>
+<tr>
+<td>7</td>
+<td>VoIP Metrics Report Block</td>
+<td>专为 VoIP 设计的综合指标块（含 MOS、回声、抖动缓冲等）</td>
+</tr>
+</tbody></table>
+<p><strong>BT&#x3D;4&#x2F;5 的非发送方 RTT 测量</strong>：在纯接收端（不发送 RTP 数据因此没有 SR）之间测量 RTT 的场景，标准 SR&#x2F;RR 机制失效，BT&#x3D;4（Receiver Reference Time）+ BT&#x3D;5（DLRR）提供了等效机制：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">非发送方 B                              非发送方 C</span><br><span class="line">    │                                     │</span><br><span class="line">    ├── XR[BT=4: NTP_B=T1] ──────────────►│</span><br><span class="line">    │                                     │ 等待时间 D</span><br><span class="line">    │◄── XR[BT=5: LRR=mid32(T1), DLRR=D]  ┤</span><br><span class="line">    │                                     │</span><br><span class="line">  RTT = T2 - LRR - DLRR</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="12-WebRTC-中的-RTCP-实践"><a href="#12-WebRTC-中的-RTCP-实践" class="headerlink" title="12. WebRTC 中的 RTCP 实践"></a>12. WebRTC 中的 RTCP 实践</h1><h3 id="12-1-强制要求的-RTCP-特性"><a href="#12-1-强制要求的-RTCP-特性" class="headerlink" title="12.1 强制要求的 RTCP 特性"></a>12.1 强制要求的 RTCP 特性</h3><p>根据 <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc8834/">RFC 8834</a>（WebRTC 中 RTP 的使用），WebRTC 实现必须支持：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>RFC</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RTP&#x2F;RTCP 单端口复用（rtcp-mux）</strong></td>
+<td>RFC 5761</td>
+<td>必须支持，且必须在 SDP 中协商</td>
+</tr>
+<tr>
+<td><strong>Reduced-Size RTCP</strong></td>
+<td>RFC 5506</td>
+<td>允许 RTCP 反馈包不包含完整复合包结构（去掉 SR&#x2F;RR 前缀），降低反馈开销</td>
+</tr>
+<tr>
+<td><strong>SSRC 冲突处理</strong></td>
+<td>RFC 3550 §8</td>
+<td>检测并解决 SSRC 冲突</td>
+</tr>
+<tr>
+<td><strong>CNAME 生成</strong></td>
+<td>RFC 8834 §4.9</td>
+<td>使用足够熵的随机值生成 CNAME</td>
+</tr>
+<tr>
+<td><strong>PLI</strong></td>
+<td>RFC 4585</td>
+<td>视频流必须支持</td>
+</tr>
+<tr>
+<td><strong>FIR（通过 CCM）</strong></td>
+<td>RFC 5104</td>
+<td>视频流必须支持</td>
+</tr>
+<tr>
+<td><strong>NACK</strong></td>
+<td>RFC 4585</td>
+<td>视频流必须支持</td>
+</tr>
+<tr>
+<td><strong>Transport-CC</strong></td>
+<td>draft-ietf-rmcat-transport-cc</td>
+<td>主流实现均支持，用于精细拥塞控制</td>
+</tr>
+</tbody></table>
+<h3 id="12-2-典型-WebRTC-SDP-中的-RTCP-配置"><a href="#12-2-典型-WebRTC-SDP-中的-RTCP-配置" class="headerlink" title="12.2 典型 WebRTC SDP 中的 RTCP 配置"></a>12.2 典型 WebRTC SDP 中的 RTCP 配置</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=rtcp-mux                          ← RTP/RTCP 单端口复用</span><br><span class="line">a=rtcp-rsize                        ← 允许 Reduced-Size RTCP</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96                    ← PT=97 是 PT=96 的 RTX 重传流</span><br><span class="line">a=rtcp-fb:96 nack                   ← NACK 重传请求</span><br><span class="line">a=rtcp-fb:96 nack pli               ← PLI 关键帧请求</span><br><span class="line">a=rtcp-fb:96 ccm fir                ← FIR 关键帧请求</span><br><span class="line">a=rtcp-fb:96 goog-remb              ← REMB 带宽估计</span><br><span class="line">a=rtcp-fb:96 transport-cc           ← Transport-CC 拥塞控制</span><br></pre></td></tr></table></figure>
+
+<h3 id="12-3-RTCP-在-WebRTC-数据流中的位置"><a href="#12-3-RTCP-在-WebRTC-数据流中的位置" class="headerlink" title="12.3 RTCP 在 WebRTC 数据流中的位置"></a>12.3 RTCP 在 WebRTC 数据流中的位置</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">浏览器 A                                          浏览器 B</span><br><span class="line">  │                                                  │</span><br><span class="line">  │  ┌──────────────────────────────────────────────┐│</span><br><span class="line">  │  │          DTLS-SRTP 加密隧道                   ││</span><br><span class="line">  │  │  ┌──────────────┐  ┌───────────────────────┐ ││</span><br><span class="line">  │  │  │  SRTP (媒体)  │  │  SRTCP (控制/反馈)     │ ││</span><br><span class="line">  │  │  │  RTP packets │  │  SR/RR/NACK/PLI/...   │ ││</span><br><span class="line">  │  │  └──────────────┘  └───────────────────────┘ ││</span><br><span class="line">  │  │          同一个 UDP 端口（rtcp-mux）           ││</span><br><span class="line">  │  └──────────────────────────────────────────────┘│</span><br><span class="line">  │                      ICE/UDP                     │</span><br><span class="line">  └──────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="12-4-RTCP-与拥塞控制的联动"><a href="#12-4-RTCP-与拥塞控制的联动" class="headerlink" title="12.4 RTCP 与拥塞控制的联动"></a>12.4 RTCP 与拥塞控制的联动</h3><p>在 WebRTC 的拥塞控制闭环中，RTCP 是关键的信息载体：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">接收端                                           发送端</span><br><span class="line">  │                                               │</span><br><span class="line">  │  ① 收包，记录到达时间戳                          │</span><br><span class="line">  │  ② 生成 Transport-CC 反馈包                     │</span><br><span class="line">  │ ─────── RTCP RTPFB[Transport-CC] ──────────►  │</span><br><span class="line">  │                                               │ ③ 根据反馈估算可用带宽（GCC/NADA）</span><br><span class="line">  │                                               │ ④ 调整编码码率/Pacer 发包速率</span><br><span class="line">  │ ◄────── RTCP PSFB[REMB]（如启用）──────────     │</span><br><span class="line">  │                                               │</span><br><span class="line">  │  ⑤ 检测丢包，发送 NACK 请求重传                   │</span><br><span class="line">  │ ─────── RTCP RTPFB[NACK] ──────────────────►  │</span><br><span class="line">  │                                               │ ⑥ 查找缓存，重传对应 RTP 包</span><br><span class="line">  │ ◄────── RTP 重传包（RTX）──────────────────     │</span><br><span class="line">  │                                               │</span><br><span class="line">  │  ⑦ 视频解码失败，发送 PLI                        │</span><br><span class="line">  │ ─────── RTCP PSFB[PLI] ─────────────────────► │</span><br><span class="line">  │                                               │ ⑧ 强制产生视频关键帧</span><br><span class="line">  │ ◄────── RTP（视频关键帧）─────────────────────  │</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="13-安全：SRTCP"><a href="#13-安全：SRTCP" class="headerlink" title="13. 安全：SRTCP"></a>13. 安全：SRTCP</h1><p>RTCP 数据包的安全保护通过 <strong>SRTCP（Secure RTCP）</strong> 实现，与 SRTP 一同定义于 <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3711">RFC 3711</a>。</p>
+<p>SRTCP 在 RTCP 复合包的末尾附加：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+-------------------------------+</span><br><span class="line">|     RTCP 复合包（明文或密文）    |</span><br><span class="line">+-------------------------------+</span><br><span class="line">|  E | SRTCP Index (31 bits)    |  ← E=1 表示已加密，Index 防重放攻击</span><br><span class="line">+-------------------------------+</span><br><span class="line">|  Authentication Tag (80 bits) |  ← 默认使用 HMAC-SHA1-80</span><br><span class="line">+-------------------------------+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>E 位</strong>：0 表示该包未加密（但仍有认证），1 表示已加密。允许对 RTCP 进行选择性加密，例如仅认证不加密以支持 RTCP 监控代理。</li>
+<li><strong>SRTCP Index</strong>：单调递增的 31 位计数器，防止重放攻击。</li>
+<li><strong>Authentication Tag</strong>：默认为 80-bit HMAC-SHA1，保护包的完整性和来源。</li>
+</ul>
+<p>WebRTC 中，SRTCP 密钥通过 <strong>DTLS 握手</strong>（RFC 5764 定义的 DTLS-SRTP 扩展）协商，无需单独的 SDP 密钥交换。</p>
+<hr>
+<h1 id="14-相关-RFC-速查表"><a href="#14-相关-RFC-速查表" class="headerlink" title="14. 相关 RFC 速查表"></a>14. 相关 RFC 速查表</h1><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>与 RTCP 的关系</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3550">RFC 3550</a></td>
+<td>RTP: A Transport Protocol for Real-Time Applications</td>
+<td>RTCP 的核心定义文档</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3551">RFC 3551</a></td>
+<td>RTP Profile for Audio and Video Conferences (AVP)</td>
+<td>定义 AVP Profile，RTCP 5 秒最小间隔来自于此</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3611">RFC 3611</a></td>
+<td>RTCP XR (Extended Reports)</td>
+<td>扩展报告，BT&#x3D;4&#x2F;5 非发送方 RTT 测量</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3711">RFC 3711</a></td>
+<td>SRTP</td>
+<td>SRTCP 加密与认证</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4585.html">RFC 4585</a></td>
+<td>RTP&#x2F;AVPF</td>
+<td>即时反馈、NACK、PLI、Early RTCP</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5104">RFC 5104</a></td>
+<td>Codec Control Messages</td>
+<td>FIR、TMMBR、TMMBN</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5506">RFC 5506</a></td>
+<td>Reduced-Size RTCP</td>
+<td>允许非复合 RTCP 反馈包</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5761">RFC 5761</a></td>
+<td>Multiplexing RTP and RTCP</td>
+<td>rtcp-mux，单端口复用</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc8834/">RFC 8834</a></td>
+<td>Media Transport and Use of RTP in WebRTC</td>
+<td>WebRTC 中 RTCP 的使用要求</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8858.html">RFC 8858</a></td>
+<td>rtcp-mux-only</td>
+<td>声明仅支持单端口复用</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h1><p>RTCP 作为 RTP 的”神经系统”，承担着整个实时通信系统的质量感知与反馈控制职责：</p>
+<ul>
+<li><strong>SR&#x2F;RR</strong> 提供周期性的传输质量统计（丢包、抖动、RTT），是拥塞控制算法的核心输入；</li>
+<li><strong>SDES</strong> 中的 CNAME 是多媒体流同步（唇音同步）的基础，也是端点识别的持久锚点；</li>
+<li><strong>RTCP-FB（RFC 4585&#x2F;5104）</strong> 将 RTCP 从”被动上报”扩展到”主动干预”，NACK、PLI、FIR 直接参与流的修复和控制；</li>
+<li><strong>Transport-CC</strong> 将 RTCP 的反馈粒度提升到每个数据包级别，成为现代 WebRTC 拥塞控制（GCC）的核心数据来源；</li>
+<li><strong>rtcp-mux（RFC 5761）</strong> 在 WebRTC 中将 RTCP 流与 RTP 流合并到单一端口，配合 ICE 和 DTLS-SRTP，构成完整的安全实时传输栈。</li>
+</ul>
+<p>理解 RTCP 的工作机制，是深入分析 WebRTC 通话质量问题、调优拥塞控制策略、实现自定义 SFU 的必备基础。</p>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与背景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RTCP-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3"><span class="toc-number">3.</span> <span class="toc-text">2. RTCP 的核心职责</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BC%A0%E8%BE%93%E8%B4%A8%E9%87%8F%E5%8F%8D%E9%A6%88%EF%BC%88QoS-Feedback%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 传输质量反馈（QoS Feedback）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8C%81%E4%B9%85%E6%A0%87%E8%AF%86%E7%AC%A6%EF%BC%88CNAME%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 持久标识符（CNAME）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BC%9A%E8%AF%9D%E6%88%90%E5%91%98%E6%95%B0%E9%87%8F%E4%BC%B0%E8%AE%A1%EF%BC%88Session-Size-Estimation%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 会话成员数量估计（Session Size Estimation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%9C%80%E5%B0%8F%E5%8C%96%E4%BC%9A%E8%AF%9D%E6%8E%A7%E5%88%B6%EF%BC%88Minimal-Session-Control%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 最小化会话控制（Minimal Session Control）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%9E%8B%E4%B8%8E%E7%AB%AF%E5%8F%A3%E7%BA%A6%E5%AE%9A"><span class="toc-number">4.</span> <span class="toc-text">3. 传输模型与端口约定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BB%8F%E5%85%B8%E5%8F%8C%E7%AB%AF%E5%8F%A3%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 经典双端口模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8D%95%E7%AB%AF%E5%8F%A3%E5%A4%8D%E7%94%A8%EF%BC%88rtcp-mux%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 单端口复用（rtcp-mux）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-BUNDLE-%E4%B8%8E%E5%8D%95%E4%B8%80%E4%BC%A0%E8%BE%93"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 BUNDLE 与单一传输</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%80%9A%E7%94%A8%E6%8A%A5%E6%96%87%E5%A4%B4%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.</span> <span class="toc-text">4. 通用报文头格式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%A4%8D%E5%90%88-RTCP-%E5%8C%85%EF%BC%88Compound-RTCP-Packet%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 复合 RTCP 包（Compound RTCP Packet）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%A0%87%E5%87%86%E6%8A%A5%E6%96%87%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">7.</span> <span class="toc-text">6. 标准报文类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-SR%EF%BC%9ASender-Report%EF%BC%88%E5%8F%91%E9%80%81%E6%96%B9%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 SR：Sender Report（发送方报告）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RR%EF%BC%9AReceiver-Report%EF%BC%88%E6%8E%A5%E6%94%B6%E6%96%B9%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RR：Receiver Report（接收方报告）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-SDES%EF%BC%9ASource-Description%EF%BC%88%E6%BA%90%E6%8F%8F%E8%BF%B0%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 SDES：Source Description（源描述）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-BYE%EF%BC%9A%E7%A6%BB%E4%BC%9A%E9%80%9A%E7%9F%A5"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 BYE：离会通知</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-APP%EF%BC%9A%E5%BA%94%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 APP：应用自定义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%91%E9%80%81%E9%97%B4%E9%9A%94%E6%8E%A7%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">8.</span> <span class="toc-text">7. 发送间隔控制算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%B8%A6%E5%AE%BD%E5%88%86%E9%85%8D"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 带宽分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%97%B4%E9%9A%94%E8%AE%A1%E7%AE%97"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 间隔计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E9%9A%8F%E6%9C%BA%E5%8C%96%E6%8A%96%E5%8A%A8"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 随机化抖动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-Reverse-Reconsideration"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 Reverse Reconsideration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-WebRTC-RFC-4585-%E7%9A%84%E7%AE%80%E5%8C%96"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 WebRTC&#x2F;RFC 4585 的简化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%BE%80%E8%BF%94%E6%97%B6%E5%BB%B6%EF%BC%88RTT%EF%BC%89%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="toc-number">9.</span> <span class="toc-text">8. 往返时延（RTT）的计算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 计算流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-RTT-%E5%85%AC%E5%BC%8F"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 RTT 公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%8D%95%E4%BD%8D%E6%8D%A2%E7%AE%97"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 单位换算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%8A%96%E5%8A%A8%EF%BC%88Jitter%EF%BC%89%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="toc-number">10.</span> <span class="toc-text">9. 抖动（Jitter）的计算</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E7%AE%97%E6%B3%95%E5%AE%9A%E4%B9%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 算法定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%AE%9E%E7%8E%B0%E8%A6%81%E7%82%B9"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 实现要点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87%EF%BC%9ARFC-4585-%E5%8F%8D%E9%A6%88%E6%B6%88%E6%81%AF%EF%BC%88RTCP-FB%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">10. 扩展报文：RFC 4585 反馈消息（RTCP-FB）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-RTPFB%EF%BC%88PT-205%EF%BC%89%EF%BC%9A%E4%BC%A0%E8%BE%93%E5%B1%82%E5%8F%8D%E9%A6%88"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 RTPFB（PT &#x3D; 205）：传输层反馈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-PSFB%EF%BC%88PT-206%EF%BC%89%EF%BC%9A%E8%B4%9F%E8%BD%BD%E7%89%B9%E5%AE%9A%E5%8F%8D%E9%A6%88"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 PSFB（PT &#x3D; 206）：负载特定反馈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%89%A9%E5%B1%95%E6%8A%A5%E6%96%87%EF%BC%9ARTCP-XR%EF%BC%88RFC-3611%EF%BC%89"><span class="toc-number">12.</span> <span class="toc-text">11. 扩展报文：RTCP XR（RFC 3611）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-WebRTC-%E4%B8%AD%E7%9A%84-RTCP-%E5%AE%9E%E8%B7%B5"><span class="toc-number">13.</span> <span class="toc-text">12. WebRTC 中的 RTCP 实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82%E7%9A%84-RTCP-%E7%89%B9%E6%80%A7"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 强制要求的 RTCP 特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%85%B8%E5%9E%8B-WebRTC-SDP-%E4%B8%AD%E7%9A%84-RTCP-%E9%85%8D%E7%BD%AE"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 典型 WebRTC SDP 中的 RTCP 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-RTCP-%E5%9C%A8-WebRTC-%E6%95%B0%E6%8D%AE%E6%B5%81%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 RTCP 在 WebRTC 数据流中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-RTCP-%E4%B8%8E%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%E8%81%94%E5%8A%A8"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 RTCP 与拥塞控制的联动</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%89%E5%85%A8%EF%BC%9ASRTCP"><span class="toc-number">14.</span> <span class="toc-text">13. 安全：SRTCP</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">15.</span> <span class="toc-text">14. 相关 RFC 速查表</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol）&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
