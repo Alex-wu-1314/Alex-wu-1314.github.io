@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="目录 概述与背景 RTCP 的核心职责 传输模型与端口约定 通用报文头格式 复合 RTCP 包（Compound RTCP Packet） 标准报文类型详解 6.1 SR：Sender Report（发送方报告） 6.2 RR：Receiver Report（接收方报告） 6.3 SDES：Source Description（源描述） 6.4 BYE：离会通知 6.5 APP：应用自定义   发">
 <meta property="og:type" content="article">
-<meta property="og:title" content="RTCP（RTP Control Protocol）">
+<meta property="og:title" content="RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议">
 <meta property="og:url" content="http://example.com/2022/07/02/webrtc/11-rtcp/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 概述与背景 RTCP 的核心职责 传输模型与端口约定 通用报文头格式 复合 RTCP 包（Compound RTCP Packet） 标准报文类型详解 6.1 SR：Sender Report（发送方报告） 6.2 RR：Receiver Report（接收方报告） 6.3 SDES：Source Description（源描述） 6.4 BYE：离会通知 6.5 APP：应用自定义   发">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-07-02T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-27T23:08:23.652Z">
+<meta property="article:modified_time" content="2026-04-29T00:14:09.172Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>RTCP（RTP Control Protocol）</title>
+    <title>RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -111,16 +111,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol）&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -140,7 +140,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        RTCP（RTP Control Protocol）
+        RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议
     </h1>
 
 
@@ -776,16 +776,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol）&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/02/webrtc/11-rtcp/&text=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/02/webrtc/11-rtcp/&is_video=false&description=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议&body=Check out this article: http://example.com/2022/07/02/webrtc/11-rtcp/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/02/webrtc/11-rtcp/&title=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/02/webrtc/11-rtcp/&name=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/02/webrtc/11-rtcp/&t=RTCP（RTP Control Protocol） — 传输质量反馈与控制的配套协议"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

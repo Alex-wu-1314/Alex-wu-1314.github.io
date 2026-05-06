@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 NG-RAN 总体架构概述 gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分 2.1 单体 gNB 与功能拆分的演进 2.2 gNB-CU：Central Unit 2.3 gNB-CU-CP 与 gNB-CU-UP 分离 2.4 gNB-DU：Distributed Unit 2.5 RU（Radio Unit）与前传接口   F1 与 E1 接口详解 3.1 F1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NG-RAN 接入网架构">
+<meta property="og:url" content="http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 NG-RAN 总体架构概述 gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分 2.1 单体 gNB 与功能拆分的演进 2.2 gNB-CU：Central Unit 2.3 gNB-CU-CP 与 gNB-CU-UP 分离 2.4 gNB-DU：Distributed Unit 2.5 RU（Radio Unit）与前传接口   F1 与 E1 接口详解 3.1 F1">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-03-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-06T03:20:27.922Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>NG-RAN 接入网架构</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&text=NG-RAN 接入网架构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&is_video=false&description=NG-RAN 接入网架构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NG-RAN 接入网架构&body=Check out this article: http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&name=NG-RAN 接入网架构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&t=NG-RAN 接入网架构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-NG-RAN-%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0"><span class="toc-number"></span> <span class="toc-text">1. NG-RAN 总体架构概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-gNB-%E5%86%85%E9%83%A8%E6%9E%B6%E6%9E%84%EF%BC%9ACU-DU-RU-%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86"><span class="toc-number"></span> <span class="toc-text">2. gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8D%95%E4%BD%93-gNB-%E4%B8%8E%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">0.1.</span> <span class="toc-text">2.1 单体 gNB 与功能拆分的演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-gNB-CU%EF%BC%9ACentral-Unit"><span class="toc-number">0.2.</span> <span class="toc-text">2.2 gNB-CU：Central Unit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-gNB-CU-CP-%E4%B8%8E-gNB-CU-UP-%E5%88%86%E7%A6%BB"><span class="toc-number">0.3.</span> <span class="toc-text">2.3 gNB-CU-CP 与 gNB-CU-UP 分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-gNB-DU%EF%BC%9ADistributed-Unit"><span class="toc-number">0.4.</span> <span class="toc-text">2.4 gNB-DU：Distributed Unit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-RU%EF%BC%88Radio-Unit%EF%BC%89%E4%B8%8E%E5%89%8D%E4%BC%A0%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.5.</span> <span class="toc-text">2.5 RU（Radio Unit）与前传接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-F1-%E4%B8%8E-E1-%E6%8E%A5%E5%8F%A3%E8%AF%A6%E8%A7%A3"><span class="toc-number"></span> <span class="toc-text">3. F1 与 E1 接口详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-F1-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.1.</span> <span class="toc-text">3.1 F1 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.1.</span> <span class="toc-text">F1-C（控制面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.2.</span> <span class="toc-text">F1-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-%E6%8E%A5%E5%8F%A3%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%89%B9%E7%82%B9"><span class="toc-number">0.1.3.</span> <span class="toc-text">F1 接口的设计特点</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-E1-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.2.</span> <span class="toc-text">3.2 E1 接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NG-RAN-%E5%A4%96%E9%83%A8%E6%8E%A5%E5%8F%A3%EF%BC%9AXn-%E4%B8%8E-NG"><span class="toc-number"></span> <span class="toc-text">4. NG-RAN 外部接口：Xn 与 NG</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Xn-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.1.</span> <span class="toc-text">4.1 Xn 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.1.</span> <span class="toc-text">Xn-C（控制面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.2.</span> <span class="toc-text">Xn-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-%E6%8E%A5%E5%8F%A3-vs-X2-%E6%8E%A5%E5%8F%A3%E7%9A%84%E4%B8%BB%E8%A6%81%E5%B7%AE%E5%BC%82"><span class="toc-number">0.1.3.</span> <span class="toc-text">Xn 接口 vs X2 接口的主要差异</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-NG-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.2.</span> <span class="toc-text">4.2 NG 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2-NGAP%EF%BC%89"><span class="toc-number">0.2.1.</span> <span class="toc-text">NG-C（控制面 &#x2F; NGAP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.2.2.</span> <span class="toc-text">NG-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-C-%E4%B8%8E-NG-U-%E7%9A%84%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="toc-number">0.2.3.</span> <span class="toc-text">NG-C 与 NG-U 的独立性</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-O-RAN-%E6%9E%B6%E6%9E%84%E4%B8%8E-RIC"><span class="toc-number"></span> <span class="toc-text">5. O-RAN 架构与 RIC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-O-RAN-Alliance-%E4%B8%8E-3GPP-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">0.1.</span> <span class="toc-text">5.1 O-RAN Alliance 与 3GPP 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-O-RAN-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">0.2.</span> <span class="toc-text">5.2 O-RAN 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Non-RT-RIC-%E4%B8%8E-rApp"><span class="toc-number">0.3.</span> <span class="toc-text">5.3 Non-RT RIC 与 rApp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Near-RT-RIC-%E4%B8%8E-xApp"><span class="toc-number">0.4.</span> <span class="toc-text">5.4 Near-RT RIC 与 xApp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-O-RAN-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3%E6%B1%87%E6%80%BB"><span class="toc-number">0.5.</span> <span class="toc-text">5.5 O-RAN 关键接口汇总</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%97%A0%E7%BA%BF%E7%A9%BA%E5%8F%A3%E8%83%BD%E5%8A%9B%EF%BC%9AMassive-MIMO-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86"><span class="toc-number"></span> <span class="toc-text">6. 无线空口能力：Massive MIMO 与波束管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Massive-MIMO-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">0.1.</span> <span class="toc-text">6.1 Massive MIMO 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%EF%BC%9AP1-P2-P3"><span class="toc-number">0.2.</span> <span class="toc-text">6.2 波束管理流程：P1 &#x2F; P2 &#x2F; P3</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#P1%EF%BC%9A%E5%88%9D%E5%A7%8B%E6%B3%A2%E6%9D%9F%E5%BB%BA%E7%AB%8B%EF%BC%88Beam-Sweeping-%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="toc-number">0.2.1.</span> <span class="toc-text">P1：初始波束建立（Beam Sweeping 阶段）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P2%EF%BC%9A%E5%8F%91%E5%B0%84%E7%AB%AF%E6%B3%A2%E6%9D%9F%E7%BB%86%E5%8C%96%EF%BC%88TX-Beam-Refinement%EF%BC%89"><span class="toc-number">0.2.2.</span> <span class="toc-text">P2：发射端波束细化（TX Beam Refinement）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P3%EF%BC%9A%E6%8E%A5%E6%94%B6%E7%AB%AF%E6%B3%A2%E6%9D%9F%E7%BB%86%E5%8C%96%EF%BC%88RX-Beam-Refinement%EF%BC%89"><span class="toc-number">0.2.3.</span> <span class="toc-text">P3：接收端波束细化（RX Beam Refinement）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E7%9A%84%E5%91%A8%E6%9C%9F%E7%BB%B4%E6%8A%A4"><span class="toc-number">0.2.4.</span> <span class="toc-text">波束管理的周期维护</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%B3%A2%E6%9D%9F%E5%A4%B1%E8%B4%A5%E6%81%A2%E5%A4%8D%EF%BC%88BFR%EF%BC%89"><span class="toc-number">0.3.</span> <span class="toc-text">6.3 波束失败恢复（BFR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-FR1-vs-FR2-%E9%A2%91%E6%AE%B5%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2%E5%B7%AE%E5%BC%82"><span class="toc-number"></span> <span class="toc-text">7. FR1 vs FR2 频段特性与部署差异</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%A2%91%E6%AE%B5%E5%88%92%E5%88%86%E5%AE%9A%E4%B9%89"><span class="toc-number">0.1.</span> <span class="toc-text">7.1 频段划分定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-FR1-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">0.2.</span> <span class="toc-text">7.2 FR1 特性与部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E6%92%AD%E7%89%B9%E6%80%A7"><span class="toc-number">0.2.1.</span> <span class="toc-text">传播特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%A9%E7%BA%BF%E4%B8%8E-MIMO"><span class="toc-number">0.2.2.</span> <span class="toc-text">天线与 MIMO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E9%81%93%E5%B8%A6%E5%AE%BD%E4%B8%8E%E5%AE%B9%E9%87%8F"><span class="toc-number">0.2.3.</span> <span class="toc-text">信道带宽与容量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E9%83%A8%E7%BD%B2%E5%9C%BA%E6%99%AF"><span class="toc-number">0.2.4.</span> <span class="toc-text">典型部署场景</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-FR2-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">0.3.</span> <span class="toc-text">7.3 FR2 特性与部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E6%92%AD%E7%89%B9%E6%80%A7-1"><span class="toc-number">0.3.1.</span> <span class="toc-text">传播特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%A9%E7%BA%BF%E4%B8%8E%E6%B3%A2%E6%9D%9F%E8%B5%8B%E5%BD%A2"><span class="toc-number">0.3.2.</span> <span class="toc-text">天线与波束赋形</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E9%81%93%E5%B8%A6%E5%AE%BD%E4%B8%8E%E5%AE%B9%E9%87%8F-1"><span class="toc-number">0.3.3.</span> <span class="toc-text">信道带宽与容量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E9%83%A8%E7%BD%B2%E5%9C%BA%E6%99%AF-1"><span class="toc-number">0.3.4.</span> <span class="toc-text">典型部署场景</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-FR1-vs-FR2-%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">0.4.</span> <span class="toc-text">7.4 FR1 vs FR2 对比总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%9C%AC%E7%AB%A0%E5%B0%8F%E7%BB%93"><span class="toc-number"></span> <span class="toc-text">8. 本章小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number"></span> <span class="toc-text">参考规范</span></a>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        NG-RAN 接入网架构
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-03-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-03-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#1-ng-ran-%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0">NG-RAN 总体架构概述</a></li>
+<li><a href="#2-gnb-%E5%86%85%E9%83%A8%E6%9E%B6%E6%9E%84cu--du--ru-%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86">gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分</a><ul>
+<li>2.1 <a href="#21-%E5%8D%95%E4%BD%93-gnb-%E4%B8%8E%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86%E7%9A%84%E6%BC%94%E8%BF%9B">单体 gNB 与功能拆分的演进</a></li>
+<li>2.2 <a href="#22-gnb-cu--central-unit">gNB-CU：Central Unit</a></li>
+<li>2.3 <a href="#23-gnb-cu-cp-%E4%B8%8E-gnb-cu-up-%E5%88%86%E7%A6%BB">gNB-CU-CP 与 gNB-CU-UP 分离</a></li>
+<li>2.4 <a href="#24-gnb-du--distributed-unit">gNB-DU：Distributed Unit</a></li>
+<li>2.5 <a href="#25-ruradiou-unit%E4%B8%8E%E5%89%8D%E4%BC%A0%E6%8E%A5%E5%8F%A3">RU（Radio Unit）与前传接口</a></li>
+</ul>
+</li>
+<li><a href="#3-f1-%E4%B8%8E-e1-%E6%8E%A5%E5%8F%A3%E8%AF%A6%E8%A7%A3">F1 与 E1 接口详解</a><ul>
+<li>3.1 <a href="#31-f1-%E6%8E%A5%E5%8F%A3">F1 接口</a></li>
+<li>3.2 <a href="#32-e1-%E6%8E%A5%E5%8F%A3">E1 接口</a></li>
+</ul>
+</li>
+<li><a href="#4-ng-ran-%E5%A4%96%E9%83%A8%E6%8E%A5%E5%8F%A3xn-%E4%B8%8E-ng">NG-RAN 外部接口：Xn 与 NG</a><ul>
+<li>4.1 <a href="#41-xn-%E6%8E%A5%E5%8F%A3">Xn 接口</a></li>
+<li>4.2 <a href="#42-ng-%E6%8E%A5%E5%8F%A3">NG 接口</a></li>
+</ul>
+</li>
+<li><a href="#5-o-ran-%E6%9E%B6%E6%9E%84%E4%B8%8E-ric">O-RAN 架构与 RIC</a><ul>
+<li>5.1 <a href="#51-o-ran-alliance-%E4%B8%8E-3gpp-%E7%9A%84%E5%85%B3%E7%B3%BB">O-RAN Alliance 与 3GPP 的关系</a></li>
+<li>5.2 <a href="#52-o-ran-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">O-RAN 整体架构</a></li>
+<li>5.3 <a href="#53-non-rt-ric-%E4%B8%8E-rapp">Non-RT RIC 与 rApp</a></li>
+<li>5.4 <a href="#54-near-rt-ric-%E4%B8%8E-xapp">Near-RT RIC 与 xApp</a></li>
+<li>5.5 <a href="#55-o-ran-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3%E6%B1%87%E6%80%BB">O-RAN 关键接口汇总</a></li>
+</ul>
+</li>
+<li><a href="#6-%E6%97%A0%E7%BA%BF%E7%A9%BA%E5%8F%A3%E8%83%BD%E5%8A%9Bmassive-mimo-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86">无线空口能力：Massive MIMO 与波束管理</a><ul>
+<li>6.1 <a href="#61-massive-mimo-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">Massive MIMO 基本原理</a></li>
+<li>6.2 <a href="#62-%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8Bp1--p2--p3">波束管理流程：P1 &#x2F; P2 &#x2F; P3</a></li>
+<li>6.3 <a href="#63-%E6%B3%A2%E6%9D%9F%E5%A4%B1%E8%B4%A5%E6%81%A2%E5%A4%8Dbfr">波束失败恢复（BFR）</a></li>
+</ul>
+</li>
+<li><a href="#7-fr1-vs-fr2-%E9%A2%91%E6%AE%B5%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2%E5%B7%AE%E5%BC%82">FR1 vs FR2 频段特性与部署差异</a><ul>
+<li>7.1 <a href="#71-%E9%A2%91%E6%AE%B5%E5%88%92%E5%88%86%E5%AE%9A%E4%B9%89">频段划分定义</a></li>
+<li>7.2 <a href="#72-fr1-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2">FR1 特性与部署</a></li>
+<li>7.3 <a href="#73-fr2-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2">FR2 特性与部署</a></li>
+<li>7.4 <a href="#74-fr1-vs-fr2-%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93">FR1 vs FR2 对比总结</a></li>
+</ul>
+</li>
+<li><a href="#8-%E6%9C%AC%E7%AB%A0%E5%B0%8F%E7%BB%93">本章小结</a></li>
+</ol>
+<hr>
+<h1 id="1-NG-RAN-总体架构概述"><a href="#1-NG-RAN-总体架构概述" class="headerlink" title="1. NG-RAN 总体架构概述"></a>1. NG-RAN 总体架构概述</h1><p>NG-RAN（Next Generation Radio Access Network）是 5G 系统的接入网部分，定义于 <strong>3GPP TS 38.300</strong> 和 <strong>TS 38.401</strong>，负责为用户设备（UE）提供无线接入能力。</p>
+<p>NG-RAN 节点类型如下：</p>
+<table>
+<thead>
+<tr>
+<th>节点类型</th>
+<th>全称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>gNB</strong></td>
+<td>Next Generation NodeB</td>
+<td>提供 5G NR（New Radio）无线接入，终结 NR 空口控制面与用户面协议</td>
+</tr>
+<tr>
+<td><strong>ng-eNB</strong></td>
+<td>Next Generation evolved NodeB</td>
+<td>提供 LTE（E-UTRA）无线接入，连接至 5GC（而非 EPC）</td>
+</tr>
+</tbody></table>
+<p>NG-RAN 的整体拓扑如下图所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────┐</span><br><span class="line">│                  5GC (5G Core)               │</span><br><span class="line">│   AMF          UPF          SMF / PCF ...    │</span><br><span class="line">└──────┬────────────┬──────────────────────────┘</span><br><span class="line">       │NG-C        │NG-U</span><br><span class="line">┌──────┴────────────┴──────────────┐</span><br><span class="line">│           NG-RAN                 │</span><br><span class="line">│  ┌─────────┐    ┌─────────┐      │</span><br><span class="line">│  │  gNB 1  │Xn  │  gNB 2  │      │</span><br><span class="line">│  │(CU+DU)  ├────┤(CU+DU)  │      │</span><br><span class="line">│  └────┬────┘    └────┬────┘      │</span><br><span class="line">└───────┼──────────────┼───────────┘</span><br><span class="line">        │              │</span><br><span class="line">      UE(s)          UE(s)</span><br></pre></td></tr></table></figure>
+
+<p>NG-RAN 的架构设计遵循以下核心原则（来自 TS 38.401）：</p>
+<ul>
+<li><strong>逻辑分离</strong>：信令传输网络与数据传输网络逻辑独立；</li>
+<li><strong>功能完全分离</strong>：NG-RAN 功能与传输网络功能完全解耦；</li>
+<li><strong>移动性由 NG-RAN 控制</strong>：RRC 连接态下的移动性（切换）由 NG-RAN 全权负责，核心网不介入 RRC 层；</li>
+<li><strong>接口开放</strong>：所有 NG-RAN 接口（F1、E1、Xn、NG）均基于开放标准定义，实现多厂商互操作。</li>
+</ul>
+<hr>
+<h1 id="2-gNB-内部架构：CU-DU-RU-功能拆分"><a href="#2-gNB-内部架构：CU-DU-RU-功能拆分" class="headerlink" title="2. gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分"></a>2. gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分</h1><h3 id="2-1-单体-gNB-与功能拆分的演进"><a href="#2-1-单体-gNB-与功能拆分的演进" class="headerlink" title="2.1 单体 gNB 与功能拆分的演进"></a>2.1 单体 gNB 与功能拆分的演进</h3><p>在 LTE 时代，eNB 是一个”单体（Monolithic）”节点，所有协议层功能集中在一个物理设备中（尽管实际部署中常用 RRH+BBU 的远端射频方式，但逻辑上仍是一个节点）。</p>
+<p>进入 5G 时代，3GPP 在 Release 15 研究阶段（TR 38.801）就开始讨论将 gNB 拆分的必要性，其动机包括：</p>
+<ul>
+<li><strong>降低 TCO（总拥有成本）</strong>：CU 云化部署，多个 DU 共享一个 CU，提升硬件利用率；</li>
+<li><strong>灵活的前传&#x2F;中传&#x2F;回传选择</strong>：根据传输网络条件选择不同的拆分点；</li>
+<li><strong>支持 NFV&#x2F;SDN</strong>：CU 功能可以跑在通用 x86 服务器上，实现网络功能虚拟化；</li>
+<li><strong>边缘计算</strong>：DU 靠近天线侧，可承载时延敏感的用户面处理，CU-UP 也可下沉至边缘节点。</li>
+</ul>
+<p>3GPP 最终在 TS 38.401 中标准化了两种拆分架构（在”单体 gNB”之外）：</p>
+<ol>
+<li><strong>CU + DU 拆分</strong>（高层分离，Option 2 split）；</li>
+<li><strong>CU-CP + CU-UP + DU 三层拆分</strong>（在 CU 内部进一步分离控制面与用户面）。</li>
+</ol>
+<p>RU（Radio Unit，射频单元）与 DU 之间的拆分（下层拆分，Lower Layer Split）则由 O-RAN Alliance 在 3GPP 框架之外进一步标准化（见第 5 节）。</p>
+<h3 id="2-2-gNB-CU：Central-Unit"><a href="#2-2-gNB-CU：Central-Unit" class="headerlink" title="2.2 gNB-CU：Central Unit"></a>2.2 gNB-CU：Central Unit</h3><p><strong>gNB-CU</strong>（Central Unit）是 gNB 的高层逻辑节点，部署在较集中的位置（如机房、数据中心）。</p>
+<p>根据 TS 38.401，gNB-CU 承载的协议层包括：</p>
+<table>
+<thead>
+<tr>
+<th>协议层</th>
+<th>面向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RRC</strong>（Radio Resource Control）</td>
+<td>控制面</td>
+<td>负责 UE 的无线资源配置、移动性管理、系统信息广播等</td>
+</tr>
+<tr>
+<td><strong>PDCP</strong>（Packet Data Convergence Protocol）</td>
+<td>控制面 + 用户面</td>
+<td>头压缩（ROHC）、加解密、完整性保护、重排序</td>
+</tr>
+<tr>
+<td><strong>SDAP</strong>（Service Data Adaptation Protocol）</td>
+<td>用户面</td>
+<td>QoS Flow 到 DRB 的映射（仅 CU-UP 侧）</td>
+</tr>
+</tbody></table>
+<p>gNB-CU 通过 <strong>F1 接口</strong>与一个或多个 gNB-DU 相连；通过 <strong>NG 接口</strong>连接 5GC（AMF&#x2F;UPF）；通过 <strong>Xn 接口</strong>与邻居 gNB 通信；通过 <strong>E1 接口</strong>（当 CU 进一步拆分时）连接 gNB-CU-UP。</p>
+<blockquote>
+<p><strong>关键约束</strong>（来自 TS 38.401）：对外部（其他 gNB 和 5GC）而言，gNB-CU 与其连接的所有 gNB-DU 作为一个整体 gNB 呈现，外部节点无需感知内部拆分结构。</p>
+</blockquote>
+<h3 id="2-3-gNB-CU-CP-与-gNB-CU-UP-分离"><a href="#2-3-gNB-CU-CP-与-gNB-CU-UP-分离" class="headerlink" title="2.3 gNB-CU-CP 与 gNB-CU-UP 分离"></a>2.3 gNB-CU-CP 与 gNB-CU-UP 分离</h3><p>为进一步支持控制面与用户面的独立扩缩容，3GPP 允许将 gNB-CU 再拆分为：</p>
+<ul>
+<li><strong>gNB-CU-CP</strong>（Control Plane）：承载 <strong>RRC</strong> 和 <strong>PDCP 控制面</strong>部分；</li>
+<li><strong>gNB-CU-UP</strong>（User Plane）：承载 <strong>PDCP 用户面</strong>和 <strong>SDAP</strong>。</li>
+</ul>
+<p>拓扑关系（来自 TS 38.401 Figure 6.1.2-1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">       gNB-CU-CP</span><br><span class="line">      /    |     \</span><br><span class="line">   F1-C  E1    NG-C</span><br><span class="line">    /      |</span><br><span class="line">gNB-DU  gNB-CU-UP</span><br><span class="line">             |</span><br><span class="line">           F1-U / NG-U</span><br></pre></td></tr></table></figure>
+
+<p>具体连接规则：</p>
+<table>
+<thead>
+<tr>
+<th>连接关系</th>
+<th>接口</th>
+<th>约束</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>gNB-CU-CP ↔ gNB-DU</td>
+<td>F1-C</td>
+<td>一个 DU 只能连接一个 CU-CP</td>
+</tr>
+<tr>
+<td>gNB-CU-UP ↔ gNB-DU</td>
+<td>F1-U</td>
+<td>用户面数据流经 DU 到 CU-UP</td>
+</tr>
+<tr>
+<td>gNB-CU-CP ↔ gNB-CU-UP</td>
+<td>E1</td>
+<td>一个 CU-UP 只能连接一个 CU-CP</td>
+</tr>
+<tr>
+<td>gNB-CU-CP ↔ AMF</td>
+<td>NG-C</td>
+<td>控制信令</td>
+</tr>
+<tr>
+<td>gNB-CU-UP ↔ UPF</td>
+<td>NG-U</td>
+<td>用户数据 GTP-U 隧道</td>
+</tr>
+</tbody></table>
+<p>这种三层拆分的优势：</p>
+<ul>
+<li><strong>CU-CP 云化</strong>：控制面可集中部署，统一管理大量 CU-UP 和 DU；</li>
+<li><strong>CU-UP 灵活部署</strong>：用户面可按业务需求下沉至边缘，降低时延；</li>
+<li><strong>独立扩缩容</strong>：高峰时段可单独扩容 CU-UP，而无需触及控制面。</li>
+</ul>
+<h3 id="2-4-gNB-DU：Distributed-Unit"><a href="#2-4-gNB-DU：Distributed-Unit" class="headerlink" title="2.4 gNB-DU：Distributed Unit"></a>2.4 gNB-DU：Distributed Unit</h3><p><strong>gNB-DU</strong>（Distributed Unit）是 gNB 的低层逻辑节点，通常部署在靠近天线的位置（如机站机房）。</p>
+<p>gNB-DU 承载的协议层包括：</p>
+<table>
+<thead>
+<tr>
+<th>协议层</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RLC</strong>（Radio Link Control）</td>
+<td>数据分段&#x2F;重组、ARQ 重传（AM 模式）</td>
+</tr>
+<tr>
+<td><strong>MAC</strong>（Medium Access Control）</td>
+<td>调度、HARQ、逻辑信道复用</td>
+</tr>
+<tr>
+<td><strong>PHY</strong>（Physical Layer）</td>
+<td>编解码、调制解调、资源映射</td>
+</tr>
+</tbody></table>
+<p>gNB-DU 的核心职责是实时调度和物理层处理，对时延要求严格（调度决策需在亚毫秒级完成）。一个 gNB-CU-CP 可连接多个 gNB-DU，实现大规模覆盖。</p>
+<h3 id="2-5-RU（Radio-Unit）与前传接口"><a href="#2-5-RU（Radio-Unit）与前传接口" class="headerlink" title="2.5 RU（Radio Unit）与前传接口"></a>2.5 RU（Radio Unit）与前传接口</h3><p>虽然 3GPP 将 PHY 层定义在 gNB-DU 之内，但实际部署中，物理层本身还可以进一步拆分：</p>
+<ul>
+<li><strong>Higher PHY</strong>（留在 DU）：信道编码&#x2F;解码、速率匹配、层映射等；</li>
+<li><strong>Lower PHY</strong>（下移至 RU）：FFT&#x2F;IFFT、PRACH 检测、数字预失真（DPD）等；</li>
+<li><strong>RF 射频处理</strong>（在 RU 中）：DAC&#x2F;ADC、功率放大、天线收发。</li>
+</ul>
+<p>DU 与 RU 之间的接口称为<strong>前传（Fronthaul）</strong> 接口，3GPP 并未标准化这一接口，而是由 <strong>O-RAN Alliance</strong> 定义了 <strong>Open Fronthaul（eCPRI 上层）</strong> 接口规范（见第 5 节）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> CU (高层)</span><br><span class="line">   |  中传（Midhaul）F1</span><br><span class="line"> DU (中层)</span><br><span class="line">   |  前传（Fronthaul）Open Fronthaul / eCPRI</span><br><span class="line"> RU (低层 + RF)</span><br><span class="line">   |</span><br><span class="line">天线阵列</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="3-F1-与-E1-接口详解"><a href="#3-F1-与-E1-接口详解" class="headerlink" title="3. F1 与 E1 接口详解"></a>3. F1 与 E1 接口详解</h1><h3 id="3-1-F1-接口"><a href="#3-1-F1-接口" class="headerlink" title="3.1 F1 接口"></a>3.1 F1 接口</h3><p><strong>F1 接口</strong>定义于 <strong>3GPP TS 38.470～38.474</strong> 系列规范，是 gNB-CU 与 gNB-DU 之间的接口，分为控制面（F1-C）和用户面（F1-U）两个子接口。</p>
+<h4 id="F1-C（控制面）"><a href="#F1-C（控制面）" class="headerlink" title="F1-C（控制面）"></a>F1-C（控制面）</h4><ul>
+<li><strong>传输协议栈</strong>：F1AP（F1 Application Protocol）&#x2F; SCTP &#x2F; IP</li>
+<li><strong>主要功能</strong>：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>F1 接口管理</strong></td>
+<td>F1 Setup（建立）、Reset（复位）、Error Indication</td>
+</tr>
+<tr>
+<td><strong>UE 上下文管理</strong></td>
+<td>UE Context Setup &#x2F; Modification &#x2F; Release（用于 RRC 建立、切换等）</td>
+</tr>
+<tr>
+<td><strong>RRC 消息传递</strong></td>
+<td>DL&#x2F;UL RRC Message Transfer（gNB-CU 和 UE 之间的 RRC 消息透传）</td>
+</tr>
+<tr>
+<td><strong>寻呼</strong></td>
+<td>Paging（DU 负责将 PCH 调度到空口）</td>
+</tr>
+<tr>
+<td><strong>系统信息管理</strong></td>
+<td>Warning Message Transmission（PWS 公共告警）</td>
+</tr>
+<tr>
+<td><strong>小区管理</strong></td>
+<td>gNB-DU Configuration Update（DU 上报小区状态变化）</td>
+</tr>
+</tbody></table>
+<h4 id="F1-U（用户面）"><a href="#F1-U（用户面）" class="headerlink" title="F1-U（用户面）"></a>F1-U（用户面）</h4><ul>
+<li><strong>传输协议栈</strong>：GTP-U &#x2F; UDP &#x2F; IP</li>
+<li><strong>主要功能</strong>：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>用户数据传输</strong></td>
+<td>CU-UP（或 CU）与 DU 之间的下行&#x2F;上行数据包转发</td>
+</tr>
+<tr>
+<td><strong>流量控制</strong></td>
+<td>DL 方向的 Flow Control，避免 DU 缓冲区溢出</td>
+</tr>
+<tr>
+<td><strong>PDCP SN 状态传输</strong></td>
+<td>切换场景下，传递 PDCP 序列号状态（数据不丢失）</td>
+</tr>
+</tbody></table>
+<h4 id="F1-接口的设计特点"><a href="#F1-接口的设计特点" class="headerlink" title="F1 接口的设计特点"></a>F1 接口的设计特点</h4><ol>
+<li><strong>承载协议分离</strong>：控制信令（F1AP&#x2F;SCTP）与用户数据（GTP-U&#x2F;UDP）使用独立协议栈，互不干扰；</li>
+<li><strong>DU 多归属（Multi-homing）支持</strong>：为增强弹性，一个 DU 可（在特殊配置下）连接多个 CU-CP；</li>
+<li><strong>传输网络无关</strong>：F1 接口对传输网络（光纤、微波、IP over WDM 等）无特殊要求，只需满足带宽和时延指标（中传 backhaul 要求通常是 &lt; 10 ms 单向时延）。</li>
+</ol>
+<h3 id="3-2-E1-接口"><a href="#3-2-E1-接口" class="headerlink" title="3.2 E1 接口"></a>3.2 E1 接口</h3><p><strong>E1 接口</strong>定义于 <strong>3GPP TS 38.460～38.463</strong> 系列规范，是 gNB-CU-CP 与 gNB-CU-UP 之间的接口，<strong>仅涉及控制面信令</strong>（用户数据不经过 E1，而是通过 F1-U 和 NG-U 直接流转）。</p>
+<ul>
+<li><strong>传输协议栈</strong>：E1AP &#x2F; SCTP &#x2F; IP</li>
+</ul>
+<p><strong>主要功能</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>E1 接口管理</strong></td>
+<td>E1 Setup、Reset、Error Indication</td>
+</tr>
+<tr>
+<td><strong>Bearer 上下文管理</strong></td>
+<td>Bearer Context Setup &#x2F; Modification &#x2F; Release（CU-CP 指示 CU-UP 建立&#x2F;释放 PDCP 承载，携带 QoS、安全参数等）</td>
+</tr>
+<tr>
+<td><strong>数据使用上报</strong></td>
+<td>CU-UP 向 CU-CP 上报 UE 数据量（用于计费、非活跃监控）</td>
+</tr>
+</tbody></table>
+<p>E1 接口的引入，使得 CU-CP 可以作为”控制器”统一管理多个 CU-UP，这与 SDN 的控制平面与数据平面分离理念完全契合。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">         gNB-CU-CP</span><br><span class="line">        /    |    \</span><br><span class="line">      E1    E1    E1</span><br><span class="line">     /      |      \</span><br><span class="line">CU-UP1   CU-UP2   CU-UP3</span><br><span class="line">(本地)  (边缘节点) (远端MEC)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="4-NG-RAN-外部接口：Xn-与-NG"><a href="#4-NG-RAN-外部接口：Xn-与-NG" class="headerlink" title="4. NG-RAN 外部接口：Xn 与 NG"></a>4. NG-RAN 外部接口：Xn 与 NG</h1><h3 id="4-1-Xn-接口"><a href="#4-1-Xn-接口" class="headerlink" title="4.1 Xn 接口"></a>4.1 Xn 接口</h3><p><strong>Xn 接口</strong>定义于 <strong>3GPP TS 38.420～38.424</strong> 系列规范，是 NG-RAN 节点之间（gNB-gNB、gNB-ng-eNB、ng-eNB-ng-eNB）的接口，是 LTE X2 接口在 5G 中的演进版本。</p>
+<p>Xn 接口同样分为控制面（Xn-C）和用户面（Xn-U）：</p>
+<h4 id="Xn-C（控制面）"><a href="#Xn-C（控制面）" class="headerlink" title="Xn-C（控制面）"></a>Xn-C（控制面）</h4><ul>
+<li><strong>传输协议栈</strong>：XnAP（Xn Application Protocol）&#x2F; SCTP &#x2F; IP</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>接口管理</strong></td>
+<td>Xn Setup、Reset、Configuration Update、Error Indication</td>
+</tr>
+<tr>
+<td><strong>移动性管理</strong></td>
+<td>Xn 切换（Handover Preparation &#x2F; Resource Coordination &#x2F; Path Switch）、SN 状态传输、UE 上下文获取</td>
+</tr>
+<tr>
+<td><strong>RAN 寻呼</strong></td>
+<td>RAN-initiated Paging（RRC_INACTIVE 状态下，目标 gNB 通过 Xn 转发寻呼请求）</td>
+</tr>
+<tr>
+<td><strong>双连接（DC）</strong></td>
+<td>辅节点（SN）的添加&#x2F;重配置&#x2F;修改&#x2F;释放，SN 状态变更通知</td>
+</tr>
+<tr>
+<td><strong>资源协调</strong></td>
+<td>小区间干扰协调（ICIC）、小区激活&#x2F;去激活的能量节省信令</td>
+</tr>
+<tr>
+<td><strong>辅助 RAT 数据上报</strong></td>
+<td>MR-DC 场景下辅 RAT（如 NR）的流量使用量上报</td>
+</tr>
+<tr>
+<td><strong>Trace</strong></td>
+<td>针对特定 UE 的 Trace 会话控制</td>
+</tr>
+</tbody></table>
+<h4 id="Xn-U（用户面）"><a href="#Xn-U（用户面）" class="headerlink" title="Xn-U（用户面）"></a>Xn-U（用户面）</h4><ul>
+<li><strong>传输协议栈</strong>：GTP-U &#x2F; UDP &#x2F; IP</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>数据转发（Data Forwarding）</strong></td>
+<td>Xn 切换期间，源 gNB 将下行缓存数据转发给目标 gNB（PDCP PDU 级别），确保数据不丢失</td>
+</tr>
+<tr>
+<td><strong>流量控制（Flow Control）</strong></td>
+<td>控制数据转发速率，避免目标侧缓冲区过载</td>
+</tr>
+</tbody></table>
+<h4 id="Xn-接口-vs-X2-接口的主要差异"><a href="#Xn-接口-vs-X2-接口的主要差异" class="headerlink" title="Xn 接口 vs X2 接口的主要差异"></a>Xn 接口 vs X2 接口的主要差异</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>LTE X2</th>
+<th>5G Xn</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>所属规范</td>
+<td>TS 36.42x</td>
+<td>TS 38.42x</td>
+</tr>
+<tr>
+<td>UE 上下文传输</td>
+<td>基础支持</td>
+<td>增强支持（更多 5G 特有参数）</td>
+</tr>
+<tr>
+<td>双连接支持</td>
+<td>基于 X2 的 MR-DC（EN-DC）</td>
+<td>原生 NR-DC 支持</td>
+</tr>
+<tr>
+<td>RAN 寻呼</td>
+<td>不支持 RRC_INACTIVE</td>
+<td>支持 RRC_INACTIVE + RNA 管理</td>
+</tr>
+<tr>
+<td>核心网</td>
+<td>连接 EPC</td>
+<td>连接 5GC</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-NG-接口"><a href="#4-2-NG-接口" class="headerlink" title="4.2 NG 接口"></a>4.2 NG 接口</h3><p><strong>NG 接口</strong>定义于 <strong>3GPP TS 38.410～38.414</strong> 系列规范，是 NG-RAN 节点（gNB &#x2F; ng-eNB）与 5GC 之间的接口，是 LTE S1 接口的 5G 演进版本。</p>
+<p>NG 接口分为：</p>
+<ul>
+<li><strong>NG-C（控制面）</strong>：gNB ↔ AMF，承载 NGAP（NG Application Protocol）</li>
+<li><strong>NG-U（用户面）</strong>：gNB ↔ UPF，承载 GTP-U 隧道</li>
+</ul>
+<h4 id="NG-C（控制面-NGAP）"><a href="#NG-C（控制面-NGAP）" class="headerlink" title="NG-C（控制面 &#x2F; NGAP）"></a>NG-C（控制面 &#x2F; NGAP）</h4><ul>
+<li><strong>传输协议栈</strong>：NGAP &#x2F; SCTP &#x2F; IP</li>
+<li><strong>规范</strong>：TS 38.413</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NG 接口管理</strong></td>
+<td>NG Setup（gNB 向 AMF 注册）、Reset、Configuration Update</td>
+</tr>
+<tr>
+<td><strong>UE 上下文管理</strong></td>
+<td>Initial UE Message、UE Context Modification &#x2F; Release</td>
+</tr>
+<tr>
+<td><strong>注册与移动性</strong></td>
+<td>UL&#x2F;DL NAS Transport（NAS PDU 透传）、UE Registration &#x2F; Deregistration</td>
+</tr>
+<tr>
+<td><strong>PDU Session 管理</strong></td>
+<td>PDU Session Resource Setup &#x2F; Modify &#x2F; Release（由 SMF 通过 AMF 触发）</td>
+</tr>
+<tr>
+<td><strong>切换（核心网切换）</strong></td>
+<td>Handover Required &#x2F; Command &#x2F; Complete（跨 gNB 且无 Xn 时使用 NG 切换）</td>
+</tr>
+<tr>
+<td><strong>寻呼</strong></td>
+<td>Paging（AMF 发起，下发至 gNB，由 gNB 在 PCH 上广播）</td>
+</tr>
+<tr>
+<td><strong>位置服务</strong></td>
+<td>Location Report（UE 位置信息上报 AMF）</td>
+</tr>
+<tr>
+<td><strong>跟踪</strong></td>
+<td>Trace 会话激活 &#x2F; 去激活</td>
+</tr>
+</tbody></table>
+<h4 id="NG-U（用户面）"><a href="#NG-U（用户面）" class="headerlink" title="NG-U（用户面）"></a>NG-U（用户面）</h4><ul>
+<li><strong>传输协议栈</strong>：GTP-U &#x2F; UDP &#x2F; IP</li>
+<li><strong>规范</strong>：TS 38.414</li>
+</ul>
+<p>NG-U 与 LTE S1-U 类似，承载 PDU Session 中的用户数据，每个 PDU Session 由 gNB 与 UPF 之间的一条 GTP-U 隧道承载（通过 TEID 区分不同用户的隧道）。</p>
+<h4 id="NG-C-与-NG-U-的独立性"><a href="#NG-C-与-NG-U-的独立性" class="headerlink" title="NG-C 与 NG-U 的独立性"></a>NG-C 与 NG-U 的独立性</h4><p>NG-C 和 NG-U 可以连接到<strong>不同的物理实体</strong>：一个 gNB 可以同时连接多个 AMF（实现 AMF 负载分担）和多个 UPF（实现用户面分布式部署）。这是 5GC CUPS（控制面&#x2F;用户面分离）设计理念在 RAN 侧接口上的体现。</p>
+<hr>
+<h1 id="5-O-RAN-架构与-RIC"><a href="#5-O-RAN-架构与-RIC" class="headerlink" title="5. O-RAN 架构与 RIC"></a>5. O-RAN 架构与 RIC</h1><h3 id="5-1-O-RAN-Alliance-与-3GPP-的关系"><a href="#5-1-O-RAN-Alliance-与-3GPP-的关系" class="headerlink" title="5.1 O-RAN Alliance 与 3GPP 的关系"></a>5.1 O-RAN Alliance 与 3GPP 的关系</h3><p><strong>O-RAN Alliance</strong>（Open RAN Alliance，开放无线接入网联盟）于 2018 年由 AT&amp;T、中国移动、德国电信、NTT DOCOMO 和 Orange 联合创立，目标是推动 RAN 的开放化、智能化和虚拟化。</p>
+<p>O-RAN 与 3GPP 的关系：</p>
+<ul>
+<li><strong>3GPP</strong> 定义 gNB 的逻辑架构（CU&#x2F;DU 拆分、F1&#x2F;E1 接口）——这是<strong>规范性（normative）</strong> 标准；</li>
+<li><strong>O-RAN Alliance</strong> 在 3GPP 框架之上，进一步定义：<ul>
+<li><strong>DU↔RU 的开放前传接口</strong>（Open Fronthaul，基于 eCPRI）；</li>
+<li><strong>RAN 智能控制器（RIC）</strong> 架构及相关接口（A1、E2、O1）；</li>
+<li><strong>O-RAN 网络功能的云原生部署</strong>规范。</li>
+</ul>
+</li>
+</ul>
+<p>O-RAN 将 3GPP 的 gNB 组件重命名为：gNB-CU-CP → <strong>O-CU-CP</strong>，gNB-CU-UP → <strong>O-CU-UP</strong>，gNB-DU → <strong>O-DU</strong>，RU → <strong>O-RU</strong>。</p>
+<h3 id="5-2-O-RAN-整体架构"><a href="#5-2-O-RAN-整体架构" class="headerlink" title="5.2 O-RAN 整体架构"></a>5.2 O-RAN 整体架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│              SMO（Service Management &amp; Orchestration）      │</span><br><span class="line">│  ┌──────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │              Non-RT RIC                              │  │</span><br><span class="line">│  │   rApp1   rApp2   rApp3  ...                         │  │</span><br><span class="line">│  └─────────────────────┬────────────────────────────────┘  │</span><br><span class="line">│                        │A1                 │O1             │</span><br><span class="line">└────────────────────────┼───────────────────┼───────────────┘</span><br><span class="line">                         │                   │</span><br><span class="line">         ┌───────────────▼─────────────┐     │O1</span><br><span class="line">         │       Near-RT RIC           │     │</span><br><span class="line">         │  xApp1  xApp2  xApp3  ...   │◄────┘</span><br><span class="line">         └───────────────┬─────────────┘</span><br><span class="line">                         │E2</span><br><span class="line">         ┌───────────────┼────────────────────────────┐</span><br><span class="line">         │    O-RAN RAN Nodes (E2 Nodes)              │</span><br><span class="line">         │  O-CU-CP   O-CU-UP    O-DU    O-eNB        │</span><br><span class="line">         └────────────────────────────┬───────────────┘</span><br><span class="line">                                      │Open Fronthaul</span><br><span class="line">                                    O-RU</span><br><span class="line">                                      │</span><br><span class="line">                                   天线阵列</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-Non-RT-RIC-与-rApp"><a href="#5-3-Non-RT-RIC-与-rApp" class="headerlink" title="5.3 Non-RT RIC 与 rApp"></a>5.3 Non-RT RIC 与 rApp</h3><p><strong>Non-RT RIC</strong>（Non-Real-Time RAN Intelligent Controller）是 SMO 框架内的一个逻辑功能，工作在<strong>秒级及以上</strong>的时间尺度（&gt; 1 秒），负责：</p>
+<ul>
+<li><strong>AI&#x2F;ML 模型训练</strong>：基于长期历史数据（流量、信道质量、干扰）训练模型，供 Near-RT RIC 使用；</li>
+<li><strong>策略管理</strong>：制定网络优化策略，通过 <strong>A1 接口</strong>下发给 Near-RT RIC；</li>
+<li><strong>配置管理</strong>：通过 <strong>O1 接口</strong>对 RAN 网元（O-CU、O-DU、Near-RT RIC）进行配置和监控；</li>
+<li><strong>故障管理、性能管理</strong>：长周期的 KPI 分析和告警处理。</li>
+</ul>
+<p>Non-RT RIC 上运行的应用称为 <strong>rApp</strong>（r 代表 RAN），通过 <strong>R1 接口</strong>访问 Non-RT RIC 提供的服务。典型 rApp 用例包括：</p>
+<ul>
+<li>网络切片资源的长期规划；</li>
+<li>基于地理分布的频谱策略优化；</li>
+<li>能耗优化策略（关闭低负载小区）。</li>
+</ul>
+<h3 id="5-4-Near-RT-RIC-与-xApp"><a href="#5-4-Near-RT-RIC-与-xApp" class="headerlink" title="5.4 Near-RT RIC 与 xApp"></a>5.4 Near-RT RIC 与 xApp</h3><p><strong>Near-RT RIC</strong>（Near-Real-Time RAN Intelligent Controller）工作在 <strong>10 ms～1 s</strong> 的时间尺度，通过 <strong>E2 接口</strong>连接 O-CU-CP、O-CU-UP、O-DU 等 RAN 节点（称为 E2 Node），实现精细化的 RAN 控制。</p>
+<p>Near-RT RIC 对 E2 节点提供四类服务：</p>
+<table>
+<thead>
+<tr>
+<th>服务类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Report</strong></td>
+<td>请求 E2 节点周期性或事件触发地上报指定指标（如 RSRP、PRB 使用率）</td>
+</tr>
+<tr>
+<td><strong>Insert</strong></td>
+<td>指示 E2 节点在特定条件下激活某用户面功能</td>
+</tr>
+<tr>
+<td><strong>Control</strong></td>
+<td>指示 E2 节点执行特定控制面动作（如触发切换、调整调度参数）</td>
+</tr>
+<tr>
+<td><strong>Policy</strong></td>
+<td>在 E2 节点上配置特定策略参数（如负载均衡阈值）</td>
+</tr>
+</tbody></table>
+<p>Near-RT RIC 上运行的应用称为 <strong>xApp</strong>（x 代表 any，即任意第三方应用），xApp 可由<strong>第三方厂商</strong>独立开发，不依赖于 Near-RT RIC 平台本身。典型 xApp 用例：</p>
+<ul>
+<li><strong>干扰缓解（Interference Mitigation）xApp</strong>：实时监测 PRB 级干扰，动态调整频率资源分配；</li>
+<li><strong>流量导引（Traffic Steering）xApp</strong>：基于实时负载，将 UE 引导至合适小区或频段；</li>
+<li><strong>切换优化（Handover Optimization）xApp</strong>：基于 ML 模型调整 A3 事件阈值，降低乒乓切换；</li>
+<li><strong>QoS 控制（QoS Control）xApp</strong>：实时保障高优先级业务的资源供给。</li>
+</ul>
+<h3 id="5-5-O-RAN-关键接口汇总"><a href="#5-5-O-RAN-关键接口汇总" class="headerlink" title="5.5 O-RAN 关键接口汇总"></a>5.5 O-RAN 关键接口汇总</h3><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>连接关系</th>
+<th>时延要求</th>
+<th>主要功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>A1</strong></td>
+<td>Non-RT RIC ↔ Near-RT RIC</td>
+<td>&gt; 1 s</td>
+<td>策略下发、AI&#x2F;ML 模型传输</td>
+</tr>
+<tr>
+<td><strong>E2</strong></td>
+<td>Near-RT RIC ↔ E2 Nodes（O-CU&#x2F;O-DU）</td>
+<td>10 ms～1 s</td>
+<td>RAN 数据上报与控制命令下发</td>
+</tr>
+<tr>
+<td><strong>O1</strong></td>
+<td>SMO ↔ RAN Nodes</td>
+<td>分钟级</td>
+<td>OAM（操作、管理、维护）：配置、故障、性能管理</td>
+</tr>
+<tr>
+<td><strong>O2</strong></td>
+<td>SMO ↔ O-Cloud</td>
+<td>-</td>
+<td>云资源编排（O-RAN 网络功能的云化部署）</td>
+</tr>
+<tr>
+<td><strong>Open Fronthaul</strong></td>
+<td>O-DU ↔ O-RU</td>
+<td>&lt; 100 μs～几 ms</td>
+<td>物理层数据（IQ 采样）、控制、同步、管理</td>
+</tr>
+<tr>
+<td><strong>R1</strong></td>
+<td>rApp ↔ Non-RT RIC</td>
+<td>-</td>
+<td>rApp 访问 Non-RT RIC 服务</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="6-无线空口能力：Massive-MIMO-与波束管理"><a href="#6-无线空口能力：Massive-MIMO-与波束管理" class="headerlink" title="6. 无线空口能力：Massive MIMO 与波束管理"></a>6. 无线空口能力：Massive MIMO 与波束管理</h1><h3 id="6-1-Massive-MIMO-基本原理"><a href="#6-1-Massive-MIMO-基本原理" class="headerlink" title="6.1 Massive MIMO 基本原理"></a>6.1 Massive MIMO 基本原理</h3><p><strong>Massive MIMO</strong>（大规模多输入多输出）是 5G NR 最重要的无线技术之一，定义于 3GPP TS 38.211、TS 38.214 等规范。</p>
+<p>与 LTE 最多 8 天线端口不同，5G NR 支持<strong>最多 256 个逻辑天线端口</strong>，物理天线阵元数量通常为 64～192 个（如典型的 64T64R 配置）。Massive MIMO 的核心优势：</p>
+<ul>
+<li><strong>波束赋形增益</strong>：将能量集中到目标 UE 方向，显著提升 SNR；</li>
+<li><strong>空间复用</strong>：同频段同时为多个 UE 提供服务（MU-MIMO）；</li>
+<li><strong>干扰抑制</strong>：通过精确的波束方向控制，降低对非目标 UE 的干扰。</li>
+</ul>
+<p>Massive MIMO 的实现依赖于<strong>有源天线单元（AAU，Active Antenna Unit）</strong>，将射频单元与天线阵列集成在一起。根据实现方式，波束赋形分为：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>实现方式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>模拟波束赋形</strong></td>
+<td>移相器调节各天线元件的相位</td>
+<td>每次只能形成一个方向的波束，适合 FR2 mmWave</td>
+</tr>
+<tr>
+<td><strong>数字波束赋形</strong></td>
+<td>每个天线独立射频链路，数字域加权</td>
+<td>可同时形成多个独立波束，适合 FR1</td>
+</tr>
+<tr>
+<td><strong>混合波束赋形</strong></td>
+<td>数字+模拟混合</td>
+<td>兼顾灵活性与硬件成本，FR2 常用</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-波束管理流程：P1-P2-P3"><a href="#6-2-波束管理流程：P1-P2-P3" class="headerlink" title="6.2 波束管理流程：P1 &#x2F; P2 &#x2F; P3"></a>6.2 波束管理流程：P1 &#x2F; P2 &#x2F; P3</h3><p><strong>波束管理（Beam Management，BM）</strong> 定义于 <strong>3GPP TS 38.213</strong> 和 <strong>TS 38.214</strong>，目标是在 gNB 和 UE 之间建立并维护最优的 TX&#x2F;RX 波束对链路（Beam Pair Link，BPL）。</p>
+<p>完整的波束管理分为三个子过程：</p>
+<h4 id="P1：初始波束建立（Beam-Sweeping-阶段）"><a href="#P1：初始波束建立（Beam-Sweeping-阶段）" class="headerlink" title="P1：初始波束建立（Beam Sweeping 阶段）"></a>P1：初始波束建立（Beam Sweeping 阶段）</h4><p>P1 过程在 UE 进行<strong>初始接入</strong>或<strong>波束恢复</strong>时触发，基于 <strong>SSB（Synchronization Signal Block）</strong> 进行粗粒度的波束扫描：</p>
+<ol>
+<li>gNB 以不同方向发射多个 SSB 波束（每个 SSB 对应一个波束方向）；</li>
+<li>UE 测量每个 SSB 的 L1-RSRP（Layer 1 参考信号接收功率）；</li>
+<li>UE 通过 PUCCH 上报最强的 SSB Beam ID 及对应 RSRP 值（即 <strong>Beam Report</strong>）；</li>
+<li>gNB 根据上报结果，确定与该 UE 通信的最优 SSB 波束方向。</li>
+</ol>
+<p>每个 SSB 波束粒度相对较粗（覆盖角度较宽），P1 的目的是快速缩小搜索范围。</p>
+<h4 id="P2：发射端波束细化（TX-Beam-Refinement）"><a href="#P2：发射端波束细化（TX-Beam-Refinement）" class="headerlink" title="P2：发射端波束细化（TX Beam Refinement）"></a>P2：发射端波束细化（TX Beam Refinement）</h4><p>P2 过程在完成 P1 后进行，基于 <strong>CSI-RS（Channel State Information Reference Signal）</strong> 在 P1 确定的角度范围内进行更精细的波束扫描：</p>
+<ol>
+<li>gNB 在 P1 确定的方向附近，发射多个更窄的 CSI-RS 波束（波束权重更集中）；</li>
+<li>UE 固定接收波束，测量各 CSI-RS 波束的 L1-RSRP；</li>
+<li>UE 上报最优 CSI-RS 资源 ID，gNB 确定精细化的下行发射波束；</li>
+<li>后续 PDSCH 数据传输使用此精细波束。</li>
+</ol>
+<h4 id="P3：接收端波束细化（RX-Beam-Refinement）"><a href="#P3：接收端波束细化（RX-Beam-Refinement）" class="headerlink" title="P3：接收端波束细化（RX Beam Refinement）"></a>P3：接收端波束细化（RX Beam Refinement）</h4><p>P3 过程用于优化 UE 侧的接收波束（主要在 FR2 mmWave 场景，UE 也有方向性天线）：</p>
+<ol>
+<li>gNB 使用 P2 确定的发射波束，重复发送 CSI-RS（固定 TX 波束）；</li>
+<li>UE 切换不同的 RX 波束，测量每个 RX 波束下的 CSI-RS RSRP；</li>
+<li>UE 选择 RSRP 最高的 RX 波束作为最优接收波束；</li>
+<li>最终形成最优的 TX-RX 波束对。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">P1: SSB 粗扫描</span><br><span class="line">  gNB: [Beam0][Beam1][Beam2]...[BeamN]  →  UE 上报最优 Beam K</span><br><span class="line">  </span><br><span class="line">P2: CSI-RS 精化 TX 波束  </span><br><span class="line">  gNB: [CSI-RS 精0][CSI-RS 精1]...  (在 Beam K 附近)  →  UE 上报最优 CSI-RS</span><br><span class="line">  </span><br><span class="line">P3: CSI-RS 精化 RX 波束</span><br><span class="line">  gNB: 固定 TX 波束发送  →  UE 切换 [RX Beam A][RX Beam B]... 选最优</span><br></pre></td></tr></table></figure>
+
+<h4 id="波束管理的周期维护"><a href="#波束管理的周期维护" class="headerlink" title="波束管理的周期维护"></a>波束管理的周期维护</h4><p>初始波束建立后，gNB 需要持续追踪 UE 位置变化导致的最优波束变化：</p>
+<ul>
+<li><strong>周期性 CSI-RS 测量</strong>：gNB 配置 UE 周期上报 CSI-RS 测量，用于波束跟踪（Beam Tracking）；</li>
+<li><strong>事件触发波束切换</strong>：当当前 BPL 质量下降（L1-RSRP 低于阈值），触发 P2&#x2F;P3 重新选择波束；</li>
+<li><strong>上行波束管理</strong>：gNB 通过测量 UE 发送的 <strong>SRS（Sounding Reference Signal）</strong> 来确定最优上行接收波束（利用信道互易性 Channel Reciprocity，在 TDD 系统中 UL 和 DL 信道互易，可从 SRS 推断 DL 最优波束）。</li>
+</ul>
+<h3 id="6-3-波束失败恢复（BFR）"><a href="#6-3-波束失败恢复（BFR）" class="headerlink" title="6.3 波束失败恢复（BFR）"></a>6.3 波束失败恢复（BFR）</h3><p>当所有配置的波束质量都低于门限（Beam Failure Detection，BFD），UE 判定为<strong>波束失败（Beam Failure）</strong>，触发 <strong>Beam Failure Recovery（BFR）</strong> 流程（定义于 TS 38.321）：</p>
+<ol>
+<li><strong>候选波束检测</strong>：UE 扫描预配置的候选参考信号（SSB 或 CSI-RS），找到满足质量要求的新候选波束；</li>
+<li><strong>BFR 请求发送</strong>：UE 在新候选波束对应的 PRACH 资源上（或 PUCCH 资源上）发送 BFR 请求；</li>
+<li><strong>gNB 响应</strong>：gNB 使用新波束方向进行 PDCCH 应答，完成波束恢复。</li>
+</ol>
+<p>BFR 的时延目标通常在几十毫秒以内，确保业务不中断（区别于完整的 RRC 重建立，BFR 在 MAC 层完成，速度更快）。</p>
+<hr>
+<h1 id="7-FR1-vs-FR2-频段特性与部署差异"><a href="#7-FR1-vs-FR2-频段特性与部署差异" class="headerlink" title="7. FR1 vs FR2 频段特性与部署差异"></a>7. FR1 vs FR2 频段特性与部署差异</h1><h3 id="7-1-频段划分定义"><a href="#7-1-频段划分定义" class="headerlink" title="7.1 频段划分定义"></a>7.1 频段划分定义</h3><p>根据 <strong>3GPP TS 38.104</strong>，5G NR 频段被划分为两大频率范围（Frequency Range，FR）：</p>
+<table>
+<thead>
+<tr>
+<th>频率范围</th>
+<th>缩写</th>
+<th>频率范围</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Frequency Range 1</strong></td>
+<td>FR1</td>
+<td>410 MHz ～ 7125 MHz</td>
+<td>Sub-7GHz，又称”Sub-6 GHz”（严格说包含到 7.125 GHz）</td>
+</tr>
+<tr>
+<td><strong>Frequency Range 2-1</strong></td>
+<td>FR2-1</td>
+<td>24250 MHz ～ 52600 MHz</td>
+<td>毫米波（mmWave）主力频段（R15 定义）</td>
+</tr>
+<tr>
+<td><strong>Frequency Range 2-2</strong></td>
+<td>FR2-2</td>
+<td>52600 MHz ～ 71000 MHz</td>
+<td>更高毫米波频段（R17 引入）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：FR3（7 GHz ～ 24 GHz 的”上中频”）已在 2023 年世界无线电通信大会（WRC-23）讨论，但尚未纳入正式 3GPP 标准（截至 R18）。</p>
+</blockquote>
+<p>典型 FR1 频段（部分）：</p>
+<table>
+<thead>
+<tr>
+<th>NR Band</th>
+<th>上行（UL）频率</th>
+<th>下行（DL）频率</th>
+<th>双工方式</th>
+<th>主要地区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>n1</td>
+<td>1920～1980 MHz</td>
+<td>2110～2170 MHz</td>
+<td>FDD</td>
+<td>全球</td>
+</tr>
+<tr>
+<td>n28</td>
+<td>703～748 MHz</td>
+<td>758～803 MHz</td>
+<td>FDD</td>
+<td>亚太、欧洲</td>
+</tr>
+<tr>
+<td>n41</td>
+<td>2496～2690 MHz</td>
+<td>2496～2690 MHz</td>
+<td>TDD</td>
+<td>中国（中国移动主力）</td>
+</tr>
+<tr>
+<td>n77</td>
+<td>3300～4200 MHz</td>
+<td>3300～4200 MHz</td>
+<td>TDD</td>
+<td>全球（3.5 GHz 主流）</td>
+</tr>
+<tr>
+<td>n78</td>
+<td>3300～3800 MHz</td>
+<td>3300～3800 MHz</td>
+<td>TDD</td>
+<td>欧洲、亚洲</td>
+</tr>
+<tr>
+<td>n79</td>
+<td>4400～5000 MHz</td>
+<td>4400～5000 MHz</td>
+<td>TDD</td>
+<td>中国、日本</td>
+</tr>
+</tbody></table>
+<p>典型 FR2 频段（部分）：</p>
+<table>
+<thead>
+<tr>
+<th>NR Band</th>
+<th>频率范围</th>
+<th>双工方式</th>
+<th>主要地区</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>n257</td>
+<td>26500～29500 MHz</td>
+<td>TDD</td>
+<td>美国（28 GHz）</td>
+</tr>
+<tr>
+<td>n258</td>
+<td>24250～27500 MHz</td>
+<td>TDD</td>
+<td>欧洲（26 GHz）</td>
+</tr>
+<tr>
+<td>n260</td>
+<td>37000～40000 MHz</td>
+<td>TDD</td>
+<td>美国（39 GHz）</td>
+</tr>
+<tr>
+<td>n261</td>
+<td>27500～28350 MHz</td>
+<td>TDD</td>
+<td>美国</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-FR1-特性与部署"><a href="#7-2-FR1-特性与部署" class="headerlink" title="7.2 FR1 特性与部署"></a>7.2 FR1 特性与部署</h3><p><strong>FR1（Sub-7 GHz）</strong> 是全球 5G 部署的主力频段，具有以下特性：</p>
+<h4 id="传播特性"><a href="#传播特性" class="headerlink" title="传播特性"></a>传播特性</h4><ul>
+<li><strong>穿透损耗低</strong>：低频段信号绕射能力强，穿墙损耗小（3.5 GHz 典型穿墙损耗约 15～20 dB，远低于 28 GHz 的 40+ dB），室内覆盖能力强；</li>
+<li><strong>覆盖范围广</strong>：单站覆盖半径可达数公里（低频 700 MHz 甚至可达 10+ km），适合广域覆盖；</li>
+<li><strong>多径丰富</strong>：Sub-6 GHz 环境中多径反射、散射成分丰富，利于传统空间复用（SU&#x2F;MU-MIMO）。</li>
+</ul>
+<h4 id="天线与-MIMO"><a href="#天线与-MIMO" class="headerlink" title="天线与 MIMO"></a>天线与 MIMO</h4><ul>
+<li>FR1 天线尺寸相对较大（波长 &#x3D; 5 cm～73 cm），单站天线规模通常为 <strong>32T32R 或 64T64R</strong>（Massive MIMO AAU）；</li>
+<li>由于多径丰富，FR1 的 MIMO 增益主要来自<strong>数字波束赋形 + 空间复用</strong>，而非纯模拟波束扫描；</li>
+<li>UE 侧通常不需要方向性天线（采用全向或半向天线），UE 不参与 P3 RX 波束细化。</li>
+</ul>
+<h4 id="信道带宽与容量"><a href="#信道带宽与容量" class="headerlink" title="信道带宽与容量"></a>信道带宽与容量</h4><ul>
+<li>FR1 最大<strong>单载波信道带宽 100 MHz</strong>（TS 38.101-1）；</li>
+<li>通过<strong>载波聚合（CA）</strong>，最多可聚合 16 个载波，理论峰值带宽可达 1600 MHz（实际部署中通常 2～4 个载波聚合）；</li>
+<li>子载波间隔（SCS）支持 15 kHz、30 kHz、60 kHz（μ &#x3D; 0&#x2F;1&#x2F;2）。</li>
+</ul>
+<h4 id="典型部署场景"><a href="#典型部署场景" class="headerlink" title="典型部署场景"></a>典型部署场景</h4><ul>
+<li><strong>宏站覆盖</strong>：700 MHz &#x2F; 800 MHz 频段用于农村、郊区广覆盖；</li>
+<li><strong>容量层</strong>：3.5 GHz（n77&#x2F;n78）是全球 5G 容量的主力担当；</li>
+<li><strong>室内覆盖</strong>：FR1 可穿墙，适合分布式天线系统（DAS）或小基站室内覆盖。</li>
+</ul>
+<h3 id="7-3-FR2-特性与部署"><a href="#7-3-FR2-特性与部署" class="headerlink" title="7.3 FR2 特性与部署"></a>7.3 FR2 特性与部署</h3><p><strong>FR2（mmWave，毫米波）</strong> 是 5G NR 的超高速频段，具有与 FR1 截然不同的物理特性：</p>
+<h4 id="传播特性-1"><a href="#传播特性-1" class="headerlink" title="传播特性"></a>传播特性</h4><ul>
+<li><strong>路径损耗极大</strong>：28 GHz 的自由空间路径损耗比 3.5 GHz 高约 18 dB，穿透损耗极高（混凝土墙体穿透损耗可达 40～80 dB）；</li>
+<li><strong>覆盖范围极小</strong>：典型小区半径仅 100～300 m，适合密集热点覆盖；</li>
+<li><strong>雨衰</strong>：降雨对毫米波有明显吸收（约 0.01 dB&#x2F;m @28 GHz），恶劣天气覆盖下降；</li>
+<li><strong>几乎无多径</strong>：高频信号在障碍物处被快速吸收，多径成分稀疏，依赖直射路径（LoS）。</li>
+</ul>
+<h4 id="天线与波束赋形"><a href="#天线与波束赋形" class="headerlink" title="天线与波束赋形"></a>天线与波束赋形</h4><ul>
+<li>FR2 天线尺寸极小（28 GHz 波长 ≈ 10 mm），可在小型面板中集成大量天线（如 256 个天线元素）；</li>
+<li><strong>强制需要模拟波束赋形</strong>：由于路径损耗极大，必须通过高方向性波束（Beam Gain 可达 20～30 dBi）补偿路径损耗，才能建立可靠链路；</li>
+<li>UE 侧同样配备方向性天线阵列，需要执行 <strong>P3 RX 波束细化</strong>；</li>
+<li><strong>天线面板（Panel）</strong>：FR2 UE 通常配置多个天线面板（如手机四个面），通过面板切换应对 UE 旋转导致的遮挡（手持遮挡 Body Blocking）。</li>
+</ul>
+<h4 id="信道带宽与容量-1"><a href="#信道带宽与容量-1" class="headerlink" title="信道带宽与容量"></a>信道带宽与容量</h4><ul>
+<li>FR2 最大<strong>单载波信道带宽 400 MHz</strong>（FR2-1，TS 38.101-2）；</li>
+<li>子载波间隔（SCS）支持 60 kHz 和 120 kHz（μ &#x3D; 2&#x2F;3），极短 Slot 时长（120 kHz SCS 下 Slot &#x3D; 0.125 ms）；</li>
+<li>极高带宽带来超高峰值速率（理论可达 20 Gbps+），适合超高清视频、VR&#x2F;AR 等 eMBB 极限场景。</li>
+</ul>
+<h4 id="典型部署场景-1"><a href="#典型部署场景-1" class="headerlink" title="典型部署场景"></a>典型部署场景</h4><ul>
+<li><strong>室外热点</strong>：体育场、音乐厅、CBD 商业区——密集用户高吞吐量需求；</li>
+<li><strong>室内专网</strong>：工厂、机场、商场——利用 FR2 的超高带宽提供”光纤级”无线连接；</li>
+<li><strong>固定无线接入（FWA）</strong>：楼宇之间的点对点高速链接，替代固网宽带。</li>
+</ul>
+<h3 id="7-4-FR1-vs-FR2-对比总结"><a href="#7-4-FR1-vs-FR2-对比总结" class="headerlink" title="7.4 FR1 vs FR2 对比总结"></a>7.4 FR1 vs FR2 对比总结</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>FR1（Sub-7 GHz）</th>
+<th>FR2（mmWave）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>频率范围</strong></td>
+<td>410 MHz ～ 7125 MHz</td>
+<td>24.25 GHz ～ 71 GHz</td>
+</tr>
+<tr>
+<td><strong>规范</strong></td>
+<td>TS 38.101-1</td>
+<td>TS 38.101-2</td>
+</tr>
+<tr>
+<td><strong>最大单载波带宽</strong></td>
+<td>100 MHz</td>
+<td>400 MHz（FR2-1）</td>
+</tr>
+<tr>
+<td><strong>子载波间隔</strong></td>
+<td>15 &#x2F; 30 &#x2F; 60 kHz</td>
+<td>60 &#x2F; 120 kHz</td>
+</tr>
+<tr>
+<td><strong>覆盖半径</strong></td>
+<td>100 m ～ 数十 km</td>
+<td>50 ～ 300 m</td>
+</tr>
+<tr>
+<td><strong>穿透能力</strong></td>
+<td>较强</td>
+<td>极弱（需要 LoS）</td>
+</tr>
+<tr>
+<td><strong>峰值速率</strong></td>
+<td>百 Mbps ～ 数 Gbps</td>
+<td>可达 20 Gbps+</td>
+</tr>
+<tr>
+<td><strong>天线规模</strong></td>
+<td>32T32R &#x2F; 64T64R</td>
+<td>256T256R（集成小阵列）</td>
+</tr>
+<tr>
+<td><strong>波束赋形</strong></td>
+<td>数字为主，混合辅助</td>
+<td>模拟为主，混合必选</td>
+</tr>
+<tr>
+<td><strong>UE 波束赋形</strong></td>
+<td>通常不需要（全向）</td>
+<td>必须（方向性面板）</td>
+</tr>
+<tr>
+<td><strong>波束失败恢复</strong></td>
+<td>较少触发</td>
+<td>频繁触发（遮挡敏感）</td>
+</tr>
+<tr>
+<td><strong>主要应用场景</strong></td>
+<td>广覆盖、室内渗透、容量层</td>
+<td>热点超高速、FWA</td>
+</tr>
+<tr>
+<td><strong>全球部署成熟度</strong></td>
+<td>高（5G 主流）</td>
+<td>较低（美国、日本较成熟）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="8-本章小结"><a href="#8-本章小结" class="headerlink" title="8. 本章小结"></a>8. 本章小结</h1><p>本文从四个维度深入剖析了 NG-RAN 接入网架构：</p>
+<p><strong>（1）gNB 内部架构</strong>：3GPP TS 38.401 定义了 gNB 的 CU&#x2F;DU 拆分与 CU-CP&#x2F;CU-UP 进一步分离，实现了控制面与用户面的解耦，为云化部署和边缘计算提供了架构基础。F1-C（NGAP over SCTP）承载 RRC 消息传递和 UE 上下文管理，F1-U（GTP-U over UDP）承载用户数据；E1 接口则是 CU-CP 统一管理多个 CU-UP 的控制通道。</p>
+<p><strong>（2）外部接口</strong>：Xn 接口（TS 38.420～38.424）实现 gNB 间协同，支持 Xn 切换、双连接和 RAN 寻呼；NG 接口（TS 38.410～38.414）连接 5GC，NG-C（NGAP）承载 NAS 透传和移动性信令，NG-U（GTP-U）承载用户面 PDU Session 数据。</p>
+<p><strong>（3）O-RAN 与 RIC</strong>：O-RAN Alliance 在 3GPP 基础上定义了 Non-RT RIC（&gt; 1 s，rApp）和 Near-RT RIC（10 ms ～ 1 s，xApp）双层智能控制架构，通过 A1、E2、O1、Open Fronthaul 等开放接口，推动 RAN 的 AI 驱动智能化和多厂商开放生态。</p>
+<p><strong>（4）Massive MIMO 与频段</strong>：P1&#x2F;P2&#x2F;P3 三阶段波束管理流程实现了从粗粒度波束扫描到精细波束对建立的完整过程，BFR 机制保障了波束失败场景下的快速恢复。FR1 和 FR2 频段在传播特性、天线规模、带宽能力上各有侧重，构成了 5G NR 覆盖（FR1）与容量&#x2F;速率（FR2）的双轮驱动。</p>
+<hr>
+<h1 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h1><table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 38.300</strong></td>
+<td>NR; NR and NG-RAN Overall description</td>
+<td>NG-RAN 整体架构描述</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.401</strong></td>
+<td>NG-RAN; Architecture description</td>
+<td>gNB CU&#x2F;DU 拆分、接口定义权威规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.410</strong></td>
+<td>NG-RAN; NG general aspects and principles</td>
+<td>NG 接口总则</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.413</strong></td>
+<td>NG-RAN; NG Application Protocol (NGAP)</td>
+<td>NGAP 协议规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.420</strong></td>
+<td>NG-RAN; Xn general aspects and principles</td>
+<td>Xn 接口总则</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.423</strong></td>
+<td>NG-RAN; Xn Application Protocol (XnAP)</td>
+<td>XnAP 协议规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.460</strong></td>
+<td>NG-RAN; E1 general aspects and principles</td>
+<td>E1 接口总则</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.463</strong></td>
+<td>NG-RAN; E1 Application Protocol (E1AP)</td>
+<td>E1AP 协议规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.470</strong></td>
+<td>NG-RAN; F1 general aspects and principles</td>
+<td>F1 接口总则</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.473</strong></td>
+<td>NG-RAN; F1 Application Protocol (F1AP)</td>
+<td>F1AP 协议规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.101-1</strong></td>
+<td>NR; UE radio transmission and reception; FR1</td>
+<td>FR1 频段 UE 无线性能规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.101-2</strong></td>
+<td>NR; UE radio transmission and reception; FR2</td>
+<td>FR2 频段 UE 无线性能规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.104</strong></td>
+<td>NR; Base Station (BS) radio transmission and reception</td>
+<td>基站无线发送&#x2F;接收，含频段定义</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.211</strong></td>
+<td>NR; Physical channels and modulation</td>
+<td>物理信道、参考信号定义（含 SSB、CSI-RS）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.213</strong></td>
+<td>NR; Physical layer procedures for control</td>
+<td>波束管理流程规范（P1&#x2F;P2&#x2F;P3&#x2F;BFR）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.214</strong></td>
+<td>NR; Physical layer procedures for data</td>
+<td>CSI 上报、MCS、空间复用规范</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 38.801</strong></td>
+<td>Study on new radio access technology: Radio access architecture and interfaces</td>
+<td>CU&#x2F;DU 拆分研究报告</td>
+</tr>
+<tr>
+<td><strong>O-RAN.WG1.OAD</strong></td>
+<td>O-RAN Architecture Description</td>
+<td>O-RAN Alliance 架构总体描述</td>
+</tr>
+<tr>
+<td><strong>O-RAN.WG2.A1AP</strong></td>
+<td>A1 interface Application Protocol</td>
+<td>A1 接口规范</td>
+</tr>
+<tr>
+<td><strong>O-RAN.WG3.E2AP</strong></td>
+<td>E2 interface Application Protocol</td>
+<td>E2 接口规范</td>
+</tr>
+</tbody></table>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-NG-RAN-%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0"><span class="toc-number"></span> <span class="toc-text">1. NG-RAN 总体架构概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-gNB-%E5%86%85%E9%83%A8%E6%9E%B6%E6%9E%84%EF%BC%9ACU-DU-RU-%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86"><span class="toc-number"></span> <span class="toc-text">2. gNB 内部架构：CU &#x2F; DU &#x2F; RU 功能拆分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8D%95%E4%BD%93-gNB-%E4%B8%8E%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">0.1.</span> <span class="toc-text">2.1 单体 gNB 与功能拆分的演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-gNB-CU%EF%BC%9ACentral-Unit"><span class="toc-number">0.2.</span> <span class="toc-text">2.2 gNB-CU：Central Unit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-gNB-CU-CP-%E4%B8%8E-gNB-CU-UP-%E5%88%86%E7%A6%BB"><span class="toc-number">0.3.</span> <span class="toc-text">2.3 gNB-CU-CP 与 gNB-CU-UP 分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-gNB-DU%EF%BC%9ADistributed-Unit"><span class="toc-number">0.4.</span> <span class="toc-text">2.4 gNB-DU：Distributed Unit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-RU%EF%BC%88Radio-Unit%EF%BC%89%E4%B8%8E%E5%89%8D%E4%BC%A0%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.5.</span> <span class="toc-text">2.5 RU（Radio Unit）与前传接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-F1-%E4%B8%8E-E1-%E6%8E%A5%E5%8F%A3%E8%AF%A6%E8%A7%A3"><span class="toc-number"></span> <span class="toc-text">3. F1 与 E1 接口详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-F1-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.1.</span> <span class="toc-text">3.1 F1 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.1.</span> <span class="toc-text">F1-C（控制面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.2.</span> <span class="toc-text">F1-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#F1-%E6%8E%A5%E5%8F%A3%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%89%B9%E7%82%B9"><span class="toc-number">0.1.3.</span> <span class="toc-text">F1 接口的设计特点</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-E1-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.2.</span> <span class="toc-text">3.2 E1 接口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NG-RAN-%E5%A4%96%E9%83%A8%E6%8E%A5%E5%8F%A3%EF%BC%9AXn-%E4%B8%8E-NG"><span class="toc-number"></span> <span class="toc-text">4. NG-RAN 外部接口：Xn 与 NG</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Xn-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.1.</span> <span class="toc-text">4.1 Xn 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.1.</span> <span class="toc-text">Xn-C（控制面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.1.2.</span> <span class="toc-text">Xn-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Xn-%E6%8E%A5%E5%8F%A3-vs-X2-%E6%8E%A5%E5%8F%A3%E7%9A%84%E4%B8%BB%E8%A6%81%E5%B7%AE%E5%BC%82"><span class="toc-number">0.1.3.</span> <span class="toc-text">Xn 接口 vs X2 接口的主要差异</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-NG-%E6%8E%A5%E5%8F%A3"><span class="toc-number">0.2.</span> <span class="toc-text">4.2 NG 接口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-C%EF%BC%88%E6%8E%A7%E5%88%B6%E9%9D%A2-NGAP%EF%BC%89"><span class="toc-number">0.2.1.</span> <span class="toc-text">NG-C（控制面 &#x2F; NGAP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-U%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">0.2.2.</span> <span class="toc-text">NG-U（用户面）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-C-%E4%B8%8E-NG-U-%E7%9A%84%E7%8B%AC%E7%AB%8B%E6%80%A7"><span class="toc-number">0.2.3.</span> <span class="toc-text">NG-C 与 NG-U 的独立性</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-O-RAN-%E6%9E%B6%E6%9E%84%E4%B8%8E-RIC"><span class="toc-number"></span> <span class="toc-text">5. O-RAN 架构与 RIC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-O-RAN-Alliance-%E4%B8%8E-3GPP-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">0.1.</span> <span class="toc-text">5.1 O-RAN Alliance 与 3GPP 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-O-RAN-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">0.2.</span> <span class="toc-text">5.2 O-RAN 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Non-RT-RIC-%E4%B8%8E-rApp"><span class="toc-number">0.3.</span> <span class="toc-text">5.3 Non-RT RIC 与 rApp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Near-RT-RIC-%E4%B8%8E-xApp"><span class="toc-number">0.4.</span> <span class="toc-text">5.4 Near-RT RIC 与 xApp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-O-RAN-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3%E6%B1%87%E6%80%BB"><span class="toc-number">0.5.</span> <span class="toc-text">5.5 O-RAN 关键接口汇总</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%97%A0%E7%BA%BF%E7%A9%BA%E5%8F%A3%E8%83%BD%E5%8A%9B%EF%BC%9AMassive-MIMO-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86"><span class="toc-number"></span> <span class="toc-text">6. 无线空口能力：Massive MIMO 与波束管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Massive-MIMO-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">0.1.</span> <span class="toc-text">6.1 Massive MIMO 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B%EF%BC%9AP1-P2-P3"><span class="toc-number">0.2.</span> <span class="toc-text">6.2 波束管理流程：P1 &#x2F; P2 &#x2F; P3</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#P1%EF%BC%9A%E5%88%9D%E5%A7%8B%E6%B3%A2%E6%9D%9F%E5%BB%BA%E7%AB%8B%EF%BC%88Beam-Sweeping-%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="toc-number">0.2.1.</span> <span class="toc-text">P1：初始波束建立（Beam Sweeping 阶段）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P2%EF%BC%9A%E5%8F%91%E5%B0%84%E7%AB%AF%E6%B3%A2%E6%9D%9F%E7%BB%86%E5%8C%96%EF%BC%88TX-Beam-Refinement%EF%BC%89"><span class="toc-number">0.2.2.</span> <span class="toc-text">P2：发射端波束细化（TX Beam Refinement）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#P3%EF%BC%9A%E6%8E%A5%E6%94%B6%E7%AB%AF%E6%B3%A2%E6%9D%9F%E7%BB%86%E5%8C%96%EF%BC%88RX-Beam-Refinement%EF%BC%89"><span class="toc-number">0.2.3.</span> <span class="toc-text">P3：接收端波束细化（RX Beam Refinement）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E7%9A%84%E5%91%A8%E6%9C%9F%E7%BB%B4%E6%8A%A4"><span class="toc-number">0.2.4.</span> <span class="toc-text">波束管理的周期维护</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%B3%A2%E6%9D%9F%E5%A4%B1%E8%B4%A5%E6%81%A2%E5%A4%8D%EF%BC%88BFR%EF%BC%89"><span class="toc-number">0.3.</span> <span class="toc-text">6.3 波束失败恢复（BFR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-FR1-vs-FR2-%E9%A2%91%E6%AE%B5%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2%E5%B7%AE%E5%BC%82"><span class="toc-number"></span> <span class="toc-text">7. FR1 vs FR2 频段特性与部署差异</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%A2%91%E6%AE%B5%E5%88%92%E5%88%86%E5%AE%9A%E4%B9%89"><span class="toc-number">0.1.</span> <span class="toc-text">7.1 频段划分定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-FR1-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">0.2.</span> <span class="toc-text">7.2 FR1 特性与部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E6%92%AD%E7%89%B9%E6%80%A7"><span class="toc-number">0.2.1.</span> <span class="toc-text">传播特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%A9%E7%BA%BF%E4%B8%8E-MIMO"><span class="toc-number">0.2.2.</span> <span class="toc-text">天线与 MIMO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E9%81%93%E5%B8%A6%E5%AE%BD%E4%B8%8E%E5%AE%B9%E9%87%8F"><span class="toc-number">0.2.3.</span> <span class="toc-text">信道带宽与容量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E9%83%A8%E7%BD%B2%E5%9C%BA%E6%99%AF"><span class="toc-number">0.2.4.</span> <span class="toc-text">典型部署场景</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-FR2-%E7%89%B9%E6%80%A7%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="toc-number">0.3.</span> <span class="toc-text">7.3 FR2 特性与部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%A0%E6%92%AD%E7%89%B9%E6%80%A7-1"><span class="toc-number">0.3.1.</span> <span class="toc-text">传播特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%A9%E7%BA%BF%E4%B8%8E%E6%B3%A2%E6%9D%9F%E8%B5%8B%E5%BD%A2"><span class="toc-number">0.3.2.</span> <span class="toc-text">天线与波束赋形</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E9%81%93%E5%B8%A6%E5%AE%BD%E4%B8%8E%E5%AE%B9%E9%87%8F-1"><span class="toc-number">0.3.3.</span> <span class="toc-text">信道带宽与容量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E9%83%A8%E7%BD%B2%E5%9C%BA%E6%99%AF-1"><span class="toc-number">0.3.4.</span> <span class="toc-text">典型部署场景</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-FR1-vs-FR2-%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">0.4.</span> <span class="toc-text">7.4 FR1 vs FR2 对比总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%9C%AC%E7%AB%A0%E5%B0%8F%E7%BB%93"><span class="toc-number"></span> <span class="toc-text">8. 本章小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number"></span> <span class="toc-text">参考规范</span></a>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&text=NG-RAN 接入网架构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&is_video=false&description=NG-RAN 接入网架构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NG-RAN 接入网架构&body=Check out this article: http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&title=NG-RAN 接入网架构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&name=NG-RAN 接入网架构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/&t=NG-RAN 接入网架构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

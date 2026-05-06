@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 为什么需要 FEC FEC 的基本原理 2.1 XOR 奇偶校验码 2.2 Reed-Solomon 码（参考）   WebRTC 中的三类 FEC 机制 3.1 独立 FEC 流（Separate FEC Stream） 3.2 冗余编码（Redundant Encoding &#x2F; RED） 3.3 编解码器内置 FEC（In-Band FEC）   ULPFEC —— RFC 5">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FEC（Forward Error Correction）—— 前向纠错，主动抗丢包">
+<meta property="og:url" content="http://example.com/2022/10/30/webrtc/20-fec/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 为什么需要 FEC FEC 的基本原理 2.1 XOR 奇偶校验码 2.2 Reed-Solomon 码（参考）   WebRTC 中的三类 FEC 机制 3.1 独立 FEC 流（Separate FEC Stream） 3.2 冗余编码（Redundant Encoding &#x2F; RED） 3.3 编解码器内置 FEC（In-Band FEC）   ULPFEC —— RFC 5">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-10-30T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-30T09:12:51.469Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>FEC（Forward Error Correction）—— 前向纠错，主动抗丢包</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/14/webrtc/19-jitter%20buffer/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/30/webrtc/20-fec/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/30/webrtc/20-fec/&text=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/30/webrtc/20-fec/&is_video=false&description=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包&body=Check out this article: http://example.com/2022/10/30/webrtc/20-fec/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/30/webrtc/20-fec/&name=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/30/webrtc/20-fec/&t=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-FEC"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 FEC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-FEC-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">2. FEC 的基本原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-XOR-%E5%A5%87%E5%81%B6%E6%A0%A1%E9%AA%8C%E7%A0%81"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 XOR 奇偶校验码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Reed-Solomon-%E7%A0%81%EF%BC%88%E5%8F%82%E8%80%83%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 Reed-Solomon 码（参考）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-WebRTC-%E4%B8%AD%E7%9A%84%E4%B8%89%E7%B1%BB-FEC-%E6%9C%BA%E5%88%B6"><span class="toc-number">4.</span> <span class="toc-text">3. WebRTC 中的三类 FEC 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%8B%AC%E7%AB%8B-FEC-%E6%B5%81%EF%BC%88Separate-FEC-Stream%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 独立 FEC 流（Separate FEC Stream）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%86%97%E4%BD%99%E7%BC%96%E7%A0%81%EF%BC%88Redundant-Encoding-RED%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 冗余编码（Redundant Encoding &#x2F; RED）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-FEC%EF%BC%88In-Band-FEC%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 编解码器内置 FEC（In-Band FEC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-ULPFEC-%E2%80%94%E2%80%94-RFC-5109-%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. ULPFEC —— RFC 5109 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8D%8F%E8%AE%AE%E5%AE%9A%E4%BD%8D%E4%B8%8E%E6%BC%94%E8%BF%9B"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 协议定位与演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 基本操作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-FEC-%E5%8C%85%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 FEC 包结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-ULP%EF%BC%88%E4%B8%8D%E5%9D%87%E7%AD%89%E4%BF%9D%E6%8A%A4%EF%BC%89%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 ULP（不均等保护）机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8F%EF%BC%9ARED-ULPFEC"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 封装方式：RED + ULPFEC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="toc-number">5.0.6.</span> <span class="toc-text">4.6 恢复过程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-FlexFEC-%E2%80%94%E2%80%94-RFC-8627-%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. FlexFEC —— RFC 8627 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA%E4%B8%8E%E6%94%B9%E8%BF%9B%E7%82%B9"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 设计动机与改进点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%9D%9E%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8F%EF%BC%88Non-Interleaved%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 非交织模式（Non-Interleaved）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8F%EF%BC%88Interleaved%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 交织模式（Interleaved）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-FlexFEC-%E5%8C%85%E5%A4%B4%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 FlexFEC 包头结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Opus-%E5%86%85%E7%BD%AE-FEC-%E2%80%94%E2%80%94-LBRR-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.</span> <span class="toc-text">6. Opus 内置 FEC —— LBRR 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-LBRR-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 LBRR 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-RFC-8854%EF%BC%9AWebRTC-FEC-%E4%BD%BF%E7%94%A8%E8%A7%84%E8%8C%83"><span class="toc-number">8.</span> <span class="toc-text">7. RFC 8854：WebRTC FEC 使用规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%9F%B3%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 音频内容推荐方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%A7%86%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 视频内容推荐方案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FEC-%E4%B8%8E-NACK-%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">9.</span> <span class="toc-text">8. FEC 与 NACK 的权衡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E8%87%AA%E9%80%82%E5%BA%94-FEC"><span class="toc-number">10.</span> <span class="toc-text">9. 自适应 FEC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6"><span class="toc-number">11.</span> <span class="toc-text">10. 浏览器支持现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-FEC-%E5%AF%B9-SFU-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">12.</span> <span class="toc-text">11. FEC 对 SFU 的影响</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全性考量</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">14.</span> <span class="toc-text">13. 总结与选型建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-IETF-%E6%A0%87%E5%87%86%E6%96%87%E6%A1%A3"><span class="toc-number">15.0.1.</span> <span class="toc-text">RFC &#x2F; IETF 标准文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E6%9C%AF%E8%AE%BA%E6%96%87%E4%B8%8E%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0"><span class="toc-number">15.0.2.</span> <span class="toc-text">学术论文与技术文章</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        FEC（Forward Error Correction）—— 前向纠错，主动抗丢包
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-10-30T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-10-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-fec">为什么需要 FEC</a></li>
+<li><a href="#2-fec-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">FEC 的基本原理</a><ul>
+<li>2.1 <a href="#21-xor-%E5%A5%87%E5%81%B6%E6%A0%A1%E9%AA%8C%E7%A0%81">XOR 奇偶校验码</a></li>
+<li>2.2 <a href="#22-reed-solomon-%E7%A0%81%E5%8F%82%E8%80%83">Reed-Solomon 码（参考）</a></li>
+</ul>
+</li>
+<li><a href="#3-webrtc-%E4%B8%AD%E7%9A%84%E4%B8%89%E7%B1%BB-fec-%E6%9C%BA%E5%88%B6">WebRTC 中的三类 FEC 机制</a><ul>
+<li>3.1 <a href="#31-%E7%8B%AC%E7%AB%8B-fec-%E6%B5%81separate-fec-stream">独立 FEC 流（Separate FEC Stream）</a></li>
+<li>3.2 <a href="#32-%E5%86%97%E4%BD%99%E7%BC%96%E7%A0%81redundant-encoding--red">冗余编码（Redundant Encoding &#x2F; RED）</a></li>
+<li>3.3 <a href="#33-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-fecin-band-fec">编解码器内置 FEC（In-Band FEC）</a></li>
+</ul>
+</li>
+<li><a href="#4-ulpfec--rfc-5109-%E8%AF%A6%E8%A7%A3">ULPFEC —— RFC 5109 详解</a><ul>
+<li>4.1 <a href="#41-%E5%8D%8F%E8%AE%AE%E5%AE%9A%E4%BD%8D%E4%B8%8E%E6%BC%94%E8%BF%9B">协议定位与演进</a></li>
+<li>4.2 <a href="#42-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B">基本操作流程</a></li>
+<li>4.3 <a href="#43-fec-%E5%8C%85%E7%BB%93%E6%9E%84">FEC 包结构</a></li>
+<li>4.4 <a href="#44-ulp%E4%B8%8D%E5%9D%87%E7%AD%89%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6">ULP（不均等保护）机制</a></li>
+<li>4.5 <a href="#45-%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8Fred--ulpfec">封装方式：RED + ULPFEC</a></li>
+<li>4.6 <a href="#46-%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B">恢复过程</a></li>
+</ul>
+</li>
+<li><a href="#5-flexfec--rfc-8627-%E8%AF%A6%E8%A7%A3">FlexFEC —— RFC 8627 详解</a><ul>
+<li>5.1 <a href="#51-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA%E4%B8%8E%E6%94%B9%E8%BF%9B%E7%82%B9">设计动机与改进点</a></li>
+<li>5.2 <a href="#52-%E9%9D%9E%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8Fnon-interleaved">非交织模式（Non-Interleaved）</a></li>
+<li>5.3 <a href="#53-%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8Finterleaved">交织模式（Interleaved）</a></li>
+<li>5.4 <a href="#54-flexfec-%E5%8C%85%E5%A4%B4%E7%BB%93%E6%9E%84">FlexFEC 包头结构</a></li>
+<li>5.5 <a href="#55-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+</ul>
+</li>
+<li><a href="#6-opus-%E5%86%85%E7%BD%AE-fec--lbrr-%E6%9C%BA%E5%88%B6">Opus 内置 FEC —— LBRR 机制</a><ul>
+<li>6.1 <a href="#61-lbrr-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">LBRR 工作原理</a></li>
+<li>6.2 <a href="#62-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+<li>6.3 <a href="#63-%E5%B1%80%E9%99%90%E6%80%A7">局限性</a></li>
+</ul>
+</li>
+<li><a href="#7-rfc-8854webrtc-fec-%E4%BD%BF%E7%94%A8%E8%A7%84%E8%8C%83">RFC 8854：WebRTC FEC 使用规范</a><ul>
+<li>7.1 <a href="#71-%E9%9F%B3%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88">音频内容推荐方案</a></li>
+<li>7.2 <a href="#72-%E8%A7%86%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88">视频内容推荐方案</a></li>
+</ul>
+</li>
+<li><a href="#8-fec-%E4%B8%8E-nack-%E7%9A%84%E6%9D%83%E8%A1%A1">FEC 与 NACK 的权衡</a></li>
+<li><a href="#9-%E8%87%AA%E9%80%82%E5%BA%94-fec">自适应 FEC</a></li>
+<li><a href="#10-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6">浏览器支持现状</a></li>
+<li><a href="#11-fec-%E5%AF%B9-sfu-%E7%9A%84%E5%BD%B1%E5%93%8D">FEC 对 SFU 的影响</a></li>
+<li><a href="#12-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F">安全性考量</a></li>
+<li><a href="#13-%E6%80%BB%E7%BB%93%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE">总结与选型建议</a></li>
+</ol>
+<hr>
+<h1 id="1-为什么需要-FEC"><a href="#1-为什么需要-FEC" class="headerlink" title="1. 为什么需要 FEC"></a>1. 为什么需要 FEC</h1><p>实时媒体（音视频通话、直播）对<strong>延迟</strong>极度敏感。当网络发生丢包时，常规的重传机制（NACK）需要至少一个 RTT 才能拿到丢失数据；在 RTT 较高（如 300 ms）的网络中，等待重传意味着音视频会出现明显卡顿甚至画面冻结。</p>
+<p>前向纠错（Forward Error Correction，FEC）从根本上换了一种思路：<strong>发送方主动发送冗余数据，接收方即使丢失部分包也能独立重建原始内容</strong>，无需任何往返等待。</p>
+<p>用 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5109">RFC 5109</a> 的原话来说：</p>
+<blockquote>
+<p><em>The nature of real-time applications implies that they usually have more stringent delay requirements than normal data transmissions. As a result, retransmission of the lost packets is generally not a valid option for such applications. In these cases, a better method to attempt recovery of information from packet loss is through Forward Error Correction (FEC).</em></p>
+</blockquote>
+<p>FEC 的代价是<strong>额外的带宽消耗</strong>：发送方需要在正常媒体流之外额外发送修复包。这形成了 FEC 与 NACK 之间经典的权衡关系（详见<a href="#8-fec-%E4%B8%8E-nack-%E7%9A%84%E6%9D%83%E8%A1%A1">第 8 节</a>）。</p>
+<hr>
+<h1 id="2-FEC-的基本原理"><a href="#2-FEC-的基本原理" class="headerlink" title="2. FEC 的基本原理"></a>2. FEC 的基本原理</h1><h3 id="2-1-XOR-奇偶校验码"><a href="#2-1-XOR-奇偶校验码" class="headerlink" title="2.1 XOR 奇偶校验码"></a>2.1 XOR 奇偶校验码</h3><p>WebRTC 中所有标准化的 FEC 方案（ULPFEC、FlexFEC）均基于 <strong>XOR（异或）奇偶校验</strong>。</p>
+<p><strong>核心思想</strong>：对一组数据包做逐比特 XOR 运算，得到一个校验包。只要这组包中最多丢失一个（包括校验包本身），就可以通过 XOR 还原丢失的那一个。</p>
+<p><strong>形式化定义</strong>：设保护组内有 $k$ 个媒体包 $P_1, P_2, \ldots, P_k$，生成一个 FEC 修复包：</p>
+<p>$$<br>R &#x3D; P_1 \oplus P_2 \oplus \cdots \oplus P_k<br>$$</p>
+<p>若 $P_i$ 丢失，则：</p>
+<p>$$<br>P_i &#x3D; P_1 \oplus \cdots \oplus P_{i-1} \oplus P_{i+1} \oplus \cdots \oplus P_k \oplus R<br>$$</p>
+<p><strong>示例</strong>（RFC 5109 Section 4）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原始媒体包序列：  a    b    c    d</span><br><span class="line">FEC 流：              f(a,b)        f(c,d)</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>f(a,b) = a XOR b</code>。若 <code>b</code> 丢失，接收方已有 <code>a</code> 和 <code>f(a,b)</code>，即可恢复：<code>b = a XOR f(a,b)</code>。</p>
+<p>这里引入了 50% 的额外开销，但保护了所有单包丢失。</p>
+<blockquote>
+<p><strong>局限性</strong>：标准 XOR 方案只能恢复保护组内的<strong>单个</strong>丢包。若一组中丢失两个或以上，则无法恢复。</p>
+</blockquote>
+<h3 id="2-2-Reed-Solomon-码（参考）"><a href="#2-2-Reed-Solomon-码（参考）" class="headerlink" title="2.2 Reed-Solomon 码（参考）"></a>2.2 Reed-Solomon 码（参考）</h3><p>Reed-Solomon 等更复杂的纠错码可以恢复保护组内的<strong>多个</strong>丢包，纠错能力更强。但 RFC 5109 指出：</p>
+<blockquote>
+<p><em>XOR parity code is used here because of its effectiveness and simplicity in both protocol design and implementation. This is particularly important for implementation in nodes with limited resources.</em></p>
+</blockquote>
+<p>由于计算复杂度高、块化设计不适合实时流式传输，Reed-Solomon 目前尚未在 WebRTC 标准中采用，仅在实验性实现（如 Pion）中出现。</p>
+<hr>
+<h1 id="3-WebRTC-中的三类-FEC-机制"><a href="#3-WebRTC-中的三类-FEC-机制" class="headerlink" title="3. WebRTC 中的三类 FEC 机制"></a>3. WebRTC 中的三类 FEC 机制</h1><p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8854">RFC 8854</a>（WebRTC Forward Error Correction Requirements，2021 年 1 月）系统梳理了三种 FEC 实现路径：</p>
+<h3 id="3-1-独立-FEC-流（Separate-FEC-Stream）"><a href="#3-1-独立-FEC-流（Separate-FEC-Stream）" class="headerlink" title="3.1 独立 FEC 流（Separate FEC Stream）"></a>3.1 独立 FEC 流（Separate FEC Stream）</h3><p>FEC 修复包作为<strong>独立的 RTP 流</strong>发送，拥有独立的 SSRC 和 Payload Type，与主媒体流通过 SSRC 关联。</p>
+<ul>
+<li><strong>优点</strong>：可用一个 FEC 包保护多个媒体包；支持完整恢复 RTP 头部；FlexFEC 还支持保护多条 RTP 流。</li>
+<li><strong>缺点</strong>：每个 FEC 包都有自己的 IP&#x2F;UDP&#x2F;RTP&#x2F;FEC 头部，当 1:1 保护时头部开销较大。</li>
+</ul>
+<h3 id="3-2-冗余编码（Redundant-Encoding-RED）"><a href="#3-2-冗余编码（Redundant-Encoding-RED）" class="headerlink" title="3.2 冗余编码（Redundant Encoding &#x2F; RED）"></a>3.2 冗余编码（Redundant Encoding &#x2F; RED）</h3><p>基于 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc2198">RFC 2198</a>，冗余数据<strong>附载在主编码包内</strong>，合并为单个 RTP 包发送。冗余数据可以是前一帧的完整副本，也可以是更低码率的压缩版本。</p>
+<ul>
+<li><strong>优点</strong>：头部极其精简，效率高。</li>
+<li><strong>缺点</strong>：只适合音频（数据量小，适合放在一个包内）；无法恢复 RTP Marker 位、CSRC、头部扩展等字段。</li>
+</ul>
+<h3 id="3-3-编解码器内置-FEC（In-Band-FEC）"><a href="#3-3-编解码器内置-FEC（In-Band-FEC）" class="headerlink" title="3.3 编解码器内置 FEC（In-Band FEC）"></a>3.3 编解码器内置 FEC（In-Band FEC）</h3><p>部分音频编解码器（如 Opus、AMR）在编码层直接嵌入冗余信息，无需额外的帧头。</p>
+<ul>
+<li><strong>优点</strong>：不增加额外 RTP 帧头，效率最高。</li>
+<li><strong>缺点</strong>：无法恢复任何 RTP 头部信息；仅限支持该特性的编解码器。</li>
+</ul>
+<hr>
+<h1 id="4-ULPFEC-——-RFC-5109-详解"><a href="#4-ULPFEC-——-RFC-5109-详解" class="headerlink" title="4. ULPFEC —— RFC 5109 详解"></a>4. ULPFEC —— RFC 5109 详解</h1><h3 id="4-1-协议定位与演进"><a href="#4-1-协议定位与演进" class="headerlink" title="4.1 协议定位与演进"></a>4.1 协议定位与演进</h3><p><strong>ULPFEC</strong>（Uneven Level Protection FEC，不均等保护前向纠错）由 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5109">RFC 5109</a>（2007 年 12 月）定义，废弃了此前的 RFC 2733 和 RFC 3009。</p>
+<p>MIME 类型注册为 <code>audio/ulpfec</code>、<code>video/ulpfec</code>、<code>text/ulpfec</code>、<code>application/ulpfec</code>。</p>
+<blockquote>
+<p>注意：RFC 5109 与 RFC 2733&#x2F;3009 <strong>不向后兼容</strong>，但由于 MIME 类型不同，不会被误识别。</p>
+</blockquote>
+<p>在 WebRTC 实践中，ULPFEC 主要用于保护 <strong>VP8</strong> 视频流，通过 RED（RFC 2198）封装后在同一 RTP 流中传输。</p>
+<h3 id="4-2-基本操作流程"><a href="#4-2-基本操作流程" class="headerlink" title="4.2 基本操作流程"></a>4.2 基本操作流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">┌─────────┐     媒体包流      ┌──────────────────────┐</span><br><span class="line">│  编码器  │ ──────────────▶ │   FEC 发送端模块       │</span><br><span class="line">└─────────┘                  │  1. 分组（保护组）     │</span><br><span class="line">                             │  2. XOR 生成修复包     │</span><br><span class="line">                             │  3. 封装为 FEC 包     │</span><br><span class="line">                             └──────────┬───────────┘</span><br><span class="line">                                        │ 媒体包 + FEC 包</span><br><span class="line">                                        ▼</span><br><span class="line">                                     网络传输</span><br><span class="line">                                        │</span><br><span class="line">                             ┌──────────▼───────────┐</span><br><span class="line">                             │   FEC 接收端模块       │</span><br><span class="line">                             │  1. 检测丢包          │</span><br><span class="line">                             │  2. 关联 FEC 包       │</span><br><span class="line">                             │  3. XOR 恢复          │</span><br><span class="line">                             └──────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>发送端步骤（RFC 5109 Section 3）：</p>
+<ol>
+<li>确定需要保护的媒体包集合及各级别的保护长度；</li>
+<li>按照 Section 7.4 的规则设置 offset mask（位掩码），指定哪些包被保护；</li>
+<li>对各包执行 XOR 运算生成 FEC 负载；</li>
+<li>封装为 FEC RTP 包发送。</li>
+</ol>
+<p>接收端步骤：</p>
+<ol>
+<li>接收媒体包和 FEC 包；</li>
+<li>若无丢包，FEC 包可直接忽略；</li>
+<li>若有丢包，用收到的媒体包和 FEC 包做 XOR 恢复。</li>
+</ol>
+<h3 id="4-3-FEC-包结构"><a href="#4-3-FEC-包结构" class="headerlink" title="4.3 FEC 包结构"></a>4.3 FEC 包结构</h3><p>一个 ULPFEC 包由以下部分组成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                        RTP Header                             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|E|L|P|X|  CC   |M| PT recovery |         SN base               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                          TS recovery                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|        length recovery        |                               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |</span><br><span class="line">|              FEC Level 0 Header（含 Protection Length &amp; Mask） |</span><br><span class="line">|                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                               |  FEC Level 1 Header（可选）    |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     FEC Level 0 Payload                       |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     FEC Level 1 Payload（可选）                |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><strong>FEC Header 关键字段说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SN base</code></td>
+<td>被保护包的起始序列号 $N$</td>
+</tr>
+<tr>
+<td><code>PT recovery</code></td>
+<td>被保护媒体包的 Payload Type（各包 PT 的 XOR）</td>
+</tr>
+<tr>
+<td><code>TS recovery</code></td>
+<td>各媒体包 RTP 时间戳的 XOR</td>
+</tr>
+<tr>
+<td><code>length recovery</code></td>
+<td>各媒体包负载长度的 XOR</td>
+</tr>
+</tbody></table>
+<p><strong>FEC Level Header 关键字段</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Protection Length L(k)</code></td>
+<td>第 $k$ 级别保护的字节长度</td>
+</tr>
+<tr>
+<td><code>Offset Mask m(k)</code></td>
+<td>位掩码，第 $i$ 位为 1 表示序列号 $N+i$ 的包受此级别保护</td>
+</tr>
+</tbody></table>
+<p>通过 <code>SN base + Offset Mask</code>，接收方可以精确知道哪些媒体包被这个 FEC 包所保护。</p>
+<h3 id="4-4-ULP（不均等保护）机制"><a href="#4-4-ULP（不均等保护）机制" class="headerlink" title="4.4 ULP（不均等保护）机制"></a>4.4 ULP（不均等保护）机制</h3><p>ULPFEC 的核心创新是<strong>不均等级别保护（Uneven Level Protection）</strong>。</p>
+<p>其设计依据来自多媒体数据的固有特性：</p>
+<blockquote>
+<p><em>It is well known that in many multimedia streams the more important parts of the data are always at the beginning of the data packet.</em> —— RFC 5109 Section 1</p>
+</blockquote>
+<ul>
+<li><strong>视频流</strong>：帧头、运动矢量等关键信息位于包的开头，DCT 系数等次要信息位于末尾；</li>
+<li><strong>音频流</strong>：许多现代音频编解码器同样按重要性降序排列数据。</li>
+</ul>
+<p>ULP 将每个包分为若干 <strong>level（级别）</strong>，重要性从高到低。对低级别（最重要的头部区域）使用<strong>更小的保护组</strong>（group size），提供更强的保护；对高级别（次要的数据区域）使用更大的保护组，节省带宽。</p>
+<p><strong>图示（RFC 5109 Figure 1 示意）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">媒体包 A：[====重要部分====|--------次要部分--------]</span><br><span class="line">媒体包 B：[====重要部分====|--------次要部分--------]</span><br><span class="line">媒体包 C：[====重要部分====|--------次要部分--------]</span><br><span class="line">媒体包 D：[====重要部分====|--------次要部分--------]</span><br><span class="line"></span><br><span class="line">FEC包#1（Level 0）：XOR(A[0..L0], B[0..L0])  → 保护 A、B 的重要部分</span><br><span class="line">FEC包#2（Level 0 + Level 1）：</span><br><span class="line">  Level 0：XOR(C[0..L0], D[0..L0])           → 保护 C、D 的重要部分</span><br><span class="line">  Level 1：XOR(A[0..L1], B[0..L1], C[0..L1], D[0..L1])  → 更大组保护稍长区域</span><br></pre></td></tr></table></figure>
+
+<p>保护长度 $L(k)$ 可在会话中动态调整，无需带外信令。</p>
+<h3 id="4-5-封装方式：RED-ULPFEC"><a href="#4-5-封装方式：RED-ULPFEC" class="headerlink" title="4.5 封装方式：RED + ULPFEC"></a>4.5 封装方式：RED + ULPFEC</h3><p>在 WebRTC 的实际部署中，ULPFEC 包<strong>不是</strong>作为独立 RTP 流发送，而是通过 <strong>RED（RFC 2198）</strong> 格式封装，与媒体包共享同一个 SSRC 和序列号空间，通过 Payload Type 区分。</p>
+<p>SDP 中的典型协商示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97 98</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtpmap:97 red/90000</span><br><span class="line">a=rtpmap:98 ulpfec/90000</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br></pre></td></tr></table></figure>
+
+<p>发送时：媒体包（PT&#x3D;96）和 FEC 包（PT&#x3D;98）均封装在 RED 包（PT&#x3D;97）中发送。</p>
+<h3 id="4-6-恢复过程"><a href="#4-6-恢复过程" class="headerlink" title="4.6 恢复过程"></a>4.6 恢复过程</h3><p>当接收方检测到丢包时（RFC 5109 Section 9）：</p>
+<ol>
+<li><strong>关联</strong>：根据 FEC 包的 <code>SN base</code> 和 <code>Offset Mask</code>，确定哪个 FEC 包可以恢复丢失的媒体包；</li>
+<li><strong>重建 RTP 头部</strong>：<ul>
+<li><code>PT recovery</code> 字段 XOR 已收到各包的 PT → 恢复丢失包的 PT；</li>
+<li><code>TS recovery</code> 同理恢复时间戳；</li>
+<li><code>SN base + Offset</code> 直接确定丢失包的序列号；</li>
+</ul>
+</li>
+<li><strong>重建 RTP 负载</strong>：将 FEC 负载与已收到的同组媒体包负载逐字节 XOR，得到丢失包的负载。</li>
+</ol>
+<hr>
+<h1 id="5-FlexFEC-——-RFC-8627-详解"><a href="#5-FlexFEC-——-RFC-8627-详解" class="headerlink" title="5. FlexFEC —— RFC 8627 详解"></a>5. FlexFEC —— RFC 8627 详解</h1><h3 id="5-1-设计动机与改进点"><a href="#5-1-设计动机与改进点" class="headerlink" title="5.1 设计动机与改进点"></a>5.1 设计动机与改进点</h3><p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8627">RFC 8627</a>（RTP Payload Format for Flexible FEC，2019 年 7 月）在 ULPFEC 基础上进行了重大升级，解决了若干可扩展性问题：</p>
+<table>
+<thead>
+<tr>
+<th>改进点</th>
+<th>ULPFEC（RFC 5109）</th>
+<th>FlexFEC（RFC 8627）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FEC 流独立性</td>
+<td>通过 RED 与媒体流共享 SSRC</td>
+<td>独立 SSRC，独立 RTP 流</td>
+</tr>
+<tr>
+<td>保护多条流</td>
+<td>只能保护单条主流</td>
+<td>支持通过 CSRC 保护 BUNDLE 内多条流</td>
+</tr>
+<tr>
+<td>抗突发丢包</td>
+<td>仅支持行保护（随机丢包）</td>
+<td>同时支持行（随机）和列（突发）保护</td>
+</tr>
+<tr>
+<td>编解码器无关性</td>
+<td>对 H.264 等无 picture ID 的格式支持差</td>
+<td>完全编解码器无关</td>
+</tr>
+<tr>
+<td>重传模式</td>
+<td>不支持</td>
+<td>支持 FEC 修复包重传（代替 RTX）</td>
+</tr>
+</tbody></table>
+<p>FlexFEC 是目前 RFC 8854 对<strong>视频内容</strong>的首选推荐方案。</p>
+<h3 id="5-2-非交织模式（Non-Interleaved）"><a href="#5-2-非交织模式（Non-Interleaved）" class="headerlink" title="5.2 非交织模式（Non-Interleaved）"></a>5.2 非交织模式（Non-Interleaved）</h3><p>适用于<strong>随机丢包</strong>场景。发送方对连续的 $L$ 个源包做一次 XOR，生成一个修复包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">源包：  S_1    S_2    S_3  ...  S_L         S_&#123;L+1&#125; ... S_&#123;2L&#125;</span><br><span class="line">                                  ↓ XOR                    ↓ XOR</span><br><span class="line">修复包：                         R_1                       R_2</span><br></pre></td></tr></table></figure>
+
+<p>图示（RFC 8627 Figure 3）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+--------------------------------------------------+   +===+</span><br><span class="line">| S_1     S_2     S_3     ...     S_L              | + |R_1|</span><br><span class="line">+--------------------------------------------------+   +===+</span><br><span class="line">+--------------------------------------------------+   +===+</span><br><span class="line">| S_&#123;L+1&#125; S_&#123;L+2&#125; S_&#123;L+3&#125; ...    S_&#123;2L&#125;           | + |R_2|</span><br><span class="line">+--------------------------------------------------+   +===+</span><br></pre></td></tr></table></figure>
+
+<p>每 $L$ 个连续包生成一个修复包，可恢复任意一个包中的单次丢失。</p>
+<h3 id="5-3-交织模式（Interleaved）"><a href="#5-3-交织模式（Interleaved）" class="headerlink" title="5.3 交织模式（Interleaved）"></a>5.3 交织模式（Interleaved）</h3><p>适用于<strong>突发丢包</strong>场景。发送方对间隔为 $L$ 的源包（列方向）做 XOR，生成修复包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">源包矩阵（每行 L 个，共 D 行）：</span><br><span class="line">  S_1     S_2     ...  S_L</span><br><span class="line">  S_&#123;L+1&#125; S_&#123;L+2&#125; ...  S_&#123;2L&#125;</span><br><span class="line">  ...</span><br><span class="line">  S_&#123;(D-1)L+1&#125;    ...  S_&#123;DL&#125;</span><br><span class="line"></span><br><span class="line">列方向 XOR：</span><br><span class="line">  R_1 = S_1 XOR S_&#123;L+1&#125; XOR ... XOR S_&#123;(D-1)L+1&#125;   （第1列）</span><br><span class="line">  R_2 = S_2 XOR S_&#123;L+2&#125; XOR ... XOR S_&#123;(D-1)L+2&#125;   （第2列）</span><br><span class="line">  ...</span><br><span class="line">  R_L = S_L XOR S_&#123;2L&#125;  XOR ... XOR S_&#123;DL&#125;           （第L列）</span><br></pre></td></tr></table></figure>
+
+<p>交织模式生成 $L$ 个修复包，每个修复包保护整列。当网络出现连续丢包（突发丢包），只要每列最多丢失一个，就能完全恢复。这是交织模式抵御突发丢包的关键所在。</p>
+<h3 id="5-4-FlexFEC-包头结构"><a href="#5-4-FlexFEC-包头结构" class="headerlink" title="5.4 FlexFEC 包头结构"></a>5.4 FlexFEC 包头结构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                        RTP Header (含独立 SSRC)                |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|R|F|P|X|  CC   |M| PT recovery |        SN base                |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                          TS recovery                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|        length recovery        |N| CSRC count  | reserved      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     CSRC (protected SSRC)                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     FEC Mask（位掩码）                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                       Repair Payload                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键字段</strong>：</p>
+<ul>
+<li><code>CSRC</code>：被保护的源 RTP 流的 SSRC，支持 BUNDLE 下保护多流；</li>
+<li><code>N</code> 位：<code>0</code> 为非交织（行 FEC），<code>1</code> 为交织（列 FEC）；</li>
+<li><code>FEC Mask</code>：指定被保护的源包序列号（相对于 SN base 的偏移位掩码）。</li>
+</ul>
+<h3 id="5-5-SDP-协商"><a href="#5-5-SDP-协商" class="headerlink" title="5.5 SDP 协商"></a>5.5 SDP 协商</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">a=rtpmap:96 H264/90000</span><br><span class="line">a=rtpmap:97 flexfec-03/90000</span><br><span class="line">a=fmtp:97 repair-window=10000000</span><br><span class="line">a=ssrc-group:FEC-FR 1234 5678</span><br><span class="line">a=ssrc:1234 cname:user@example.com</span><br><span class="line">a=ssrc:5678 cname:user@example.com</span><br></pre></td></tr></table></figure>
+
+<p><code>repair-window</code> 单位为微秒，表示从源包到修复包最大允许的时间跨度（10,000,000 µs &#x3D; 10 秒）。</p>
+<hr>
+<h1 id="6-Opus-内置-FEC-——-LBRR-机制"><a href="#6-Opus-内置-FEC-——-LBRR-机制" class="headerlink" title="6. Opus 内置 FEC —— LBRR 机制"></a>6. Opus 内置 FEC —— LBRR 机制</h1><h3 id="6-1-LBRR-工作原理"><a href="#6-1-LBRR-工作原理" class="headerlink" title="6.1 LBRR 工作原理"></a>6.1 LBRR 工作原理</h3><p>Opus 的内置 FEC 基于 <strong>LBRR（Low Bit-Rate Redundancy，低码率冗余）</strong> 技术，定义于 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6716">RFC 6716</a> Section 2.1.7。</p>
+<p>工作方式（RFC 8854 Section 3.3）：</p>
+<blockquote>
+<p><em>For Opus, audio frames deemed important are re-encoded at a lower bitrate and appended to the next payload, allowing partial recovery of a lost packet.</em></p>
+</blockquote>
+<p>简而言之：Opus 编码器将<strong>前一帧</strong>以更低码率重新编码，附载在<strong>当前帧</strong>的 RTP 包中。若前一帧丢失，接收方从当前包的尾部提取 LBRR 数据，部分重建前一帧的音频内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RTP 包 N-1：[主编码帧 N-1]                          ←── 丢失</span><br><span class="line">RTP 包 N：  [主编码帧 N | LBRR(帧 N-1 低码率版本)]   ←── 收到</span><br><span class="line">                            ↑</span><br><span class="line">                     用此恢复帧 N-1</span><br></pre></td></tr></table></figure>
+
+<p><strong>带宽开销</strong>：RFC 8854 指出实验数据显示 Opus FEC 带来约 20-30% 的额外开销，具体取决于所需的保护强度。</p>
+<p><strong>启用阈值</strong>：Opus 编码器内部的 LBRR 启用阈值约为 1% 丢包率，低于此阈值时 FEC 不会激活。</p>
+<h3 id="6-2-SDP-协商"><a href="#6-2-SDP-协商" class="headerlink" title="6.2 SDP 协商"></a>6.2 SDP 协商</h3><p>接收方必须在 SDP 中声明支持 Opus 内置 FEC：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=fmtp:111 minptime=10;useinbandfec=1</span><br></pre></td></tr></table></figure>
+
+<p><code>useinbandfec=1</code> 是声明性参数（declarative），可以为两个方向分别协商（RFC 8854 Section 4.2）。</p>
+<p>编码器侧通过 libopus API 配置：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 启用内置 FEC</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 告知编码器预期丢包率（0-100），编码器据此决定是否激活 LBRR</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(<span class="number">10</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-局限性"><a href="#6-3-局限性" class="headerlink" title="6.3 局限性"></a>6.3 局限性</h3><ul>
+<li>LBRR <strong>只携带前一帧</strong>的冗余，无法覆盖多帧连续丢包；</li>
+<li>无法恢复任何 RTP 头部信息；</li>
+<li>对突发丢包（burst loss）效果有限——如果连续两包丢失，LBRR 只能恢复其中一个。</li>
+</ul>
+<p>若需要多包保护，RFC 8854 推荐改用 RED（RFC 2198）叠加低码率 Opus 编码作为冗余层。</p>
+<hr>
+<h1 id="7-RFC-8854：WebRTC-FEC-使用规范"><a href="#7-RFC-8854：WebRTC-FEC-使用规范" class="headerlink" title="7. RFC 8854：WebRTC FEC 使用规范"></a>7. RFC 8854：WebRTC FEC 使用规范</h1><p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8854">RFC 8854</a>（2021 年 1 月，由 Google 的 Justin Uberti 主导）是 WebRTC FEC 的顶层规范文件，对各类场景下 FEC 的选用给出了明确的规范性要求（SHOULD&#x2F;MUST&#x2F;NOT RECOMMENDED）。</p>
+<h3 id="7-1-音频内容推荐方案"><a href="#7-1-音频内容推荐方案" class="headerlink" title="7.1 音频内容推荐方案"></a>7.1 音频内容推荐方案</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方案</th>
+<th>规范级别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>使用 Opus 编解码器</td>
+<td>Opus 内置 FEC（LBRR）</td>
+<td>RECOMMENDED</td>
+</tr>
+<tr>
+<td>需要多包保护</td>
+<td>RED（RFC 2198）+ 低码率 Opus</td>
+<td>SHOULD</td>
+</tr>
+<tr>
+<td>使用 AMR&#x2F;AMR-WB</td>
+<td>AMR 内置 FEC</td>
+<td>RECOMMENDED</td>
+</tr>
+<tr>
+<td>使用恒定码率编解码器（如 PCMU）</td>
+<td>慎用 RED（会显著增加码率）</td>
+<td>MAY</td>
+</tr>
+<tr>
+<td>使用独立 FEC 流</td>
+<td>不推荐（音频包率低，头部开销占比大）</td>
+<td>NOT RECOMMENDED</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-视频内容推荐方案"><a href="#7-2-视频内容推荐方案" class="headerlink" title="7.2 视频内容推荐方案"></a>7.2 视频内容推荐方案</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方案</th>
+<th>规范级别</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一般视频内容</td>
+<td>FlexFEC（RFC 8627）独立流</td>
+<td>RECOMMENDED</td>
+</tr>
+<tr>
+<td>旧有实现兼容</td>
+<td>ULPFEC（RFC 5109）</td>
+<td>MAY</td>
+</tr>
+<tr>
+<td>分层编码（SVC&#x2F;时域分层）</td>
+<td>仅对基础层应用 FEC</td>
+<td>SHOULD</td>
+</tr>
+</tbody></table>
+<p>RFC 8854 Section 7 的实现要求：</p>
+<blockquote>
+<p><em>Implementations MUST support the Opus in-band FEC mechanism… The general FEC mechanism described in [RFC8627] SHOULD also be supported.</em></p>
+</blockquote>
+<hr>
+<h1 id="8-FEC-与-NACK-的权衡"><a href="#8-FEC-与-NACK-的权衡" class="headerlink" title="8. FEC 与 NACK 的权衡"></a>8. FEC 与 NACK 的权衡</h1><p>FEC 和 NACK（重传）解决的是同一个问题，丢包恢复，但策略截然相反：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>FEC（前向纠错）</th>
+<th>NACK（重传）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>恢复时机</td>
+<td>接收方直接恢复，无需等待</td>
+<td>需要至少 1 个 RTT</td>
+</tr>
+<tr>
+<td>带宽开销</td>
+<td>始终产生冗余带宽（即使无丢包）</td>
+<td>仅在丢包时消耗额外带宽</td>
+</tr>
+<tr>
+<td>延迟影响</td>
+<td>无额外延迟</td>
+<td>RTT 越大，引入的延迟越多</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>高延迟网络（RTT &gt; 100ms）、低丢包率</td>
+<td>低延迟网络（RTT &lt; 50ms）</td>
+</tr>
+<tr>
+<td>拥塞风险</td>
+<td>始终占用带宽，在拥塞时可能加剧问题</td>
+<td>只在需要时使用带宽</td>
+</tr>
+</tbody></table>
+<p><strong>Google 2013 年论文（Handling Packet Loss in WebRTC）</strong> 提出了 <strong>Hybrid NACK&#x2F;FEC</strong> 方案：</p>
+<ul>
+<li>使用 XOR 码 $(k, m)$，其中 $k$ 为保护组中的媒体包数，$m$ 为 FEC 包数；</li>
+<li>结合 VP8 <strong>时域分层（Temporal Layers）</strong>：FEC 只应用于基础层（Base Layer）帧，丢增强层帧直接丢弃，不触发 NACK；</li>
+<li>实验结果显示，使用 TL&#x3D;2 时 FEC 开销降低约 60%，端到端延迟也明显改善。</li>
+</ul>
+<p>RFC 8854 Section 8 也对此进行了规范性表述：</p>
+<blockquote>
+<p><em>Because use of FEC always causes redundant data to be transmitted… this will lead to less bandwidth available for the primary encoding, even when the redundant data is not being used. This is in contrast to methods like RTX [RFC4588]… which only transmit redundant data when necessary, at the cost of an extra round trip.</em></p>
+</blockquote>
+<p><strong>实践建议</strong>：</p>
+<ul>
+<li>RTT &lt; 50ms：优先 NACK（RTX），FEC 可关闭；</li>
+<li>RTT 50~150ms：Hybrid NACK+FEC，根据丢包率动态调整；</li>
+<li>RTT &gt; 150ms：FEC 为主，NACK 作为补充；</li>
+<li>高丢包（&gt; 15%）：FEC 的冗余包也可能丢失，此时结合带宽自适应降低分辨率更有效。</li>
+</ul>
+<hr>
+<h1 id="9-自适应-FEC"><a href="#9-自适应-FEC" class="headerlink" title="9. 自适应 FEC"></a>9. 自适应 FEC</h1><p>固定冗余率的 FEC 效率不高：网络好时浪费带宽，网络差时保护不足。RFC 8854 Section 8 明确要求 FEC 应<strong>自适应</strong>使用：</p>
+<blockquote>
+<p><em>FEC should only be activated if network conditions warrant it, or upon explicit application request.</em></p>
+</blockquote>
+<p>同时警告：</p>
+<blockquote>
+<p><em>if the loss is caused by network congestion, the additional bandwidth used by the redundant data may actually make the situation worse and can lead to significant degradation of the network.</em></p>
+</blockquote>
+<p>即：<strong>当丢包是由拥塞引起时，强行开 FEC 可能恶化网络状况</strong>，因此 FEC 的开关决策必须与拥塞控制（GCC&#x2F;BWE）协同配合。</p>
+<p>WebRTC 默认实现（libwebrtc）的自适应策略：</p>
+<ol>
+<li><strong>FEC 冗余率</strong>跟随最近几秒的丢包率动态调整；</li>
+<li><strong>带宽探测期间</strong>：由于此时本就需要发送额外数据，将其用于 FEC 修复包是高效的选择；</li>
+<li><strong>编码码率调整</strong>：总发送码率 &#x3D; 编码码率 + FEC 冗余码率 ≤ BWE 估算值；若 FEC 开启，编码码率需相应下调。</li>
+</ol>
+<p>FlexFEC 还支持<strong>重传模式</strong>（RFC 8627 Section 1.1.7）：不提前发送冗余包，而是在收到 NACK 后发送修复包替代 RTX，从而避免了 RTX 流的额外管理成本。</p>
+<hr>
+<h1 id="10-浏览器支持现状"><a href="#10-浏览器支持现状" class="headerlink" title="10. 浏览器支持现状"></a>10. 浏览器支持现状</h1><table>
+<thead>
+<tr>
+<th>机制</th>
+<th>Chrome</th>
+<th>Firefox</th>
+<th>Safari</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Opus LBRR（音频内置 FEC）</td>
+<td>✅ 发送 + 接收</td>
+<td>✅ 发送 + 接收</td>
+<td>✅ 接收</td>
+</tr>
+<tr>
+<td>ULPFEC（RED+ULPFEC，VP8）</td>
+<td>✅</td>
+<td>⚠️ 部分支持（接收存在历史问题）</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>FlexFEC（视频独立 FEC 流）</td>
+<td>✅ 接收；发送默认关闭，需 flag 开启</td>
+<td>❌</td>
+<td>✅ 仅接收</td>
+</tr>
+<tr>
+<td>RED（音频冗余编码）</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注：浏览器支持情况随版本更新持续变化，以上为截至 2025 年的大致情况。FlexFEC 发送侧在 Chromium 中长期处于 flag 状态，由于与 SFU 的互操作性问题尚未完全解决。</p>
+</blockquote>
+<hr>
+<h1 id="11-FEC-对-SFU-的影响"><a href="#11-FEC-对-SFU-的影响" class="headerlink" title="11. FEC 对 SFU 的影响"></a>11. FEC 对 SFU 的影响</h1><p>SFU（Selective Forwarding Unit）在 FEC 处理上面临特殊挑战：</p>
+<p><strong>ULPFEC 的问题</strong>：</p>
+<ul>
+<li>ULPFEC 包通过 RED 封装，与媒体包共享同一 SSRC 和序列号；</li>
+<li>SFU 转发给 Firefox 等不完整支持 ULPFEC 的接收方时，Firefox 可能对 FEC 包发送 NACK，引发不必要的重传，干扰 Chrome 的带宽估计；</li>
+<li>SFU 要么需要完整实现 FEC 解析，要么剥离 FEC 包后转发，增加了实现复杂度。</li>
+</ul>
+<p><strong>FlexFEC 的优势</strong>：</p>
+<ul>
+<li>FlexFEC 使用独立 SSRC，SFU 可以根据接收方能力选择是否转发 FEC 流，灵活性大幅提升；</li>
+<li>在 BUNDLE 模式下，一条 FlexFEC 流可以保护整个 BUNDLE 内的所有视频流，节省资源。</li>
+</ul>
+<hr>
+<h1 id="12-安全性考量"><a href="#12-安全性考量" class="headerlink" title="12. 安全性考量"></a>12. 安全性考量</h1><p>WebRTC 中所有媒体包（包括 FEC 修复包）均通过 <strong>SRTP</strong>（Secure RTP）加密传输。RFC 8854 Section 9 指出：</p>
+<blockquote>
+<p><em>In the WebRTC context, FEC is specifically concerned with recovering data from lost packets; any corrupted packets will be discarded by the Secure Real-Time Transport Protocol (SRTP) [RFC3711] decryption process.</em></p>
+</blockquote>
+<p>因此：</p>
+<ul>
+<li>FEC 机制只处理丢包问题；</li>
+<li>被篡改的包会在 SRTP 解密阶段被丢弃，不会被当作有效 FEC 数据参与恢复；</li>
+<li>FEC 本身不引入新的安全风险，但 FEC 包会增加可供攻击者分析的流量特征，在某些场景下需注意流量分析（traffic analysis）风险。</li>
+</ul>
+<hr>
+<h1 id="13-总结与选型建议"><a href="#13-总结与选型建议" class="headerlink" title="13. 总结与选型建议"></a>13. 总结与选型建议</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">        ┌─────────────────────────────────────────┐</span><br><span class="line">        │            FEC 选型决策树                │</span><br><span class="line">        └──────────────────┬──────────────────────┘</span><br><span class="line">                           │</span><br><span class="line">           ┌───────────────▼────────────────┐</span><br><span class="line">           │         是音频还是视频？          │</span><br><span class="line">           └───────┬───────────────┬─────────┘</span><br><span class="line">                   │               │</span><br><span class="line">                音频             视频</span><br><span class="line">                   │               │</span><br><span class="line">       ┌───────────▼──┐   ┌────────▼──────────────┐</span><br><span class="line">       │  Opus 编解码？ │   │  推荐 FlexFEC（RFC8627）│</span><br><span class="line">       └──┬────────┬──┘   │  fallback: ULPFEC（VP8）│</span><br><span class="line">          │        │      └───────────────────────┘</span><br><span class="line">         是        否</span><br><span class="line">          │        │</span><br><span class="line">┌─────────▼──┐  ┌──▼────────────────────┐</span><br><span class="line">│ useinbandfec│  │RED（RFC 2198）          │</span><br><span class="line">│    =1      │  │+ 低码率冗余编码          │</span><br><span class="line">└────────────┘  └───────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心原则速查</strong>：</p>
+<ol>
+<li><strong>音频首选 Opus 内置 FEC</strong>（LBRR），开销小、延迟低；需要更强保护时叠加 RED；</li>
+<li><strong>视频首选 FlexFEC</strong>（RFC 8627），编解码器无关、支持突发丢包；旧生态下降级用 ULPFEC（VP8 only）；</li>
+<li><strong>FEC 与 NACK 协同</strong>：低 RTT 优先 NACK，高 RTT 优先 FEC；</li>
+<li><strong>与 BWE 联动</strong>：FEC 冗余率随丢包率动态调整，禁止在拥塞期盲目开启 FEC；</li>
+<li><strong>SVC&#x2F;时域分层</strong>：FEC 仅应用于基础层，避免无谓消耗带宽；</li>
+<li><strong>SFU 场景</strong>：优先使用 FlexFEC 独立流，规避 ULPFEC+RED 的转发复杂性。</li>
+</ol>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><h3 id="RFC-IETF-标准文档"><a href="#RFC-IETF-标准文档" class="headerlink" title="RFC &#x2F; IETF 标准文档"></a>RFC &#x2F; IETF 标准文档</h3><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc2198">RFC 2198</a></td>
+<td>RTP Payload for Redundant Audio Data</td>
+<td>RED 冗余编码基础</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3550">RFC 3550</a></td>
+<td>RTP: A Transport Protocol for Real-Time Applications</td>
+<td>RTP 基础</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5109">RFC 5109</a></td>
+<td>RTP Payload Format for Generic Forward Error Correction</td>
+<td>ULPFEC 定义（废弃 RFC 2733、3009）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6716">RFC 6716</a></td>
+<td>Definition of the Opus Audio Codec</td>
+<td>Opus LBRR FEC</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7587">RFC 7587</a></td>
+<td>RTP Payload Format for the Opus Speech and Audio Codec</td>
+<td><code>useinbandfec</code> 参数定义</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8627">RFC 8627</a></td>
+<td>RTP Payload Format for Flexible Forward Error Correction (FEC)</td>
+<td>FlexFEC 定义</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8854">RFC 8854</a></td>
+<td>WebRTC Forward Error Correction Requirements</td>
+<td>WebRTC FEC 顶层规范</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4588">RFC 4588</a></td>
+<td>RTP Retransmission Payload Format</td>
+<td>RTX 重传机制</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5956">RFC 5956</a></td>
+<td>Forward Error Correction Grouping Semantics in SDP</td>
+<td>SDP FEC 分组语义</td>
+</tr>
+</tbody></table>
+<h3 id="学术论文与技术文章"><a href="#学术论文与技术文章" class="headerlink" title="学术论文与技术文章"></a>学术论文与技术文章</h3><ul>
+<li>Stefan Holmer, Mikhal Shemer, Marco Paniconi. <em>Handling Packet Loss in WebRTC</em>. Google Research, 2013. <a target="_blank" rel="noopener" href="https://research.google.com/pubs/archive/41611.pdf">PDF</a></li>
+<li>Mozilla WebRTC Blog. <em>Audio FEC Experimentation</em>. 2017. <a target="_blank" rel="noopener" href="https://blog.mozilla.org/webrtc/audio-fec-experiments/">Link</a></li>
+<li>Pion Blog. <em>FEC with Pion</em>. 2024. <a target="_blank" rel="noopener" href="https://pion.ly/blog/fec-with-pion/">Link</a></li>
+<li>webrtcHacks. <em>RED: Improving Audio Quality with Redundancy</em>. 2020. <a target="_blank" rel="noopener" href="https://webrtchacks.com/red-improving-audio-quality-with-redundancy/">Link</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-FEC"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 FEC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-FEC-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">2. FEC 的基本原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-XOR-%E5%A5%87%E5%81%B6%E6%A0%A1%E9%AA%8C%E7%A0%81"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 XOR 奇偶校验码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Reed-Solomon-%E7%A0%81%EF%BC%88%E5%8F%82%E8%80%83%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 Reed-Solomon 码（参考）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-WebRTC-%E4%B8%AD%E7%9A%84%E4%B8%89%E7%B1%BB-FEC-%E6%9C%BA%E5%88%B6"><span class="toc-number">4.</span> <span class="toc-text">3. WebRTC 中的三类 FEC 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%8B%AC%E7%AB%8B-FEC-%E6%B5%81%EF%BC%88Separate-FEC-Stream%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 独立 FEC 流（Separate FEC Stream）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%86%97%E4%BD%99%E7%BC%96%E7%A0%81%EF%BC%88Redundant-Encoding-RED%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 冗余编码（Redundant Encoding &#x2F; RED）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-FEC%EF%BC%88In-Band-FEC%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 编解码器内置 FEC（In-Band FEC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-ULPFEC-%E2%80%94%E2%80%94-RFC-5109-%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. ULPFEC —— RFC 5109 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8D%8F%E8%AE%AE%E5%AE%9A%E4%BD%8D%E4%B8%8E%E6%BC%94%E8%BF%9B"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 协议定位与演进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 基本操作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-FEC-%E5%8C%85%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 FEC 包结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-ULP%EF%BC%88%E4%B8%8D%E5%9D%87%E7%AD%89%E4%BF%9D%E6%8A%A4%EF%BC%89%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 ULP（不均等保护）机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%B0%81%E8%A3%85%E6%96%B9%E5%BC%8F%EF%BC%9ARED-ULPFEC"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 封装方式：RED + ULPFEC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="toc-number">5.0.6.</span> <span class="toc-text">4.6 恢复过程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-FlexFEC-%E2%80%94%E2%80%94-RFC-8627-%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. FlexFEC —— RFC 8627 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA%E4%B8%8E%E6%94%B9%E8%BF%9B%E7%82%B9"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 设计动机与改进点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%9D%9E%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8F%EF%BC%88Non-Interleaved%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 非交织模式（Non-Interleaved）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BA%A4%E7%BB%87%E6%A8%A1%E5%BC%8F%EF%BC%88Interleaved%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 交织模式（Interleaved）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-FlexFEC-%E5%8C%85%E5%A4%B4%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 FlexFEC 包头结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 SDP 协商</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Opus-%E5%86%85%E7%BD%AE-FEC-%E2%80%94%E2%80%94-LBRR-%E6%9C%BA%E5%88%B6"><span class="toc-number">7.</span> <span class="toc-text">6. Opus 内置 FEC —— LBRR 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-LBRR-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 LBRR 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-RFC-8854%EF%BC%9AWebRTC-FEC-%E4%BD%BF%E7%94%A8%E8%A7%84%E8%8C%83"><span class="toc-number">8.</span> <span class="toc-text">7. RFC 8854：WebRTC FEC 使用规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E9%9F%B3%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 音频内容推荐方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%A7%86%E9%A2%91%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 视频内容推荐方案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FEC-%E4%B8%8E-NACK-%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">9.</span> <span class="toc-text">8. FEC 与 NACK 的权衡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E8%87%AA%E9%80%82%E5%BA%94-FEC"><span class="toc-number">10.</span> <span class="toc-text">9. 自适应 FEC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6"><span class="toc-number">11.</span> <span class="toc-text">10. 浏览器支持现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-FEC-%E5%AF%B9-SFU-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">12.</span> <span class="toc-text">11. FEC 对 SFU 的影响</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E6%80%A7%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全性考量</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93%E4%B8%8E%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">14.</span> <span class="toc-text">13. 总结与选型建议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-IETF-%E6%A0%87%E5%87%86%E6%96%87%E6%A1%A3"><span class="toc-number">15.0.1.</span> <span class="toc-text">RFC &#x2F; IETF 标准文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%A6%E6%9C%AF%E8%AE%BA%E6%96%87%E4%B8%8E%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0"><span class="toc-number">15.0.2.</span> <span class="toc-text">学术论文与技术文章</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/30/webrtc/20-fec/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/30/webrtc/20-fec/&text=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/30/webrtc/20-fec/&is_video=false&description=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包&body=Check out this article: http://example.com/2022/10/30/webrtc/20-fec/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/30/webrtc/20-fec/&title=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/30/webrtc/20-fec/&name=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/30/webrtc/20-fec/&t=FEC（Forward Error Correction）—— 前向纠错，主动抗丢包"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 为什么要理解 Release 版本体系 3GPP Release 演进全景 2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7（2G&#x2F;3G 时代） 2.2 LTE 时代：R8 ~ R14 2.3 5G 时代：R15 ~ R17（5G Phase 1） 2.4 5G-Advanced：R18 ~ R20   TS &#x2F; TR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3GPP 标准文档体系 —— Release 版本演进与 TS&#x2F;TR 编号规则">
+<meta property="og:url" content="http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 为什么要理解 Release 版本体系 3GPP Release 演进全景 2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7（2G&#x2F;3G 时代） 2.2 LTE 时代：R8 ~ R14 2.3 5G 时代：R15 ~ R17（5G Phase 1） 2.4 5G-Advanced：R18 ~ R20   TS &#x2F; TR">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-01-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T12:47:28.975Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/01/29/3gpp/03-mobile-network-evolution/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/01/04/3gpp/01-3gpp%20organization/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&text=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&is_video=false&description=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则&body=Check out this article: http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&name=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&t=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%90%86%E8%A7%A3-Release-%E7%89%88%E6%9C%AC%E4%BD%93%E7%B3%BB"><span class="toc-number">2.</span> <span class="toc-text">1 为什么要理解 Release 版本体系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-3GPP-Release-%E6%BC%94%E8%BF%9B%E5%85%A8%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">2 3GPP Release 演进全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%97%A9%E6%9C%9F%EF%BC%9AR99-R4-R5-R6-R7"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R99%EF%BC%88Release-99%EF%BC%8C1999%EF%BC%89"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">R99（Release 99，1999）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R4%EF%BC%88Release-4%EF%BC%8C2001%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">R4（Release 4，2001）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R5%EF%BC%88Release-5%EF%BC%8C2002%EF%BC%89"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">R5（Release 5，2002）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R6%EF%BC%88Release-6%EF%BC%8C2004%EF%BC%89"><span class="toc-number">3.0.1.4.</span> <span class="toc-text">R6（Release 6，2004）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R7%EF%BC%88Release-7%EF%BC%8C2007%EF%BC%89"><span class="toc-number">3.0.1.5.</span> <span class="toc-text">R7（Release 7，2007）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-LTE-%E6%97%B6%E4%BB%A3%EF%BC%9AR8-R14"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 LTE 时代：R8 ~ R14</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R8%EF%BC%88Release-8%EF%BC%8C2008%EF%BC%89%E2%80%94%E2%80%94-LTE-%E8%AF%9E%E7%94%9F"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">R8（Release 8，2008）—— LTE 诞生</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R9%EF%BC%88Release-9%EF%BC%8C2009%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">R9（Release 9，2009）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R10%EF%BC%88Release-10%EF%BC%8C2011%EF%BC%89%E2%80%94%E2%80%94-LTE-Advanced%EF%BC%88IMT-Advanced-%E5%80%99%E9%80%89%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">R10（Release 10，2011）—— LTE-Advanced（IMT-Advanced 候选）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R11%EF%BC%88Release-11%EF%BC%8C2012%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">R11（Release 11，2012）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R12%EF%BC%88Release-12%EF%BC%8C2013%EF%BC%89"><span class="toc-number">3.0.2.5.</span> <span class="toc-text">R12（Release 12，2013）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R13%EF%BC%88Release-13%EF%BC%8C2016%EF%BC%89"><span class="toc-number">3.0.2.6.</span> <span class="toc-text">R13（Release 13，2016）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R14%EF%BC%88Release-14%EF%BC%8C2017%EF%BC%89"><span class="toc-number">3.0.2.7.</span> <span class="toc-text">R14（Release 14，2017）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5G-%E6%97%B6%E4%BB%A3%EF%BC%9AR15-R17"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 5G 时代：R15 ~ R17</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R15%EF%BC%88Release-15%EF%BC%8C2018-2019%EF%BC%89%E2%80%94%E2%80%94-5G-NR-%E7%AC%AC%E4%B8%80%E7%89%88"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">R15（Release 15，2018&#x2F;2019）—— 5G NR 第一版</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R16%EF%BC%88Release-16%EF%BC%8C2020%E5%B9%B47%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E6%A0%87%E5%87%86"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">R16（Release 16，2020年7月冻结）—— 5G 第一个完整标准</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R17%EF%BC%88Release-17%EF%BC%8C2022%E5%B9%B46%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-%E8%83%BD%E5%8A%9B%E6%8B%93%E5%B1%95%E7%89%88"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">R17（Release 17，2022年6月冻结）—— 5G 能力拓展版</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-5G-Advanced%EF%BC%9AR18-R20"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 5G-Advanced：R18 ~ R20</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R18%EF%BC%88Release-18%EF%BC%8C2024%E5%B9%B46%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-A-%E9%A6%96%E7%89%88"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">R18（Release 18，2024年6月冻结）—— 5G-A 首版</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R19%EF%BC%88Release-19%EF%BC%8C%E9%A2%84%E8%AE%A1-2025-%E5%B9%B4%EF%BC%89"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">R19（Release 19，预计 2025 年）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R20%EF%BC%88Release-20%EF%BC%8C%E9%A2%84%E8%AE%A1-2026-%E5%B9%B4%EF%BC%89"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">R20（Release 20，预计 2026 年）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-TS-TR-%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3 TS &#x2F; TR 文档体系详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-TS-%E4%B8%8E-TR-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 TS 与 TR 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%A7%84%E8%8C%83%E7%BC%96%E5%8F%B7%E8%A7%84%E5%88%99%EF%BC%88Series-Number%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 规范编号规则（Series Number）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E7%B3%BB%E5%88%97%E8%AF%B4%E6%98%8E"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">主要系列说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%89%88%E6%9C%AC%E5%8F%B7%E8%A7%84%E5%88%99%EF%BC%88Version-Number%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 版本号规则（Version Number）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Major-%E5%9F%9F%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">Major 域的含义</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%96%87%E4%BB%B6%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 文件名规则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-5G-NR-%E6%A0%B8%E5%BF%83%E8%A7%84%E8%8C%83%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">4 5G NR 核心规范速查表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%EF%BC%88SA-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">系统架构（SA 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%EF%BC%88SA3-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">安全（SA3 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NAS-%E5%8D%8F%E8%AE%AE%EF%BC%88CT1-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">NAS 协议（CT1 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BD%91%E6%8E%A5%E5%8F%A3%EF%BC%88CT3-CT4-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">核心网接口（CT3&#x2F;CT4 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NR-%E7%A9%BA%E5%8F%A3%EF%BC%88RAN-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">NR 空口（RAN 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-TR%EF%BC%88%E6%8A%80%E6%9C%AF%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">5.0.6.</span> <span class="toc-text">关键 TR（技术报告）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%A6%82%E4%BD%95%E6%A3%80%E7%B4%A2%E4%B8%8E%E4%B8%8B%E8%BD%BD-3GPP-%E8%A7%84%E8%8C%83"><span class="toc-number">6.</span> <span class="toc-text">5 如何检索与下载 3GPP 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%98%E6%96%B9%E7%BD%91%E7%AB%99%E5%85%A5%E5%8F%A3"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 官方网站入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-ETSI-%E9%95%9C%E5%83%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%8CPDF-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 ETSI 镜像（推荐，PDF 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%8B%E8%BD%BD%E9%A2%91%E7%8E%87%E4%B8%8E%E6%9B%B4%E6%96%B0%E8%8A%82%E5%A5%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 下载频率与更新节奏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E9%98%85%E8%AF%BB%E5%BB%BA%E8%AE%AE"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 阅读建议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">8.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-01-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-01-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%90%86%E8%A7%A3-release-%E7%89%88%E6%9C%AC%E4%BD%93%E7%B3%BB">为什么要理解 Release 版本体系</a></li>
+<li><a href="#2-3gpp-release-%E6%BC%94%E8%BF%9B%E5%85%A8%E6%99%AF">3GPP Release 演进全景</a><ul>
+<li>2.1 <a href="#21-%E6%97%A9%E6%9C%9Fr99--r4--r5--r6--r7">早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7（2G&#x2F;3G 时代）</a></li>
+<li>2.2 <a href="#22-lte-%E6%97%B6%E4%BB%A3r8--r14">LTE 时代：R8 ~ R14</a></li>
+<li>2.3 <a href="#23-5g-%E6%97%B6%E4%BB%A3r15--r17">5G 时代：R15 ~ R17（5G Phase 1）</a></li>
+<li>2.4 <a href="#24-5g-advancedr18--r20">5G-Advanced：R18 ~ R20</a></li>
+</ul>
+</li>
+<li><a href="#3-ts--tr-%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB%E8%AF%A6%E8%A7%A3">TS &#x2F; TR 文档体系详解</a><ul>
+<li>3.1 <a href="#31-ts-%E4%B8%8E-tr-%E7%9A%84%E5%8C%BA%E5%88%AB">TS 与 TR 的区别</a></li>
+<li>3.2 <a href="#32-%E8%A7%84%E8%8C%83%E7%BC%96%E5%8F%B7%E8%A7%84%E5%88%99series-number">规范编号规则（Series Number）</a></li>
+<li>3.3 <a href="#33-%E7%89%88%E6%9C%AC%E5%8F%B7%E8%A7%84%E5%88%99version-number">版本号规则（Version Number）</a></li>
+<li>3.4 <a href="#34-%E6%96%87%E4%BB%B6%E5%90%8D%E8%A7%84%E5%88%99">文件名规则</a></li>
+</ul>
+</li>
+<li><a href="#4-5g-nr-%E6%A0%B8%E5%BF%83%E8%A7%84%E8%8C%83%E9%80%9F%E6%9F%A5%E8%A1%A8">5G NR 核心规范速查表</a></li>
+<li><a href="#5-%E5%A6%82%E4%BD%95%E6%A3%80%E7%B4%A2%E4%B8%8E%E4%B8%8B%E8%BD%BD-3gpp-%E8%A7%84%E8%8C%83">如何检索与下载 3GPP 规范</a></li>
+<li><a href="#6-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-为什么要理解-Release-版本体系"><a href="#1-为什么要理解-Release-版本体系" class="headerlink" title="1 为什么要理解 Release 版本体系"></a>1 为什么要理解 Release 版本体系</h1><p>在阅读 5G 相关资料时，常常会看到诸如”TS 38.331 V17.3.0”、”R15 NSA”、”R18 5G-A”这样的表述。如果不理解 3GPP 的版本体系和文档编号规则，就很容易陷入以下困境：</p>
+<ul>
+<li>不知道某个特性属于哪个版本，无法判断当前网络是否支持；</li>
+<li>面对数百份协议文档不知从何入手；</li>
+<li>看到版本号 <code>15.3.0</code> 不知道它对应哪个 Release。</li>
+</ul>
+<p>理解 Release 版本体系和 TS&#x2F;TR 编号规则，是高效阅读 3GPP 规范的前提，也是评估网络能力、跟踪标准进展的基础工具。</p>
+<hr>
+<h1 id="2-3GPP-Release-演进全景"><a href="#2-3GPP-Release-演进全景" class="headerlink" title="2 3GPP Release 演进全景"></a>2 3GPP Release 演进全景</h1><p>3GPP 从 1998 年成立至今，每隔约 1~2 年发布一个新的 Release 版本。每个版本在前一个版本的基础上引入新特性，形成持续演进的技术生态。</p>
+<p>下图展示了从 R99 到 R21 的完整演进时间线：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">时间轴（概略）</span><br><span class="line">┌────────────┬──────────┬───────────────────────────────────────────┐</span><br><span class="line">│ generation │ Release  │  主要里程碑                                 │</span><br><span class="line">├────────────┼──────────┼───────────────────────────────────────────┤</span><br><span class="line">│ 2G/3G      │ R99      │ UMTS / WCDMA 首个版本（1999）               │</span><br><span class="line">│            │ R4       │ 软交换核心网（2001）                         │</span><br><span class="line">│            │ R5       │ IMS、HSDPA（2002）                         │</span><br><span class="line">│            │ R6       │ HSUPA（2004）                              │</span><br><span class="line">│            │ R7       │ HSPA+（2007）                              │</span><br><span class="line">├────────────┼──────────┼───────────────────────────────────────────┤</span><br><span class="line">│ LTE        │ R8       │ LTE / EPC 基础标准（2008）                  │</span><br><span class="line">│            │ R9       │ LTE 小幅增强（2009）                        │</span><br><span class="line">│            │ R10      │ LTE-Advanced / CA（2011）                  │</span><br><span class="line">│            │ R11      │ CoMP / eICIC（2012）                       │</span><br><span class="line">│            │ R12      │ Small Cell / D2D（2013）                   │</span><br><span class="line">│            │ R13      │ LTE-M / NB-IoT 立项（2016）                 │</span><br><span class="line">│            │ R14      │ V2X / NB-IoT 增强（2017）                   │</span><br><span class="line">├────────────┼──────────┼───────────────────────────────────────────┤</span><br><span class="line">│ 5G Phase 1 │ R15      │ 5G NR 基础标准，NSA+SA（2018/2019）         │</span><br><span class="line">│            │ R16      │ 5G 完整标准，URLLC/V2X 增强（2020）          │</span><br><span class="line">│            │ R17      │ RedCap / NTN / 定位增强（2022）             │</span><br><span class="line">├────────────┼──────────┼───────────────────────────────────────────┤</span><br><span class="line">│ 5G-Advanced│ R18      │ 5G-A 第一版，AI/ML/通感一体（2024）          │</span><br><span class="line">│            │ R19      │ 5G-A 演进（预计 2025）                      │</span><br><span class="line">│            │ R20      │ 5G-A 完整（预计 2026）                      │</span><br><span class="line">└────────────┴──────────┴───────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-1-早期：R99-R4-R5-R6-R7"><a href="#2-1-早期：R99-R4-R5-R6-R7" class="headerlink" title="2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7"></a>2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7</h3><h4 id="R99（Release-99，1999）"><a href="#R99（Release-99，1999）" class="headerlink" title="R99（Release 99，1999）"></a>R99（Release 99，1999）</h4><p>3GPP 的第一个正式版本。将 ETSI 继承的 GSM&#x2F;GPRS 规范与全新的 UMTS（通用移动通信系统）标准合并，引入 WCDMA 无线接入技术（UTRAN），为基于电路域和分组域的高速业务传输奠定基础。版本号”99”来自 1999 年，此后版本不再以年份命名，有时也称 R3（第三代的第一版）。</p>
+<h4 id="R4（Release-4，2001）"><a href="#R4（Release-4，2001）" class="headerlink" title="R4（Release 4，2001）"></a>R4（Release 4，2001）</h4><p>在 R99 基础上引入软交换（Soft Switch）架构，将媒体网关控制协议（MGCP&#x2F;H.248）标准化，使核心网向分离式架构演进。</p>
+<h4 id="R5（Release-5，2002）"><a href="#R5（Release-5，2002）" class="headerlink" title="R5（Release 5，2002）"></a>R5（Release 5，2002）</h4><p>引入两项重大特性：</p>
+<ul>
+<li><strong>IMS（IP 多媒体子系统）</strong>：定义了基于 SIP 的多媒体业务架构，为 VoIP、视频通话奠定基础；</li>
+<li><strong>HSDPA（高速下行分组接入）</strong>：下行峰值速率提升至 14.4 Mbps。</li>
+</ul>
+<h4 id="R6（Release-6，2004）"><a href="#R6（Release-6，2004）" class="headerlink" title="R6（Release 6，2004）"></a>R6（Release 6，2004）</h4><p>引入 <strong>HSUPA（高速上行分组接入）</strong>，上行速率提升至 5.76 Mbps，HSPA 概念（HSDPA + HSUPA）正式成型。</p>
+<h4 id="R7（Release-7，2007）"><a href="#R7（Release-7，2007）" class="headerlink" title="R7（Release 7，2007）"></a>R7（Release 7，2007）</h4><p>引入 **HSPA+**，通过 64QAM 调制和 MIMO 天线技术，下行峰值速率提升至 28 Mbps，是向 LTE 过渡的关键版本。</p>
+<hr>
+<h3 id="2-2-LTE-时代：R8-R14"><a href="#2-2-LTE-时代：R8-R14" class="headerlink" title="2.2 LTE 时代：R8 ~ R14"></a>2.2 LTE 时代：R8 ~ R14</h3><h4 id="R8（Release-8，2008）——-LTE-诞生"><a href="#R8（Release-8，2008）——-LTE-诞生" class="headerlink" title="R8（Release 8，2008）—— LTE 诞生"></a>R8（Release 8，2008）—— LTE 诞生</h4><p>R8 是 LTE（长期演进）的起点，也是现代 4G 网络的基石。核心内容包括：</p>
+<ul>
+<li><strong>空口技术</strong>：下行采用 OFDMA，上行采用 SC-FDMA；支持最高 100 MHz 带宽（通过 CA），下行峰值达 300 Mbps（4×4 MIMO + 64QAM）；</li>
+<li><strong>系统架构演进（SAE）</strong>：引入全 IP 的扁平化核心网 EPC（Evolved Packet Core），由 MME &#x2F; SGW &#x2F; PGW &#x2F; HSS 组成，彻底废弃电路域；</li>
+<li><strong>接入网扁平化</strong>：eNodeB（eNB）集中了 RNC 的功能，RAN 控制层级由三层压缩为两层（Core + eNB）；</li>
+<li><strong>关键规范</strong>：TS 36.211（物理层）、TS 36.331（RRC）、TS 23.401（EPC 架构）。</li>
+</ul>
+<h4 id="R9（Release-9，2009）"><a href="#R9（Release-9，2009）" class="headerlink" title="R9（Release 9，2009）"></a>R9（Release 9，2009）</h4><p>对 R8 的小幅补充，包括：eMBMS（增强多媒体广播）初步标准化、定位服务（LCS）增强、双层波束赋形。</p>
+<h4 id="R10（Release-10，2011）——-LTE-Advanced（IMT-Advanced-候选）"><a href="#R10（Release-10，2011）——-LTE-Advanced（IMT-Advanced-候选）" class="headerlink" title="R10（Release 10，2011）—— LTE-Advanced（IMT-Advanced 候选）"></a>R10（Release 10，2011）—— LTE-Advanced（IMT-Advanced 候选）</h4><p>R10 是 ITU IMT-Advanced 的正式候选技术，主要新增：</p>
+<ul>
+<li><strong>载波聚合（CA）</strong>：最多聚合 5 个 20 MHz 分量载波，下行峰值突破 1 Gbps；</li>
+<li><strong>增强型 MIMO</strong>：支持下行最高 8 层传输；</li>
+<li><strong>中继节点（Relay Node）</strong>：通过 Un 接口连接宏基站实现覆盖补盲；</li>
+<li><strong>异构网络（HetNet）</strong>：定义了宏 eNB 与小基站协作的 eICIC 框架。</li>
+</ul>
+<h4 id="R11（Release-11，2012）"><a href="#R11（Release-11，2012）" class="headerlink" title="R11（Release 11，2012）"></a>R11（Release 11，2012）</h4><p>进一步增强 LTE-A，重点包括：</p>
+<ul>
+<li><strong>CoMP（协作多点传输&#x2F;接收）</strong>：通过多个 eNB 协作消除小区边缘干扰；</li>
+<li><strong>进一步 eICIC</strong>：通过 ABS（Almost Blank Subframe）改善 HetNet 中小基站干扰；</li>
+<li><strong>PDCCH 增强</strong>：引入 E-PDCCH（Enhanced PDCCH）。</li>
+</ul>
+<h4 id="R12（Release-12，2013）"><a href="#R12（Release-12，2013）" class="headerlink" title="R12（Release 12，2013）"></a>R12（Release 12，2013）</h4><p>开始关注垂直行业与设备直通：</p>
+<ul>
+<li><strong>Small Cell 增强</strong>：定义双连接（Dual Connectivity）雏形；</li>
+<li><strong>D2D（设备到设备通信）&#x2F; ProSe（邻近业务）</strong>：为公共安全、IoT 奠定基础；</li>
+<li><strong>MTC 增强</strong>：低复杂度 MTC UE 类别（Cat-0）引入。</li>
+</ul>
+<h4 id="R13（Release-13，2016）"><a href="#R13（Release-13，2016）" class="headerlink" title="R13（Release 13，2016）"></a>R13（Release 13，2016）</h4><p>引入面向物联网的两大关键技术：</p>
+<ul>
+<li><strong>NB-IoT（窄带物联网）</strong>：180 kHz 带宽，极低功耗，覆盖增强 20 dB；</li>
+<li><strong>eMTC（增强型机器类通信，即 LTE-M）</strong>：1.4 MHz 带宽，支持语音、移动性；</li>
+<li><strong>LAA（授权辅助接入）</strong>：LTE 在 5 GHz 非授权频段运营；</li>
+<li><strong>FD-MIMO</strong>：引入大规模天线（AAS）的标准框架。</li>
+</ul>
+<h4 id="R14（Release-14，2017）"><a href="#R14（Release-14，2017）" class="headerlink" title="R14（Release 14，2017）"></a>R14（Release 14，2017）</h4><p>LTE 时代最后一个主要版本，重点包括：</p>
+<ul>
+<li><strong>V2X（车联网）</strong>：基于 PC5 接口的 LTE-V2X 基础标准；</li>
+<li><strong>NB-IoT &#x2F; eMTC 增强</strong>：进一步提升速率、覆盖和定位能力；</li>
+<li><strong>URLLC 初步研究</strong>：为 5G URLLC 做前期铺垫。</li>
+</ul>
+<hr>
+<h3 id="2-3-5G-时代：R15-R17"><a href="#2-3-5G-时代：R15-R17" class="headerlink" title="2.3 5G 时代：R15 ~ R17"></a>2.3 5G 时代：R15 ~ R17</h3><h4 id="R15（Release-15，2018-2019）——-5G-NR-第一版"><a href="#R15（Release-15，2018-2019）——-5G-NR-第一版" class="headerlink" title="R15（Release 15，2018&#x2F;2019）—— 5G NR 第一版"></a>R15（Release 15，2018&#x2F;2019）—— 5G NR 第一版</h4><p>R15 是 5G 的奠基版本，具有历史性意义。其特殊之处在于分为<strong>三个子阶段</strong>发布，以满足业界早商用的需求：</p>
+<p><strong>阶段一（Early Drop，2017年12月冻结）</strong></p>
+<ul>
+<li>主要标准化 <strong>NSA（非独立组网，Option 3x）</strong> 架构；</li>
+<li>5G NR 依托 LTE 锚点（eNB）接入 EPC，NR 只提供数据增强；</li>
+<li>让运营商能在不替换核心网的前提下快速部署 5G；</li>
+<li>关键规范：TS 38.331（NR RRC，NSA 部分）。</li>
+</ul>
+<p><strong>阶段二（Main Drop，2018年9月冻结）</strong></p>
+<ul>
+<li>标准化 <strong>SA（独立组网，Option 2）</strong> 架构，引入 5GC（5G Core Network）；</li>
+<li>完整定义 5G NR 空口：NR 帧结构、LDPC&#x2F;Polar 编码、Massive MIMO、mmWave 支持；</li>
+<li>引入全新的 <strong>服务化架构（SBA）</strong> 核心网（AMF&#x2F;SMF&#x2F;UPF&#x2F;PCF 等 NF）；</li>
+<li>三大场景（eMBB &#x2F; URLLC &#x2F; mMTC）的基本能力初步具备；</li>
+<li>支持 FR1（Sub-6 GHz）和 FR2（毫米波，24.25~52.6 GHz）。</li>
+</ul>
+<p><strong>阶段三（Late Drop，2019年6月冻结）</strong></p>
+<ul>
+<li>增补若干从 LTE 迁移 5G 的辅助架构（Option 4、Option 7 等）；</li>
+<li>完善与 LTE 网络互操作的技术细节。</li>
+</ul>
+<blockquote>
+<p><strong>R15 主要聚焦场景</strong>：eMBB（增强移动宽带）和基础 URLLC，mMTC 能力仍依赖 NB-IoT&#x2F;eMTC。</p>
+</blockquote>
+<p><strong>R15 代表性规范</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>标题（简）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TS 38.300</td>
+<td>NR; Overall description</td>
+<td>NR 总体描述</td>
+</tr>
+<tr>
+<td>TS 38.211</td>
+<td>NR; Physical channels and modulation</td>
+<td>物理信道与调制</td>
+</tr>
+<tr>
+<td>TS 38.212</td>
+<td>NR; Multiplexing and channel coding</td>
+<td>多路复用与信道编码</td>
+</tr>
+<tr>
+<td>TS 38.213</td>
+<td>NR; Physical layer procedures for control</td>
+<td>物理层控制面流程</td>
+</tr>
+<tr>
+<td>TS 38.331</td>
+<td>NR; Radio Resource Control (RRC)</td>
+<td>无线资源控制</td>
+</tr>
+<tr>
+<td>TS 23.501</td>
+<td>System architecture for 5GS</td>
+<td>5G 系统架构</td>
+</tr>
+<tr>
+<td>TS 23.502</td>
+<td>Procedures for 5GS</td>
+<td>5G 系统流程</td>
+</tr>
+<tr>
+<td>TS 33.501</td>
+<td>Security architecture and procedures for 5GS</td>
+<td>5G 安全架构</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="R16（Release-16，2020年7月冻结）——-5G-第一个完整标准"><a href="#R16（Release-16，2020年7月冻结）——-5G-第一个完整标准" class="headerlink" title="R16（Release 16，2020年7月冻结）—— 5G 第一个完整标准"></a>R16（Release 16，2020年7月冻结）—— 5G 第一个完整标准</h4><p>R16 在 R15 基础上全面补齐 5G 能力三角（eMBB + URLLC + mMTC），被业界称为”第一个真正完整的 5G 标准”。</p>
+<p><strong>RAN 侧主要新增特性</strong>：</p>
+<ul>
+<li><strong>URLLC 增强</strong>：PDSCH&#x2F;PUSCH 的微时隙（Mini-Slot）调度增强，时延可降至 0.5 ms 以内；</li>
+<li><strong>2-Step RACH（2 步随机接入）</strong>：将传统 4 步 RACH 合并为 msgA&#x2F;msgB，减少接入时延；</li>
+<li><strong>MIMO 增强</strong>：多 TRP（发送接收点）协作、SRS 增强、CSI-RS 增强；</li>
+<li><strong>IAB（集成接入与回传）</strong>：gNB 既作接入节点又作无线回传节点，无需光纤拉远；</li>
+<li><strong>UE 省电增强</strong>：引入 WUS（唤醒信号）、节能 DRX；</li>
+<li><strong>非授权频谱（NR-U）</strong>：5G NR 在 5 GHz &#x2F; 6 GHz 免授权频段的标准化；</li>
+<li><strong>载波聚合（CA）增强</strong>：更多频段组合支持。</li>
+</ul>
+<p><strong>核心网 &#x2F; 系统架构侧</strong>：</p>
+<ul>
+<li><strong>eSBA（服务化架构增强）</strong>：接口协议优化，引入间接通信（Indirect Communication）框架；</li>
+<li><strong>网络切片增强（e_NS）</strong>：切片选择、切片内部隔离进一步完善；</li>
+<li><strong>5G LAN</strong>：支持 UE 之间基于 5G 的局域网通信，面向工业互联网；</li>
+<li><strong>TSN（时间敏感网络）</strong>：5G 与 IEEE 802.1 TSN 的对接，支持工厂自动化；</li>
+<li><strong>5G NPN（非公共网络）</strong>：独立专网（SNPN）和公网集成专网（PNI-NPN）标准化；</li>
+<li><strong>V2X 增强（eV2X）</strong>：基于 NR Sidelink（PC5）的 V2X 全功能标准化。</li>
+</ul>
+<blockquote>
+<p><strong>R16 意义</strong>：R16 的发布标志着 5G 从”移动宽带增强”走向”使能垂直行业”，是产业界规模部署和网络升级的重要里程碑。</p>
+</blockquote>
+<hr>
+<h4 id="R17（Release-17，2022年6月冻结）——-5G-能力拓展版"><a href="#R17（Release-17，2022年6月冻结）——-5G-能力拓展版" class="headerlink" title="R17（Release 17，2022年6月冻结）—— 5G 能力拓展版"></a>R17（Release 17，2022年6月冻结）—— 5G 能力拓展版</h4><p>R17 是 5G Phase 1 的收官版本，被定位为”承上启下”，一方面查漏补缺使 5G 更好用，另一方面引出新方向为 5G-A 铺路。在疫情期间完全依靠线上会议完成。</p>
+<p><strong>主要新增特性</strong>：</p>
+<ul>
+<li><strong>RedCap（Reduced Capability，轻量化 5G UE）</strong>：面向中高端 IoT（可穿戴、工业传感器等），在速率、天线数、带宽等方面进行裁剪，降低终端成本与功耗；</li>
+<li><strong>NTN（非地面网络）</strong>：5G NR 在卫星（LEO&#x2F;GEO）和高空平台（HAPS）上的通信标准，扩展覆盖；</li>
+<li><strong>定位增强</strong>：支持亚米级精度（Sub-meter accuracy），引入 DL-AoD、UL-AoA、Multi-RTT 等定位方法；</li>
+<li><strong>Massive MIMO 增强</strong>：多波束运行增强、多 TRP 部署增强、8 天线 SRS 扩展；</li>
+<li><strong>上行覆盖增强</strong>：针对 PUSCH、PUCCH、PRACH 的多次重传与跳频联合优化；</li>
+<li><strong>IAB 增强</strong>：拓扑适配、资源管理增强；</li>
+<li><strong>IIoT &amp; URLLC 增强</strong>：超可靠低时延场景的进一步优化；</li>
+<li><strong>多播广播服务（MBS）</strong>：5G NR 的广播&#x2F;组播基础标准化，支持免费无线电视场景；</li>
+<li><strong>Sidelink 中继增强（NR SL Relay）</strong>：UE 作为中继节点的 PC5 Relay 增强；</li>
+<li><strong>网络节能</strong>：基站侧和 UE 侧节能策略进一步标准化。</li>
+</ul>
+<hr>
+<h3 id="2-4-5G-Advanced：R18-R20"><a href="#2-4-5G-Advanced：R18-R20" class="headerlink" title="2.4 5G-Advanced：R18 ~ R20"></a>2.4 5G-Advanced：R18 ~ R20</h3><p>2021 年 4 月，3GPP 第 46 次 PCG（项目协调组）会议正式将 <strong>R18 命名为 5G-Advanced（5G-A）</strong>，标志着 5G 进入第二阶段演进。5G-A 被称为”5.5G”，目标是在 5G 基础上实现速率、时延、连接数、定位精度、能效各提升 10 倍。</p>
+<h4 id="R18（Release-18，2024年6月冻结）——-5G-A-首版"><a href="#R18（Release-18，2024年6月冻结）——-5G-A-首版" class="headerlink" title="R18（Release 18，2024年6月冻结）—— 5G-A 首版"></a>R18（Release 18，2024年6月冻结）—— 5G-A 首版</h4><p>R18 是 5G-Advanced 的第一个版本，从立项到冻结历时约 3 年，共在 RAN 和 SA 全会各立项约 28 个课题。</p>
+<p><strong>核心技术方向</strong>：</p>
+<ol>
+<li><p><strong>AI&#x2F;ML 空口集成</strong>（AI for RAN）</p>
+<ul>
+<li>波束管理的 AI&#x2F;ML 模型标准化（Case 1）；</li>
+<li>CSI 反馈增强（Case 2）；</li>
+<li>定位精度增强（Case 3）；</li>
+<li>AI&#x2F;ML 模型的生命周期管理（训练&#x2F;推理&#x2F;监控）纳入 RAN 协议。</li>
+</ul>
+</li>
+<li><p><strong>通感一体化（ISAC，Integrated Sensing and Communication）</strong></p>
+<ul>
+<li>将雷达感知能力集成到 5G 基站；</li>
+<li>支持速度、距离、角度的感知，面向低空经济、智能交通。</li>
+</ul>
+</li>
+<li><p><strong>上行能力增强</strong></p>
+<ul>
+<li>上行全双工（Full Duplex）研究；</li>
+<li>上行覆盖增强延续 R17 方向；</li>
+<li>载波聚合上行增强。</li>
+</ul>
+</li>
+<li><p><strong>XR（扩展现实）增强</strong></p>
+<ul>
+<li>针对 VR&#x2F;AR&#x2F;MR 业务优化调度、功耗和 QoE；</li>
+<li>引入 XR 专用 QoS 机制。</li>
+</ul>
+</li>
+<li><p><strong>NTN 增强</strong></p>
+<ul>
+<li>IoT-NTN &#x2F; NR-NTN 继续演进；</li>
+<li>支持 UPF 星上部署（边缘计算上星）；</li>
+<li>覆盖 LEO&#x2F;MEO&#x2F;GEO 多轨道类型。</li>
+</ul>
+</li>
+<li><p><strong>无源物联网（Ambient IoT）</strong></p>
+<ul>
+<li>支持无需电池的超低功耗设备（反向散射通信）；</li>
+<li>面向千亿物联场景。</li>
+</ul>
+</li>
+<li><p><strong>RedCap 增强（eRedCap）</strong></p>
+<ul>
+<li>进一步裁剪能力，覆盖更低成本终端场景。</li>
+</ul>
+</li>
+<li><p><strong>多播广播服务（MBS）增强</strong></p>
+<ul>
+<li>免费广播（Free-to-Air）、混合单播&#x2F;广播。</li>
+</ul>
+</li>
+<li><p><strong>网络节能</strong></p>
+<ul>
+<li>基站侧能效提升（AI 辅助节能、睡眠模式增强）；</li>
+<li>UE 侧扩展 DRX、WUS 增强。</li>
+</ul>
+</li>
+<li><p><strong>定位增强</strong></p>
+<ul>
+<li>达到厘米级室内定位精度目标。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>R18 冻结时间线</strong>：SA2 功能架构（2023年6月）→ 协议设计（2024年3月）→ Open API&#x2F;ASN.1（2024年6月）→ RAN 侧冻结（2024年6月，第 104 次 RAN 全会，上海）。</p>
+</blockquote>
+<h4 id="R19（Release-19，预计-2025-年）"><a href="#R19（Release-19，预计-2025-年）" class="headerlink" title="R19（Release 19，预计 2025 年）"></a>R19（Release 19，预计 2025 年）</h4><p>R19 将在 R18 基础上深化以下方向：</p>
+<ul>
+<li><strong>通感一体化深化</strong>：感知能力商用化标准完善；</li>
+<li><strong>AI&#x2F;ML 进一步集成</strong>：端到端 AI 优化；</li>
+<li><strong>全双工</strong>：自干扰消除技术标准化；</li>
+<li><strong>NTN 商用增强</strong>：星间链路、多 LEO 切换；</li>
+<li><strong>Ambient IoT 增强</strong>；</li>
+<li><strong>6G 前期研究</strong>（Study Item 立项）。</li>
+</ul>
+<h4 id="R20（Release-20，预计-2026-年）"><a href="#R20（Release-20，预计-2026-年）" class="headerlink" title="R20（Release 20，预计 2026 年）"></a>R20（Release 20，预计 2026 年）</h4><p>5G-Advanced 的收官版本，为 6G（R21）过渡做技术铺垫。</p>
+<hr>
+<h1 id="3-TS-TR-文档体系详解"><a href="#3-TS-TR-文档体系详解" class="headerlink" title="3 TS &#x2F; TR 文档体系详解"></a>3 TS &#x2F; TR 文档体系详解</h1><h3 id="3-1-TS-与-TR-的区别"><a href="#3-1-TS-与-TR-的区别" class="headerlink" title="3.1 TS 与 TR 的区别"></a>3.1 TS 与 TR 的区别</h3><p>3GPP 发布的文档分为两类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>全称</th>
+<th>生成来源</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TS</strong>（Technical Specification）</td>
+<td>技术规范</td>
+<td>Work Item（WI）的输出</td>
+<td>具有规范性约束力，实现必须遵从</td>
+</tr>
+<tr>
+<td><strong>TR</strong>（Technical Report）</td>
+<td>技术报告</td>
+<td>Study Item（SI）的输出</td>
+<td>研究性文档，描述可行性分析和候选方案，不具强制约束力</td>
+</tr>
+</tbody></table>
+<p>两者的生命周期关系如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">需求（SA1）</span><br><span class="line">    ↓</span><br><span class="line">Study Item（SI）→ 输出 TR（如 TR 38.913）</span><br><span class="line">    ↓  （SI 结论被采纳）</span><br><span class="line">Work Item（WI）→ 输出 TS（如 TS 38.211）</span><br><span class="line">    ↓</span><br><span class="line">版本冻结（Stage 1 → Stage 2 → Stage 3）</span><br></pre></td></tr></table></figure>
+
+<p><strong>Stage 划分</strong>：</p>
+<ul>
+<li><strong>Stage 1</strong>（SA1 主导）：业务和运营需求，定义”要做什么”；</li>
+<li><strong>Stage 2</strong>（SA2&#x2F;RAN2 主导）：架构和流程设计，定义”大致怎么做”；</li>
+<li><strong>Stage 3</strong>（CT&#x2F;RAN 各 WG 主导）：协议细节，定义”精确怎么做”，产出可实现的 TS。</li>
+</ul>
+<hr>
+<h3 id="3-2-规范编号规则（Series-Number）"><a href="#3-2-规范编号规则（Series-Number）" class="headerlink" title="3.2 规范编号规则（Series Number）"></a>3.2 规范编号规则（Series Number）</h3><p>所有 3GPP 规范的编号由 <strong>5 位数字</strong>组成（格式 <code>XX.YYY</code>），其中：</p>
+<ul>
+<li><strong>前两位（XX）</strong>：系列号（Series Number），决定该规范属于哪个技术领域；</li>
+<li><strong>后三位（YYY）</strong>：尾号（Mantissa），是某系列内的具体文档编号，无特殊含义。</li>
+</ul>
+<blockquote>
+<p>注：00~13 系列为早期 GSM 规范，使用 4 位编号（XX.YY），不适用上述 5 位规则。</p>
+</blockquote>
+<h4 id="主要系列说明"><a href="#主要系列说明" class="headerlink" title="主要系列说明"></a>主要系列说明</h4><table>
+<thead>
+<tr>
+<th>系列</th>
+<th>主要内容</th>
+<th>典型规范</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>21 系列</strong></td>
+<td>需求类规范、术语词汇</td>
+<td>TS 21.905（词汇表）、TR 21.900（技术报告规范格式）</td>
+</tr>
+<tr>
+<td><strong>22 系列</strong></td>
+<td>业务与系统需求（Stage 1）</td>
+<td>TS 22.261（5G 业务需求）、TS 22.104（工业 IoT 需求）</td>
+</tr>
+<tr>
+<td><strong>23 系列</strong></td>
+<td>系统架构与流程（Stage 2）</td>
+<td>TS 23.501（5GS 架构）、TS 23.502（5GS 流程）、TS 23.503（策略框架）</td>
+</tr>
+<tr>
+<td><strong>24 系列</strong></td>
+<td>用户面 &#x2F; NAS 协议（Stage 3，CT1）</td>
+<td>TS 24.501（5G NAS 协议）、TS 24.301（LTE NAS）</td>
+</tr>
+<tr>
+<td><strong>25 系列</strong></td>
+<td>UTRAN（3G 接入网）</td>
+<td>TS 25.331（UMTS RRC）</td>
+</tr>
+<tr>
+<td><strong>26 系列</strong></td>
+<td>编解码 &#x2F; 多媒体</td>
+<td>TS 26.445（EVS 编解码器）</td>
+</tr>
+<tr>
+<td><strong>27 系列</strong></td>
+<td>数据互通（CT4）</td>
+<td>TS 27.007（AT 命令集）</td>
+</tr>
+<tr>
+<td><strong>28 系列</strong></td>
+<td>网管、OAM</td>
+<td>TS 28.552（5G 性能测量）</td>
+</tr>
+<tr>
+<td><strong>29 系列</strong></td>
+<td>核心网接口协议（Stage 3，CT3&#x2F;CT4）</td>
+<td>TS 29.510（NRF 服务）、TS 29.244（PFCP，N4 接口）</td>
+</tr>
+<tr>
+<td><strong>31 系列</strong></td>
+<td>USIM &#x2F; UICC 规范</td>
+<td>TS 31.102（USIM 应用）、TS 31.116（UICC 远程管理）</td>
+</tr>
+<tr>
+<td><strong>32 系列</strong></td>
+<td>O&amp;M &#x2F; 计费</td>
+<td>TS 32.291（5G 在线计费）、TS 32.255（5G 离线计费）</td>
+</tr>
+<tr>
+<td><strong>33 系列</strong></td>
+<td>安全（SA3）</td>
+<td>TS 33.501（5G 安全架构）、TS 33.220（GBA）</td>
+</tr>
+<tr>
+<td><strong>34 系列</strong></td>
+<td>UE 一致性测试（规范）</td>
+<td>TS 34.229（IMS 一致性测试）</td>
+</tr>
+<tr>
+<td><strong>35 系列</strong></td>
+<td>算法规范（加密等）</td>
+<td>TS 35.231（TUAK 算法）</td>
+</tr>
+<tr>
+<td><strong>36 系列</strong></td>
+<td>E-UTRA（LTE 接入网，RAN1~4）</td>
+<td>TS 36.211（LTE 物理层）、TS 36.331（LTE RRC）</td>
+</tr>
+<tr>
+<td><strong>37 系列</strong></td>
+<td>多无线制式协调（RAN）</td>
+<td>TS 37.340（MR-DC 多连接）</td>
+</tr>
+<tr>
+<td><strong>38 系列</strong></td>
+<td><strong>5G NR（RAN1~4）</strong></td>
+<td>TS 38.211（NR 物理层）、TS 38.331（NR RRC）、TS 38.401（NG-RAN 架构）</td>
+</tr>
+<tr>
+<td><strong>41~55 系列</strong></td>
+<td>仅 GSM（Rel-4 及以后）</td>
+<td>中国 GSM 网络参考</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>快速记忆技巧</strong>：</p>
+<ul>
+<li><code>23.xxx</code> &#x3D; 系统架构（架构工程师必看）</li>
+<li><code>38.xxx</code> &#x3D; 5G NR 空口（无线工程师必看）</li>
+<li><code>29.xxx</code> &#x3D; 5GC 接口协议（核心网工程师必看）</li>
+<li><code>33.xxx</code> &#x3D; 安全（安全工程师必看）</li>
+<li><code>24.xxx</code> &#x3D; NAS 协议（终端工程师必看）</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="3-3-版本号规则（Version-Number）"><a href="#3-3-版本号规则（Version-Number）" class="headerlink" title="3.3 版本号规则（Version Number）"></a>3.3 版本号规则（Version Number）</h3><p>3GPP 规范的版本号格式为 **<code>X.Y.Z</code>**，三个字段均从 0 开始，以”.”分隔：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">TS 38.331 V17.3.0</span><br><span class="line">            │  │ └─ Z（Editorial 域）：非技术性修改（如排版、错别字），递增</span><br><span class="line">            │  └─── Y（Technical 域）：技术性修改（如 CR 合入），递增</span><br><span class="line">            └────── X（Major 域）：指示适用的 Release 版本</span><br></pre></td></tr></table></figure>
+
+<h4 id="Major-域的含义"><a href="#Major-域的含义" class="headerlink" title="Major 域的含义"></a>Major 域的含义</h4><table>
+<thead>
+<tr>
+<th>Major 域值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>草案（不成熟，内部使用）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>至少完成 60% 的草案，已提交 TSG 参考</td>
+</tr>
+<tr>
+<td>2</td>
+<td>至少完成 80% 的草案，已提交 TSG 批准</td>
+</tr>
+<tr>
+<td><strong>≥ 3</strong></td>
+<td><strong>已由 TSG 批准，处于变更控制之下（正式规范）</strong></td>
+</tr>
+</tbody></table>
+<p><strong>关键规则</strong>：一旦 Major 域 ≥ 3，其数值直接代表该规范适用的 <strong>Release 版本号</strong>。</p>
+<p>例如：</p>
+<ul>
+<li><code>TS 38.331 V15.6.0</code>：适用于 Release 15，经过 6 次技术修改，0 次编辑修改；</li>
+<li><code>TS 38.331 V17.3.0</code>：适用于 Release 17，经过 3 次技术修改；</li>
+<li><code>TS 23.501 V18.2.1</code>：适用于 Release 18，经过 2 次技术修改，1 次编辑修改。</li>
+</ul>
+<p><strong>从 Stage 草案到正式版的跳版</strong>：这是 3GPP 一个常见的”跳跃”现象。例如一个 R15 规范在草案阶段版本为 <code>2.0.0</code>，经 TSG 批准后直接跳为 <code>15.0.0</code>，中间不存在 <code>3.0.0</code>、<code>14.0.0</code> 等版本。</p>
+<hr>
+<h3 id="3-4-文件名规则"><a href="#3-4-文件名规则" class="headerlink" title="3.4 文件名规则"></a>3.4 文件名规则</h3><p>下载 3GPP 规范时，实际文件名与文档编号和版本号有对应关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">文件名格式：&#123;规范号无点&#125;&#123;-part&#125;&#123;-subpart&#125;-&#123;版本编码&#125;.zip</span><br><span class="line">示例：38331-h30.zip</span><br><span class="line">       ──────  ───</span><br><span class="line">       38331   h30</span><br><span class="line">       ↑       ↑</span><br><span class="line">       TS 38.331  版本编码（36进制）</span><br></pre></td></tr></table></figure>
+
+<p><strong>版本编码说明</strong>：版本号中的每一位使用 <strong>36 进制字符集</strong>（<code>0~9, a~z</code>）表示，其中字母 a&#x3D;10, b&#x3D;11, …, f&#x3D;15, …，以此类推。</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>0~9</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+<th>e</th>
+<th>f</th>
+<th>g</th>
+<th>…</th>
+<th>z</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数值</td>
+<td>0~9</td>
+<td>10</td>
+<td>11</td>
+<td>12</td>
+<td>13</td>
+<td>14</td>
+<td>15</td>
+<td>16</td>
+<td>…</td>
+<td>35</td>
+</tr>
+</tbody></table>
+<p><strong>示例解析</strong>：</p>
+<ul>
+<li><code>38331-h30.zip</code>：TS 38.331，版本 <code>17.3.0</code>（h&#x3D;17, 3&#x3D;3, 0&#x3D;0）；</li>
+<li><code>21900-f11.zip</code>：TR 21.900，版本 <code>15.1.1</code>（f&#x3D;15, 1&#x3D;1, 1&#x3D;1）；</li>
+<li>若某字段超过 35，则该字段用两位字符表示：<code>34567-163600.zip</code> 表示版本 <code>16.36.0</code>（36 超出单字符范围，改用两位）。</li>
+</ul>
+<hr>
+<h1 id="4-5G-NR-核心规范速查表"><a href="#4-5G-NR-核心规范速查表" class="headerlink" title="4 5G NR 核心规范速查表"></a>4 5G NR 核心规范速查表</h1><p>以下汇总了 5G NR 工程师最常查阅的规范，按技术领域分类：</p>
+<h3 id="系统架构（SA-组）"><a href="#系统架构（SA-组）" class="headerlink" title="系统架构（SA 组）"></a>系统架构（SA 组）</h3><table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TS 23.501</td>
+<td>R15+</td>
+<td>System architecture for the 5G System (5GS)</td>
+</tr>
+<tr>
+<td>TS 23.502</td>
+<td>R15+</td>
+<td>Procedures for the 5G System (5GS)</td>
+</tr>
+<tr>
+<td>TS 23.503</td>
+<td>R15+</td>
+<td>Policy and charging control framework for 5GS</td>
+</tr>
+<tr>
+<td>TS 23.288</td>
+<td>R16+</td>
+<td>Architecture enhancements for 5G System to support AI&#x2F;ML-based Network Data Analytics</td>
+</tr>
+<tr>
+<td>TS 23.700-60</td>
+<td>R18+</td>
+<td>Study on Architecture for 5G ISAC</td>
+</tr>
+</tbody></table>
+<h3 id="安全（SA3-组）"><a href="#安全（SA3-组）" class="headerlink" title="安全（SA3 组）"></a>安全（SA3 组）</h3><table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TS 33.501</td>
+<td>R15+</td>
+<td>Security architecture and procedures for 5G System</td>
+</tr>
+<tr>
+<td>TS 33.535</td>
+<td>R16+</td>
+<td>Authentication and Key Management for Applications (AKMA)</td>
+</tr>
+</tbody></table>
+<h3 id="NAS-协议（CT1-组）"><a href="#NAS-协议（CT1-组）" class="headerlink" title="NAS 协议（CT1 组）"></a>NAS 协议（CT1 组）</h3><table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TS 24.501</td>
+<td>R15+</td>
+<td>Non-Access-Stratum (NAS) protocol for 5GS; Stage 3</td>
+</tr>
+<tr>
+<td>TS 24.502</td>
+<td>R15+</td>
+<td>Access to the 3GPP 5GC via non-3GPP access networks</td>
+</tr>
+</tbody></table>
+<h3 id="核心网接口（CT3-CT4-组）"><a href="#核心网接口（CT3-CT4-组）" class="headerlink" title="核心网接口（CT3&#x2F;CT4 组）"></a>核心网接口（CT3&#x2F;CT4 组）</h3><table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TS 29.510</td>
+<td>R15+</td>
+<td>Network Function Repository Services; Stage 3（NRF）</td>
+</tr>
+<tr>
+<td>TS 29.512</td>
+<td>R15+</td>
+<td>Session Management Policy Control Service（SMF↔PCF）</td>
+</tr>
+<tr>
+<td>TS 29.244</td>
+<td>R15+</td>
+<td>Interface between the Control Plane and the User Plane nodes（N4&#x2F;PFCP）</td>
+</tr>
+<tr>
+<td>TS 29.281</td>
+<td>R8+</td>
+<td>General Packet Radio System (GPRS) Tunnelling Protocol User Plane (GTPv1-U)</td>
+</tr>
+</tbody></table>
+<h3 id="NR-空口（RAN-组）"><a href="#NR-空口（RAN-组）" class="headerlink" title="NR 空口（RAN 组）"></a>NR 空口（RAN 组）</h3><table>
+<thead>
+<tr>
+<th>规范号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TS 38.300</strong></td>
+<td>R15+</td>
+<td>NR; Overall description; Stage-2</td>
+</tr>
+<tr>
+<td><strong>TS 38.211</strong></td>
+<td>R15+</td>
+<td>NR; Physical channels and modulation</td>
+</tr>
+<tr>
+<td><strong>TS 38.212</strong></td>
+<td>R15+</td>
+<td>NR; Multiplexing and channel coding</td>
+</tr>
+<tr>
+<td><strong>TS 38.213</strong></td>
+<td>R15+</td>
+<td>NR; Physical layer procedures for control</td>
+</tr>
+<tr>
+<td><strong>TS 38.214</strong></td>
+<td>R15+</td>
+<td>NR; Physical layer procedures for data</td>
+</tr>
+<tr>
+<td><strong>TS 38.215</strong></td>
+<td>R15+</td>
+<td>NR; Physical layer measurements</td>
+</tr>
+<tr>
+<td><strong>TS 38.321</strong></td>
+<td>R15+</td>
+<td>NR; Medium Access Control (MAC) protocol specification</td>
+</tr>
+<tr>
+<td><strong>TS 38.322</strong></td>
+<td>R15+</td>
+<td>NR; Radio Link Control (RLC) protocol specification</td>
+</tr>
+<tr>
+<td><strong>TS 38.323</strong></td>
+<td>R15+</td>
+<td>NR; Packet Data Convergence Protocol (PDCP) specification</td>
+</tr>
+<tr>
+<td><strong>TS 37.324</strong></td>
+<td>R16+</td>
+<td>NR; Service Data Adaptation Protocol (SDAP) specification</td>
+</tr>
+<tr>
+<td><strong>TS 38.331</strong></td>
+<td>R15+</td>
+<td>NR; Radio Resource Control (RRC); Protocol specification</td>
+</tr>
+<tr>
+<td><strong>TS 38.401</strong></td>
+<td>R15+</td>
+<td>NG-RAN; Architecture description</td>
+</tr>
+<tr>
+<td><strong>TS 38.410</strong></td>
+<td>R15+</td>
+<td>NG-RAN; NG general aspects and principles（NG 接口）</td>
+</tr>
+<tr>
+<td><strong>TS 38.420</strong></td>
+<td>R15+</td>
+<td>NG-RAN; Xn general aspects and principles（Xn 接口）</td>
+</tr>
+<tr>
+<td><strong>TS 38.470</strong></td>
+<td>R15+</td>
+<td>NG-RAN; F1 general aspects and principles（F1 接口）</td>
+</tr>
+<tr>
+<td><strong>TS 38.101-1</strong></td>
+<td>R15+</td>
+<td>NR; UE radio transmission and reception; Part 1: Range 1 Standalone</td>
+</tr>
+<tr>
+<td><strong>TS 38.101-2</strong></td>
+<td>R15+</td>
+<td>NR; UE radio transmission and reception; Part 2: Range 2 Standalone</td>
+</tr>
+</tbody></table>
+<h3 id="关键-TR（技术报告）"><a href="#关键-TR（技术报告）" class="headerlink" title="关键 TR（技术报告）"></a>关键 TR（技术报告）</h3><table>
+<thead>
+<tr>
+<th>报告号</th>
+<th>版本基线</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TR 38.913</td>
+<td>R14</td>
+<td>Study on scenarios and requirements for next generation access technologies（5G 需求研究）</td>
+</tr>
+<tr>
+<td>TR 38.912</td>
+<td>R14</td>
+<td>Study on new radio (NR) access technology（NR 可行性研究）</td>
+</tr>
+<tr>
+<td>TR 21.905</td>
+<td>持续更新</td>
+<td>Vocabulary for 3GPP Specifications（3GPP 词汇表，必读！）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="5-如何检索与下载-3GPP-规范"><a href="#5-如何检索与下载-3GPP-规范" class="headerlink" title="5 如何检索与下载 3GPP 规范"></a>5 如何检索与下载 3GPP 规范</h1><h3 id="5-1-官方网站入口"><a href="#5-1-官方网站入口" class="headerlink" title="5.1 官方网站入口"></a>5.1 官方网站入口</h3><p>3GPP 官网：<a target="_blank" rel="noopener" href="https://www.3gpp.org/">https://www.3gpp.org</a></p>
+<p>主要检索入口：</p>
+<ol>
+<li><p><strong>规范矩阵页面（推荐）</strong>：<br><a target="_blank" rel="noopener" href="https://www.3gpp.org/DynaReport/SpecReleaseMatrix.htm">https://www.3gpp.org/DynaReport/SpecReleaseMatrix.htm</a><br>以 Release 版本为维度，列出所有已发布规范，适合按版本横向检索。</p>
+</li>
+<li><p><strong>按系列浏览</strong>：<br><a target="_blank" rel="noopener" href="https://www.3gpp.org/specifications/specification-numbering">https://www.3gpp.org/specifications/specification-numbering</a><br>按 Series 分类，适合对领域有大致了解后精确定位。</p>
+</li>
+<li><p><strong>FTP 服务器（直接下载）</strong>：<br><a target="_blank" rel="noopener" href="https://www.3gpp.org/ftp/Specs/">https://www.3gpp.org/ftp/Specs/</a><br>按年份&#x2F;Release 组织，可以下载某一时间点的规范快照。</p>
+</li>
+<li><p><strong>关键词搜索</strong>：<br>在官网首页搜索框输入规范号（如 <code>38.331</code>）或技术关键词（如 <code>PDCP</code>）。</p>
+</li>
+</ol>
+<h3 id="5-2-ETSI-镜像（推荐，PDF-格式）"><a href="#5-2-ETSI-镜像（推荐，PDF-格式）" class="headerlink" title="5.2 ETSI 镜像（推荐，PDF 格式）"></a>5.2 ETSI 镜像（推荐，PDF 格式）</h3><p>ETSI（欧洲电信标准化协会）提供 3GPP 规范的 PDF 版本，阅读更方便：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.etsi.org/deliver/etsi_ts/</span><br></pre></td></tr></table></figure>
+
+<p>示例：访问 TS 38.331 V17.3.0 的 PDF：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.etsi.org/deliver/etsi_ts/138300_138399/138331/17.03.00_60/ts_138331v170300p.pdf</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-下载频率与更新节奏"><a href="#5-3-下载频率与更新节奏" class="headerlink" title="5.3 下载频率与更新节奏"></a>5.3 下载频率与更新节奏</h3><ul>
+<li>3GPP 每年召开 4 次 TSG 全会（每季度末），每次会议后约 3 周规范更新生效；</li>
+<li>规范获批后会在 3GPP FTP 上提供下载，<strong>完全免费，无需注册</strong>；</li>
+<li>建议订阅 <a target="_blank" rel="noopener" href="https://list.etsi.org/scripts/wa.exe?HOME">3GPP 邮件列表</a>（按 WG 订阅）跟踪最新规范变更。</li>
+</ul>
+<h3 id="5-4-阅读建议"><a href="#5-4-阅读建议" class="headerlink" title="5.4 阅读建议"></a>5.4 阅读建议</h3><p>初次接触 3GPP 规范，推荐按以下顺序阅读：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">第一步：阅读 TR 21.905（词汇表），熟悉术语缩写</span><br><span class="line">     ↓</span><br><span class="line">第二步：阅读 TS 23.501 总览（5G 系统架构，了解全局）</span><br><span class="line">     ↓</span><br><span class="line">第三步：阅读 TS 38.300（NR 总体描述，了解空口大图）</span><br><span class="line">     ↓</span><br><span class="line">第四步：根据工作领域选择具体规范精读</span><br><span class="line">        ├─ 物理层：38.211 / 38.212 / 38.213 / 38.214</span><br><span class="line">        ├─ 协议栈：38.321 / 38.322 / 38.323 / 38.331</span><br><span class="line">        ├─ 核心网：23.502 / 29.510 / 29.244</span><br><span class="line">        └─ 安全：33.501</span><br></pre></td></tr></table></figure>
+
+<p><strong>阅读技巧</strong>：</p>
+<ul>
+<li>先通读章节目录，掌握结构，再按需精读；</li>
+<li>遇到未知缩写，查 TS 21.905；</li>
+<li>善用文档内搜索（PDF 的 Ctrl+F）定位关键词；</li>
+<li>结合 Change Request（CR）列表了解版本间改动点；</li>
+<li>同一协议功能可能分散在 Stage 2（23.xxx）和 Stage 3（38.xxx &#x2F; 29.xxx）两层，需交叉参照阅读。</li>
+</ul>
+<hr>
+<h1 id="6-小结"><a href="#6-小结" class="headerlink" title="6 小结"></a>6 小结</h1><p>本文系统梳理了 3GPP 标准文档体系的两个核心维度：</p>
+<p><strong>Release 版本演进</strong>方面，从 R99&#x2F;R4（2G&#x2F;3G 奠基）→ R8（LTE 诞生）→ R10（LTE-A）→ R15（5G NR 第一版）→ R16（5G 完整标准）→ R17（RedCap&#x2F;NTN 扩展）→ R18（5G-A 开启），每一个版本都承载了产业界的重大里程碑，也是评估网络能力和终端兼容性的重要依据。</p>
+<p><strong>TS&#x2F;TR 编号体系</strong>方面，通过理解”系列号 + 尾号 + 版本号（Major.Technical.Editorial）”三层结构，可以从一个规范的编号中直接读出它所属的技术领域、适用的 Release 版本以及修改历史，大幅降低文档检索和阅读的门槛。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li>3GPP 官网：<a target="_blank" rel="noopener" href="https://www.3gpp.org/">https://www.3gpp.org</a></li>
+<li>3GPP Specification Series：<a target="_blank" rel="noopener" href="https://www.3gpp.org/specifications-technologies/specifications-by-series">https://www.3gpp.org/specifications-technologies/specifications-by-series</a></li>
+<li>3GPP Version Numbering Scheme：<a target="_blank" rel="noopener" href="https://www.3gpp.org/specifications-technologies/specifications-by-series/version-numbering-scheme">https://www.3gpp.org/specifications-technologies/specifications-by-series/version-numbering-scheme</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%90%86%E8%A7%A3-Release-%E7%89%88%E6%9C%AC%E4%BD%93%E7%B3%BB"><span class="toc-number">2.</span> <span class="toc-text">1 为什么要理解 Release 版本体系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-3GPP-Release-%E6%BC%94%E8%BF%9B%E5%85%A8%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">2 3GPP Release 演进全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%97%A9%E6%9C%9F%EF%BC%9AR99-R4-R5-R6-R7"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 早期：R99 &#x2F; R4 &#x2F; R5 &#x2F; R6 &#x2F; R7</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R99%EF%BC%88Release-99%EF%BC%8C1999%EF%BC%89"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">R99（Release 99，1999）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R4%EF%BC%88Release-4%EF%BC%8C2001%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">R4（Release 4，2001）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R5%EF%BC%88Release-5%EF%BC%8C2002%EF%BC%89"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">R5（Release 5，2002）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R6%EF%BC%88Release-6%EF%BC%8C2004%EF%BC%89"><span class="toc-number">3.0.1.4.</span> <span class="toc-text">R6（Release 6，2004）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R7%EF%BC%88Release-7%EF%BC%8C2007%EF%BC%89"><span class="toc-number">3.0.1.5.</span> <span class="toc-text">R7（Release 7，2007）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-LTE-%E6%97%B6%E4%BB%A3%EF%BC%9AR8-R14"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 LTE 时代：R8 ~ R14</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R8%EF%BC%88Release-8%EF%BC%8C2008%EF%BC%89%E2%80%94%E2%80%94-LTE-%E8%AF%9E%E7%94%9F"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">R8（Release 8，2008）—— LTE 诞生</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R9%EF%BC%88Release-9%EF%BC%8C2009%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">R9（Release 9，2009）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R10%EF%BC%88Release-10%EF%BC%8C2011%EF%BC%89%E2%80%94%E2%80%94-LTE-Advanced%EF%BC%88IMT-Advanced-%E5%80%99%E9%80%89%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">R10（Release 10，2011）—— LTE-Advanced（IMT-Advanced 候选）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R11%EF%BC%88Release-11%EF%BC%8C2012%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">R11（Release 11，2012）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R12%EF%BC%88Release-12%EF%BC%8C2013%EF%BC%89"><span class="toc-number">3.0.2.5.</span> <span class="toc-text">R12（Release 12，2013）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R13%EF%BC%88Release-13%EF%BC%8C2016%EF%BC%89"><span class="toc-number">3.0.2.6.</span> <span class="toc-text">R13（Release 13，2016）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R14%EF%BC%88Release-14%EF%BC%8C2017%EF%BC%89"><span class="toc-number">3.0.2.7.</span> <span class="toc-text">R14（Release 14，2017）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5G-%E6%97%B6%E4%BB%A3%EF%BC%9AR15-R17"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 5G 时代：R15 ~ R17</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R15%EF%BC%88Release-15%EF%BC%8C2018-2019%EF%BC%89%E2%80%94%E2%80%94-5G-NR-%E7%AC%AC%E4%B8%80%E7%89%88"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">R15（Release 15，2018&#x2F;2019）—— 5G NR 第一版</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R16%EF%BC%88Release-16%EF%BC%8C2020%E5%B9%B47%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E6%A0%87%E5%87%86"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">R16（Release 16，2020年7月冻结）—— 5G 第一个完整标准</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R17%EF%BC%88Release-17%EF%BC%8C2022%E5%B9%B46%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-%E8%83%BD%E5%8A%9B%E6%8B%93%E5%B1%95%E7%89%88"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">R17（Release 17，2022年6月冻结）—— 5G 能力拓展版</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-5G-Advanced%EF%BC%9AR18-R20"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 5G-Advanced：R18 ~ R20</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#R18%EF%BC%88Release-18%EF%BC%8C2024%E5%B9%B46%E6%9C%88%E5%86%BB%E7%BB%93%EF%BC%89%E2%80%94%E2%80%94-5G-A-%E9%A6%96%E7%89%88"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">R18（Release 18，2024年6月冻结）—— 5G-A 首版</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R19%EF%BC%88Release-19%EF%BC%8C%E9%A2%84%E8%AE%A1-2025-%E5%B9%B4%EF%BC%89"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">R19（Release 19，预计 2025 年）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#R20%EF%BC%88Release-20%EF%BC%8C%E9%A2%84%E8%AE%A1-2026-%E5%B9%B4%EF%BC%89"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">R20（Release 20，预计 2026 年）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-TS-TR-%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3 TS &#x2F; TR 文档体系详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-TS-%E4%B8%8E-TR-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 TS 与 TR 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%A7%84%E8%8C%83%E7%BC%96%E5%8F%B7%E8%A7%84%E5%88%99%EF%BC%88Series-Number%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 规范编号规则（Series Number）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E7%B3%BB%E5%88%97%E8%AF%B4%E6%98%8E"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">主要系列说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%89%88%E6%9C%AC%E5%8F%B7%E8%A7%84%E5%88%99%EF%BC%88Version-Number%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 版本号规则（Version Number）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Major-%E5%9F%9F%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">Major 域的含义</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%96%87%E4%BB%B6%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 文件名规则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-5G-NR-%E6%A0%B8%E5%BF%83%E8%A7%84%E8%8C%83%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">4 5G NR 核心规范速查表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%EF%BC%88SA-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">系统架构（SA 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%EF%BC%88SA3-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">安全（SA3 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NAS-%E5%8D%8F%E8%AE%AE%EF%BC%88CT1-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">NAS 协议（CT1 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BD%91%E6%8E%A5%E5%8F%A3%EF%BC%88CT3-CT4-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">核心网接口（CT3&#x2F;CT4 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NR-%E7%A9%BA%E5%8F%A3%EF%BC%88RAN-%E7%BB%84%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">NR 空口（RAN 组）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-TR%EF%BC%88%E6%8A%80%E6%9C%AF%E6%8A%A5%E5%91%8A%EF%BC%89"><span class="toc-number">5.0.6.</span> <span class="toc-text">关键 TR（技术报告）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%A6%82%E4%BD%95%E6%A3%80%E7%B4%A2%E4%B8%8E%E4%B8%8B%E8%BD%BD-3GPP-%E8%A7%84%E8%8C%83"><span class="toc-number">6.</span> <span class="toc-text">5 如何检索与下载 3GPP 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%98%E6%96%B9%E7%BD%91%E7%AB%99%E5%85%A5%E5%8F%A3"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 官方网站入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-ETSI-%E9%95%9C%E5%83%8F%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%8CPDF-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 ETSI 镜像（推荐，PDF 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%8B%E8%BD%BD%E9%A2%91%E7%8E%87%E4%B8%8E%E6%9B%B4%E6%96%B0%E8%8A%82%E5%A5%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 下载频率与更新节奏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E9%98%85%E8%AF%BB%E5%BB%BA%E8%AE%AE"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 阅读建议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">8.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&text=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&is_video=false&description=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则&body=Check out this article: http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&title=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&name=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/&t=3GPP 标准文档体系 —— Release 版本演进与 TS/TR 编号规则"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景与动机 Transport-CC 概述 RTP 头扩展：传输层序列号 RTCP 反馈报文格式详解 数据包状态编码 接收时间增量（Receive Delta） 发送端带宽估计流程 Trendline Filter：取代 Kalman Filter 与 REMB 的对比 Transport-CC v2 扩展 SDP 协商 开销分析 实现细节与注意事项 与其他模块的协作关系   1. 背景与动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Transport-CC — 基于传输层的精细拥塞反馈扩展">
+<meta property="og:url" content="http://example.com/2022/09/15/webrtc/17-transport-cc/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景与动机 Transport-CC 概述 RTP 头扩展：传输层序列号 RTCP 反馈报文格式详解 数据包状态编码 接收时间增量（Receive Delta） 发送端带宽估计流程 Trendline Filter：取代 Kalman Filter 与 REMB 的对比 Transport-CC v2 扩展 SDP 协商 开销分析 实现细节与注意事项 与其他模块的协作关系   1. 背景与动">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-09-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-29T00:36:32.316Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Transport-CC — 基于传输层的精细拥塞反馈扩展</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/09/30/webrtc/18-pacer/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/08/15/webrtc/16-gcc-google-congestion-control/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/09/15/webrtc/17-transport-cc/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&text=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&is_video=false&description=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Transport-CC — 基于传输层的精细拥塞反馈扩展&body=Check out this article: http://example.com/2022/09/15/webrtc/17-transport-cc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&name=Transport-CC — 基于传输层的精细拥塞反馈扩展&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/09/15/webrtc/17-transport-cc/&t=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与动机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Transport-CC"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 为什么需要 Transport-CC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 标准化历程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Transport-CC-%E6%A6%82%E8%BF%B0"><span class="toc-number">3.</span> <span class="toc-text">2. Transport-CC 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 核心设计思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 关键属性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RTP-%E5%A4%B4%E6%89%A9%E5%B1%95%EF%BC%9A%E4%BC%A0%E8%BE%93%E5%B1%82%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="toc-number">4.</span> <span class="toc-text">3. RTP 头扩展：传输层序列号</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AF%AD%E4%B9%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 语义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%A4%B4%E6%89%A9%E5%B1%95%E6%A0%BC%E5%BC%8F"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 头扩展格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%8F%90%E5%89%8D%E6%A3%80%E6%B5%8B%E4%B8%A2%E5%8C%85"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 提前检测丢包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RTCP-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. RTCP 反馈报文格式详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%8A%A5%E6%96%87%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 报文总体结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%90%84%E5%AD%97%E6%AE%B5%E5%90%AB%E4%B9%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 各字段含义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%8A%B6%E6%80%81%E7%BC%96%E7%A0%81"><span class="toc-number">6.</span> <span class="toc-text">5. 数据包状态编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%8A%B6%E6%80%81%E7%AC%A6%E5%8F%B7%EF%BC%88Packet-Status-Symbol%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 状态符号（Packet Status Symbol）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Run-Length-Chunk%EF%BC%88%E6%B8%B8%E7%A8%8B%E7%BC%96%E7%A0%81%E5%9D%97%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Run Length Chunk（游程编码块）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Status-Vector-Chunk%EF%BC%88%E7%8A%B6%E6%80%81%E5%90%91%E9%87%8F%E5%9D%97%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 Status Vector Chunk（状态向量块）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%8E%A5%E6%94%B6%E6%97%B6%E9%97%B4%E5%A2%9E%E9%87%8F%EF%BC%88Receive-Delta%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 接收时间增量（Receive Delta）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Small-Delta%EF%BC%881-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 Small Delta（1 字节）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Large-or-Negative-Delta%EF%BC%882-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Large or Negative Delta（2 字节）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%97%B6%E9%97%B4%E9%87%8D%E5%BB%BA%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 时间重建示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">8.</span> <span class="toc-text">7. 发送端带宽估计流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Trendline-Filter%EF%BC%9A%E5%8F%96%E4%BB%A3-Kalman-Filter"><span class="toc-number">9.</span> <span class="toc-text">8. Trendline Filter：取代 Kalman Filter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E8%B7%AF"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 核心思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Overuse-Detector-%E4%B8%8E%E5%8A%A8%E6%80%81%E9%98%88%E5%80%BC"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Overuse Detector 与动态阈值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Rate-Controller%EF%BC%88AIMD%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Rate Controller（AIMD）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%8E-REMB-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. 与 REMB 的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-REMB-%E7%9A%84%E9%81%97%E7%95%99%E4%BB%B7%E5%80%BC"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 REMB 的遗留价值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Transport-CC-v2-%E6%89%A9%E5%B1%95"><span class="toc-number">11.</span> <span class="toc-text">10. Transport-CC v2 扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%8C%89%E9%9C%80%E5%8F%8D%E9%A6%88%EF%BC%88On-demand-Feedback%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 按需反馈（On-demand Feedback）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8F%AF%E9%80%89%E6%97%B6%E9%97%B4%E4%BF%A1%E6%81%AF"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 可选时间信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E4%B8%8E-CCFB%EF%BC%88RFC-8888%EF%BC%89%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 与 CCFB（RFC 8888）的关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">12.</span> <span class="toc-text">11. SDP 协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%A4%B4%E6%89%A9%E5%B1%95%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 头扩展协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-RTCP-%E5%8F%8D%E9%A6%88%E8%83%BD%E5%8A%9B%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 RTCP 反馈能力协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%AE%8C%E6%95%B4%E7%9A%84-SDP-%E7%89%87%E6%AE%B5%E7%A4%BA%E4%BE%8B"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 完整的 SDP 片段示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E8%B7%A8%E5%AA%92%E4%BD%93-Section-%E7%9A%84%E7%BB%9F%E4%B8%80%E6%80%A7"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 跨媒体 Section 的统一性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%BC%80%E9%94%80%E5%88%86%E6%9E%90"><span class="toc-number">13.</span> <span class="toc-text">12. 开销分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-RTP-%E5%A4%B4%E5%BC%80%E9%94%80"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 RTP 头开销</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-RTCP-%E5%8F%8D%E9%A6%88%E5%BC%80%E9%94%80"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 RTCP 反馈开销</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">14.</span> <span class="toc-text">13. 实现细节与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87%E4%B8%A2%E5%A4%B1%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 反馈报文丢失的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E5%BA%8F%E5%88%97%E5%8F%B7%E5%9B%9E%E7%BB%95"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 序列号回绕</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E6%8E%A5%E6%94%B6%E7%AB%AF%E6%97%B6%E9%92%9F%E7%B2%BE%E5%BA%A6"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 接收端时钟精度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E4%B9%B1%E5%BA%8F%E5%8C%85%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-number">14.0.4.</span> <span class="toc-text">13.4 乱序包的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-%E4%B8%8E-Pacer-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">14.0.5.</span> <span class="toc-text">13.5 与 Pacer 的协作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB"><span class="toc-number">15.</span> <span class="toc-text">14. 与其他模块的协作关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%98%E6%96%B9%E8%8D%89%E6%A1%88%E4%B8%8E%E8%A7%84%E8%8C%83"><span class="toc-number">16.0.1.</span> <span class="toc-text">官方草案与规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="toc-number">16.0.2.</span> <span class="toc-text">扩展阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Transport-CC — 基于传输层的精细拥塞反馈扩展
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-09-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-09-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA">背景与动机</a></li>
+<li><a href="#2-transport-cc-%E6%A6%82%E8%BF%B0">Transport-CC 概述</a></li>
+<li><a href="#3-rtp-%E5%A4%B4%E6%89%A9%E5%B1%95%E4%BC%A0%E8%BE%93%E5%B1%82%E5%BA%8F%E5%88%97%E5%8F%B7">RTP 头扩展：传输层序列号</a></li>
+<li><a href="#4-rtcp-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%E8%AF%A6%E8%A7%A3">RTCP 反馈报文格式详解</a></li>
+<li><a href="#5-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%8A%B6%E6%80%81%E7%BC%96%E7%A0%81">数据包状态编码</a></li>
+<li><a href="#6-%E6%8E%A5%E6%94%B6%E6%97%B6%E9%97%B4%E5%A2%9E%E9%87%8Freceive-delta">接收时间增量（Receive Delta）</a></li>
+<li><a href="#7-%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%E6%B5%81%E7%A8%8B">发送端带宽估计流程</a></li>
+<li><a href="#8-trendline-filter%E5%8F%96%E4%BB%A3-kalman-filter">Trendline Filter：取代 Kalman Filter</a></li>
+<li><a href="#9-%E4%B8%8E-remb-%E7%9A%84%E5%AF%B9%E6%AF%94">与 REMB 的对比</a></li>
+<li><a href="#10-transport-cc-v2-%E6%89%A9%E5%B1%95">Transport-CC v2 扩展</a></li>
+<li><a href="#11-sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+<li><a href="#12-%E5%BC%80%E9%94%80%E5%88%86%E6%9E%90">开销分析</a></li>
+<li><a href="#13-%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">实现细节与注意事项</a></li>
+<li><a href="#14-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB">与其他模块的协作关系</a></li>
+</ol>
+<hr>
+<h1 id="1-背景与动机"><a href="#1-背景与动机" class="headerlink" title="1. 背景与动机"></a>1. 背景与动机</h1><h3 id="1-1-为什么需要-Transport-CC"><a href="#1-1-为什么需要-Transport-CC" class="headerlink" title="1.1 为什么需要 Transport-CC"></a>1.1 为什么需要 Transport-CC</h3><p>WebRTC 早期的拥塞控制采用 <strong>REMB（Receiver Estimated Maximum Bitrate）</strong> 机制。在 REMB 体系下，接收端承担了延迟梯度（delay gradient）的计算与带宽估计的核心逻辑，再通过 RTCP 消息将估算结果上报给发送端。</p>
+<p>这种架构存在几个根本性缺陷：</p>
+<p><strong>信息损耗</strong>：接收端在本地完成估算，发送端只能得到一个聚合后的”最大码率”数值，丢失了每个数据包的细粒度到达时序信息。发送端无法独立判断拥塞的具体形态。</p>
+<p><strong>版本同步困难</strong>：拥塞控制算法分布在发送端和接收端两侧。每次算法迭代升级，必须同时协调两端的实现版本，在多厂商互联互通的场景下极为复杂。</p>
+<p><strong>流粒度过粗</strong>：REMB 以单条媒体流（RTP stream）为单位反馈，而网络拥塞本质上发生在传输层（即整条 UDP 连接），与流边界无关。当音视频同时传输时，各流的独立反馈难以全面刻画共享瓶颈的真实状态。</p>
+<p><strong>丢包检测延迟</strong>：流 A 的包丢失，必须等到流 A 的下一个包才能发现。若流 B 先到达，这条信息就白白浪费了。</p>
+<p>Transport-CC 正是为了解决上述问题而提出的。它将复杂的估算逻辑<strong>全部集中到发送端</strong>，接收端只做一件事：<strong>如实记录每个包的到达时间，并原样上报</strong>。</p>
+<h3 id="1-2-标准化历程"><a href="#1-2-标准化历程" class="headerlink" title="1.2 标准化历程"></a>1.2 标准化历程</h3><p>Transport-CC 最初以 IETF Internet-Draft 形式提出：</p>
+<ul>
+<li><strong>draft-holmer-rmcat-transport-wide-cc-extensions-01</strong>（2015 年）：由 Google 工程师 Stefan Holmer、Magnus Flodman、Erik Språng 起草，定义了 RTP 头扩展（传输层序列号）和 RTCP 反馈报文（RTPFB，PT&#x3D;205，FMT&#x3D;15）。</li>
+<li>该草案虽未正式进入 RFC 轨道，但已被 Chrome、Firefox、Safari 等主流浏览器以及绝大多数 WebRTC SFU（如 mediasoup、Janus、Pion）广泛实现。</li>
+<li><strong>transport-wide-cc-02</strong>（实验性扩展）：Google 在 webrtc.org 源码中进一步演进，增加了”按需反馈”机制，以 <code>http://www.webrtc.org/experiments/rtp-hdrext/transport-wide-cc-02</code> 为扩展 URI 发布。</li>
+</ul>
+<hr>
+<h1 id="2-Transport-CC-概述"><a href="#2-Transport-CC-概述" class="headerlink" title="2. Transport-CC 概述"></a>2. Transport-CC 概述</h1><h3 id="2-1-核心设计思想"><a href="#2-1-核心设计思想" class="headerlink" title="2.1 核心设计思想"></a>2.1 核心设计思想</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">发送端                               接收端</span><br><span class="line">  │                                    │</span><br><span class="line">  │  RTP + transport-wide seq num      │</span><br><span class="line">  │ ──────────────────────────────►    │</span><br><span class="line">  │                                    │  记录 (seq, arrival_time)</span><br><span class="line">  │       RTCP Transport Feedback      │</span><br><span class="line">  │ ◄──────────────────────────────    │</span><br><span class="line">  │                                    │</span><br><span class="line">  │  发送端拥有：                        │</span><br><span class="line">  │    send_time[seq]                  │</span><br><span class="line">  │    arrival_time[seq] （来自反馈）    │</span><br><span class="line">  │                                    │</span><br><span class="line">  │  → 计算单向延迟变化                   │</span><br><span class="line">  │  → Trendline Filter                │</span><br><span class="line">  │  → Overuse Detector                │</span><br><span class="line">  │  → 带宽估计 (BWE)                   │</span><br><span class="line">  │  → 调整发送码率                      │</span><br></pre></td></tr></table></figure>
+
+<p>整个流程分为三个层次：</p>
+<ol>
+<li><strong>标注层</strong>：每个出站 RTP 包在头部携带一个传输层序列号（transport-wide sequence number）。</li>
+<li><strong>反馈层</strong>：接收端周期性地将包的到达状态（是否到达、到达时间增量）封装进 RTCP 反馈报文，发回给发送端。</li>
+<li><strong>估算层</strong>：发送端结合本地的发送时间记录和收到的反馈，在发送侧完整地执行拥塞检测与带宽估计。</li>
+</ol>
+<h3 id="2-2-关键属性"><a href="#2-2-关键属性" class="headerlink" title="2.2 关键属性"></a>2.2 关键属性</h3><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用范围</td>
+<td>传输层（Transport-wide），覆盖同一 DTLS&#x2F;ICE 连接上的所有 RTP 流</td>
+</tr>
+<tr>
+<td>反馈方向</td>
+<td>接收端 → 发送端（via RTCP）</td>
+</tr>
+<tr>
+<td>逻辑集中点</td>
+<td>发送端（Sender-side BWE）</td>
+</tr>
+<tr>
+<td>依赖 RFC</td>
+<td>RFC 3550（RTP）、RFC 4585（RTCP Feedback）、RFC 5285（RTP Header Extensions）</td>
+</tr>
+<tr>
+<td>核心草案</td>
+<td>draft-holmer-rmcat-transport-wide-cc-extensions-01</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-RTP-头扩展：传输层序列号"><a href="#3-RTP-头扩展：传输层序列号" class="headerlink" title="3. RTP 头扩展：传输层序列号"></a>3. RTP 头扩展：传输层序列号</h1><h3 id="3-1-语义"><a href="#3-1-语义" class="headerlink" title="3.1 语义"></a>3.1 语义</h3><p>每个通过同一传输连接（如通过 BUNDLE 复用的单一 DTLS 连接）发出的 RTP 包，都被打上一个统一的、单调递增的 16 位序列号。这个序列号<strong>跨越所有媒体流</strong>，不区分音频流、视频流或 DataChannel（尽管 DataChannel 走 SCTP，不在此列）。</p>
+<p>与每条 RTP 流自有的 RTP 序列号不同，transport-wide 序列号的语义是：</p>
+<ul>
+<li>唯一标识一次”传输事件”，即一个 UDP 数据报的发出。</li>
+<li>允许发送端在不知道接收端具体接收了哪条流的情况下，精准追踪任意包的命运。</li>
+</ul>
+<h3 id="3-2-头扩展格式"><a href="#3-2-头扩展格式" class="headerlink" title="3.2 头扩展格式"></a>3.2 头扩展格式</h3><p>按照 RFC 5285 的一字节头（One-Byte Header）格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|       0xBE    |    0xDE       |           length=1            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  ID   | L=1   |transport-wide sequence number | zero padding  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>字段说明：</p>
+<ul>
+<li><code>0xBE 0xDE</code>：RFC 5285 的 Magic Cookie，标识使用一字节头格式。</li>
+<li><code>ID</code>：4 bits，SDP 协商确定的扩展 ID（通常为 5）。</li>
+<li><code>L=1</code>：4 bits，数据长度为 <code>L+1 = 2</code> 字节。</li>
+<li><code>transport-wide sequence number</code>：16 bits 无符号整数，每发一个包递增 1，在整个传输连接范围内单调递增（溢出后回绕到 0）。</li>
+</ul>
+<h3 id="3-3-提前检测丢包"><a href="#3-3-提前检测丢包" class="headerlink" title="3.3 提前检测丢包"></a>3.3 提前检测丢包</h3><p>传输层序列号的一个额外好处是<strong>提前发现丢包</strong>。假设：</p>
+<ul>
+<li>流 A 先发出序列号 100、101、102；</li>
+<li>流 B 随后发出序列号 103；</li>
+<li>接收端收到 100、102、103，未收到 101。</li>
+</ul>
+<p>在旧体系（REMB）下，流 A 的丢包只有在流 A 的下一个包（假设为序列号 104）到达时才能察觉。但在 Transport-CC 体系下，流 B 的包（序列号 103）到达时，接收端便可确认序列号 101 丢失，并在下一次 RTCP 反馈中上报，从而加速丢包检测与重传触发。</p>
+<hr>
+<h1 id="4-RTCP-反馈报文格式详解"><a href="#4-RTCP-反馈报文格式详解" class="headerlink" title="4. RTCP 反馈报文格式详解"></a>4. RTCP 反馈报文格式详解</h1><p>Transport-CC 的反馈报文是一个 <strong>RTCP Transport Feedback（RTPFB）消息</strong>：</p>
+<ul>
+<li>Payload Type（PT）&#x3D; <strong>205</strong>（RTPFB，由 RFC 4585 定义）</li>
+<li>Feedback Message Type（FMT）&#x3D; <strong>15</strong></li>
+</ul>
+<h3 id="4-1-报文总体结构"><a href="#4-1-报文总体结构" class="headerlink" title="4.1 报文总体结构"></a>4.1 报文总体结构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|V=2|P|  FMT=15 |    PT=205     |           length              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                     SSRC of packet sender                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                      SSRC of media source                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|      base sequence number     |      packet status count      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                 reference time                | fb pkt. count |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|          packet chunk         |         packet chunk          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">.                            ...                                .</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|         packet chunk          |  recv delta   |  recv delta   |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">.                            ...                                .</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|           recv delta          |  recv delta   | zero padding  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-各字段含义"><a href="#4-2-各字段含义" class="headerlink" title="4.2 各字段含义"></a>4.2 各字段含义</h3><p><strong>通用 RTCP 头部</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>大小</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>V</td>
+<td>2 bits</td>
+<td>RTP 版本，固定为 2</td>
+</tr>
+<tr>
+<td>P</td>
+<td>1 bit</td>
+<td>Padding 标志</td>
+</tr>
+<tr>
+<td>FMT</td>
+<td>5 bits</td>
+<td>Feedback 类型，固定为 <strong>15</strong></td>
+</tr>
+<tr>
+<td>PT</td>
+<td>8 bits</td>
+<td>Payload Type，固定为 <strong>205</strong></td>
+</tr>
+<tr>
+<td>length</td>
+<td>16 bits</td>
+<td>报文长度（单位为 32-bit 字，不含前 4 字节）</td>
+</tr>
+<tr>
+<td>SSRC of packet sender</td>
+<td>32 bits</td>
+<td>发出本 RTCP 报文的实体的 SSRC（接收端）</td>
+</tr>
+<tr>
+<td>SSRC of media source</td>
+<td>32 bits</td>
+<td>被反馈的媒体源 SSRC（传输层反馈中可为任一媒体流的 SSRC）</td>
+</tr>
+</tbody></table>
+<p><strong>Transport Feedback 专属字段</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>大小</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>base sequence number</td>
+<td>16 bits</td>
+<td>本次反馈中第一个被描述的传输层序列号</td>
+</tr>
+<tr>
+<td>packet status count</td>
+<td>16 bits</td>
+<td>本次反馈描述的包总数，从 base sequence number 开始连续计数</td>
+</tr>
+<tr>
+<td>reference time</td>
+<td>24 bits</td>
+<td>有符号整数，绝对参考时间，单位 <strong>64ms</strong>。接收端自选基准时刻，用于计算首个 recv delta</td>
+</tr>
+<tr>
+<td>fb pkt. count</td>
+<td>8 bits</td>
+<td>反馈报文计数器，每发一个反馈包递增 1，用于检测反馈包丢失</td>
+</tr>
+<tr>
+<td>packet chunk</td>
+<td>16 bits × N</td>
+<td>数据包状态块（详见第 5 节）</td>
+</tr>
+<tr>
+<td>recv delta</td>
+<td>8 or 16 bits × M</td>
+<td>对每个”已收到”状态的包，追加其相对于上一已收包的到达时间增量（详见第 6 节）</td>
+</tr>
+</tbody></table>
+<p><strong>reference time 的重要性</strong>：由于 recv delta 是相对值（差分编码），若某个反馈报文丢失，后续报文的增量将无法还原为绝对时间。reference time 提供了一个绝对锚点，即便中间有反馈报文丢失，发送端也能将增量序列重新对齐到正确的时间轴。</p>
+<hr>
+<h1 id="5-数据包状态编码"><a href="#5-数据包状态编码" class="headerlink" title="5. 数据包状态编码"></a>5. 数据包状态编码</h1><h3 id="5-1-状态符号（Packet-Status-Symbol）"><a href="#5-1-状态符号（Packet-Status-Symbol）" class="headerlink" title="5.1 状态符号（Packet Status Symbol）"></a>5.1 状态符号（Packet Status Symbol）</h3><p>每个包用一个 <strong>2-bit 符号</strong>描述其状态：</p>
+<table>
+<thead>
+<tr>
+<th>符号值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>00</code></td>
+<td>Packet not received（未收到）</td>
+</tr>
+<tr>
+<td><code>01</code></td>
+<td>Packet received, small delta（已收到，时间增量较小，用 1 字节表示）</td>
+</tr>
+<tr>
+<td><code>10</code></td>
+<td>Packet received, large or negative delta（已收到，时间增量较大或为负，用 2 字节表示）</td>
+</tr>
+<tr>
+<td><code>11</code></td>
+<td>保留（Reserved）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：状态为”未收到”的包<strong>不一定已经丢失</strong>，可能只是还未到达（乱序）。发送端应等待足够长的时间再做判断。</p>
+</blockquote>
+<h3 id="5-2-Run-Length-Chunk（游程编码块）"><a href="#5-2-Run-Length-Chunk（游程编码块）" class="headerlink" title="5.2 Run Length Chunk（游程编码块）"></a>5.2 Run Length Chunk（游程编码块）</h3><p>当连续多个包具有相同状态时，使用游程编码（RLE）压缩：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|T| S |       Run Length        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>T = 0</code>：标识为 Run Length Chunk</li>
+<li><code>S</code>（2 bits）：重复的状态符号</li>
+<li><code>Run Length</code>（13 bits）：重复次数，最大 8191</li>
+</ul>
+<p><strong>示例</strong>：<code>0|00|0000000011101</code> 表示 221 个”未收到”的包。</p>
+<h3 id="5-3-Status-Vector-Chunk（状态向量块）"><a href="#5-3-Status-Vector-Chunk（状态向量块）" class="headerlink" title="5.3 Status Vector Chunk（状态向量块）"></a>5.3 Status Vector Chunk（状态向量块）</h3><p>当包的状态各不相同时，使用向量编码，每个 chunk 可描述 7 或 14 个包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|T|S|       symbol list         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>T = 1</code>：标识为 Status Vector Chunk</li>
+<li><code>S = 0</code>：每个 symbol 占 1 bit（仅区分”收到”与”未收到”，共 14 个包）</li>
+<li><code>S = 1</code>：每个 symbol 占 2 bit（完整 4 态，共 7 个包）</li>
+</ul>
+<p>两种 chunk 格式可在同一反馈报文中混用，由实现自行选择最紧凑的编码方式。</p>
+<hr>
+<h1 id="6-接收时间增量（Receive-Delta）"><a href="#6-接收时间增量（Receive-Delta）" class="headerlink" title="6. 接收时间增量（Receive Delta）"></a>6. 接收时间增量（Receive Delta）</h1><p>对每个状态为”已收到”的包，紧随所有 packet chunk 之后，顺序追加该包相对于<strong>上一个已收到包</strong>的到达时间增量（receive delta）。</p>
+<h3 id="6-1-Small-Delta（1-字节）"><a href="#6-1-Small-Delta（1-字节）" class="headerlink" title="6.1 Small Delta（1 字节）"></a>6.1 Small Delta（1 字节）</h3><p>对应状态符号 <code>01</code>，时间增量范围：<code>[0, 63.75ms]</code>，分辨率 250μs（0.25ms）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   </span><br><span class="line"> 0 1 2 3 4 5 6 7 </span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|  recv delta   |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>值 &#x3D; 实际增量（μs）&#x2F; 250</p>
+<h3 id="6-2-Large-or-Negative-Delta（2-字节）"><a href="#6-2-Large-or-Negative-Delta（2-字节）" class="headerlink" title="6.2 Large or Negative Delta（2 字节）"></a>6.2 Large or Negative Delta（2 字节）</h3><p>对应状态符号 <code>10</code>，时间增量范围：<code>[-8192ms, +8191.75ms]</code>，分辨率同为 250μs：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|         recv delta            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>有符号 16-bit 整数，值 &#x3D; 实际增量（μs）&#x2F; 250。</p>
+<p>负增量表示乱序到达（后发先至）。</p>
+<h3 id="6-3-时间重建示例"><a href="#6-3-时间重建示例" class="headerlink" title="6.3 时间重建示例"></a>6.3 时间重建示例</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">reference_time = T0 （绝对值，单位 64ms）</span><br><span class="line"></span><br><span class="line">包 seq=100: delta = +10  → 到达时间 = T0 + 10×250μs = T0 + 2.5ms</span><br><span class="line">包 seq=101: 未收到        → 跳过</span><br><span class="line">包 seq=102: delta = +20  → 到达时间 = T0 + 2.5ms + 20×250μs = T0 + 7.5ms</span><br><span class="line">包 seq=103: delta = +5   → 到达时间 = T0 + 7.5ms + 5×250ms  = T0 + 8.75ms</span><br></pre></td></tr></table></figure>
+
+<p>发送端拿到这些到达时间后，与本地记录的 <code>send_time[seq]</code> 相减，得到各包的<strong>单向延迟（One-Way Delay，OWD）</strong>，再进一步分析延迟变化趋势。</p>
+<hr>
+<h1 id="7-发送端带宽估计流程"><a href="#7-发送端带宽估计流程" class="headerlink" title="7. 发送端带宽估计流程"></a>7. 发送端带宽估计流程</h1><p>拿到 RTCP Transport Feedback 后，发送端执行以下流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">RTCP Transport Feedback</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">  ┌─────────────────────┐</span><br><span class="line">  │  重建到达时间序列      │</span><br><span class="line">  │  arrival_time[seq]  │</span><br><span class="line">  └──────────┬──────────┘</span><br><span class="line">             │</span><br><span class="line">             ▼</span><br><span class="line">  ┌─────────────────────┐</span><br><span class="line">  │  计算包组间延迟变化    │  ← 与 send_time[seq] 对比</span><br><span class="line">  │  d(i) = OWD(i) -    │</span><br><span class="line">  │         OWD(i-1)    │</span><br><span class="line">  └──────────┬──────────┘</span><br><span class="line">             │</span><br><span class="line">             ▼</span><br><span class="line">  ┌─────────────────────┐</span><br><span class="line">  │   Trendline Filter  │  ← 线性回归拟合延迟趋势</span><br><span class="line">  │   （详见第 8 节）     │</span><br><span class="line">  └──────────┬──────────┘</span><br><span class="line">             │</span><br><span class="line">             ▼</span><br><span class="line">  ┌─────────────────────┐</span><br><span class="line">  │   Overuse Detector  │  ← 对比动态阈值，输出</span><br><span class="line">  │   Normal / Overuse  │    Underuse / Normal / Overuse</span><br><span class="line">  │   / Underuse        │</span><br><span class="line">  └──────────┬──────────┘</span><br><span class="line">             │</span><br><span class="line">             ▼</span><br><span class="line">  ┌─────────────────────┐</span><br><span class="line">  │  Rate Controller    │  ← 综合：</span><br><span class="line">  │  (AIMD)             │    ① 延迟信号</span><br><span class="line">  └──────────┬──────────┘    ② 丢包率</span><br><span class="line">             │               ③ 探测码率（Probing）</span><br><span class="line">             ▼</span><br><span class="line">       目标发送码率</span><br></pre></td></tr></table></figure>
+
+<p><strong>包组（Packet Group）划分</strong>：发送端按发送时间将包分组（窗口约 5ms），同组内包被当作一个整体来计算组间延迟变化，以降低单包抖动的影响。</p>
+<p><strong>单向延迟变化公式</strong>：</p>
+<p>$$d(i) &#x3D; (A_i - S_i) - (A_{i-1} - S_{i-1})$$</p>
+<p>其中：</p>
+<ul>
+<li>$A_i$ &#x3D; 第 i 组最后一个包的到达时间</li>
+<li>$S_i$ &#x3D; 第 i 组第一个包的发送时间</li>
+</ul>
+<hr>
+<h1 id="8-Trendline-Filter：取代-Kalman-Filter"><a href="#8-Trendline-Filter：取代-Kalman-Filter" class="headerlink" title="8. Trendline Filter：取代 Kalman Filter"></a>8. Trendline Filter：取代 Kalman Filter</h1><p>GCC 第一代（REMB 时代）使用 <strong>Kalman Filter（卡尔曼滤波器）</strong> 对接收端侧的延迟梯度进行估计。Transport-CC 将拥塞检测迁移到发送端后，WebRTC 团队将其替换为更简洁的 <strong>Trendline Filter（趋势线滤波器）</strong>。</p>
+<h3 id="8-1-核心思路"><a href="#8-1-核心思路" class="headerlink" title="8.1 核心思路"></a>8.1 核心思路</h3><p>Trendline Filter 本质上是对累积延迟变化序列做<strong>线性回归</strong>，用回归直线的<strong>斜率</strong>来判断网络队列的增长趋势：</p>
+<ol>
+<li>计算第 i 包组的<strong>累积延迟</strong>（accumulated delay）：</li>
+</ol>
+<p>$$\text{accumulated_delay}<em>i &#x3D; \sum</em>{k&#x3D;1}^{i} d(k)$$</p>
+<ol start="2">
+<li>对累积延迟序列施加指数平滑：</li>
+</ol>
+<p>$$\text{smoothed_delay}<em>i &#x3D; \alpha \cdot \text{smoothed_delay}</em>{i-1} + (1 - \alpha) \cdot \text{accumulated_delay}_i$$</p>
+<p>其中 $\alpha$ 为平滑系数（典型值接近 0.9）。</p>
+<ol start="3">
+<li><p>以<strong>到达时间</strong>为 x 轴，以 <code>smoothed_delay</code> 为 y 轴，对最近 N 个数据点（默认约 20 个包组）做最小二乘线性回归，求出斜率 $k$。</p>
+</li>
+<li><p>斜率 $k$ 即为 Trendline 的输出，反映排队延迟的增长速率：</p>
+<ul>
+<li>$k &gt; 0$ ：延迟在增长，队列在积压，可能发生 overuse；</li>
+<li>$k \approx 0$：延迟稳定；</li>
+<li>$k &lt; 0$ ：延迟在下降，队列在清空，underuse。</li>
+</ul>
+</li>
+</ol>
+<h3 id="8-2-Overuse-Detector-与动态阈值"><a href="#8-2-Overuse-Detector-与动态阈值" class="headerlink" title="8.2 Overuse Detector 与动态阈值"></a>8.2 Overuse Detector 与动态阈值</h3><p>Trendline 的斜率 $k$ 被送入 <strong>Overuse Detector</strong>，与一个<strong>动态阈值</strong> $\gamma$ 比较：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>信号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$k &gt; \gamma$</td>
+<td><strong>Overuse</strong>（过载）</td>
+</tr>
+<tr>
+<td>$-\gamma \le k \le \gamma$</td>
+<td><strong>Normal</strong>（正常）</td>
+</tr>
+<tr>
+<td>$k &lt; -\gamma$</td>
+<td><strong>Underuse</strong>（欠载）</td>
+</tr>
+</tbody></table>
+<p>阈值 $\gamma$ 并非固定值，而是根据历史信号动态调整：拥塞时适当放宽，以避免震荡；空闲时收紧，提高灵敏度。这一设计被称为 <strong>Adaptive Threshold（自适应阈值）</strong>。</p>
+<p>相比 Kalman Filter，Trendline Filter 的实现更简单、参数更少、对信号噪声的鲁棒性更好，且由于全部逻辑在发送端，便于快速迭代和 A&#x2F;B 测试。</p>
+<h3 id="8-3-Rate-Controller（AIMD）"><a href="#8-3-Rate-Controller（AIMD）" class="headerlink" title="8.3 Rate Controller（AIMD）"></a>8.3 Rate Controller（AIMD）</h3><p>Overuse Detector 的输出驱动一个 AIMD（Additive Increase Multiplicative Decrease）控制器：</p>
+<ul>
+<li><strong>Overuse</strong> → 乘法减少：$A_r &#x3D; \beta \cdot \hat{R}$（$\beta \approx 0.85$），快速降低发送码率。</li>
+<li><strong>Normal</strong> → 加法增加：缓慢探测可用带宽。</li>
+<li><strong>Underuse</strong> → 保持或小幅增加。</li>
+</ul>
+<p>同时综合考虑丢包率：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if 丢包率 &lt; 2%:</span><br><span class="line">    目标码率 *= 1.08  # 缓增</span><br><span class="line"></span><br><span class="line">if 丢包率 &gt; 10%:</span><br><span class="line">    目标码率 *= (1 - 0.5 × 丢包率)  # 快减</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="9-与-REMB-的对比"><a href="#9-与-REMB-的对比" class="headerlink" title="9. 与 REMB 的对比"></a>9. 与 REMB 的对比</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>REMB</th>
+<th>Transport-CC（TWCC）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>估算位置</td>
+<td>接收端（Receiver-side）</td>
+<td>发送端（Sender-side）</td>
+</tr>
+<tr>
+<td>反馈内容</td>
+<td>单一聚合估算值（最大码率）</td>
+<td>每个包的到达时间增量</td>
+</tr>
+<tr>
+<td>反馈粒度</td>
+<td>较粗（帧级）</td>
+<td>精细（包级）</td>
+</tr>
+<tr>
+<td>算法可升级性</td>
+<td>差（需同步两端）</td>
+<td>好（仅需升级发送端）</td>
+</tr>
+<tr>
+<td>跨流感知</td>
+<td>无（单流独立反馈）</td>
+<td>有（传输层统一视角）</td>
+</tr>
+<tr>
+<td>SFU 友好度</td>
+<td>低</td>
+<td>高（SFU 作为发送端，完全掌控估算）</td>
+</tr>
+<tr>
+<td>标准化状态</td>
+<td>从未正式进入 RFC</td>
+<td>草案（被广泛实现）</td>
+</tr>
+<tr>
+<td>并用限制</td>
+<td>可与 Transport-CC 并存</td>
+<td>不可与 CCFB（RFC 8888）同时使用</td>
+</tr>
+</tbody></table>
+<h3 id="9-1-REMB-的遗留价值"><a href="#9-1-REMB-的遗留价值" class="headerlink" title="9.1 REMB 的遗留价值"></a>9.1 REMB 的遗留价值</h3><p>尽管 Transport-CC 在设计上更优越，REMB 并未完全消失。在以下场景中 REMB 仍然有意义：</p>
+<ul>
+<li>对端不支持 Transport-CC 扩展时的兼容回退。</li>
+<li>某些简单部署场景中，REMB 的实现成本更低。</li>
+<li>作为 Transport-CC 的辅助参考信号（双机制并行）。</li>
+</ul>
+<p>在实际的 Chrome 实现中，当双方协商了 Transport-CC，发送端会优先使用基于 Transport Feedback 的带宽估计，REMB 作为备用或兜底。</p>
+<hr>
+<h1 id="10-Transport-CC-v2-扩展"><a href="#10-Transport-CC-v2-扩展" class="headerlink" title="10. Transport-CC v2 扩展"></a>10. Transport-CC v2 扩展</h1><p>Google 在 webrtc.org 中进一步演进了该协议，形成了实验性的 <strong>transport-wide-cc-02</strong> 版本。</p>
+<p><strong>官方 URI</strong>：<code>http://www.webrtc.org/experiments/rtp-hdrext/transport-wide-cc-02</code></p>
+<p>相比 v1，主要有两处改动：</p>
+<h3 id="10-1-按需反馈（On-demand-Feedback）"><a href="#10-1-按需反馈（On-demand-Feedback）" class="headerlink" title="10.1 按需反馈（On-demand Feedback）"></a>10.1 按需反馈（On-demand Feedback）</h3><p>v1 的接收端以固定周期（通常每帧或每 RTT）发送反馈。v2 改为<strong>由发送端主动请求</strong>：在 RTP 包的头扩展中附加一个可选的 Feedback Request 字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  ID   | L=3   |transport-wide sequence number |T|  seq count  |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|seq count cont.|</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>当扩展长度为 <code>L=3</code>（即 4 字节数据）时，后两个字节为 Feedback Request：<ul>
+<li><code>T</code>（1 bit）：若置 1，要求反馈报文包含时间信息（timing information）。</li>
+<li><code>seq count</code>（15 bits）：要求接收端在反馈中包含最近 <code>seq count</code> 个包的历史状态。若 <code>seq count = 0</code>，等效于不发 Feedback Request（仅保持固定头长度）。</li>
+</ul>
+</li>
+</ul>
+<h3 id="10-2-可选时间信息"><a href="#10-2-可选时间信息" class="headerlink" title="10.2 可选时间信息"></a>10.2 可选时间信息</h3><p>v2 允许发送端决定是否要求接收端在反馈中包含时间戳。对于仅需丢包信息（不需要延迟估计）的场景，可节省部分带宽开销。</p>
+<h3 id="10-3-与-CCFB（RFC-8888）的关系"><a href="#10-3-与-CCFB（RFC-8888）的关系" class="headerlink" title="10.3 与 CCFB（RFC 8888）的关系"></a>10.3 与 CCFB（RFC 8888）的关系</h3><p>RFC 8888（Congestion Control Feedback in RTCP）是 IETF 正式标准化的另一套拥塞控制反馈机制。它与 Transport-CC 在设计目标上有重叠，两者<strong>不能在同一 SDP 媒体描述中同时使用</strong>。在 SDP Answer 中，只能选择其中之一。</p>
+<hr>
+<h1 id="11-SDP-协商"><a href="#11-SDP-协商" class="headerlink" title="11. SDP 协商"></a>11. SDP 协商</h1><h3 id="11-1-头扩展协商"><a href="#11-1-头扩展协商" class="headerlink" title="11.1 头扩展协商"></a>11.1 头扩展协商</h3><p>在 SDP Offer&#x2F;Answer 中，通过标准的 <code>a=extmap</code> 属性宣告头扩展支持：</p>
+<p><strong>v1（IETF Draft）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions</span><br></pre></td></tr></table></figure>
+
+<p><strong>v2（Google 实验性）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/transport-wide-cc-02</span><br></pre></td></tr></table></figure>
+
+<p>扩展 ID（本例中为 5）由实现自行选择，双方协商一致即可。</p>
+<h3 id="11-2-RTCP-反馈能力协商"><a href="#11-2-RTCP-反馈能力协商" class="headerlink" title="11.2 RTCP 反馈能力协商"></a>11.2 RTCP 反馈能力协商</h3><p>发送端需要声明它理解并期望接收 Transport Feedback 报文：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtcp-fb:96 transport-cc</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>96</code> 为具体 payload type（视编码而定）。</p>
+<h3 id="11-3-完整的-SDP-片段示例"><a href="#11-3-完整的-SDP-片段示例" class="headerlink" title="11.3 完整的 SDP 片段示例"></a>11.3 完整的 SDP 片段示例</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions</span><br><span class="line"></span><br><span class="line">m=audio 9 UDP/TLS/RTP/SAVPF 111</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=rtcp-fb:111 transport-cc</span><br><span class="line">a=extmap:5 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-4-跨媒体-Section-的统一性"><a href="#11-4-跨媒体-Section-的统一性" class="headerlink" title="11.4 跨媒体 Section 的统一性"></a>11.4 跨媒体 Section 的统一性</h3><p>由于 Transport-CC 作用于传输层，设计上应在所有 media section 中指定相同的扩展 ID，以保证序列号计数器的统一性。不过历史上也存在仅对视频配置该扩展、对音频忽略的实现——在这种情况下，拥塞控制将忽略音频流的贡献。</p>
+<hr>
+<h1 id="12-开销分析"><a href="#12-开销分析" class="headerlink" title="12. 开销分析"></a>12. 开销分析</h1><h3 id="12-1-RTP-头开销"><a href="#12-1-RTP-头开销" class="headerlink" title="12.1 RTP 头开销"></a>12.1 RTP 头开销</h3><p>每个 RTP 包额外携带 2 字节（序列号）+ 扩展头定长部分，合计约 <strong>4 字节</strong>。对于典型的 1200 字节视频包，这是约 0.33% 的额外开销，可忽略不计。</p>
+<h3 id="12-2-RTCP-反馈开销"><a href="#12-2-RTCP-反馈开销" class="headerlink" title="12.2 RTCP 反馈开销"></a>12.2 RTCP 反馈开销</h3><p>RTCP Transport Feedback 的大小取决于包的数量和状态分布：</p>
+<ul>
+<li>固定头：<strong>20 字节</strong>（RTCP 公共头 4B + SSRC×2 共 8B + base seq + pkt status count + ref time + fb pkt count 共 8B）</li>
+<li>每 16 个包（最坏情况，全部有 delta）：约 2B（状态 vector chunk）+ 7×2B（large delta）&#x3D; 16B</li>
+<li>典型场景（全部小 delta）：约 2B（RLE chunk）+ N×1B</li>
+</ul>
+<p>官方草案建议<strong>每帧发送一次反馈</strong>，在 30fps 视频下约 30 次&#x2F;秒。假设每次反馈 40 字节，带宽消耗约 <strong>9.6 kbps</strong>，与音视频主流量相比微乎其微。</p>
+<p>在上行带宽受限的场景（如移动网络），可降低反馈频率至每 RTT 一次，以节约上行资源。</p>
+<hr>
+<h1 id="13-实现细节与注意事项"><a href="#13-实现细节与注意事项" class="headerlink" title="13. 实现细节与注意事项"></a>13. 实现细节与注意事项</h1><h3 id="13-1-反馈报文丢失的处理"><a href="#13-1-反馈报文丢失的处理" class="headerlink" title="13.1 反馈报文丢失的处理"></a>13.1 反馈报文丢失的处理</h3><p>RTCP 反馈报文本身在网络中可能丢失。处理原则：</p>
+<ul>
+<li>对于在丢失的反馈报文中应当被报告为”已收到”或”丢失”的包，发送端直接<strong>忽略</strong>这批包（不纳入延迟估计计算）。</li>
+<li>通过 <code>reference time</code> 和 <code>fb pkt count</code>，发送端可感知反馈丢失并做相应补偿。</li>
+<li>此行为与 RTCP Receiver Report 丢失时的处理方式一致。</li>
+</ul>
+<h3 id="13-2-序列号回绕"><a href="#13-2-序列号回绕" class="headerlink" title="13.2 序列号回绕"></a>13.2 序列号回绕</h3><p>16-bit 序列号在约 65535 个包后回绕。在 1 Gbps 链路上每秒约发 83000 个 1500 字节的包，回绕周期约 0.8 秒。实现时必须正确处理回绕，通常采用 <code>uint16_t</code> 加法加上有符号差值比较来判断先后顺序。</p>
+<h3 id="13-3-接收端时钟精度"><a href="#13-3-接收端时钟精度" class="headerlink" title="13.3 接收端时钟精度"></a>13.3 接收端时钟精度</h3><p>接收端记录到达时间时，时钟精度直接影响带宽估计质量。建议使用系统的高精度单调时钟（如 Linux 的 <code>CLOCK_MONOTONIC</code>），精度应达到 <strong>1ms 或更好</strong>。</p>
+<h3 id="13-4-乱序包的处理"><a href="#13-4-乱序包的处理" class="headerlink" title="13.4 乱序包的处理"></a>13.4 乱序包的处理</h3><p>Transport Feedback 的 base sequence number 可以比上一次反馈的末尾序列号更小（即向前”退缩”），以覆盖乱序到达的旧包。但对于此前已经报告为”已收到”的包，<strong>不应再重复报告</strong>，应标记为”未收到”以避免歧义。</p>
+<h3 id="13-5-与-Pacer-的协作"><a href="#13-5-与-Pacer-的协作" class="headerlink" title="13.5 与 Pacer 的协作"></a>13.5 与 Pacer 的协作</h3><p>Transport-CC 的带宽估计输出（目标码率）通常不直接驱动编码器，而是先经过 <strong>Pacer（包速率平滑器）</strong> 平滑后再发送。Pacer 将突发帧拆散成均匀的包流，避免瞬时突发导致估计器误判过载。这一点在阅读 WebRTC 源码时尤为关键。</p>
+<hr>
+<h1 id="14-与其他模块的协作关系"><a href="#14-与其他模块的协作关系" class="headerlink" title="14. 与其他模块的协作关系"></a>14. 与其他模块的协作关系</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────┐</span><br><span class="line">│   编码器         │</span><br><span class="line">│ (H.264/VP8/Opus)│</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │ 码流</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐        RTCP Transport</span><br><span class="line">│     Pacer       │◄────── Feedback ──────── 接收端</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │ 平滑后的 RTP 包</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│   SRTP/DTLS     │         ↑  RTP+transport-cc 扩展</span><br><span class="line">└────────┬────────┘         │</span><br><span class="line">         │                  │</span><br><span class="line">         ▼           ───────┘</span><br><span class="line">     网络（UDP）</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│  BWE (GCC/TWCC) │  ← Transport-CC 反馈驱动</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │ 目标码率</span><br><span class="line">         ├────────────► 编码器码率控制</span><br><span class="line">         ├────────────► Simulcast 层选择</span><br><span class="line">         └────────────► Pacer 发送节奏</span><br></pre></td></tr></table></figure>
+
+<p>Transport-CC 在整个 WebRTC 拥塞控制体系中处于”感知神经”的角色：它是 BWE 的数据来源，BWE 的输出再反馈给编码器、Simulcast&#x2F;SVC 选层逻辑以及 Pacer，形成完整的自适应码率闭环。</p>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><h3 id="官方草案与规范"><a href="#官方草案与规范" class="headerlink" title="官方草案与规范"></a>官方草案与规范</h3><ul>
+<li><p><strong>[draft-holmer-rmcat-transport-wide-cc-extensions-01]</strong> S. Holmer, M. Flodman, E. Språng. <em>RTP Extensions for Transport-wide Congestion Control</em>. IETF Internet-Draft, October 2015.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions-01">https://datatracker.ietf.org/doc/html/draft-holmer-rmcat-transport-wide-cc-extensions-01</a></p>
+</li>
+<li><p><strong>[transport-wide-cc-02]</strong> Google WebRTC. <em>Transport-Wide Congestion Control v2 (Experimental)</em>.<br><a target="_blank" rel="noopener" href="https://webrtc.googlesource.com/src/+/refs/heads/main/docs/native-code/rtp-hdrext/transport-wide-cc-02/">https://webrtc.googlesource.com/src/+/refs/heads/main/docs/native-code/rtp-hdrext/transport-wide-cc-02/</a></p>
+</li>
+<li><p><strong>[RFC 3550]</strong> H. Schulzrinne, et al. <em>RTP: A Transport Protocol for Real-Time Applications</em>. IETF RFC 3550, 2003.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3550">https://datatracker.ietf.org/doc/html/rfc3550</a></p>
+</li>
+<li><p><strong>[RFC 4585]</strong> J. Ott, et al. <em>Extended RTP Profile for Real-time Transport Control Protocol (RTCP)-Based Feedback (RTP&#x2F;AVPF)</em>. IETF RFC 4585, 2006.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc4585">https://datatracker.ietf.org/doc/html/rfc4585</a></p>
+</li>
+<li><p><strong>[RFC 5285]</strong> D. Singer, H. Desineni. <em>A General Mechanism for RTP Header Extensions</em>. IETF RFC 5285, 2008.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc5285">https://datatracker.ietf.org/doc/html/rfc5285</a></p>
+</li>
+<li><p><strong>[RFC 8836]</strong> R. Jesup, Z. Sarker. <em>Congestion Control Requirements for Interactive Real-Time Media</em>. IETF RFC 8836, 2021.<br><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8836.html">https://www.rfc-editor.org/rfc/rfc8836.html</a></p>
+</li>
+<li><p><strong>[RFC 8888]</strong> Z. Sarker, et al. <em>RTP Control Protocol (RTCP) Feedback for Congestion Control</em>. IETF RFC 8888, 2021.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8888">https://datatracker.ietf.org/doc/html/rfc8888</a></p>
+</li>
+<li><p><strong>[draft-ietf-rmcat-gcc-02]</strong> S. Holmer, et al. <em>A Google Congestion Control Algorithm for Real-Time Communication</em>. IETF Internet-Draft, 2016.<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02">https://datatracker.ietf.org/doc/html/draft-ietf-rmcat-gcc-02</a></p>
+</li>
+</ul>
+<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><ul>
+<li><p>G. Carlucci, L. De Cicco, S. Holmer, S. Mascolo. <em>Analysis and Design of the Google Congestion Control for Web Real-Time Communication</em>. In Proceedings of ACM MMSys 2016.</p>
+</li>
+<li><p>WebRTC Source Code (Chromium). <code>modules/congestion_controller/</code> 目录.<br><a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/">https://chromium.googlesource.com/external/webrtc/</a></p>
+</li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8A%A8%E6%9C%BA"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与动机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Transport-CC"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 为什么需要 Transport-CC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 标准化历程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Transport-CC-%E6%A6%82%E8%BF%B0"><span class="toc-number">3.</span> <span class="toc-text">2. Transport-CC 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 核心设计思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 关键属性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RTP-%E5%A4%B4%E6%89%A9%E5%B1%95%EF%BC%9A%E4%BC%A0%E8%BE%93%E5%B1%82%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="toc-number">4.</span> <span class="toc-text">3. RTP 头扩展：传输层序列号</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AF%AD%E4%B9%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 语义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%A4%B4%E6%89%A9%E5%B1%95%E6%A0%BC%E5%BC%8F"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 头扩展格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%8F%90%E5%89%8D%E6%A3%80%E6%B5%8B%E4%B8%A2%E5%8C%85"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 提前检测丢包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RTCP-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. RTCP 反馈报文格式详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%8A%A5%E6%96%87%E6%80%BB%E4%BD%93%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 报文总体结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%90%84%E5%AD%97%E6%AE%B5%E5%90%AB%E4%B9%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 各字段含义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%95%B0%E6%8D%AE%E5%8C%85%E7%8A%B6%E6%80%81%E7%BC%96%E7%A0%81"><span class="toc-number">6.</span> <span class="toc-text">5. 数据包状态编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%8A%B6%E6%80%81%E7%AC%A6%E5%8F%B7%EF%BC%88Packet-Status-Symbol%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 状态符号（Packet Status Symbol）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Run-Length-Chunk%EF%BC%88%E6%B8%B8%E7%A8%8B%E7%BC%96%E7%A0%81%E5%9D%97%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Run Length Chunk（游程编码块）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Status-Vector-Chunk%EF%BC%88%E7%8A%B6%E6%80%81%E5%90%91%E9%87%8F%E5%9D%97%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 Status Vector Chunk（状态向量块）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%8E%A5%E6%94%B6%E6%97%B6%E9%97%B4%E5%A2%9E%E9%87%8F%EF%BC%88Receive-Delta%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 接收时间增量（Receive Delta）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Small-Delta%EF%BC%881-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 Small Delta（1 字节）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Large-or-Negative-Delta%EF%BC%882-%E5%AD%97%E8%8A%82%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Large or Negative Delta（2 字节）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%97%B6%E9%97%B4%E9%87%8D%E5%BB%BA%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 时间重建示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%8F%91%E9%80%81%E7%AB%AF%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">8.</span> <span class="toc-text">7. 发送端带宽估计流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-Trendline-Filter%EF%BC%9A%E5%8F%96%E4%BB%A3-Kalman-Filter"><span class="toc-number">9.</span> <span class="toc-text">8. Trendline Filter：取代 Kalman Filter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E8%B7%AF"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 核心思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Overuse-Detector-%E4%B8%8E%E5%8A%A8%E6%80%81%E9%98%88%E5%80%BC"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 Overuse Detector 与动态阈值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-Rate-Controller%EF%BC%88AIMD%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 Rate Controller（AIMD）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%8E-REMB-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. 与 REMB 的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-REMB-%E7%9A%84%E9%81%97%E7%95%99%E4%BB%B7%E5%80%BC"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 REMB 的遗留价值</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Transport-CC-v2-%E6%89%A9%E5%B1%95"><span class="toc-number">11.</span> <span class="toc-text">10. Transport-CC v2 扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%8C%89%E9%9C%80%E5%8F%8D%E9%A6%88%EF%BC%88On-demand-Feedback%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 按需反馈（On-demand Feedback）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E5%8F%AF%E9%80%89%E6%97%B6%E9%97%B4%E4%BF%A1%E6%81%AF"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 可选时间信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E4%B8%8E-CCFB%EF%BC%88RFC-8888%EF%BC%89%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 与 CCFB（RFC 8888）的关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">12.</span> <span class="toc-text">11. SDP 协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%A4%B4%E6%89%A9%E5%B1%95%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 头扩展协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-RTCP-%E5%8F%8D%E9%A6%88%E8%83%BD%E5%8A%9B%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 RTCP 反馈能力协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%AE%8C%E6%95%B4%E7%9A%84-SDP-%E7%89%87%E6%AE%B5%E7%A4%BA%E4%BE%8B"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 完整的 SDP 片段示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E8%B7%A8%E5%AA%92%E4%BD%93-Section-%E7%9A%84%E7%BB%9F%E4%B8%80%E6%80%A7"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 跨媒体 Section 的统一性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%BC%80%E9%94%80%E5%88%86%E6%9E%90"><span class="toc-number">13.</span> <span class="toc-text">12. 开销分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-RTP-%E5%A4%B4%E5%BC%80%E9%94%80"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 RTP 头开销</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-RTCP-%E5%8F%8D%E9%A6%88%E5%BC%80%E9%94%80"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 RTCP 反馈开销</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">14.</span> <span class="toc-text">13. 实现细节与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-%E5%8F%8D%E9%A6%88%E6%8A%A5%E6%96%87%E4%B8%A2%E5%A4%B1%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-number">14.0.1.</span> <span class="toc-text">13.1 反馈报文丢失的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E5%BA%8F%E5%88%97%E5%8F%B7%E5%9B%9E%E7%BB%95"><span class="toc-number">14.0.2.</span> <span class="toc-text">13.2 序列号回绕</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E6%8E%A5%E6%94%B6%E7%AB%AF%E6%97%B6%E9%92%9F%E7%B2%BE%E5%BA%A6"><span class="toc-number">14.0.3.</span> <span class="toc-text">13.3 接收端时钟精度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-%E4%B9%B1%E5%BA%8F%E5%8C%85%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-number">14.0.4.</span> <span class="toc-text">13.4 乱序包的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-%E4%B8%8E-Pacer-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">14.0.5.</span> <span class="toc-text">13.5 与 Pacer 的协作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB"><span class="toc-number">15.</span> <span class="toc-text">14. 与其他模块的协作关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%98%E6%96%B9%E8%8D%89%E6%A1%88%E4%B8%8E%E8%A7%84%E8%8C%83"><span class="toc-number">16.0.1.</span> <span class="toc-text">官方草案与规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="toc-number">16.0.2.</span> <span class="toc-text">扩展阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/09/15/webrtc/17-transport-cc/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&text=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&is_video=false&description=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Transport-CC — 基于传输层的精细拥塞反馈扩展&body=Check out this article: http://example.com/2022/09/15/webrtc/17-transport-cc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&title=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/09/15/webrtc/17-transport-cc/&name=Transport-CC — 基于传输层的精细拥塞反馈扩展&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/09/15/webrtc/17-transport-cc/&t=Transport-CC — 基于传输层的精细拥塞反馈扩展"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

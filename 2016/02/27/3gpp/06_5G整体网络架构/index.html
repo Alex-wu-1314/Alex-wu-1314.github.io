@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 5G 网络分层总览与 CUPS 设计理念 1.1 四大功能层次 1.2 控制面与用户面分离（CUPS） 1.3 5G 与 4G LTE 架构对比   服务化架构（SBA）与接口命名全景 2.1 SBA 核心设计哲学 2.2 控制面网络功能（NF）概览 2.3 服务化接口（SBI）命名规则 2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &amp;#x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="5G 整体网络架构">
+<meta property="og:url" content="http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 5G 网络分层总览与 CUPS 设计理念 1.1 四大功能层次 1.2 控制面与用户面分离（CUPS） 1.3 5G 与 4G LTE 架构对比   服务化架构（SBA）与接口命名全景 2.1 SBA 核心设计哲学 2.2 控制面网络功能（NF）概览 2.3 服务化接口（SBI）命名规则 2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &amp;#x">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-02-27T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-05T22:56:45.640Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>5G 整体网络架构</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&text=5G 整体网络架构"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&is_video=false&description=5G 整体网络架构"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=5G 整体网络架构&body=Check out this article: http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&name=5G 整体网络架构&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&t=5G 整体网络架构"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-5G-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82%E6%80%BB%E8%A7%88%E4%B8%8E-CUPS-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">1. 5G 网络分层总览与 CUPS 设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9B%9B%E5%A4%A7%E5%8A%9F%E8%83%BD%E5%B1%82%E6%AC%A1"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 四大功能层次</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8E%A7%E5%88%B6%E9%9D%A2%E4%B8%8E%E7%94%A8%E6%88%B7%E9%9D%A2%E5%88%86%E7%A6%BB%EF%BC%88CUPS%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 控制面与用户面分离（CUPS）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CUPS-%E7%9A%84%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">CUPS 的核心逻辑</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CUPS-%E5%B8%A6%E6%9D%A5%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BB%B7%E5%80%BC"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">CUPS 带来的核心价值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E9%9D%A2%E6%95%B0%E6%8D%AE%E8%B7%AF%E5%BE%84"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">用户面数据路径</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-5G-%E4%B8%8E-4G-LTE-%E6%9E%B6%E6%9E%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 5G 与 4G LTE 架构对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%9E%B6%E6%9E%84%EF%BC%88SBA%EF%BC%89%E4%B8%8E%E6%8E%A5%E5%8F%A3%E5%91%BD%E5%90%8D%E5%85%A8%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">2. 服务化架构（SBA）与接口命名全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-SBA-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 SBA 核心设计哲学</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8E%A7%E5%88%B6%E9%9D%A2%E7%BD%91%E7%BB%9C%E5%8A%9F%E8%83%BD%EF%BC%88NF%EF%BC%89%E6%A6%82%E8%A7%88"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 控制面网络功能（NF）概览</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AMF%EF%BC%88Access-and-Mobility-Management-Function%EF%BC%89%E2%80%94%E2%80%94%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">AMF（Access and Mobility Management Function）——接入与移动性管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SMF%EF%BC%88Session-Management-Function%EF%BC%89%E2%80%94%E2%80%94%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">SMF（Session Management Function）——会话管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PCF%EF%BC%88Policy-Control-Function%EF%BC%89%E2%80%94%E2%80%94%E7%AD%96%E7%95%A5%E6%8E%A7%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">PCF（Policy Control Function）——策略控制功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AUSF%EF%BC%88Authentication-Server-Function%EF%BC%89%E2%80%94%E2%80%94%E9%89%B4%E6%9D%83%E6%9C%8D%E5%8A%A1%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">AUSF（Authentication Server Function）——鉴权服务功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UDM%EF%BC%88Unified-Data-Management%EF%BC%89%E2%80%94%E2%80%94%E7%BB%9F%E4%B8%80%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.5.</span> <span class="toc-text">UDM（Unified Data Management）——统一数据管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NRF%EF%BC%88Network-Repository-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E5%8A%9F%E8%83%BD%E4%BB%93%E5%BA%93"><span class="toc-number">3.0.2.6.</span> <span class="toc-text">NRF（Network Repository Function）——网络功能仓库</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSSF%EF%BC%88Network-Slice-Selection-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E9%80%89%E6%8B%A9%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.7.</span> <span class="toc-text">NSSF（Network Slice Selection Function）——网络切片选择功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NEF%EF%BC%88Network-Exposure-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E8%83%BD%E5%8A%9B%E5%BC%80%E6%94%BE%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.8.</span> <span class="toc-text">NEF（Network Exposure Function）——网络能力开放功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NWDAF%EF%BC%88Network-Data-Analytics-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.9.</span> <span class="toc-text">NWDAF（Network Data Analytics Function）——网络数据分析功能</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%8E%A5%E5%8F%A3%EF%BC%88SBI%EF%BC%89%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 服务化接口（SBI）命名规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%8F%82%E8%80%83%E7%82%B9%E6%8E%A5%E5%8F%A3%E5%85%A8%E6%99%AF%EF%BC%88N1%EF%BD%9EN15-Xn-F1-E1-NG%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &#x2F; NG）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BD%91-N-%E7%B3%BB%E5%88%97%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">核心网 N 系列接口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-RAN-%E4%BE%A7%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">NG-RAN 侧接口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-NRF-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 NRF 服务发现机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%BC%AB%E6%B8%B8%E6%9E%B6%E6%9E%84%E4%B8%8E%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87"><span class="toc-number">4.</span> <span class="toc-text">3. 漫游架构与网络切片</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%BC%AB%E6%B8%B8%E5%9F%BA%E7%A1%80%EF%BC%9AHPLMN-vs-VPLMN"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 漫游基础：HPLMN vs VPLMN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Home-Routed%EF%BC%88HR%EF%BC%89%E6%BC%AB%E6%B8%B8"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 Home-Routed（HR）漫游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Local-Breakout%EF%BC%88LBO%EF%BC%89%E6%BC%AB%E6%B8%B8"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 Local Breakout（LBO）漫游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-HR-vs-LBO-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 HR vs LBO 对比分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 网络切片基础概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-S-NSSAI-%E4%B8%8E-NSSAI-%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 S-NSSAI 与 NSSAI 详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-NSSF-%E4%B8%8E%E5%88%87%E7%89%87%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 NSSF 与切片选择流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%AE%9E%E4%BE%8B%EF%BC%88NSI%EF%BC%89%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9E%B6%E6%9E%84"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 网络切片实例（NSI）端到端架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E6%BC%AB%E6%B8%B8%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87"><span class="toc-number">4.0.9.</span> <span class="toc-text">3.9 漫游场景下的网络切片</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">6.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        5G 整体网络架构
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-02-27T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-02-27</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-5g-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82%E6%80%BB%E8%A7%88%E4%B8%8E-cups-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5">5G 网络分层总览与 CUPS 设计理念</a><ul>
+<li>1.1 <a href="#11-%E5%9B%9B%E5%A4%A7%E5%8A%9F%E8%83%BD%E5%B1%82%E6%AC%A1">四大功能层次</a></li>
+<li>1.2 <a href="#12-%E6%8E%A7%E5%88%B6%E9%9D%A2%E4%B8%8E%E7%94%A8%E6%88%B7%E9%9D%A2%E5%88%86%E7%A6%BBcups">控制面与用户面分离（CUPS）</a></li>
+<li>1.3 <a href="#13-5g-%E4%B8%8E-4g-lte-%E6%9E%B6%E6%9E%84%E5%AF%B9%E6%AF%94">5G 与 4G LTE 架构对比</a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%9E%B6%E6%9E%84sba%E4%B8%8E%E6%8E%A5%E5%8F%A3%E5%91%BD%E5%90%8D%E5%85%A8%E6%99%AF">服务化架构（SBA）与接口命名全景</a><ul>
+<li>2.1 <a href="#21-sba-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6">SBA 核心设计哲学</a></li>
+<li>2.2 <a href="#22-%E6%8E%A7%E5%88%B6%E9%9D%A2%E7%BD%91%E7%BB%9C%E5%8A%9F%E8%83%BDnf%E6%A6%82%E8%A7%88">控制面网络功能（NF）概览</a></li>
+<li>2.3 <a href="#23-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%8E%A5%E5%8F%A3sbi%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99">服务化接口（SBI）命名规则</a></li>
+<li>2.4 <a href="#24-%E5%8F%82%E8%80%83%E7%82%B9%E6%8E%A5%E5%8F%A3%E5%85%A8%E6%99%AFn1n15--xn--f1--e1--ng">参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &#x2F; NG）</a></li>
+<li>2.5 <a href="#25-nrf-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%9C%BA%E5%88%B6">NRF 服务发现机制</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%BC%AB%E6%B8%B8%E6%9E%B6%E6%9E%84%E4%B8%8E%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87">漫游架构与网络切片</a><ul>
+<li>3.1 <a href="#31-%E6%BC%AB%E6%B8%B8%E5%9F%BA%E7%A1%80hplmn-vs-vplmn">漫游基础：HPLMN vs VPLMN</a></li>
+<li>3.2 <a href="#32-home-routedhr%E6%BC%AB%E6%B8%B8">Home-Routed（HR）漫游</a></li>
+<li>3.3 <a href="#33-local-breakoutlbo%E6%BC%AB%E6%B8%B8">Local Breakout（LBO）漫游</a></li>
+<li>3.4 <a href="#34-hr-vs-lbo-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90">HR vs LBO 对比分析</a></li>
+<li>3.5 <a href="#35-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5">网络切片基础概念</a></li>
+<li>3.6 <a href="#36-s-nssai-%E4%B8%8E-nssai-%E8%AF%A6%E8%A7%A3">S-NSSAI 与 NSSAI 详解</a></li>
+<li>3.7 <a href="#37-nssf-%E4%B8%8E%E5%88%87%E7%89%87%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B">NSSF 与切片选择流程</a></li>
+<li>3.8 <a href="#38-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%AE%9E%E4%BE%8Bnsi%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9E%B6%E6%9E%84">网络切片实例（NSI）端到端架构</a></li>
+<li>3.9 <a href="#39-%E6%BC%AB%E6%B8%B8%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87">漫游场景下的网络切片</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%80%BB%E7%BB%93">总结</a></li>
+</ol>
+<hr>
+<h1 id="1-5G-网络分层总览与-CUPS-设计理念"><a href="#1-5G-网络分层总览与-CUPS-设计理念" class="headerlink" title="1. 5G 网络分层总览与 CUPS 设计理念"></a>1. 5G 网络分层总览与 CUPS 设计理念</h1><h3 id="1-1-四大功能层次"><a href="#1-1-四大功能层次" class="headerlink" title="1.1 四大功能层次"></a>1.1 四大功能层次</h3><p>5G 系统（5GS，5G System）在逻辑上被划分为四个主要功能层次，它们协同工作，完整覆盖从终端接入到数据网络之间的全部网络功能。这种清晰的分层不仅便于工程实现，也是 5G 在灵活性、可扩展性上超越前几代系统的根本结构基础。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────────────────────────┐</span><br><span class="line">│                    数据网络（Data Network）                        │</span><br><span class="line">│              Internet / 运营商业务 / MEC 平台                      │</span><br><span class="line">└────────────────────────────┬─────────────────────────────────────┘</span><br><span class="line">                             │ N6</span><br><span class="line">┌────────────────────────────▼─────────────────────────────────────┐</span><br><span class="line">│                  5G 核心网（5GC）                                  │</span><br><span class="line">│  ┌─────────────────────────────────────────────────────────────┐ │</span><br><span class="line">│  │            控制面（Control Plane）                            │ │</span><br><span class="line">│  │  AMF  SMF  PCF  AUSF  UDM  UDR  NRF  NSSF  NEF  NWDAF ...   │ │</span><br><span class="line">│  └──────────────────────────────┬──────────────────────────────┘ │</span><br><span class="line">│  ┌───────────────────────────── ▼ N4 ──────────────────────────┐ │</span><br><span class="line">│  │           用户面（User Plane）                                │ │</span><br><span class="line">│  │                UPF（User Plane Function）                    │ │</span><br><span class="line">│  └─────────────────────────────────────────────────────────────┘ │</span><br><span class="line">└─────────────────────────┬────────────────────────────────────────┘</span><br><span class="line">                          │ N3（用户面）/ N2（控制面）</span><br><span class="line">┌─────────────────────────▼────────────────────────────────────────┐</span><br><span class="line">│                 接入网（NG-RAN）                                   │</span><br><span class="line">│         gNB（gNodeB）= CU（CU-CP + CU-UP）+ DU + RU                │</span><br><span class="line">│         ng-eNB（升级的 LTE eNodeB，接入 5GC）                       │</span><br><span class="line">└─────────────────────────┬────────────────────────────────────────┘</span><br><span class="line">                          │ NR-Uu（空中接口）</span><br><span class="line">┌─────────────────────────▼────────────────────────────────────────┐</span><br><span class="line">│                  用户终端（UE）                                    │</span><br><span class="line">│            手机 / CPE / 工业终端 / IoT 设备 / 车载单元               │</span><br><span class="line">└──────────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>（1）用户终端层（UE，User Equipment）</strong></p>
+<p>UE 是 5G 系统的端点，它向网络发起接入请求、承载业务数据。UE 由两个逻辑组件构成：</p>
+<ul>
+<li><strong>ME（Mobile Equipment）</strong>：即手机或终端硬件本体，内嵌 NR 基带芯片，负责处理空口协议栈。</li>
+<li><strong>USIM（Universal Subscriber Identity Module）</strong>：存储用户身份（SUPI）、鉴权密钥（K）及相关安全参数，是运营商识别和鉴权用户的根信任锚。</li>
+</ul>
+<p>UE 通过空中接口 NR-Uu 与 NG-RAN 建立无线连接，并在其上运行 NAS（非接入层）协议与 5GC 进行信令交互。</p>
+<p><strong>（2）接入网层（NG-RAN，Next Generation Radio Access Network）</strong></p>
+<p>NG-RAN 是 5G 无线接入网，其核心网元是 <strong>gNB（gNodeB）</strong>，另外还支持 <strong>ng-eNB</strong>（将 LTE eNodeB 升级后接入 5GC 的网元，用于 NSA 向 SA 过渡场景）。</p>
+<p>gNB 在内部实现了 CU&#x2F;DU&#x2F;RU 三层功能拆分：</p>
+<table>
+<thead>
+<tr>
+<th>子单元</th>
+<th>全称</th>
+<th>主要功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CU-CP</td>
+<td>Central Unit – Control Plane</td>
+<td>RRC、PDCP-C，负责无线资源控制和切换决策</td>
+</tr>
+<tr>
+<td>CU-UP</td>
+<td>Central Unit – User Plane</td>
+<td>PDCP-U、SDAP，处理用户面数据包的安全与 QoS</td>
+</tr>
+<tr>
+<td>DU</td>
+<td>Distributed Unit</td>
+<td>RLC、MAC、低层 PHY，靠近天线部署</td>
+</tr>
+<tr>
+<td>RU&#x2F;AAU</td>
+<td>Radio Unit &#x2F; Active Antenna Unit</td>
+<td>射频及物理层最低层处理，与天线阵列一体化</td>
+</tr>
+</tbody></table>
+<p>NG-RAN 通过 <strong>N2 接口</strong>（控制面）连接 5GC 的 AMF，通过 <strong>N3 接口</strong>（用户面）连接 5GC 的 UPF。gNB 之间通过 <strong>Xn 接口</strong>互联，用于切换信令和数据转发。</p>
+<p><strong>（3）5G 核心网层（5GC，5G Core Network）</strong></p>
+<p>5GC 是整个系统的”大脑”，采用<strong>服务化架构（SBA）</strong>，将传统的单体网元拆解为一组以微服务形式运行的<strong>网络功能（NF，Network Function）</strong>，各 NF 通过统一的服务化接口（SBI）进行交互。</p>
+<p>5GC 在逻辑上严格区分控制面和用户面：</p>
+<ul>
+<li><strong>控制面 NF</strong>：AMF、SMF、PCF、AUSF、UDM、UDR、NRF、NSSF、NEF、NWDAF 等——负责注册、鉴权、策略、会话管理等所有信令处理。</li>
+<li><strong>用户面 NF</strong>：仅有 <strong>UPF（User Plane Function）</strong>——负责所有用户数据包的转发、QoS 执行、计费数据采集等。</li>
+</ul>
+<p><strong>（4）传输网（Transport Network）</strong></p>
+<p>传输网是连接上述各层的物理承载网络，包括前传（Fronthaul，DU↔RU）、中传（Midhaul，DU↔CU）和回传（Backhaul，CU↔5GC）三个段落。传输网对协议栈透明，但其时延、带宽和抖动指标直接影响 5G 空口性能（尤其 URLLC 场景），因此 3GPP 对不同功能拆分点的传输需求也有明确的定义（见 TS 38.801）。</p>
+<hr>
+<h3 id="1-2-控制面与用户面分离（CUPS）"><a href="#1-2-控制面与用户面分离（CUPS）" class="headerlink" title="1.2 控制面与用户面分离（CUPS）"></a>1.2 控制面与用户面分离（CUPS）</h3><p><strong>CUPS（Control and User Plane Separation）</strong> 是 5G 架构最重要的设计原则之一。其思想起源于 3GPP Release 14 对 LTE EPC 的改进（将 SGW 和 PGW 各自的控制面与用户面分离），在 Release 15 的 5GC 中被彻底实施和标准化。</p>
+<h4 id="CUPS-的核心逻辑"><a href="#CUPS-的核心逻辑" class="headerlink" title="CUPS 的核心逻辑"></a>CUPS 的核心逻辑</h4><p>在传统网络中，控制逻辑（如何转发）和数据转发（实际转发）耦合在同一网元中，扩容时必须整体扩容。CUPS 将这两者剥离：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">              ┌─────────────────────────────┐</span><br><span class="line">控制面         │  SMF（Session Management Fn）│</span><br><span class="line">Control Plane │  决定&quot;如何转发&quot;：PDR / FAR     │</span><br><span class="line">              │  选择 UPF、制定转发规则        │</span><br><span class="line">              └───────────────┬─────────────┘</span><br><span class="line">                              │ N4（PFCP 协议）</span><br><span class="line">              ┌───────────────▼─────────────┐</span><br><span class="line">用户面         │  UPF（User Plane Function）  │</span><br><span class="line">User Plane    │  执行&quot;实际转发&quot;：GTP-U 封装    │</span><br><span class="line">              │  QoS 标记 / 计费 / 合法监听    │</span><br><span class="line">              └─────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>SMF</strong> 是控制面的会话管理者：它不接触任何用户数据，但通过 <strong>N4 接口</strong>（使用 PFCP 协议——Packet Forwarding Control Protocol）向 UPF 下发<strong>包检测规则（PDR）</strong>、<strong>转发动作规则（FAR）</strong>、<strong>QoS 执行规则（QER）</strong>、<strong>使用报告规则（URR）</strong> 等指令，完全指挥 UPF 的行为。</p>
+</li>
+<li><p><strong>UPF</strong> 是用户面的执行者：它只负责按照 SMF 下发的规则转发数据包，本身不做任何策略判断。UPF 可以部署在网络的任意位置，从集中式数据中心到靠近基站的边缘节点，而不需要改变控制面的逻辑。</p>
+</li>
+</ul>
+<h4 id="CUPS-带来的核心价值"><a href="#CUPS-带来的核心价值" class="headerlink" title="CUPS 带来的核心价值"></a>CUPS 带来的核心价值</h4><table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>弹性扩缩容</strong></td>
+<td>用户面流量增大时，仅水平扩展 UPF 即可，无需触碰 SMF</td>
+</tr>
+<tr>
+<td><strong>MEC 下沉</strong></td>
+<td>UPF 可独立部署在靠近 gNB 的边缘站点，实现极低时延的本地分流</td>
+</tr>
+<tr>
+<td><strong>UL-CL &#x2F; Branching Point</strong></td>
+<td>SMF 可插入上行分类器（UL Classifier）UPF，将不同流量分叉路由到不同数据网络</td>
+</tr>
+<tr>
+<td><strong>多 UPF 链式部署</strong></td>
+<td>支持 I-UPF（中间 UPF）+ PSA-UPF（锚点 UPF）级联，N9 接口连接两者</td>
+</tr>
+<tr>
+<td><strong>切片隔离</strong></td>
+<td>不同网络切片可使用独立的 UPF 实例，实现资源和流量的物理隔离</td>
+</tr>
+</tbody></table>
+<h4 id="用户面数据路径"><a href="#用户面数据路径" class="headerlink" title="用户面数据路径"></a>用户面数据路径</h4><p>完整的用户面路径为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UE → [NR-Uu] → gNB → [N3, GTP-U] → (I-UPF) → [N9, GTP-U] → PSA-UPF → [N6, IP] → DN</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>N3</strong>：gNB 与第一个 UPF 之间，使用 GTP-U（GPRS Tunnelling Protocol for User Plane）隧道封装，每条 PDU Session 对应一条 GTP-U 隧道，由 TEID（Tunnel Endpoint Identifier）区分。</li>
+<li><strong>N9</strong>：UPF 与 UPF 之间，同样使用 GTP-U，用于 I-UPF 与 PSA-UPF 之间的数据传递，也用于 UE 移动过程中的路径切换。</li>
+<li><strong>N6</strong>：PSA-UPF 与外部数据网络之间，使用标准 IP 路由，可接入 Internet、运营商内网或 MEC 平台。</li>
+<li><strong>N4</strong>：SMF 与 UPF 之间的控制接口，使用 PFCP（TS 29.244 定义），不承载用户数据。</li>
+</ul>
+<hr>
+<h3 id="1-3-5G-与-4G-LTE-架构对比"><a href="#1-3-5G-与-4G-LTE-架构对比" class="headerlink" title="1.3 5G 与 4G LTE 架构对比"></a>1.3 5G 与 4G LTE 架构对比</h3><p>理解 5G 架构最直观的方式是与 LTE EPC 对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>4G LTE EPC</th>
+<th>5G 5GC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>架构风格</td>
+<td>传统网元（MME &#x2F; SGW &#x2F; PGW &#x2F; PCRF &#x2F; HSS）</td>
+<td>服务化架构（SBA），NF 微服务</td>
+</tr>
+<tr>
+<td>控制&#x2F;用户面</td>
+<td>软分离（R14 引入 CUPS，但非强制）</td>
+<td>彻底硬分离，SMF vs UPF</td>
+</tr>
+<tr>
+<td>接口协议</td>
+<td>GTPv2-C（控制面）&#x2F; GTP-U（用户面）</td>
+<td>HTTP&#x2F;2 + JSON（SBI 控制面）&#x2F; GTP-U（用户面）</td>
+</tr>
+<tr>
+<td>NF 发现</td>
+<td>静态配置或 DNS</td>
+<td>NRF 动态服务发现</td>
+</tr>
+<tr>
+<td>网络切片</td>
+<td>不支持（DCN 有限支持）</td>
+<td>原生支持，S-NSSAI &#x2F; NSSF</td>
+</tr>
+<tr>
+<td>移动性</td>
+<td>MME 集中管理</td>
+<td>AMF 分布式，支持 RRC_INACTIVE</td>
+</tr>
+<tr>
+<td>会话管理</td>
+<td>MME + SGW-C + PGW-C 协同</td>
+<td>SMF 统一管理 PDU Session</td>
+</tr>
+<tr>
+<td>数据面锚点</td>
+<td>PGW-U</td>
+<td>UPF（可多级链式）</td>
+</tr>
+<tr>
+<td>QoS 粒度</td>
+<td>EPS Bearer（GBR &#x2F; non-GBR）</td>
+<td>QoS Flow（5QI 参数化）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="2-服务化架构（SBA）与接口命名全景"><a href="#2-服务化架构（SBA）与接口命名全景" class="headerlink" title="2. 服务化架构（SBA）与接口命名全景"></a>2. 服务化架构（SBA）与接口命名全景</h1><h3 id="2-1-SBA-核心设计哲学"><a href="#2-1-SBA-核心设计哲学" class="headerlink" title="2.1 SBA 核心设计哲学"></a>2.1 SBA 核心设计哲学</h3><p><strong>服务化架构（SBA，Service-Based Architecture）</strong> 是 5GC 控制面的根本设计范式，由 TS 23.501 第 4 章正式定义，并在 TS 29.500 中规定了其技术实现。</p>
+<p>SBA 借鉴了互联网微服务架构的思想：</p>
+<ul>
+<li><strong>网络功能即服务提供者</strong>：每个 NF 对外暴露一组标准化的”NF 服务（NF Service）”，其他 NF 可以消费这些服务，无需点对点的专有接口。</li>
+<li><strong>REST over HTTP&#x2F;2</strong>：所有 SBI（Service-Based Interface）均基于 <strong>HTTP&#x2F;2</strong> 协议，消息体使用 <strong>JSON</strong>（OpenAPI 3.0 定义接口规范），完全采用 RESTful 风格，GET &#x2F; POST &#x2F; PUT &#x2F; PATCH &#x2F; DELETE &#x2F; SUBSCRIBE &#x2F; NOTIFY。</li>
+<li><strong>去中心化</strong>：NF 之间可以直接调用（通过 NRF 发现对方），不再依赖集中式的信令总线。</li>
+<li><strong>云原生友好</strong>：NF 可以以容器&#x2F;Kubernetes Pod 形式部署，实现自动伸缩、滚动升级、故障自愈。</li>
+</ul>
+<p>SBA 中的架构可以用两种等价的视图来表达（TS 23.501 图 4.2.3-1 和 4.2.3-2）：</p>
+<ol>
+<li><strong>服务化接口视图（Service-Based Interface View）</strong>：所有 NF 围绕一条逻辑”总线”，每个 NF 在总线上注册并发布自己的服务，其他 NF 订阅&#x2F;请求这些服务。</li>
+<li><strong>参考点视图（Reference Point View）</strong>：传统的 N1、N2、N3…参考点表示，更直观地体现点对点的逻辑关系和协议。</li>
+</ol>
+<p>这两种视图描述的是同一套系统，前者强调架构的服务化特性，后者便于具体接口和流程的描述。</p>
+<hr>
+<h3 id="2-2-控制面网络功能（NF）概览"><a href="#2-2-控制面网络功能（NF）概览" class="headerlink" title="2.2 控制面网络功能（NF）概览"></a>2.2 控制面网络功能（NF）概览</h3><p>以下是 5GC 控制面的核心 NF 及其职责（按 TS 23.501 §6 的定义）：</p>
+<h4 id="AMF（Access-and-Mobility-Management-Function）——接入与移动性管理功能"><a href="#AMF（Access-and-Mobility-Management-Function）——接入与移动性管理功能" class="headerlink" title="AMF（Access and Mobility Management Function）——接入与移动性管理功能"></a>AMF（Access and Mobility Management Function）——接入与移动性管理功能</h4><p>AMF 是 UE 接入 5GC 的第一个入口点，承担几乎所有与 UE 连接相关的控制职责：</p>
+<ul>
+<li>终结 NAS 信令（UE↔AMF，即 N1 接口上的 NAS 协议）</li>
+<li>处理 UE 注册（Registration）、去注册（Deregistration）</li>
+<li>管理 UE 的连接态（Connected）与空闲态（Idle）转换</li>
+<li>协调移动性管理（跟踪区更新、切换协调）</li>
+<li>将 PDU Session 请求转发给 SMF（N11 接口）</li>
+<li>与 AUSF 协作完成 5G-AKA &#x2F; EAP-AKA’ 鉴权</li>
+<li>向 NG-RAN 下发 UE 上下文和 QoS 配置（N2 接口）</li>
+<li>承担寻呼（Paging）的触发角色</li>
+</ul>
+<p><strong>一个 AMF 实例可以同时服务大量 UE，但每个 UE 在同一时刻只连接一个 AMF。</strong></p>
+<h4 id="SMF（Session-Management-Function）——会话管理功能"><a href="#SMF（Session-Management-Function）——会话管理功能" class="headerlink" title="SMF（Session Management Function）——会话管理功能"></a>SMF（Session Management Function）——会话管理功能</h4><p>SMF 是 5GC 中负责数据会话全生命周期管理的 NF：</p>
+<ul>
+<li>建立、修改、释放 PDU Session（PDU Session Establishment &#x2F; Modification &#x2F; Release）</li>
+<li>为 UE 分配 IP 地址（作为 DHCP 服务器或 IPAM 代理）</li>
+<li>选择并控制 UPF（通过 N4&#x2F;PFCP 接口下发转发规则）</li>
+<li>与 PCF 交互（N7 接口）获取会话策略</li>
+<li>与 UDM 交互（N10 接口）获取会话管理订阅数据</li>
+<li>管理 QoS Flow 到 DRB 的映射参数协商</li>
+<li>支持计费数据的触发与上报（N40 接口连接 CHF）</li>
+</ul>
+<p>SMF 不接触任何用户数据，只负责控制面的会话逻辑。</p>
+<h4 id="PCF（Policy-Control-Function）——策略控制功能"><a href="#PCF（Policy-Control-Function）——策略控制功能" class="headerlink" title="PCF（Policy Control Function）——策略控制功能"></a>PCF（Policy Control Function）——策略控制功能</h4><p>PCF 是 5GC 的统一策略引擎，替代了 LTE 中的 PCRF：</p>
+<ul>
+<li>为 AMF 提供接入与移动性策略（AM Policy，N15 接口）</li>
+<li>为 SMF 提供会话级别的 QoS 和计费策略（SM Policy，N7 接口）</li>
+<li>与 AF 交互（N5 接口）接受应用层的策略请求（如 IMS 的 QoS 预留）</li>
+<li>通过 UDR 读取订阅的策略数据</li>
+</ul>
+<h4 id="AUSF（Authentication-Server-Function）——鉴权服务功能"><a href="#AUSF（Authentication-Server-Function）——鉴权服务功能" class="headerlink" title="AUSF（Authentication Server Function）——鉴权服务功能"></a>AUSF（Authentication Server Function）——鉴权服务功能</h4><p>AUSF 是 5G 鉴权的服务端：</p>
+<ul>
+<li>接受 AMF 的鉴权请求（N12 接口）</li>
+<li>与 UDM 交互（N13 接口）获取鉴权向量（Authentication Vectors）</li>
+<li>执行 5G-AKA 或 EAP-AKA’ 鉴权流程</li>
+<li>计算 KAUSF，并将 KSEAF 交给 AMF 用于后续密钥派生</li>
+</ul>
+<h4 id="UDM（Unified-Data-Management）——统一数据管理功能"><a href="#UDM（Unified-Data-Management）——统一数据管理功能" class="headerlink" title="UDM（Unified Data Management）——统一数据管理功能"></a>UDM（Unified Data Management）——统一数据管理功能</h4><p>UDM 是 5GC 的订阅数据管理中心，对应 LTE 中 HSS 的数据管理部分：</p>
+<ul>
+<li>存储和管理用户签约数据（接入权限、QoS 配置、切片权限等）</li>
+<li>生成 5G 鉴权向量（SUPI + K → AV）</li>
+<li>提供 SUCI 解密（还原 SUPI）</li>
+<li>管理 UE 的注册状态（AMF 注册、SMF 会话注册）</li>
+<li>通过 UDR 持久化存储数据</li>
+</ul>
+<p>UDM 是逻辑功能层，其数据实际存储在 <strong>UDR（Unified Data Repository）</strong> 中，UDM 通过 <strong>Nudr</strong> 接口访问 UDR。</p>
+<h4 id="NRF（Network-Repository-Function）——网络功能仓库"><a href="#NRF（Network-Repository-Function）——网络功能仓库" class="headerlink" title="NRF（Network Repository Function）——网络功能仓库"></a>NRF（Network Repository Function）——网络功能仓库</h4><p>NRF 是 SBA 的服务注册与发现中心：</p>
+<ul>
+<li>维护所有 NF 实例的注册信息（NF Profile：类型、地址、容量、服务列表、切片支持等）</li>
+<li>响应 NF 的发现请求（NF Discovery），返回满足条件的 NF 实例列表</li>
+<li>监控 NF 的健康状态（心跳机制）</li>
+<li>支持 OAuth 2.0 鉴权（R16 引入）</li>
+</ul>
+<h4 id="NSSF（Network-Slice-Selection-Function）——网络切片选择功能"><a href="#NSSF（Network-Slice-Selection-Function）——网络切片选择功能" class="headerlink" title="NSSF（Network Slice Selection Function）——网络切片选择功能"></a>NSSF（Network Slice Selection Function）——网络切片选择功能</h4><p>NSSF 负责切片相关的选择决策：</p>
+<ul>
+<li>根据 UE 请求的 NSSAI 和订阅信息，确定允许的切片（Allowed NSSAI）</li>
+<li>为 UE 选择合适的 AMF 集合（基于切片能力）</li>
+<li>与 NRF 协作完成切片感知的 NF 发现</li>
+</ul>
+<h4 id="NEF（Network-Exposure-Function）——网络能力开放功能"><a href="#NEF（Network-Exposure-Function）——网络能力开放功能" class="headerlink" title="NEF（Network Exposure Function）——网络能力开放功能"></a>NEF（Network Exposure Function）——网络能力开放功能</h4><p>NEF 是 5GC 对外开放能力的统一门户：</p>
+<ul>
+<li>将 5GC 内部的 NF 服务安全地暴露给第三方 AF（Application Function）和 MEC 应用</li>
+<li>提供北向 API，支持能力开放（如 QoS 预留、位置信息、事件订阅）</li>
+<li>负责外部请求的鉴权、限速和翻译</li>
+</ul>
+<h4 id="NWDAF（Network-Data-Analytics-Function）——网络数据分析功能"><a href="#NWDAF（Network-Data-Analytics-Function）——网络数据分析功能" class="headerlink" title="NWDAF（Network Data Analytics Function）——网络数据分析功能"></a>NWDAF（Network Data Analytics Function）——网络数据分析功能</h4><p>NWDAF（R15 引入，R16&#x2F;R17 持续增强）是 5G 网络内嵌的 AI&#x2F;ML 分析引擎：</p>
+<ul>
+<li>汇聚来自各 NF 的网络数据</li>
+<li>输出分析结果（如负载预测、异常检测、UE 行为分析）</li>
+<li>供其他 NF（AMF、SMF、PCF 等）消费，驱动智能决策</li>
+</ul>
+<hr>
+<h3 id="2-3-服务化接口（SBI）命名规则"><a href="#2-3-服务化接口（SBI）命名规则" class="headerlink" title="2.3 服务化接口（SBI）命名规则"></a>2.3 服务化接口（SBI）命名规则</h3><p>5GC 中，SBI 的命名遵循统一规则：</p>
+<p><strong><code>N&#123;NF名称&#125;</code></strong> 表示该 NF 对外暴露的服务化接口，例如：</p>
+<table>
+<thead>
+<tr>
+<th>NF</th>
+<th>SBI 名称</th>
+<th>代表性服务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AMF</td>
+<td><strong>Namf</strong></td>
+<td>Namf_Communication、Namf_EventExposure、Namf_Location</td>
+</tr>
+<tr>
+<td>SMF</td>
+<td><strong>Nsmf</strong></td>
+<td>Nsmf_PDUSession、Nsmf_EventExposure</td>
+</tr>
+<tr>
+<td>PCF</td>
+<td><strong>Npcf</strong></td>
+<td>Npcf_AMPolicyControl、Npcf_SMPolicyControl、Npcf_PolicyAuthorization</td>
+</tr>
+<tr>
+<td>AUSF</td>
+<td><strong>Nausf</strong></td>
+<td>Nausf_UEAuthentication、Nausf_SoRProtection</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td><strong>Nudm</strong></td>
+<td>Nudm_SubscriberDataManagement、Nudm_UEAuthentication</td>
+</tr>
+<tr>
+<td>UDR</td>
+<td><strong>Nudr</strong></td>
+<td>Nudr_DataRepository</td>
+</tr>
+<tr>
+<td>NRF</td>
+<td><strong>Nnrf</strong></td>
+<td>Nnrf_NFManagement、Nnrf_NFDiscovery</td>
+</tr>
+<tr>
+<td>NSSF</td>
+<td><strong>Nnssf</strong></td>
+<td>Nnssf_NSSelection、Nnssf_NSSAIAvailability</td>
+</tr>
+<tr>
+<td>NEF</td>
+<td><strong>Nnef</strong></td>
+<td>Nnef_EventExposure、Nnef_PFDManagement</td>
+</tr>
+<tr>
+<td>PCF</td>
+<td><strong>Npcf</strong></td>
+<td>Npcf_UEPolicyControl</td>
+</tr>
+<tr>
+<td>NWDAF</td>
+<td><strong>Nnwdaf</strong></td>
+<td>Nnwdaf_AnalyticsInfo、Nnwdaf_EventsSubscription</td>
+</tr>
+<tr>
+<td>AF</td>
+<td><strong>Naf</strong></td>
+<td>Naf_EventExposure</td>
+</tr>
+<tr>
+<td>BSF</td>
+<td><strong>Nbsf</strong></td>
+<td>Nbsf_Management</td>
+</tr>
+<tr>
+<td>CHF</td>
+<td><strong>Nchf</strong></td>
+<td>Nchf_SpendingLimitControl、Nchf_ConvergedCharging</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：SBI 仅存在于 5GC 控制面 NF 之间。UPF 的 N4 接口、RAN 侧的 N1&#x2F;N2&#x2F;N3 接口不属于 SBI 范畴，因为它们不涉及 NF 间的服务调用关系。</p>
+</blockquote>
+<hr>
+<h3 id="2-4-参考点接口全景（N1～N15-Xn-F1-E1-NG）"><a href="#2-4-参考点接口全景（N1～N15-Xn-F1-E1-NG）" class="headerlink" title="2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &#x2F; NG）"></a>2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &#x2F; NG）</h3><p>除了服务化接口视图，5G 系统同样可以用传统的<strong>参考点（Reference Point）</strong>视图描述，每个 Nx 参考点定义了两个节点之间的接口协议和消息规范。</p>
+<h4 id="核心网-N-系列接口"><a href="#核心网-N-系列接口" class="headerlink" title="核心网 N 系列接口"></a>核心网 N 系列接口</h4><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>连接双方</th>
+<th>面</th>
+<th>协议</th>
+<th>主要功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>N1</strong></td>
+<td>UE ↔ AMF（经 NG-RAN 透传）</td>
+<td>控制</td>
+<td>NAS（5GMM &#x2F; 5GSM）</td>
+<td>UE 注册、鉴权、会话管理的 NAS 信令终结点</td>
+</tr>
+<tr>
+<td><strong>N2</strong></td>
+<td>NG-RAN ↔ AMF</td>
+<td>控制</td>
+<td>NGAP（NG Application Protocol）</td>
+<td>RAN 与 5GC 的控制面接口，传递 UE 上下文、切换命令、寻呼等</td>
+</tr>
+<tr>
+<td><strong>N3</strong></td>
+<td>NG-RAN ↔ UPF</td>
+<td>用户</td>
+<td>GTP-U over UDP&#x2F;IP</td>
+<td>无线接入网到核心网的用户面隧道</td>
+</tr>
+<tr>
+<td><strong>N4</strong></td>
+<td>SMF ↔ UPF</td>
+<td>控制（CUPS）</td>
+<td>PFCP（Packet Forwarding Control Protocol）</td>
+<td>SMF 向 UPF 下发&#x2F;更新&#x2F;删除转发规则（PDR&#x2F;FAR&#x2F;QER&#x2F;URR）</td>
+</tr>
+<tr>
+<td><strong>N5</strong></td>
+<td>PCF ↔ AF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Npcf_PolicyAuthorization）</td>
+<td>AF 向 PCF 请求 QoS 策略（如 IMS 媒体流带宽预留）</td>
+</tr>
+<tr>
+<td><strong>N6</strong></td>
+<td>UPF ↔ DN</td>
+<td>用户</td>
+<td>IP（标准路由）</td>
+<td>UPF 到外部数据网络（Internet &#x2F; MEC &#x2F; 企业内网）的接口</td>
+</tr>
+<tr>
+<td><strong>N7</strong></td>
+<td>SMF ↔ PCF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Npcf_SMPolicyControl）</td>
+<td>SMF 向 PCF 请求&#x2F;更新 PDU Session 策略</td>
+</tr>
+<tr>
+<td><strong>N8</strong></td>
+<td>AMF ↔ UDM</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Nudm_UECM &#x2F; Nudm_SDM）</td>
+<td>AMF 获取接入与移动性相关的订阅数据</td>
+</tr>
+<tr>
+<td><strong>N9</strong></td>
+<td>UPF ↔ UPF</td>
+<td>用户</td>
+<td>GTP-U over UDP&#x2F;IP</td>
+<td>中间 UPF（I-UPF）与锚点 UPF（PSA-UPF）之间的用户面隧道；也用于漫游 HR 场景（V-UPF ↔ H-UPF）</td>
+</tr>
+<tr>
+<td><strong>N10</strong></td>
+<td>SMF ↔ UDM</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Nudm_SDM &#x2F; Nudm_UECM）</td>
+<td>SMF 获取会话管理相关的订阅数据，并注册会话信息</td>
+</tr>
+<tr>
+<td><strong>N11</strong></td>
+<td>AMF ↔ SMF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Namf_Communication &#x2F; Nsmf_PDUSession）</td>
+<td>AMF 触发 SMF 的 PDU Session 操作（建立&#x2F;修改&#x2F;释放）</td>
+</tr>
+<tr>
+<td><strong>N12</strong></td>
+<td>AMF ↔ AUSF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Nausf_UEAuthentication）</td>
+<td>AMF 向 AUSF 发起鉴权请求</td>
+</tr>
+<tr>
+<td><strong>N13</strong></td>
+<td>AUSF ↔ UDM</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Nudm_UEAuthentication）</td>
+<td>AUSF 从 UDM 获取鉴权向量</td>
+</tr>
+<tr>
+<td><strong>N14</strong></td>
+<td>AMF ↔ AMF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Namf_Communication）</td>
+<td>AMF 间的 UE 上下文转移（切换、AMF 重选场景）</td>
+</tr>
+<tr>
+<td><strong>N15</strong></td>
+<td>AMF ↔ PCF</td>
+<td>控制</td>
+<td>HTTP&#x2F;2 + JSON（Npcf_AMPolicyControl）</td>
+<td>AMF 向 PCF 请求接入与移动性策略（如 UE 路由选择策略 URSP）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>N5～N15 中的 <strong>N5、N7、N8、N10、N11、N12、N13、N14、N15</strong> 在服务化视图中均对应 SBI，而 <strong>N1、N2、N3、N4、N6、N9</strong> 是传统参考点（无对应 SBI），因为它们涉及 UE &#x2F; RAN &#x2F; UPF，不属于纯 5GC NF 间的服务调用。</p>
+</blockquote>
+<h4 id="NG-RAN-侧接口"><a href="#NG-RAN-侧接口" class="headerlink" title="NG-RAN 侧接口"></a>NG-RAN 侧接口</h4><table>
+<thead>
+<tr>
+<th>接口</th>
+<th>连接双方</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NG</strong></td>
+<td>gNB &#x2F; ng-eNB ↔ 5GC</td>
+<td>NG 是 RAN 与核心网之间的接口族，逻辑上包含 N2（控制面，终结于 AMF）和 N3（用户面，终结于 UPF）。NG 接口在 TS 38.413（NGAP）和 TS 29.281（GTP-U）中定义。</td>
+</tr>
+<tr>
+<td><strong>Xn</strong></td>
+<td>gNB ↔ gNB &#x2F; ng-eNB</td>
+<td>基站间接口，用于切换信令（XnAP 协议，TS 38.423）和直接数据转发（XnU，GTP-U）。支持 Xn 切换可避免数据经过核心网，降低切换时延。</td>
+</tr>
+<tr>
+<td><strong>F1</strong></td>
+<td>CU ↔ DU</td>
+<td>gNB 内部接口，CU-CP 与 DU 之间的控制面（F1-C，F1AP 协议，TS 38.473），以及 CU-UP 与 DU 之间的用户面（F1-U，GTP-U，TS 38.474）。</td>
+</tr>
+<tr>
+<td><strong>E1</strong></td>
+<td>CU-CP ↔ CU-UP</td>
+<td>gNB 内部接口，控制面单元与用户面单元之间的控制信令（E1AP，TS 38.463），用于 CU-CP 管理 CU-UP 上的 PDCP 承载配置。</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="2-5-NRF-服务发现机制"><a href="#2-5-NRF-服务发现机制" class="headerlink" title="2.5 NRF 服务发现机制"></a>2.5 NRF 服务发现机制</h3><p>NRF 是 SBA 正常运转的基础设施，其工作流程如下：</p>
+<p><strong>① NF 注册（NF Registration）</strong></p>
+<p>NF 启动后，通过调用 <code>Nnrf_NFManagement_NFRegister</code> 向 NRF 注册自己的 NF Profile，内容包括：</p>
+<ul>
+<li>NF 类型（AMF &#x2F; SMF &#x2F; PCF …）</li>
+<li>NF 实例 ID（UUID）</li>
+<li>FQDN &#x2F; IP 地址 + 端口</li>
+<li>支持的 NF 服务列表及版本</li>
+<li>承载的 S-NSSAI（切片标识）</li>
+<li>PLMN ID</li>
+<li>服务区域（TAI List &#x2F; 地理范围）</li>
+<li>容量 &#x2F; 优先级</li>
+</ul>
+<p>NF 还需定期发送心跳（<code>Nnrf_NFManagement_NFUpdate</code>），若心跳超时则 NRF 标记该实例为不可用。</p>
+<p><strong>② NF 发现（NF Discovery）</strong></p>
+<p>当 NF-A 需要调用 NF-B 的服务时：</p>
+<ol>
+<li>NF-A 向 NRF 发送 <code>Nnrf_NFDiscovery_Request</code>，携带目标 NF 类型、所需服务名称、S-NSSAI、PLMN ID 等过滤条件。</li>
+<li>NRF 返回匹配的 NF 实例列表（包含地址和服务端点）。</li>
+<li>NF-A 根据返回的列表（考虑优先级、容量、就近原则）选择一个实例，直接调用其 SBI。</li>
+</ol>
+<p><strong>③ OAuth 2.0 授权（R16 引入）</strong></p>
+<p>R16 起，NF 间的 SBI 调用需携带 NRF 签发的 <strong>Access Token</strong>（JWT 格式），NRF 充当 Authorization Server 角色，确保只有授权的 NF 才能消费特定服务，防止未授权访问。</p>
+<hr>
+<h1 id="3-漫游架构与网络切片"><a href="#3-漫游架构与网络切片" class="headerlink" title="3. 漫游架构与网络切片"></a>3. 漫游架构与网络切片</h1><h3 id="3-1-漫游基础：HPLMN-vs-VPLMN"><a href="#3-1-漫游基础：HPLMN-vs-VPLMN" class="headerlink" title="3.1 漫游基础：HPLMN vs VPLMN"></a>3.1 漫游基础：HPLMN vs VPLMN</h3><p>当 UE 离开其签约运营商（<strong>HPLMN，Home Public Land Mobile Network</strong>）的覆盖区域，进入另一个运营商（<strong>VPLMN，Visited Public Land Mobile Network</strong>）的网络时，就会触发漫游场景。</p>
+<p>5G 漫游建立在运营商间签订漫游协议的基础上，技术实现遵循 TS 23.501 §4.2 中的漫游架构定义。漫游时的主要问题是：</p>
+<ul>
+<li><strong>注册</strong>：UE 通过 VPLMN 的接入网注册，但身份鉴权必须依赖 HPLMN 的 UDM &#x2F; AUSF。</li>
+<li><strong>数据会话</strong>：用户数据流量的锚定网络是 HPLMN 还是 VPLMN？这产生了两种主要的漫游架构。</li>
+<li><strong>切片映射</strong>：HPLMN 的 S-NSSAI 与 VPLMN 的 S-NSSAI 可能不同，需要映射。</li>
+</ul>
+<p>在任何漫游场景中，以下规则始终成立：</p>
+<ul>
+<li><strong>V-AMF</strong> 处于 VPLMN，服务 UE 的接入和移动性管理。</li>
+<li><strong>UDM &#x2F; AUSF</strong> 始终位于 <strong>HPLMN</strong>（因为用户身份和密钥存储在归属网络）。</li>
+<li>具体的 SMF 和 UPF 位置取决于漫游模式（HR 或 LBO）。</li>
+</ul>
+<hr>
+<h3 id="3-2-Home-Routed（HR）漫游"><a href="#3-2-Home-Routed（HR）漫游" class="headerlink" title="3.2 Home-Routed（HR）漫游"></a>3.2 Home-Routed（HR）漫游</h3><p>在 <strong>Home-Routed（归属路由）漫游</strong> 中，用户数据最终通过 HPLMN 的用户面网关出口，即：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UE → [RAN, VPLMN] → V-UPF → [N9] → H-UPF → [N6] → DN</span><br></pre></td></tr></table></figure>
+
+<p>控制面：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UE ─NAS─ V-AMF ─N16─ H-SMF（HPLMN）</span><br><span class="line">                        │</span><br><span class="line">                    H-PCF（HPLMN） / UDM（HPLMN）</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键特征：</strong></p>
+<ul>
+<li>有两个 SMF：<strong>V-SMF</strong>（VPLMN）作为会话锚点并管理本地 RAN&#x2F;UPF，<strong>H-SMF</strong>（HPLMN）负责最终的策略决定和数据网络接入，两者通过 <strong>N16 接口</strong>（Nsmf_PDUSession 的跨 PLMN 变体）协调。</li>
+<li>有两个 UPF：<strong>V-UPF</strong> 终结 N3（RAN↔UPF），<strong>H-UPF</strong> 是 PDU Session 锚点，负责 N6 出口。两个 UPF 通过 <strong>N9 接口</strong>（跨 PLMN 的 GTP-U 隧道）连接。</li>
+<li>计费：V-SMF 连接 V-CHF（Visited Charging Function）生成访问方 CDR；H-SMF 连接 H-CHF 生成归属方 CDR。</li>
+<li><strong>IMS 语音</strong>（VoNR）在漫游场景下强制使用 HR 模式（N9 Home Routing，N9HR），因为 IMS 基础设施部署在 HPLMN。</li>
+</ul>
+<p><strong>适用场景：</strong> 运营商希望保持对用户数据的完全控制（计费完整性、合规性），以及 IMS 语音业务。</p>
+<hr>
+<h3 id="3-3-Local-Breakout（LBO）漫游"><a href="#3-3-Local-Breakout（LBO）漫游" class="headerlink" title="3.3 Local Breakout（LBO）漫游"></a>3.3 Local Breakout（LBO）漫游</h3><p>在 <strong>Local Breakout（本地分流）漫游</strong> 中，用户数据直接通过 VPLMN 的本地 UPF 出口，不回传至 HPLMN：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UE → [RAN, VPLMN] → V-UPF → [N6] → DN（从 VPLMN 出口）</span><br></pre></td></tr></table></figure>
+
+<p>控制面：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UE ─NAS─ V-AMF ─ V-SMF（VPLMN）</span><br><span class="line">                        │</span><br><span class="line">                  V-PCF（VPLMN） / UDM（HPLMN，N10）</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键特征：</strong></p>
+<ul>
+<li>只有一个 SMF：<strong>V-SMF</strong>，位于 VPLMN，完全管理 PDU Session。</li>
+<li>只有一个 UPF：<strong>V-UPF</strong>，位于 VPLMN，直接通过 N6 出口到数据网络（如 Internet）。</li>
+<li>V-SMF 仍需通过 <strong>N10 接口</strong>访问 HPLMN 的 UDM 获取用户订阅数据。</li>
+<li>V-PCF 可与 H-PCF（HPLMN）通过 <strong>N24 接口</strong>交换策略信息（可选）。</li>
+<li>用户数据不经过 HPLMN，路径更短，时延更低。</li>
+<li>HPLMN 对用户数据流量的可见性较低。</li>
+</ul>
+<p><strong>适用场景：</strong> 对延迟敏感的业务（游戏、视频通话、流媒体）；运营商协议中允许 VPLMN 本地处理数据流量时。</p>
+<hr>
+<h3 id="3-4-HR-vs-LBO-对比分析"><a href="#3-4-HR-vs-LBO-对比分析" class="headerlink" title="3.4 HR vs LBO 对比分析"></a>3.4 HR vs LBO 对比分析</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Home-Routed（HR）</th>
+<th>Local Breakout（LBO）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据路径</td>
+<td>UE→V-UPF→N9→H-UPF→DN</td>
+<td>UE→V-UPF→DN（直出）</td>
+</tr>
+<tr>
+<td>SMF 位置</td>
+<td>V-SMF + H-SMF（跨 PLMN N16）</td>
+<td>V-SMF（仅 VPLMN）</td>
+</tr>
+<tr>
+<td>UPF 位置</td>
+<td>V-UPF + H-UPF</td>
+<td>V-UPF（仅 VPLMN）</td>
+</tr>
+<tr>
+<td>控制权</td>
+<td>HPLMN 主导</td>
+<td>VPLMN 主导</td>
+</tr>
+<tr>
+<td>时延</td>
+<td>较高（数据绕回 HPLMN）</td>
+<td>较低（本地出口）</td>
+</tr>
+<tr>
+<td>HPLMN 数据可见性</td>
+<td>完整</td>
+<td>有限</td>
+</tr>
+<tr>
+<td>IMS 语音</td>
+<td>强制 HR（N9HR）</td>
+<td>不适用</td>
+</tr>
+<tr>
+<td>计费复杂度</td>
+<td>V-CHF + H-CHF 协同</td>
+<td>主要 V-CHF</td>
+</tr>
+<tr>
+<td>MEC 支持</td>
+<td>受限（仅 HR-SBO 特殊场景）</td>
+<td>原生支持</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="3-5-网络切片基础概念"><a href="#3-5-网络切片基础概念" class="headerlink" title="3.5 网络切片基础概念"></a>3.5 网络切片基础概念</h3><p><strong>网络切片（Network Slicing）</strong> 是 5G 的标志性特性，允许在同一套物理基础设施上构建多个逻辑上相互独立的虚拟网络，每个虚拟网络（即一个切片）具有定制化的网络能力和性能特征，服务于特定的业务场景或客户群体。</p>
+<p>网络切片的概念贯穿三个层次（TS 28.530 定义）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│            网络切片模板（Network Slice Template，NST）     │</span><br><span class="line">│  描述&quot;切片类型&quot;的能力需求（延迟/带宽/可靠性/隔离度等）          │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br><span class="line">                          │实例化</span><br><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│            网络切片实例（Network Slice Instance，NSI）     │</span><br><span class="line">│  一个已部署、可运营的切片实体，包含完整的 NF + RAN 资源        │</span><br><span class="line">│  由唯一的 NSI ID 标识                                     │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br><span class="line">                          │包含</span><br><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│      网络切片子网实例（NSSI，Network Slice Subnet Instance）│</span><br><span class="line">│ CN-NSSI（5GC 子网）+ AN-NSSI（RAN 子网）+ TN-NSSI（传输子网）│</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>3GPP 定义了三类标准化的切片&#x2F;服务类型（SST，Slice&#x2F;Service Type）：</p>
+<table>
+<thead>
+<tr>
+<th>SST 值</th>
+<th>名称</th>
+<th>对应场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>eMBB</td>
+<td>增强移动宽带（高带宽，如视频流、AR&#x2F;VR）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>URLLC</td>
+<td>超可靠低时延通信（工业控制、远程手术）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>MIoT</td>
+<td>大规模物联网（海量低功耗设备连接）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>V2X</td>
+<td>车联网（车辆间通信）</td>
+</tr>
+</tbody></table>
+<p>运营商也可以定义私有的 SST 值（128~255），配合 SD（Slice Differentiator）组合成完整的 S-NSSAI。</p>
+<hr>
+<h3 id="3-6-S-NSSAI-与-NSSAI-详解"><a href="#3-6-S-NSSAI-与-NSSAI-详解" class="headerlink" title="3.6 S-NSSAI 与 NSSAI 详解"></a>3.6 S-NSSAI 与 NSSAI 详解</h3><p><strong>S-NSSAI（Single Network Slice Selection Assistance Information）</strong> 是标识一个具体网络切片的信息元素，由两部分组成（TS 23.501 §5.15.2）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">S-NSSAI = SST（8 bit，必选）+ SD（24 bit，可选）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>SST（Slice&#x2F;Service Type）</strong>：标识切片的服务类型（1&#x3D;eMBB，2&#x3D;URLLC，3&#x3D;MIoT 等）。</li>
+<li><strong>SD（Slice Differentiator）</strong>：在同一 SST 下进一步区分不同切片实例（如区分企业专线切片 vs 公共 eMBB 切片）。</li>
+</ul>
+<p>S-NSSAI 的取值与 PLMN 绑定（HPLMN S-NSSAI vs VPLMN S-NSSAI），漫游时可能需要映射。</p>
+<p><strong>NSSAI（Network Slice Selection Assistance Information）</strong> 是 S-NSSAI 的集合，有以下几种：</p>
+<table>
+<thead>
+<tr>
+<th>NSSAI 类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Requested NSSAI</strong></td>
+<td>UE 在注册时向网络请求的切片集合（由 UE 根据 URSP 策略构建）</td>
+</tr>
+<tr>
+<td><strong>Allowed NSSAI</strong></td>
+<td>网络（AMF，经 NSSF 决策）批准 UE 在当前 PLMN 中可以使用的切片集合</td>
+</tr>
+<tr>
+<td><strong>Configured NSSAI</strong></td>
+<td>运营商预先为 UE 配置的切片集合（存储在 UE 中，按 PLMN 分组）</td>
+</tr>
+<tr>
+<td><strong>Rejected NSSAI</strong></td>
+<td>网络拒绝的切片集合及原因（如不支持、未签约、无资源等）</td>
+</tr>
+<tr>
+<td><strong>Pending NSSAI</strong></td>
+<td>需要额外注册（Network Slice-Specific Authentication）才能使用的切片</td>
+</tr>
+</tbody></table>
+<p>UE 最多可同时注册在 <strong>8 个切片</strong>（Allowed NSSAI 中最多 8 个 S-NSSAI），但实际业务数量受切片资源和签约限制。</p>
+<hr>
+<h3 id="3-7-NSSF-与切片选择流程"><a href="#3-7-NSSF-与切片选择流程" class="headerlink" title="3.7 NSSF 与切片选择流程"></a>3.7 NSSF 与切片选择流程</h3><p>当 UE 发起注册请求时，AMF 会触发 NSSF 进行切片选择，流程如下（TS 23.502 §4.2.2）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">1. UE 发送 Registration Request，携带 Requested NSSAI</span><br><span class="line"></span><br><span class="line">2. 初始 AMF 接收请求，查询 UDM 获取 UE 的切片签约信息</span><br><span class="line">   （Subscribed S-NSSAIs）</span><br><span class="line"></span><br><span class="line">3. AMF 向 NSSF 发送 Nnssf_NSSelection_Get 请求，携带：</span><br><span class="line">   - Requested NSSAI</span><br><span class="line">   - Subscribed S-NSSAIs</span><br><span class="line">   - TAI（当前跟踪区标识）</span><br><span class="line">   - UE 接入类型（3GPP / non-3GPP）</span><br><span class="line">   - PLMN ID（是否漫游）</span><br><span class="line"></span><br><span class="line">4. NSSF 根据以下因素决策：</span><br><span class="line">   - UE 签约切片 vs 网络当前支持切片</span><br><span class="line">   - 当前 TA 的切片部署情况（NSSAI Availability）</span><br><span class="line">   - 切片准入控制（资源余量）</span><br><span class="line">   - 漫游协议（如为漫游场景）</span><br><span class="line">   输出：Allowed NSSAI + 目标 AMF 集合（可能触发 AMF 重选）</span><br><span class="line"></span><br><span class="line">5. 若 NSSF 指示需要更换 AMF（因为初始 AMF 不支持所有允许切片），</span><br><span class="line">   则触发 AMF 重定向（Redirect），UE 重新连接到目标 AMF。</span><br><span class="line"></span><br><span class="line">6. AMF 在 Registration Accept 中将 Allowed NSSAI 下发给 UE，</span><br><span class="line">   并将切片信息通过 N2 发送给 NG-RAN（NG-RAN 据此分配 RAN 侧资源）。</span><br><span class="line"></span><br><span class="line">7. UE 建立 PDU Session 时，SMF 使用 S-NSSAI 作为 NRF 发现条件，</span><br><span class="line">   选择属于该切片的 SMF 实例和 UPF 实例。</span><br></pre></td></tr></table></figure>
+
+<p><strong>切片感知的 NF 选择链路：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">UE [S-NSSAI=1:000001] → AMF → NSSF → Allowed S-NSSAI</span><br><span class="line">                        ↓</span><br><span class="line">        AMF 使用 S-NSSAI 查询 NRF → 发现切片专属 SMF</span><br><span class="line">                        ↓</span><br><span class="line">        SMF 使用 S-NSSAI 查询 NRF → 发现切片专属 UPF</span><br><span class="line">                        ↓</span><br><span class="line">        实现端到端（UE → RAN → UPF → DN）的切片隔离</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="3-8-网络切片实例（NSI）端到端架构"><a href="#3-8-网络切片实例（NSI）端到端架构" class="headerlink" title="3.8 网络切片实例（NSI）端到端架构"></a>3.8 网络切片实例（NSI）端到端架构</h3><p>一个完整的 NSI 在端到端架构上包含以下组件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────────────────────────────────────┐</span><br><span class="line">│                    NSI（Network Slice Instance）                │</span><br><span class="line">│  ┌────────────────┐  ┌─────────────────────────────────────┐   │</span><br><span class="line">│  │  AN-NSSI       │  │  CN-NSSI                            │   │</span><br><span class="line">│  │  NG-RAN 资源    │  │  ┌───────┐ ┌───────┐ ┌───────────┐ │   │</span><br><span class="line">│  │  （特定的 RB     │  │  │  AMF  │ │  SMF  │ │    PCF    │ │   │</span><br><span class="line">│  │   / 频谱 /      │  │  │（共享）│  │（专属）│ │  （专属）  │ │   │</span><br><span class="line">│  │   天线资源）     │  │  └───────┘ └───────┘ └───────────┘ │   │</span><br><span class="line">│  └────────────────┘  │  ┌────────────────────────────────┐ │  │</span><br><span class="line">│                      │  │           UPF（专属）           │ │  │</span><br><span class="line">│  ┌────────────────┐  │  └────────────────────────────────┘ │  │</span><br><span class="line">│  │  TN-NSSI       │  └─────────────────────────────────────┘  │</span><br><span class="line">│  │  传输网资源     │                                            │</span><br><span class="line">│  │  （QoS 隔离）   │                                            │</span><br><span class="line">│  └────────────────┘                                            │</span><br><span class="line">└────────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>NF 共享 vs 专属的设计原则（TS 23.501 §5.15.4）：</strong></p>
+<ul>
+<li><strong>AMF</strong>：原则上可被多个切片共享（一个 AMF 实例服务多个 S-NSSAI 上的 UE），但 AMF 需支持所有相关切片的 NAS 处理。</li>
+<li><strong>SMF、PCF、UPF</strong>：通常为每个切片部署专属实例，以实现资源隔离和独立的策略控制——这是切片 SLA 保障的核心。</li>
+<li><strong>UDM、NRF、AUSF</strong>：通常在全网共享（跨切片统一管理订阅数据和服务发现）。</li>
+</ul>
+<p><strong>切片隔离级别：</strong></p>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>软隔离</td>
+<td>NF 实例共享，但逻辑上通过参数区分（最低隔离，资源效率最高）</td>
+</tr>
+<tr>
+<td>NF 实例隔离</td>
+<td>SMF&#x2F;UPF 等关键 NF 独立部署，控制面与用户面隔离（推荐实践）</td>
+</tr>
+<tr>
+<td>硬件隔离</td>
+<td>专用物理服务器&#x2F;网卡，用于政企专线、URLLC 等严格 SLA 场景</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="3-9-漫游场景下的网络切片"><a href="#3-9-漫游场景下的网络切片" class="headerlink" title="3.9 漫游场景下的网络切片"></a>3.9 漫游场景下的网络切片</h3><p>漫游与切片结合时，S-NSSAI 的处理变得更为复杂（TS 23.501 §5.15.4.1）：</p>
+<p><strong>S-NSSAI 映射机制：</strong></p>
+<p>HPLMN 为 UE 分配了 <code>HPLMN S-NSSAI = &#123;SST=1, SD=AAAAAA&#125;</code>（eMBB 切片），而 VPLMN 有自己的切片标识体系 <code>VPLMN S-NSSAI = &#123;SST=1, SD=111111&#125;</code>。</p>
+<p>漫游时，网络需要在 HPLMN S-NSSAI 和 VPLMN S-NSSAI 之间建立<strong>映射关系（Mapping of NSSAI）</strong>：</p>
+<ol>
+<li>UE 在注册时的 Requested NSSAI 中携带 HPLMN S-NSSAI，同时在 mapping 字段中提供对应的 VPLMN S-NSSAI（若 UE 已知该映射）。</li>
+<li>V-AMF 向 V-NSSF 查询，V-NSSF 返回 VPLMN 侧的 Allowed NSSAI 及对应的 Mapping of Allowed NSSAI（告知每个 VPLMN S-NSSAI 对应哪个 HPLMN S-NSSAI）。</li>
+<li>在 HR 漫游中，V-SMF 使用 VPLMN S-NSSAI，H-SMF 使用 HPLMN S-NSSAI，两者在 N16 信令中协调映射。</li>
+<li>在 LBO 漫游中，V-NSSF 确定 VPLMN 侧的切片选择；V-SMF 通过 N10 接口访问 HPLMN 的 UDM 时，传递 HPLMN S-NSSAI 以便 UDM 查询签约数据。</li>
+</ol>
+<p><strong>漫游切片限制：</strong></p>
+<p>VPLMN 可能不支持 HPLMN 的所有切片类型（如 HPLMN 的 URLLC 切片在某 VPLMN 无对应），此时网络会通过 Rejected NSSAI 告知 UE，UE 只能使用 VPLMN 支持的切片（如回落到 eMBB 切片）。</p>
+<hr>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h1><p>本文从三个维度系统梳理了 5G 整体网络架构：</p>
+<p><strong>网络分层与 CUPS：</strong> 5G 系统由 UE、NG-RAN、5GC、传输网四层构成。5GC 内部的 CUPS 设计将 SMF（控制面）和 UPF（用户面）彻底解耦，用户数据路径（UE→gNB→N3→UPF→N6→DN）与控制信令路径（UE→N1→AMF→N11→SMF→N4→UPF）完全独立，为 MEC 下沉、弹性扩容和流量分叉提供了坚实的架构基础。</p>
+<p><strong>SBA 与接口体系：</strong> 5GC 控制面采用服务化架构，AMF、SMF、PCF、AUSF、UDM、NRF、NSSF 等 NF 通过基于 HTTP&#x2F;2 + JSON 的 SBI（Namf &#x2F; Nsmf &#x2F; Npcf …）进行解耦调用，NRF 提供动态服务注册与发现。同时，N1～N15 参考点体系为各接口的协议和流程提供了精确的定义，NG &#x2F; Xn &#x2F; F1 &#x2F; E1 则覆盖了 RAN 侧内部与外部的连接需求。</p>
+<p><strong>漫游与网络切片：</strong> 漫游架构分为 HR（归属路由，HPLMN 控制数据出口）和 LBO（本地分流，VPLMN 本地出口）两种模式，前者保障运营商管控能力，后者降低用户时延。网络切片通过 S-NSSAI 标识、NSSF 选择、以及端到端专属 NF 实例，实现了在同一物理网络上提供 eMBB &#x2F; URLLC &#x2F; MIoT 等差异化服务的能力，是 5G 实现 B2B 业务多样化的核心技术支撑。</p>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li>[1] 3GPP TS 23.501, <em>System Architecture for the 5G System (5GS)</em>, Stage 2</li>
+<li>[2] 3GPP TS 23.502, <em>Procedures for the 5G System (5GS)</em>, Stage 2</li>
+<li>[3] 3GPP TS 38.300, <em>NR; NR and NG-RAN Overall Description</em>, Stage 2</li>
+<li>[4] 3GPP TS 29.244, <em>Interface between the Control Plane and the User Plane Nodes</em> (PFCP)</li>
+<li>[5] 3GPP TS 29.500, <em>5G System; Technical Realization of Service Based Architecture</em></li>
+<li>[6] 3GPP TS 29.501, <em>5G System; Principles and Guidelines for Services Definition</em></li>
+<li>[7] 3GPP TS 38.413, <em>NG Application Protocol (NGAP)</em></li>
+<li>[8] 3GPP TS 38.473, <em>F1 Application Protocol (F1AP)</em></li>
+<li>[9] 3GPP TS 28.530, <em>Management and Orchestration of Networks and Network Slicing</em></li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-5G-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82%E6%80%BB%E8%A7%88%E4%B8%8E-CUPS-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">1. 5G 网络分层总览与 CUPS 设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9B%9B%E5%A4%A7%E5%8A%9F%E8%83%BD%E5%B1%82%E6%AC%A1"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 四大功能层次</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8E%A7%E5%88%B6%E9%9D%A2%E4%B8%8E%E7%94%A8%E6%88%B7%E9%9D%A2%E5%88%86%E7%A6%BB%EF%BC%88CUPS%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 控制面与用户面分离（CUPS）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CUPS-%E7%9A%84%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">CUPS 的核心逻辑</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CUPS-%E5%B8%A6%E6%9D%A5%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BB%B7%E5%80%BC"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">CUPS 带来的核心价值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E9%9D%A2%E6%95%B0%E6%8D%AE%E8%B7%AF%E5%BE%84"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">用户面数据路径</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-5G-%E4%B8%8E-4G-LTE-%E6%9E%B6%E6%9E%84%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 5G 与 4G LTE 架构对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%9E%B6%E6%9E%84%EF%BC%88SBA%EF%BC%89%E4%B8%8E%E6%8E%A5%E5%8F%A3%E5%91%BD%E5%90%8D%E5%85%A8%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">2. 服务化架构（SBA）与接口命名全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-SBA-%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 SBA 核心设计哲学</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8E%A7%E5%88%B6%E9%9D%A2%E7%BD%91%E7%BB%9C%E5%8A%9F%E8%83%BD%EF%BC%88NF%EF%BC%89%E6%A6%82%E8%A7%88"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 控制面网络功能（NF）概览</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AMF%EF%BC%88Access-and-Mobility-Management-Function%EF%BC%89%E2%80%94%E2%80%94%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">AMF（Access and Mobility Management Function）——接入与移动性管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SMF%EF%BC%88Session-Management-Function%EF%BC%89%E2%80%94%E2%80%94%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">SMF（Session Management Function）——会话管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PCF%EF%BC%88Policy-Control-Function%EF%BC%89%E2%80%94%E2%80%94%E7%AD%96%E7%95%A5%E6%8E%A7%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">PCF（Policy Control Function）——策略控制功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AUSF%EF%BC%88Authentication-Server-Function%EF%BC%89%E2%80%94%E2%80%94%E9%89%B4%E6%9D%83%E6%9C%8D%E5%8A%A1%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">AUSF（Authentication Server Function）——鉴权服务功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UDM%EF%BC%88Unified-Data-Management%EF%BC%89%E2%80%94%E2%80%94%E7%BB%9F%E4%B8%80%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.5.</span> <span class="toc-text">UDM（Unified Data Management）——统一数据管理功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NRF%EF%BC%88Network-Repository-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E5%8A%9F%E8%83%BD%E4%BB%93%E5%BA%93"><span class="toc-number">3.0.2.6.</span> <span class="toc-text">NRF（Network Repository Function）——网络功能仓库</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSSF%EF%BC%88Network-Slice-Selection-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E9%80%89%E6%8B%A9%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.7.</span> <span class="toc-text">NSSF（Network Slice Selection Function）——网络切片选择功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NEF%EF%BC%88Network-Exposure-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E8%83%BD%E5%8A%9B%E5%BC%80%E6%94%BE%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.8.</span> <span class="toc-text">NEF（Network Exposure Function）——网络能力开放功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NWDAF%EF%BC%88Network-Data-Analytics-Function%EF%BC%89%E2%80%94%E2%80%94%E7%BD%91%E7%BB%9C%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E5%8A%9F%E8%83%BD"><span class="toc-number">3.0.2.9.</span> <span class="toc-text">NWDAF（Network Data Analytics Function）——网络数据分析功能</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%8E%A5%E5%8F%A3%EF%BC%88SBI%EF%BC%89%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 服务化接口（SBI）命名规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%8F%82%E8%80%83%E7%82%B9%E6%8E%A5%E5%8F%A3%E5%85%A8%E6%99%AF%EF%BC%88N1%EF%BD%9EN15-Xn-F1-E1-NG%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 参考点接口全景（N1～N15 &#x2F; Xn &#x2F; F1 &#x2F; E1 &#x2F; NG）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BD%91-N-%E7%B3%BB%E5%88%97%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">核心网 N 系列接口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-RAN-%E4%BE%A7%E6%8E%A5%E5%8F%A3"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">NG-RAN 侧接口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-NRF-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 NRF 服务发现机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%BC%AB%E6%B8%B8%E6%9E%B6%E6%9E%84%E4%B8%8E%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87"><span class="toc-number">4.</span> <span class="toc-text">3. 漫游架构与网络切片</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%BC%AB%E6%B8%B8%E5%9F%BA%E7%A1%80%EF%BC%9AHPLMN-vs-VPLMN"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 漫游基础：HPLMN vs VPLMN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Home-Routed%EF%BC%88HR%EF%BC%89%E6%BC%AB%E6%B8%B8"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 Home-Routed（HR）漫游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Local-Breakout%EF%BC%88LBO%EF%BC%89%E6%BC%AB%E6%B8%B8"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 Local Breakout（LBO）漫游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-HR-vs-LBO-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 HR vs LBO 对比分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 网络切片基础概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-S-NSSAI-%E4%B8%8E-NSSAI-%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 S-NSSAI 与 NSSAI 详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-NSSF-%E4%B8%8E%E5%88%87%E7%89%87%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 NSSF 与切片选择流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87%E5%AE%9E%E4%BE%8B%EF%BC%88NSI%EF%BC%89%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9E%B6%E6%9E%84"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 网络切片实例（NSI）端到端架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E6%BC%AB%E6%B8%B8%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E7%BD%91%E7%BB%9C%E5%88%87%E7%89%87"><span class="toc-number">4.0.9.</span> <span class="toc-text">3.9 漫游场景下的网络切片</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">6.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&text=5G 整体网络架构"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&is_video=false&description=5G 整体网络架构"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=5G 整体网络架构&body=Check out this article: http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&title=5G 整体网络架构"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&name=5G 整体网络架构&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/&t=5G 整体网络架构"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

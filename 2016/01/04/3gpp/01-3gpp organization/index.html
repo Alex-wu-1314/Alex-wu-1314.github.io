@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 3GPP 是什么？ 3GPP 的诞生背景与历史沿革 组织架构总览 组织合作伙伴（Organizational Partners） 市场代表合作伙伴（Market Representation Partners） 项目协调组（PCG） 移动能力中心（MCC） 技术规范组（TSG）总览 TSG RAN — 无线接入网 TSG SA — 服务与系统架构 TSG CT — 核心网与终端 各 TSG">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3GPP 组织架构与工作组体系">
+<meta property="og:url" content="http://example.com/2016/01/04/3gpp/01-3gpp%20organization/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 3GPP 是什么？ 3GPP 的诞生背景与历史沿革 组织架构总览 组织合作伙伴（Organizational Partners） 市场代表合作伙伴（Market Representation Partners） 项目协调组（PCG） 移动能力中心（MCC） 技术规范组（TSG）总览 TSG RAN — 无线接入网 TSG SA — 服务与系统架构 TSG CT — 核心网与终端 各 TSG">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-01-04T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T09:36:51.629Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>3GPP 组织架构与工作组体系</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/01/15/3gpp/02_3GPP_Release_%E7%89%88%E6%9C%AC%E6%BC%94%E8%BF%9B%E4%B8%8E%E6%96%87%E6%A1%A3%E4%BD%93%E7%B3%BB/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&text=3GPP 组织架构与工作组体系"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&is_video=false&description=3GPP 组织架构与工作组体系"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=3GPP 组织架构与工作组体系&body=Check out this article: http://example.com/2016/01/04/3gpp/01-3gpp%20organization/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&name=3GPP 组织架构与工作组体系&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&t=3GPP 组织架构与工作组体系"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-3GPP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 3GPP 是什么？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-3GPP-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">3.</span> <span class="toc-text">2. 3GPP 的诞生背景与历史沿革</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%88%90%E7%AB%8B%E8%83%8C%E6%99%AF"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 成立背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%85%B3%E9%94%AE%E9%87%8C%E7%A8%8B%E7%A2%91"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 关键里程碑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BB%84%E7%BB%87%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-number">4.</span> <span class="toc-text">3. 组织架构总览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E7%BB%84%E7%BB%87%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%EF%BC%88Organizational-Partners%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 组织合作伙伴（Organizational Partners）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%83%E5%A4%A7%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%E4%B8%80%E8%A7%88"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 七大合作伙伴一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BB%84%E7%BB%87%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%83%BD"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 组织合作伙伴的核心职能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%A7%84%E8%8C%83%E8%BD%AC%E5%8C%96%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 规范转化机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B8%82%E5%9C%BA%E4%BB%A3%E8%A1%A8%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%EF%BC%88Market-Representation-Partners%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 市场代表合作伙伴（Market Representation Partners）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B9%E7%9B%AE%E5%8D%8F%E8%B0%83%E7%BB%84%EF%BC%88PCG%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 项目协调组（PCG）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%A7%BB%E5%8A%A8%E8%83%BD%E5%8A%9B%E4%B8%AD%E5%BF%83%EF%BC%88MCC%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 移动能力中心（MCC）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83%E7%BB%84%EF%BC%88TSG%EF%BC%89%E6%80%BB%E8%A7%88"><span class="toc-number">9.</span> <span class="toc-text">8. 技术规范组（TSG）总览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TSG-%E5%85%A8%E4%BD%93%E4%BC%9A%E8%AE%AE%EF%BC%88Plenary%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">TSG 全体会议（Plenary）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-TSG-RAN-%E2%80%94-%E6%97%A0%E7%BA%BF%E6%8E%A5%E5%85%A5%E7%BD%91"><span class="toc-number">10.</span> <span class="toc-text">9. TSG RAN — 无线接入网</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-TSG-RAN-%E8%81%8C%E8%B4%A3%E8%8C%83%E5%9B%B4"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 TSG RAN 职责范围</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RAN-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RAN 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG1%EF%BC%88RAN1%EF%BC%89%E2%80%94-%E7%89%A9%E7%90%86%E5%B1%82%E8%A7%84%E8%8C%83"><span class="toc-number">10.0.2.1.</span> <span class="toc-text">RAN WG1（RAN1）— 物理层规范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG2%EF%BC%88RAN2%EF%BC%89%E2%80%94-%E6%97%A0%E7%BA%BF%E5%B1%82-2-%E4%B8%8E-RRC-%E5%8D%8F%E8%AE%AE"><span class="toc-number">10.0.2.2.</span> <span class="toc-text">RAN WG2（RAN2）— 无线层 2 与 RRC 协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG3%EF%BC%88RAN3%EF%BC%89%E2%80%94-%E6%8E%A5%E5%85%A5%E7%BD%91%E6%8E%A5%E5%8F%A3%E4%B8%8E%E6%9E%B6%E6%9E%84"><span class="toc-number">10.0.2.3.</span> <span class="toc-text">RAN WG3（RAN3）— 接入网接口与架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG4%EF%BC%88RAN4%EF%BC%89%E2%80%94-%E5%B0%84%E9%A2%91%E6%80%A7%E8%83%BD%E4%B8%8E%E5%8D%8F%E8%AE%AE%E6%96%B9%E9%9D%A2"><span class="toc-number">10.0.2.4.</span> <span class="toc-text">RAN WG4（RAN4）— 射频性能与协议方面</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG5%EF%BC%88RAN5%EF%BC%89%E2%80%94-%E7%A7%BB%E5%8A%A8%E7%BB%88%E7%AB%AF%E4%B8%80%E8%87%B4%E6%80%A7%E6%B5%8B%E8%AF%95"><span class="toc-number">10.0.2.5.</span> <span class="toc-text">RAN WG5（RAN5）— 移动终端一致性测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-AH1-%E2%80%94-%E4%B8%B4%E6%97%B6%E4%B8%93%E9%A1%B9%E5%B0%8F%E7%BB%84"><span class="toc-number">10.0.2.6.</span> <span class="toc-text">RAN AH1 — 临时专项小组</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-TSG-SA-%E2%80%94-%E6%9C%8D%E5%8A%A1%E4%B8%8E%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">11.</span> <span class="toc-text">10. TSG SA — 服务与系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SA-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">11.0.1.</span> <span class="toc-text">SA 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG1%EF%BC%88SA1%EF%BC%89%E2%80%94-%E4%B8%9A%E5%8A%A1%E9%9C%80%E6%B1%82"><span class="toc-number">11.0.1.1.</span> <span class="toc-text">SA WG1（SA1）— 业务需求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG2%EF%BC%88SA2%EF%BC%89%E2%80%94-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">11.0.1.2.</span> <span class="toc-text">SA WG2（SA2）— 系统架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG3%EF%BC%88SA3%EF%BC%89%E2%80%94-%E5%AE%89%E5%85%A8"><span class="toc-number">11.0.1.3.</span> <span class="toc-text">SA WG3（SA3）— 安全</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG4%EF%BC%88SA4%EF%BC%89%E2%80%94-%E7%BC%96%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.1.4.</span> <span class="toc-text">SA WG4（SA4）— 编解码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG5%EF%BC%88SA5%EF%BC%89%E2%80%94-%E7%94%B5%E4%BF%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E7%BD%91%E7%BB%9C%E8%87%AA%E5%8A%A8%E5%8C%96"><span class="toc-number">11.0.1.5.</span> <span class="toc-text">SA WG5（SA5）— 电信管理与网络自动化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG6%EF%BC%88SA6%EF%BC%89%E2%80%94-%E5%BA%94%E7%94%A8%E4%BD%BF%E8%83%BD%E4%B8%8E%E5%85%B3%E9%94%AE%E9%80%9A%E4%BF%A1"><span class="toc-number">11.0.1.6.</span> <span class="toc-text">SA WG6（SA6）— 应用使能与关键通信</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-TSG-CT-%E2%80%94-%E6%A0%B8%E5%BF%83%E7%BD%91%E4%B8%8E%E7%BB%88%E7%AB%AF"><span class="toc-number">12.</span> <span class="toc-text">11. TSG CT — 核心网与终端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CT-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">12.0.1.</span> <span class="toc-text">CT 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG1%EF%BC%88CT1%EF%BC%89%E2%80%94-NAS-%E5%B1%82%E5%8D%8F%E8%AE%AE"><span class="toc-number">12.0.1.1.</span> <span class="toc-text">CT WG1（CT1）— NAS 层协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG3%EF%BC%88CT3%EF%BC%89%E2%80%94-%E4%B8%8E%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BA%92%E9%80%9A"><span class="toc-number">12.0.1.2.</span> <span class="toc-text">CT WG3（CT3）— 与外部网络的互通</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG4%EF%BC%88CT4%EF%BC%89%E2%80%94-MAP-GTP-%E7%9B%B4%E5%BE%84%E7%AD%89%E6%A0%B8%E5%BF%83%E5%8D%8F%E8%AE%AE"><span class="toc-number">12.0.1.3.</span> <span class="toc-text">CT WG4（CT4）— MAP &#x2F; GTP &#x2F; 直径等核心协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG6%EF%BC%88CT6%EF%BC%89%E2%80%94-%E6%99%BA%E8%83%BD%E5%8D%A1%E5%BA%94%E7%94%A8"><span class="toc-number">12.0.1.4.</span> <span class="toc-text">CT WG6（CT6）— 智能卡应用</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%90%84-TSG-WG-%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%88%86%E5%B7%A5%E8%BE%B9%E7%95%8C"><span class="toc-number">13.</span> <span class="toc-text">12. 各 TSG &#x2F; WG 协作关系与分工边界</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E4%B8%AA%E4%BA%BA%E6%88%90%E5%91%98%EF%BC%88Individual-Members%EF%BC%89%E4%B8%8E%E8%B4%A1%E7%8C%AE%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%BC%8F"><span class="toc-number">14.</span> <span class="toc-text">13. 个人成员（Individual Members）与贡献驱动模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E4%BC%9A%E8%AE%AE%E4%BD%93%E7%B3%BB%E4%B8%8E%E5%B7%A5%E4%BD%9C%E8%8A%82%E5%A5%8F"><span class="toc-number">15.</span> <span class="toc-text">14. 会议体系与工作节奏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-WG-%E4%BC%9A%E8%AE%AE"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 WG 会议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-TSG-Plenary-%E4%BC%9A%E8%AE%AE"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 TSG Plenary 会议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E7%94%B5%E5%AD%90%E4%BC%9A%E8%AE%AE%EF%BC%88e-meeting%EF%BC%89"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 电子会议（e-meeting）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">17.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        3GPP 组织架构与工作组体系
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-01-04T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-01-04</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-3gpp-%E6%98%AF%E4%BB%80%E4%B9%88">3GPP 是什么？</a></li>
+<li><a href="#2-3gpp-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9">3GPP 的诞生背景与历史沿革</a></li>
+<li><a href="#3-%E7%BB%84%E7%BB%87%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88">组织架构总览</a></li>
+<li><a href="#4-%E7%BB%84%E7%BB%87%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4organizational-partners">组织合作伙伴（Organizational Partners）</a></li>
+<li><a href="#5-%E5%B8%82%E5%9C%BA%E4%BB%A3%E8%A1%A8%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4market-representation-partners">市场代表合作伙伴（Market Representation Partners）</a></li>
+<li><a href="#6-%E9%A1%B9%E7%9B%AE%E5%8D%8F%E8%B0%83%E7%BB%84pcg">项目协调组（PCG）</a></li>
+<li><a href="#7-%E7%A7%BB%E5%8A%A8%E8%83%BD%E5%8A%9B%E4%B8%AD%E5%BF%83mcc">移动能力中心（MCC）</a></li>
+<li><a href="#8-%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83%E7%BB%84tsg%E6%80%BB%E8%A7%88">技术规范组（TSG）总览</a></li>
+<li><a href="#9-tsg-ran--%E6%97%A0%E7%BA%BF%E6%8E%A5%E5%85%A5%E7%BD%91">TSG RAN — 无线接入网</a></li>
+<li><a href="#10-tsg-sa--%E6%9C%8D%E5%8A%A1%E4%B8%8E%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84">TSG SA — 服务与系统架构</a></li>
+<li><a href="#11-tsg-ct--%E6%A0%B8%E5%BF%83%E7%BD%91%E4%B8%8E%E7%BB%88%E7%AB%AF">TSG CT — 核心网与终端</a></li>
+<li><a href="#12-%E5%90%84-tsg--wg-%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%88%86%E5%B7%A5%E8%BE%B9%E7%95%8C">各 TSG &#x2F; WG 协作关系与分工边界</a></li>
+<li><a href="#13-%E4%B8%AA%E4%BA%BA%E6%88%90%E5%91%98individual-members%E4%B8%8E%E8%B4%A1%E7%8C%AE%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%BC%8F">个人成员（Individual Members）与贡献驱动模式</a></li>
+<li><a href="#14-%E4%BC%9A%E8%AE%AE%E4%BD%93%E7%B3%BB%E4%B8%8E%E5%B7%A5%E4%BD%9C%E8%8A%82%E5%A5%8F">会议体系与工作节奏</a></li>
+<li><a href="#15-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-3GPP-是什么？"><a href="#1-3GPP-是什么？" class="headerlink" title="1. 3GPP 是什么？"></a>1. 3GPP 是什么？</h1><p><strong>3GPP（3rd Generation Partnership Project，第三代合作伙伴计划）</strong> 是全球移动通信领域最重要的标准化组织之一。它并非一个单一的机构，而是由多个区域性电信标准开发组织（SDO，Standards Development Organization）联合构成的”伙伴计划”（Partnership Project）。</p>
+<p>3GPP 的核心使命是制定适用于全球的蜂窝移动通信技术规范（Technical Specifications，TS）和技术报告（Technical Reports，TR），覆盖范围从无线接入到核心网，再到业务能力和安全体系，为运营商、设备商和芯片企业提供一套完整的互联互通标准体系。</p>
+<p><strong>3GPP 最知名的技术成果包括：</strong></p>
+<table>
+<thead>
+<tr>
+<th>代际</th>
+<th>主要标准</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2G</td>
+<td>GSM &#x2F; GPRS &#x2F; EDGE</td>
+</tr>
+<tr>
+<td>3G</td>
+<td>UMTS (WCDMA) &#x2F; HSPA &#x2F; HSPA+</td>
+</tr>
+<tr>
+<td>4G</td>
+<td>LTE &#x2F; LTE-Advanced &#x2F; LTE-Advanced Pro</td>
+</tr>
+<tr>
+<td>5G</td>
+<td>5G NR &#x2F; 5G-Advanced (NR-Advanced)</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="2-3GPP-的诞生背景与历史沿革"><a href="#2-3GPP-的诞生背景与历史沿革" class="headerlink" title="2. 3GPP 的诞生背景与历史沿革"></a>2. 3GPP 的诞生背景与历史沿革</h1><h3 id="2-1-成立背景"><a href="#2-1-成立背景" class="headerlink" title="2.1 成立背景"></a>2.1 成立背景</h3><p>20 世纪 90 年代末，国际电信联盟（ITU）提出了 IMT-2000 框架，旨在推动全球第三代移动通信系统的标准统一。然而，各地区的 SDO 各自为政，欧洲的 ETSI 推进 WCDMA，北美的 T1 在推进另一条路线，亚洲各国也有自己的方案。为避免重蹈 2G 时代标准碎片化的覆辙，各主要 SDO 在 1998 年底达成协议，共同成立了 3GPP。</p>
+<h3 id="2-2-关键里程碑"><a href="#2-2-关键里程碑" class="headerlink" title="2.2 关键里程碑"></a>2.2 关键里程碑</h3><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>1998 年 12 月</strong></td>
+<td>3GPP 伙伴计划协议正式签署，初始成员为 ARIB（日本）、ETSI（欧洲）、ATIS&#x2F;T1（美国）、TTA（韩国）、TTC（日本）五家</td>
+</tr>
+<tr>
+<td><strong>1999 年</strong></td>
+<td>CWTS（中国）加入，后演变为 CCSA；同年 TSG GERAN、RAN、SA、CN 四个 TSG 提出</td>
+</tr>
+<tr>
+<td><strong>1999 年 12 月</strong></td>
+<td>Release 99 冻结，发布首版 3G UMTS 规范</td>
+</tr>
+<tr>
+<td><strong>2003 年&#x2F;2004 年</strong></td>
+<td>CCSA（中国通信标准化协会）正式成为组织合作伙伴</td>
+</tr>
+<tr>
+<td><strong>2015 年 1 月</strong></td>
+<td>TSDSI（印度）加入，成为第七个组织合作伙伴，3GPP 形成目前的”七伙伴”格局</td>
+</tr>
+<tr>
+<td><strong>2016 年 1 月</strong></td>
+<td>TSG GERAN 宣布关闭，相关工作并入 TSG RAN</td>
+</tr>
+<tr>
+<td><strong>2018 年 6 月</strong></td>
+<td>Release 15 冻结，5G NR 独立组网（SA）规范正式发布</td>
+</tr>
+<tr>
+<td><strong>2022 年 6 月</strong></td>
+<td>Release 17 冻结，5G-Advanced 时代开启</td>
+</tr>
+<tr>
+<td><strong>2024 年</strong></td>
+<td>Release 18（5G-Advanced 第一版）冻结，Release 19&#x2F;20&#x2F;21 研究工作并行推进</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-组织架构总览"><a href="#3-组织架构总览" class="headerlink" title="3. 组织架构总览"></a>3. 组织架构总览</h1><p>3GPP 的治理结构是分层的，从上到下依次为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│        组织合作伙伴（Organizational Partners）        │</span><br><span class="line">│   ARIB · ATIS · CCSA · ETSI · TSDSI · TTA · TTC     │</span><br><span class="line">│          + 市场代表合作伙伴（MRP × 26+）               │</span><br><span class="line">└───────────────────┬─────────────────────────────────┘</span><br><span class="line">                    │ 监督 / 战略</span><br><span class="line">                    ▼</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│         项目协调组（PCG）                             │</span><br><span class="line">│      每年至少召开 2 次全体会议                          │</span><br><span class="line">└──────┬────────────────┬──────────────────┬──────────┘</span><br><span class="line">       │                │                  │</span><br><span class="line">       ▼                ▼                  ▼</span><br><span class="line">┌──────────┐   ┌──────────────┐   ┌──────────────────┐</span><br><span class="line">│ TSG RAN  │   │   TSG SA     │   │     TSG CT       │</span><br><span class="line">│ 无线接入网 │   │ 服务与系统架构 │   │  核心网与终端      │</span><br><span class="line">└──┬───────┘   └──┬───────────┘   └───┬──────────────┘</span><br><span class="line">   │              │                   │</span><br><span class="line">   ▼              ▼                   ▼</span><br><span class="line">RAN1~5, AH1     SA1~SA6            CT1, CT3, CT4, CT6</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：3GPP 不设永久性”主席国”，各 TSG 和 WG 的主席由成员公司选举产生，任期届满后重新选举。日常行政运营由位于法国 Sophia Antipolis 的<strong>移动能力中心（MCC）</strong> 负责。</p>
+</blockquote>
+<hr>
+<h1 id="4-组织合作伙伴（Organizational-Partners）"><a href="#4-组织合作伙伴（Organizational-Partners）" class="headerlink" title="4. 组织合作伙伴（Organizational Partners）"></a>4. 组织合作伙伴（Organizational Partners）</h1><p>组织合作伙伴（OP）是 3GPP 的最高权力机构，负责确定 3GPP 的总体政策与战略方向。目前共有 <strong>7 个 OP</strong>：</p>
+<h3 id="4-1-七大合作伙伴一览"><a href="#4-1-七大合作伙伴一览" class="headerlink" title="4.1 七大合作伙伴一览"></a>4.1 七大合作伙伴一览</h3><table>
+<thead>
+<tr>
+<th>缩写</th>
+<th>全称</th>
+<th>地区</th>
+<th>代表范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ETSI</strong></td>
+<td>European Telecommunications Standards Institute（欧洲电信标准协会）</td>
+<td>欧洲</td>
+<td>欧盟及相关成员国</td>
+</tr>
+<tr>
+<td><strong>ARIB</strong></td>
+<td>Association of Radio Industries and Businesses（无线电工业及商贸联合会）</td>
+<td>日本</td>
+<td>日本无线电产业</td>
+</tr>
+<tr>
+<td><strong>TTC</strong></td>
+<td>Telecommunication Technology Committee（电信技术委员会）</td>
+<td>日本</td>
+<td>日本有线&#x2F;有线电信</td>
+</tr>
+<tr>
+<td><strong>ATIS</strong></td>
+<td>Alliance for Telecommunications Industry Solutions（电信产业解决方案联盟，原 T1 委员会）</td>
+<td>北美（美国）</td>
+<td>北美电信产业</td>
+</tr>
+<tr>
+<td><strong>CCSA</strong></td>
+<td>China Communications Standards Association（中国通信标准化协会）</td>
+<td>中国</td>
+<td>中国通信行业</td>
+</tr>
+<tr>
+<td><strong>TTA</strong></td>
+<td>Telecommunications Technology Association（电信技术协会）</td>
+<td>韩国</td>
+<td>韩国电信产业</td>
+</tr>
+<tr>
+<td><strong>TSDSI</strong></td>
+<td>Telecommunications Standards Development Society, India（印度电信标准开发协会）</td>
+<td>印度</td>
+<td>印度电信产业</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>日本有两个 OP（ARIB 和 TTC），这是因为日本历史上无线电和有线电信的管理分属不同机构，两者均在 3GPP 成立之初即加入。</p>
+</blockquote>
+<h3 id="4-2-组织合作伙伴的核心职能"><a href="#4-2-组织合作伙伴的核心职能" class="headerlink" title="4.2 组织合作伙伴的核心职能"></a>4.2 组织合作伙伴的核心职能</h3><p>根据 3GPP Working Procedures，OP 负责执行以下职责：</p>
+<ul>
+<li><strong>战略决策</strong>：确定 3GPP 的整体政策、发展方向与工作范围；</li>
+<li><strong>TSG 管理</strong>：批准 TSG 的创建或关闭，审定各 TSG 的职权范围（Terms of Reference）；</li>
+<li><strong>资源分配</strong>：批准资金需求，向 PCG 分配人力与财力资源；</li>
+<li><strong>规范转化</strong>：将 3GPP 制定的规范转化为各自区域内的正式标准（例如，ETSI 将 3GPP TS 转化为欧洲标准）；</li>
+<li><strong>成员资格审批</strong>：审批新的 3GPP 合作方申请；</li>
+<li><strong>上诉裁决</strong>：作为程序事项的最终上诉机构。</li>
+</ul>
+<h3 id="4-3-规范转化机制"><a href="#4-3-规范转化机制" class="headerlink" title="4.3 规范转化机制"></a>4.3 规范转化机制</h3><p>3GPP 本身并不发布”法定标准”，而是发布”技术规范”和”技术报告”。这些文件经由各 OP 转化（transpose）后，才在各地区成为正式的区域标准。例如：</p>
+<ul>
+<li>ETSI 将 3GPP TS 38 系列转化为 ETSI TS；</li>
+<li>CCSA 以此为基础制定国家推荐性或强制性标准；</li>
+<li>ATIS 在北美发布对应的地区版本。</li>
+</ul>
+<p>这一机制确保了全球技术核心一致，同时允许各地区根据本地法规需求做必要适配。</p>
+<hr>
+<h1 id="5-市场代表合作伙伴（Market-Representation-Partners）"><a href="#5-市场代表合作伙伴（Market-Representation-Partners）" class="headerlink" title="5. 市场代表合作伙伴（Market Representation Partners）"></a>5. 市场代表合作伙伴（Market Representation Partners）</h1><p>除七个 OP 外，3GPP 还设有<strong>市场代表合作伙伴（MRP，Market Representation Partners）</strong>。截至 2025 年，MRP 超过 26 个，典型成员包括：</p>
+<ul>
+<li><strong>GSMA</strong>（全球移动通信系统协会）</li>
+<li><strong>5G Americas</strong></li>
+<li><strong>Small Cell Forum</strong></li>
+<li><strong>Wireless Broadband Alliance</strong></li>
+<li><strong>GSA</strong>（全球移动宽带协会）</li>
+<li><strong>GCF</strong>（全球认证论坛）</li>
+</ul>
+<p>MRP 的职能不同于 OP：它们可以向 3GPP 提供市场需求建议和行业共识，但<strong>不具备制定、发布和设置区域标准的能力与权限</strong>，也不能在 TSG &#x2F; WG 的技术规范批准中投票。MRP 的存在是 3GPP 保持与市场紧密联系的重要机制。</p>
+<hr>
+<h1 id="6-项目协调组（PCG）"><a href="#6-项目协调组（PCG）" class="headerlink" title="6. 项目协调组（PCG）"></a>6. 项目协调组（PCG）</h1><p><strong>PCG（Project Co-ordination Group）</strong> 是 3GPP 内部的最高治理机构，由所有 OP 和 MRP 组成（ITU 代表及观察员也可列席）。</p>
+<p>PCG 的主要职责包括：</p>
+<table>
+<thead>
+<tr>
+<th>职责</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>整体时间管理</td>
+<td>审批 3GPP Release 整体时间框架和进度</td>
+</tr>
+<tr>
+<td>工作项审批</td>
+<td>最终批准 TSG 工作项</td>
+</tr>
+<tr>
+<td>选举确认</td>
+<td>确认 TSG&#x2F;WG 主席和副主席的选举结果</td>
+</tr>
+<tr>
+<td>资源统筹</td>
+<td>确认 3GPP 的人力与财力资源分配</td>
+</tr>
+</tbody></table>
+<p>PCG <strong>每年至少召开两次</strong>全体会议。日常决策和技术工作则下放至各 TSG。</p>
+<hr>
+<h1 id="7-移动能力中心（MCC）"><a href="#7-移动能力中心（MCC）" class="headerlink" title="7. 移动能力中心（MCC）"></a>7. 移动能力中心（MCC）</h1><p><strong>MCC（Mobile Competence Centre）</strong> 是 3GPP 的永久性项目支持机构，总部设于<strong>法国 Sophia Antipolis 的 ETSI 总部</strong>。</p>
+<p>MCC 的职责定位是行政和技术支撑，主要工作包括：</p>
+<ul>
+<li>维护 3GPP 官方文件系统（FTP 服务器、规范数据库）；</li>
+<li>协助 TSG &#x2F; WG 会议的组织和文件管理；</li>
+<li>维护 3GPP 门户网站（3gpp.org）及工作程序文件；</li>
+<li>向 ITU 等外部机构提交联络文件；</li>
+<li>管理 3GPP 工作计划（Work Plan）和规范版本发布。</li>
+</ul>
+<blockquote>
+<p>MCC 的经费来源是各 OP 按协议分担，不依赖任何单一成员公司，从而保证了其中立性和持续运营能力。</p>
+</blockquote>
+<hr>
+<h1 id="8-技术规范组（TSG）总览"><a href="#8-技术规范组（TSG）总览" class="headerlink" title="8. 技术规范组（TSG）总览"></a>8. 技术规范组（TSG）总览</h1><p><strong>TSG（Technical Specification Group，技术规范组）</strong> 是 3GPP 技术工作的核心执行层。目前 3GPP 设有三个活跃的 TSG：</p>
+<table>
+<thead>
+<tr>
+<th>TSG</th>
+<th>全称</th>
+<th>中文名</th>
+<th>工作领域</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RAN</strong></td>
+<td>Radio Access Networks</td>
+<td>无线接入网</td>
+<td>空口物理层、协议栈、接入网接口</td>
+</tr>
+<tr>
+<td><strong>SA</strong></td>
+<td>Service and System Aspects</td>
+<td>服务与系统架构</td>
+<td>系统架构、业务需求、安全、编解码</td>
+</tr>
+<tr>
+<td><strong>CT</strong></td>
+<td>Core Network and Terminals</td>
+<td>核心网与终端</td>
+<td>核心网协议、终端接口、智能卡</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>历史注记</strong>：3GPP 成立之初曾设有 4 个 TSG（含 GERAN，负责 GSM&#x2F;EDGE 无线接入网）。GERAN 于 2016 年 1 月宣布关闭，其规范工作并入 TSG RAN（主要归入 RAN WG5 和 RAN WG6，RAN WG6 于 2020 年 7 月关闭）。</p>
+</blockquote>
+<h3 id="TSG-全体会议（Plenary）"><a href="#TSG-全体会议（Plenary）" class="headerlink" title="TSG 全体会议（Plenary）"></a>TSG 全体会议（Plenary）</h3><p>各 TSG 每年举行 <strong>4 次全体会议（Plenary）</strong>，通常在 3 月、6 月、9 月和 12 月，三个 TSG 的 Plenary 同周共地（co-located）召开。Plenary 周的最后一天为 TSG SA 全体会议，SA 同时承担对 3GPP 全局技术工作的协调职责。</p>
+<p>每次 Plenary 的主要工作包括：</p>
+<ul>
+<li>审批各 WG 提交的规范文稿（CRs、新 TS&#x2F;TR）；</li>
+<li>批准新 Work Item 和 Study Item 的立项；</li>
+<li>监控 Release 里程碑进度；</li>
+<li>协调跨 TSG &#x2F; WG 的技术议题。</li>
+</ul>
+<hr>
+<h1 id="9-TSG-RAN-—-无线接入网"><a href="#9-TSG-RAN-—-无线接入网" class="headerlink" title="9. TSG RAN — 无线接入网"></a>9. TSG RAN — 无线接入网</h1><p><strong>TSG RAN（Radio Access Networks）</strong> 负责定义 5G NR 空中接口及接入网体系结构，是与 5G NR 物理层、协议栈最直接相关的技术规范组。</p>
+<h3 id="9-1-TSG-RAN-职责范围"><a href="#9-1-TSG-RAN-职责范围" class="headerlink" title="9.1 TSG RAN 职责范围"></a>9.1 TSG RAN 职责范围</h3><p>TSG RAN 负责 GERAN、UTRAN、E-UTRAN（LTE）、NG-RAN（5G）及未来接入网的内部结构与功能规范，具体包括：</p>
+<ul>
+<li>无线接入技术的物理层和协议层规范；</li>
+<li>接入网内部接口（F1、E1、Xn）和外部接口（NG）规范；</li>
+<li>UE 和基站的射频性能要求；</li>
+<li>UE 和基站的一致性测试规范。</li>
+</ul>
+<h3 id="9-2-RAN-工作组详解"><a href="#9-2-RAN-工作组详解" class="headerlink" title="9.2 RAN 工作组详解"></a>9.2 RAN 工作组详解</h3><p>TSG RAN 下设 5 个常设工作组（WG）和 1 个临时专项小组（AH）：</p>
+<hr>
+<h4 id="RAN-WG1（RAN1）—-物理层规范"><a href="#RAN-WG1（RAN1）—-物理层规范" class="headerlink" title="RAN WG1（RAN1）— 物理层规范"></a>RAN WG1（RAN1）— 物理层规范</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正式名称</td>
+<td>Radio Layer 1 Specification</td>
+</tr>
+<tr>
+<td>核心职责</td>
+<td>定义 5G NR 物理层（PHY），包括帧结构、信道编码、调制方式、多天线技术、参考信号、波束管理等</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 38.211（物理信道与调制）、TS 38.212（编码与复用）、TS 38.213（物理层过程）、TS 38.214（物理层数据信道过程）</td>
+</tr>
+<tr>
+<td>关键议题（5G）</td>
+<td>LDPC &#x2F; Polar Code 选型、Massive MIMO 波束赋形、NR Numerology、URLLC 低时延物理层设计</td>
+</tr>
+</tbody></table>
+<p>RAN1 是 5G 标准化最激烈的竞争战场之一，各大公司（华为、爱立信、高通、诺基亚等）在此博弈信道编码、参考信号等核心技术的方案选择。</p>
+<hr>
+<h4 id="RAN-WG2（RAN2）—-无线层-2-与-RRC-协议"><a href="#RAN-WG2（RAN2）—-无线层-2-与-RRC-协议" class="headerlink" title="RAN WG2（RAN2）— 无线层 2 与 RRC 协议"></a>RAN WG2（RAN2）— 无线层 2 与 RRC 协议</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正式名称</td>
+<td>Radio Layer 2 and Radio Resource Control</td>
+</tr>
+<tr>
+<td>核心职责</td>
+<td>定义无线接口架构与协议，包括 MAC、RLC、PDCP、SDAP 层规范，以及 RRC（无线资源控制）协议和无线资源管理（RRM）过程</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 38.300（NR 总体描述）、TS 38.321（MAC）、TS 38.322（RLC）、TS 38.323（PDCP）、TS 38.331（RRC）</td>
+</tr>
+<tr>
+<td>关键议题（5G）</td>
+<td>RRC_INACTIVE 态引入、SDAP 层设计、QoS Flow 到 DRB 映射、条件切换（CHO）、双连接（DC）</td>
+</tr>
+</tbody></table>
+<p>RAN2 是连接物理层与核心网之间的”粘合剂”，其规范直接决定 UE 连接建立、移动性管理和数据传输的用户体验。</p>
+<hr>
+<h4 id="RAN-WG3（RAN3）—-接入网接口与架构"><a href="#RAN-WG3（RAN3）—-接入网接口与架构" class="headerlink" title="RAN WG3（RAN3）— 接入网接口与架构"></a>RAN WG3（RAN3）— 接入网接口与架构</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正式名称</td>
+<td>Radio Access Network Architecture and Interfaces</td>
+</tr>
+<tr>
+<td>核心职责</td>
+<td>定义 NG-RAN 整体架构及接口协议，包括 gNB 内部 F1 &#x2F; E1 接口（CU-DU 拆分）、gNB 间 Xn 接口、NG 接口（与 5GC 的连接）协议</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 38.401（NG-RAN 架构）、TS 38.420 系列（Xn 接口）、TS 38.470 系列（F1 接口）、TS 38.460 系列（E1 接口）</td>
+</tr>
+<tr>
+<td>关键议题（5G）</td>
+<td>CU&#x2F;DU 功能拆分方案、O-RAN 架构对齐、MEC&#x2F;UPF 下沉、SON 自组织网络</td>
+</tr>
+</tbody></table>
+<p>RAN3 的工作决定了 5G 接入网的部署灵活性和与核心网的协同效率。</p>
+<hr>
+<h4 id="RAN-WG4（RAN4）—-射频性能与协议方面"><a href="#RAN-WG4（RAN4）—-射频性能与协议方面" class="headerlink" title="RAN WG4（RAN4）— 射频性能与协议方面"></a>RAN WG4（RAN4）— 射频性能与协议方面</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正式名称</td>
+<td>Radio Performance and Protocol Aspects</td>
+</tr>
+<tr>
+<td>核心职责</td>
+<td>制定 UE 和基站的射频（RF）性能要求、无线性能（demodulation）最低要求，以及频段定义（Band）和共存研究</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 38.101 系列（UE 射频要求）、TS 38.104（基站射频要求）、TS 38.133（RRM 要求）、TS 38.141（基站一致性测试）</td>
+</tr>
+<tr>
+<td>关键议题（5G）</td>
+<td>FR1（Sub-6 GHz）&#x2F; FR2（毫米波）性能要求、Band 组合定义、载波聚合射频要求、共存与干扰分析</td>
+</tr>
+</tbody></table>
+<p>RAN4 的工作直接影响终端和基站芯片的设计指标，是产品认证的基础。</p>
+<hr>
+<h4 id="RAN-WG5（RAN5）—-移动终端一致性测试"><a href="#RAN-WG5（RAN5）—-移动终端一致性测试" class="headerlink" title="RAN WG5（RAN5）— 移动终端一致性测试"></a>RAN WG5（RAN5）— 移动终端一致性测试</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正式名称</td>
+<td>Mobile Terminal Conformance Testing</td>
+</tr>
+<tr>
+<td>核心职责</td>
+<td>制定 UE 的一致性测试规范（测试用例），涵盖 GERAN、UTRA、E-UTRA（LTE）、5G NR 的射频和信令层测试</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 38.521 系列（NR UE 射频一致性测试）、TS 38.523 系列（NR UE 信令一致性测试）</td>
+</tr>
+<tr>
+<td>关键议题（5G）</td>
+<td>5G SA &#x2F; NSA 双模测试、毫米波 OTA（Over-the-Air）测试方法、CA &#x2F; DC 组合测试</td>
+</tr>
+</tbody></table>
+<p>RAN5 的输出是运营商和认证机构（如 GCF、PTCRB）进行 UE 入网认证的直接依据。</p>
+<hr>
+<h4 id="RAN-AH1-—-临时专项小组"><a href="#RAN-AH1-—-临时专项小组" class="headerlink" title="RAN AH1 — 临时专项小组"></a>RAN AH1 — 临时专项小组</h4><p>RAN AH（Ad Hoc）是 TSG RAN 在特定议题需要集中攻关时设立的临时工作小组，通常不常设，完成任务后关闭。RAN AH1 目前主要聚焦于 AI&#x2F;ML 在 RAN 侧的应用研究（R18&#x2F;R19 阶段的重要议题）。</p>
+<hr>
+<h1 id="10-TSG-SA-—-服务与系统架构"><a href="#10-TSG-SA-—-服务与系统架构" class="headerlink" title="10. TSG SA — 服务与系统架构"></a>10. TSG SA — 服务与系统架构</h1><p><strong>TSG SA（Service and System Aspects）</strong> 是 3GPP 三大 TSG 中承担<strong>跨 TSG 总体协调</strong>职责的组，同时负责系统架构、业务需求、安全和编解码等领域的规范制定。</p>
+<p>TSG SA 全体会议（SA Plenary）是每周 Plenary 的压轴，负责审批其他 TSG 提交的整体架构性文件，并监督 Release 整体进度。</p>
+<h3 id="SA-工作组详解"><a href="#SA-工作组详解" class="headerlink" title="SA 工作组详解"></a>SA 工作组详解</h3><h4 id="SA-WG1（SA1）—-业务需求"><a href="#SA-WG1（SA1）—-业务需求" class="headerlink" title="SA WG1（SA1）— 业务需求"></a>SA WG1（SA1）— 业务需求</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>定义 3GPP 系统的业务需求（Stage 1），是标准化流程的”起点”；明确 eMBB &#x2F; URLLC &#x2F; mMTC 三大场景及垂直行业（工业 IoT、车联网、公共安全等）的具体需求</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 22.261（5G 系统业务需求）、TS 22.186（V2X 业务需求）、TS 22.104（工业自动化）</td>
+</tr>
+</tbody></table>
+<p>SA1 以”用户故事”和”服务要求”为导向，其输出是 SA2 等 WG 开展系统架构设计的输入依据。</p>
+<hr>
+<h4 id="SA-WG2（SA2）—-系统架构"><a href="#SA-WG2（SA2）—-系统架构" class="headerlink" title="SA WG2（SA2）— 系统架构"></a>SA WG2（SA2）— 系统架构</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>定义 5G 系统整体架构（Stage 2），包括 5GC 服务化架构（SBA）、各网元（AMF、SMF、UPF、PCF、UDM 等）的功能和接口（N1~N9、SBI）；承担跨 TSG 架构协调</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 23.501（5G 系统架构）、TS 23.502（5G 系统过程）、TS 23.503（5G 策略控制框架）</td>
+</tr>
+</tbody></table>
+<p>SA2 是 5GC 规范的核心输出者，其架构决策直接约束 CT 和 RAN 的详细协议设计。</p>
+<hr>
+<h4 id="SA-WG3（SA3）—-安全"><a href="#SA-WG3（SA3）—-安全" class="headerlink" title="SA WG3（SA3）— 安全"></a>SA WG3（SA3）— 安全</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>分析 3GPP 系统面临的安全威胁，制定安全要求和安全机制，包括鉴权（5G-AKA &#x2F; EAP-AKA’）、SUCI 隐私保护、密钥层级体系、NAS&#x2F;RRC&#x2F;UP 安全激活等</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 33.501（5G 安全架构）、TS 33.102（3G 安全参考，历史背景）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="SA-WG4（SA4）—-编解码"><a href="#SA-WG4（SA4）—-编解码" class="headerlink" title="SA WG4（SA4）— 编解码"></a>SA WG4（SA4）— 编解码</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>制定语音、音频、视频和多媒体编解码规范，包括电路域和分组域场景；同时负责质量评估和端到端性能研究</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 26.445（EVS 编解码器）、TS 26.071（AMR）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="SA-WG5（SA5）—-电信管理与网络自动化"><a href="#SA-WG5（SA5）—-电信管理与网络自动化" class="headerlink" title="SA WG5（SA5）— 电信管理与网络自动化"></a>SA WG5（SA5）— 电信管理与网络自动化</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>制定电信管理、OAM（运营、管理、维护）和网络自动化规范，包括网络切片管理、NWDAF（网络数据分析功能）等 5G 智能化议题</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 28 系列（管理与编排）、TR 28.812（网络切片管理）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="SA-WG6（SA6）—-应用使能与关键通信"><a href="#SA-WG6（SA6）—-应用使能与关键通信" class="headerlink" title="SA WG6（SA6）— 应用使能与关键通信"></a>SA WG6（SA6）— 应用使能与关键通信</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>负责应用使能层和关键通信应用（如 MCPTT、MCVideo、MCData 等任务关键通信业务）的规范</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 23.280（关键通信公共需求）、TS 23.379（MCPTT）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="11-TSG-CT-—-核心网与终端"><a href="#11-TSG-CT-—-核心网与终端" class="headerlink" title="11. TSG CT — 核心网与终端"></a>11. TSG CT — 核心网与终端</h1><p><strong>TSG CT（Core Network and Terminals）</strong> 负责核心网协议和终端接口的详细规范制定。如果说 SA2 定义了”5GC 网元有哪些功能”，那么 CT 则定义了”这些功能如何通过具体协议实现”。</p>
+<h3 id="CT-工作组详解"><a href="#CT-工作组详解" class="headerlink" title="CT 工作组详解"></a>CT 工作组详解</h3><h4 id="CT-WG1（CT1）—-NAS-层协议"><a href="#CT-WG1（CT1）—-NAS-层协议" class="headerlink" title="CT WG1（CT1）— NAS 层协议"></a>CT WG1（CT1）— NAS 层协议</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>定义 UE 与核心网之间的非接入层（NAS）协议，包括 5G NAS（注册管理 RM、会话管理 SM）、EPS 与 5GS 的互操作 NAS</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 24.501（5G NAS 协议）、TS 24.301（LTE NAS EPS，参考背景）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="CT-WG3（CT3）—-与外部网络的互通"><a href="#CT-WG3（CT3）—-与外部网络的互通" class="headerlink" title="CT WG3（CT3）— 与外部网络的互通"></a>CT WG3（CT3）— 与外部网络的互通</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>负责 3GPP 系统与外部网络（包括固网、互联网等）的互通协议规范</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 29.061（与外部分组数据网络的互通）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="CT-WG4（CT4）—-MAP-GTP-直径等核心协议"><a href="#CT-WG4（CT4）—-MAP-GTP-直径等核心协议" class="headerlink" title="CT WG4（CT4）— MAP &#x2F; GTP &#x2F; 直径等核心协议"></a>CT WG4（CT4）— MAP &#x2F; GTP &#x2F; 直径等核心协议</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>负责核心网内部协议，包括 GTP（GPRS 隧道协议，用于 N3&#x2F;N9 接口 GTP-U 封装）、Diameter（4G 时代）、HTTP&#x2F;2 基于服务化接口（SBI）的详细协议设计</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 29.281（GTP-U 协议）、TS 29.500 系列（5GC SBI 协议框架）</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="CT-WG6（CT6）—-智能卡应用"><a href="#CT-WG6（CT6）—-智能卡应用" class="headerlink" title="CT WG6（CT6）— 智能卡应用"></a>CT WG6（CT6）— 智能卡应用</h4><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心职责</td>
+<td>负责 USIM&#x2F;UICC 智能卡的应用层规范，包括 USIM 应用工具包、SIM 卡文件系统、eUICC &#x2F; iSIM 相关规范</td>
+</tr>
+<tr>
+<td>代表性规范</td>
+<td>TS 31.101（UICC 终端接口）、TS 31.102（USIM 应用特性）、TS 22.101 中与 SIM 相关部分</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="12-各-TSG-WG-协作关系与分工边界"><a href="#12-各-TSG-WG-协作关系与分工边界" class="headerlink" title="12. 各 TSG &#x2F; WG 协作关系与分工边界"></a>12. 各 TSG &#x2F; WG 协作关系与分工边界</h1><p>5G NR 的标准化是多个 TSG 和 WG 高度协作的产物。以”5G 注册流程”为例，各 WG 的分工如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">业务需求（SA1）</span><br><span class="line">     │</span><br><span class="line">     ▼ 系统架构设计</span><br><span class="line">5GC 架构与过程（SA2 → TS 23.501/23.502）</span><br><span class="line">     │                  │</span><br><span class="line">     ▼                  ▼</span><br><span class="line">NAS 协议（CT1）      安全机制（SA3）</span><br><span class="line">TS 24.501            TS 33.501</span><br><span class="line">     │</span><br><span class="line">     ▼ 无线侧 NAS 承载</span><br><span class="line">RRC 协议（RAN2）</span><br><span class="line">TS 38.331</span><br><span class="line">     │</span><br><span class="line">     ▼ 物理层传输</span><br><span class="line">物理层（RAN1）</span><br><span class="line">TS 38.211~38.214</span><br><span class="line">     │</span><br><span class="line">     ▼ 终端射频合规</span><br><span class="line">一致性测试（RAN4 + RAN5）</span><br><span class="line">TS 38.101, TS 38.521</span><br></pre></td></tr></table></figure>
+
+<p><strong>跨 TSG 协调机制</strong>：当某个技术议题涉及多个 TSG（例如 CU&#x2F;DU 功能拆分同时影响 RAN3 架构和 SA2 核心网接口），相关 WG 会通过<strong>联络函（LS，Liaison Statement）</strong> 进行正式沟通，并在各自会议中关闭对方的 LS。TSG SA Plenary 在这一协调体系中扮演最终仲裁角色。</p>
+<hr>
+<h1 id="13-个人成员（Individual-Members）与贡献驱动模式"><a href="#13-个人成员（Individual-Members）与贡献驱动模式" class="headerlink" title="13. 个人成员（Individual Members）与贡献驱动模式"></a>13. 个人成员（Individual Members）与贡献驱动模式</h1><p>3GPP 是<strong>贡献驱动（contribution-driven）</strong>的标准化组织。企业通过向所在地区的 OP 缴纳会费，成为 3GPP 的<strong>个人成员（Individual Members，IM）</strong>，从而获得参与 WG &#x2F; TSG 会议、提交技术提案（TDoc，Technical Document）和投票的权利。</p>
+<p>截至 2022 年底，3GPP 拥有超过 <strong>800 个个人成员</strong>，来自全球各大运营商、设备商、芯片商、高校及研究机构。主要参与者包括：华为、爱立信、诺基亚、高通、三星、中兴、联发科、英特尔、AT&amp;T、沃达丰、中国移动、中国电信等。</p>
+<p><strong>会议参与规则</strong>：</p>
+<ul>
+<li>任何个人成员均可提交 TDoc（贡献文稿）；</li>
+<li>WG 层面通过<strong>技术讨论 + 工程共识</strong>达成结论（不硬性要求投票）；</li>
+<li>TSG Plenary 层面采用<strong>投票制</strong>批准规范；</li>
+<li>每个 OP 在 TSG 全体会议中具有一票投票权（不按公司数量计算）。</li>
+</ul>
+<hr>
+<h1 id="14-会议体系与工作节奏"><a href="#14-会议体系与工作节奏" class="headerlink" title="14. 会议体系与工作节奏"></a>14. 会议体系与工作节奏</h1><h3 id="14-1-WG-会议"><a href="#14-1-WG-会议" class="headerlink" title="14.1 WG 会议"></a>14.1 WG 会议</h3><p>各 WG 每年举行 <strong>4~6 次</strong>线下（或线上）工作会议，每次时长约 4~5 天。WG 会议是技术细节讨论、TDoc 审查和规范草稿撰写的主要场所。</p>
+<h3 id="14-2-TSG-Plenary-会议"><a href="#14-2-TSG-Plenary-会议" class="headerlink" title="14.2 TSG Plenary 会议"></a>14.2 TSG Plenary 会议</h3><p>每年 4 次（3 月 &#x2F; 6 月 &#x2F; 9 月 &#x2F; 12 月），RAN、SA、CT 三个 TSG Plenary <strong>同周同地召开</strong>。会议周日程安排通常为：</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>会议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第 1~2 天</td>
+<td>CT Plenary</td>
+</tr>
+<tr>
+<td>第 2~3 天</td>
+<td>RAN Plenary</td>
+</tr>
+<tr>
+<td>第 3~4 天</td>
+<td>SA Plenary（最后召开，负责全局协调）</td>
+</tr>
+</tbody></table>
+<h3 id="14-3-电子会议（e-meeting）"><a href="#14-3-电子会议（e-meeting）" class="headerlink" title="14.3 电子会议（e-meeting）"></a>14.3 电子会议（e-meeting）</h3><p>WG 会议可以全线上或线下&#x2F;线上混合形式举行，极大地降低了全球参与者的差旅成本。</p>
+<hr>
+<h1 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h1><p>本文系统梳理了 3GPP 的组织架构与工作组体系：</p>
+<ul>
+<li><strong>7 个组织合作伙伴</strong>（ETSI &#x2F; ARIB &#x2F; TTC &#x2F; ATIS &#x2F; CCSA &#x2F; TTA &#x2F; TSDSI）构成 3GPP 的战略治理层；</li>
+<li><strong>PCG</strong> 是最高决策机构，<strong>MCC</strong> 是永久性行政支撑机构；</li>
+<li><strong>三大 TSG</strong>（RAN &#x2F; SA &#x2F; CT）是技术规范制定的核心执行层：<ul>
+<li>TSG RAN 聚焦空口物理层（RAN1）、Layer 2 与 RRC（RAN2）、接入网接口架构（RAN3）、射频性能（RAN4）、一致性测试（RAN5）；</li>
+<li>TSG SA 聚焦业务需求（SA1）、系统架构（SA2）、安全（SA3）、编解码（SA4）、管理（SA5）、关键通信（SA6）；</li>
+<li>TSG CT 聚焦 NAS 协议（CT1）、外网互通（CT3）、核心协议（CT4）、智能卡（CT6）；</li>
+</ul>
+</li>
+<li>3GPP 以<strong>贡献驱动</strong>模式运作，任何成员均可提交技术提案并参与共识形成。</li>
+</ul>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p>以下资料均可在 3GPP 官网免费获取：</p>
+<table>
+<thead>
+<tr>
+<th>文档</th>
+<th>来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://www.3gpp.org/ftp/Information/Working_Procedures/">3GPP Working Procedures</a></td>
+<td>3GPP 官网</td>
+<td>3GPP 工作程序全文，含 OP 职责、TSG&#x2F;WG 运作规则</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.3gpp.org/about-us/introducing-3gpp">Introducing 3GPP</a></td>
+<td>3GPP 官网</td>
+<td>3GPP 官方简介</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.3gpp.org/3gpp-groups">3GPP Groups</a></td>
+<td>3GPP 官网</td>
+<td>各 TSG &#x2F; WG 主页及职责描述</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.3gpp.org/about-us/partners">3GPP Partners</a></td>
+<td>3GPP 官网</td>
+<td>组织合作伙伴与市场代表合作伙伴列表</td>
+</tr>
+<tr>
+<td>TS 38.300</td>
+<td>RAN2</td>
+<td>NR 总体描述（整体架构入口）</td>
+</tr>
+<tr>
+<td>TS 23.501</td>
+<td>SA2</td>
+<td>5G 系统架构</td>
+</tr>
+<tr>
+<td>TS 33.501</td>
+<td>SA3</td>
+<td>5G 安全架构</td>
+</tr>
+<tr>
+<td>TS 24.501</td>
+<td>CT1</td>
+<td>5G NAS 协议</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所有 3GPP 规范可在 <a target="_blank" rel="noopener" href="https://www.3gpp.org/ftp/Specs/">https://www.3gpp.org/ftp/Specs/</a> 免费下载，也可通过 <a target="_blank" rel="noopener" href="https://portal.3gpp.org/">https://portal.3gpp.org/</a> 在线检索。</p>
+</blockquote>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-3GPP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 3GPP 是什么？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-3GPP-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">3.</span> <span class="toc-text">2. 3GPP 的诞生背景与历史沿革</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%88%90%E7%AB%8B%E8%83%8C%E6%99%AF"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 成立背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%85%B3%E9%94%AE%E9%87%8C%E7%A8%8B%E7%A2%91"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 关键里程碑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BB%84%E7%BB%87%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-number">4.</span> <span class="toc-text">3. 组织架构总览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E7%BB%84%E7%BB%87%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%EF%BC%88Organizational-Partners%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 组织合作伙伴（Organizational Partners）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%83%E5%A4%A7%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%E4%B8%80%E8%A7%88"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 七大合作伙伴一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BB%84%E7%BB%87%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%83%BD"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 组织合作伙伴的核心职能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%A7%84%E8%8C%83%E8%BD%AC%E5%8C%96%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 规范转化机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%B8%82%E5%9C%BA%E4%BB%A3%E8%A1%A8%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4%EF%BC%88Market-Representation-Partners%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. 市场代表合作伙伴（Market Representation Partners）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B9%E7%9B%AE%E5%8D%8F%E8%B0%83%E7%BB%84%EF%BC%88PCG%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 项目协调组（PCG）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%A7%BB%E5%8A%A8%E8%83%BD%E5%8A%9B%E4%B8%AD%E5%BF%83%EF%BC%88MCC%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">7. 移动能力中心（MCC）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83%E7%BB%84%EF%BC%88TSG%EF%BC%89%E6%80%BB%E8%A7%88"><span class="toc-number">9.</span> <span class="toc-text">8. 技术规范组（TSG）总览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TSG-%E5%85%A8%E4%BD%93%E4%BC%9A%E8%AE%AE%EF%BC%88Plenary%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">TSG 全体会议（Plenary）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-TSG-RAN-%E2%80%94-%E6%97%A0%E7%BA%BF%E6%8E%A5%E5%85%A5%E7%BD%91"><span class="toc-number">10.</span> <span class="toc-text">9. TSG RAN — 无线接入网</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-TSG-RAN-%E8%81%8C%E8%B4%A3%E8%8C%83%E5%9B%B4"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 TSG RAN 职责范围</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-RAN-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 RAN 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG1%EF%BC%88RAN1%EF%BC%89%E2%80%94-%E7%89%A9%E7%90%86%E5%B1%82%E8%A7%84%E8%8C%83"><span class="toc-number">10.0.2.1.</span> <span class="toc-text">RAN WG1（RAN1）— 物理层规范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG2%EF%BC%88RAN2%EF%BC%89%E2%80%94-%E6%97%A0%E7%BA%BF%E5%B1%82-2-%E4%B8%8E-RRC-%E5%8D%8F%E8%AE%AE"><span class="toc-number">10.0.2.2.</span> <span class="toc-text">RAN WG2（RAN2）— 无线层 2 与 RRC 协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG3%EF%BC%88RAN3%EF%BC%89%E2%80%94-%E6%8E%A5%E5%85%A5%E7%BD%91%E6%8E%A5%E5%8F%A3%E4%B8%8E%E6%9E%B6%E6%9E%84"><span class="toc-number">10.0.2.3.</span> <span class="toc-text">RAN WG3（RAN3）— 接入网接口与架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG4%EF%BC%88RAN4%EF%BC%89%E2%80%94-%E5%B0%84%E9%A2%91%E6%80%A7%E8%83%BD%E4%B8%8E%E5%8D%8F%E8%AE%AE%E6%96%B9%E9%9D%A2"><span class="toc-number">10.0.2.4.</span> <span class="toc-text">RAN WG4（RAN4）— 射频性能与协议方面</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-WG5%EF%BC%88RAN5%EF%BC%89%E2%80%94-%E7%A7%BB%E5%8A%A8%E7%BB%88%E7%AB%AF%E4%B8%80%E8%87%B4%E6%80%A7%E6%B5%8B%E8%AF%95"><span class="toc-number">10.0.2.5.</span> <span class="toc-text">RAN WG5（RAN5）— 移动终端一致性测试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RAN-AH1-%E2%80%94-%E4%B8%B4%E6%97%B6%E4%B8%93%E9%A1%B9%E5%B0%8F%E7%BB%84"><span class="toc-number">10.0.2.6.</span> <span class="toc-text">RAN AH1 — 临时专项小组</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-TSG-SA-%E2%80%94-%E6%9C%8D%E5%8A%A1%E4%B8%8E%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">11.</span> <span class="toc-text">10. TSG SA — 服务与系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SA-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">11.0.1.</span> <span class="toc-text">SA 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG1%EF%BC%88SA1%EF%BC%89%E2%80%94-%E4%B8%9A%E5%8A%A1%E9%9C%80%E6%B1%82"><span class="toc-number">11.0.1.1.</span> <span class="toc-text">SA WG1（SA1）— 业务需求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG2%EF%BC%88SA2%EF%BC%89%E2%80%94-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">11.0.1.2.</span> <span class="toc-text">SA WG2（SA2）— 系统架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG3%EF%BC%88SA3%EF%BC%89%E2%80%94-%E5%AE%89%E5%85%A8"><span class="toc-number">11.0.1.3.</span> <span class="toc-text">SA WG3（SA3）— 安全</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG4%EF%BC%88SA4%EF%BC%89%E2%80%94-%E7%BC%96%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.1.4.</span> <span class="toc-text">SA WG4（SA4）— 编解码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG5%EF%BC%88SA5%EF%BC%89%E2%80%94-%E7%94%B5%E4%BF%A1%E7%AE%A1%E7%90%86%E4%B8%8E%E7%BD%91%E7%BB%9C%E8%87%AA%E5%8A%A8%E5%8C%96"><span class="toc-number">11.0.1.5.</span> <span class="toc-text">SA WG5（SA5）— 电信管理与网络自动化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-WG6%EF%BC%88SA6%EF%BC%89%E2%80%94-%E5%BA%94%E7%94%A8%E4%BD%BF%E8%83%BD%E4%B8%8E%E5%85%B3%E9%94%AE%E9%80%9A%E4%BF%A1"><span class="toc-number">11.0.1.6.</span> <span class="toc-text">SA WG6（SA6）— 应用使能与关键通信</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-TSG-CT-%E2%80%94-%E6%A0%B8%E5%BF%83%E7%BD%91%E4%B8%8E%E7%BB%88%E7%AB%AF"><span class="toc-number">12.</span> <span class="toc-text">11. TSG CT — 核心网与终端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CT-%E5%B7%A5%E4%BD%9C%E7%BB%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">12.0.1.</span> <span class="toc-text">CT 工作组详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG1%EF%BC%88CT1%EF%BC%89%E2%80%94-NAS-%E5%B1%82%E5%8D%8F%E8%AE%AE"><span class="toc-number">12.0.1.1.</span> <span class="toc-text">CT WG1（CT1）— NAS 层协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG3%EF%BC%88CT3%EF%BC%89%E2%80%94-%E4%B8%8E%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E7%9A%84%E4%BA%92%E9%80%9A"><span class="toc-number">12.0.1.2.</span> <span class="toc-text">CT WG3（CT3）— 与外部网络的互通</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG4%EF%BC%88CT4%EF%BC%89%E2%80%94-MAP-GTP-%E7%9B%B4%E5%BE%84%E7%AD%89%E6%A0%B8%E5%BF%83%E5%8D%8F%E8%AE%AE"><span class="toc-number">12.0.1.3.</span> <span class="toc-text">CT WG4（CT4）— MAP &#x2F; GTP &#x2F; 直径等核心协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CT-WG6%EF%BC%88CT6%EF%BC%89%E2%80%94-%E6%99%BA%E8%83%BD%E5%8D%A1%E5%BA%94%E7%94%A8"><span class="toc-number">12.0.1.4.</span> <span class="toc-text">CT WG6（CT6）— 智能卡应用</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%90%84-TSG-WG-%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%88%86%E5%B7%A5%E8%BE%B9%E7%95%8C"><span class="toc-number">13.</span> <span class="toc-text">12. 各 TSG &#x2F; WG 协作关系与分工边界</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E4%B8%AA%E4%BA%BA%E6%88%90%E5%91%98%EF%BC%88Individual-Members%EF%BC%89%E4%B8%8E%E8%B4%A1%E7%8C%AE%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%BC%8F"><span class="toc-number">14.</span> <span class="toc-text">13. 个人成员（Individual Members）与贡献驱动模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E4%BC%9A%E8%AE%AE%E4%BD%93%E7%B3%BB%E4%B8%8E%E5%B7%A5%E4%BD%9C%E8%8A%82%E5%A5%8F"><span class="toc-number">15.</span> <span class="toc-text">14. 会议体系与工作节奏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-WG-%E4%BC%9A%E8%AE%AE"><span class="toc-number">15.0.1.</span> <span class="toc-text">14.1 WG 会议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-TSG-Plenary-%E4%BC%9A%E8%AE%AE"><span class="toc-number">15.0.2.</span> <span class="toc-text">14.2 TSG Plenary 会议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E7%94%B5%E5%AD%90%E4%BC%9A%E8%AE%AE%EF%BC%88e-meeting%EF%BC%89"><span class="toc-number">15.0.3.</span> <span class="toc-text">14.3 电子会议（e-meeting）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">16.</span> <span class="toc-text">15. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">17.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&text=3GPP 组织架构与工作组体系"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&is_video=false&description=3GPP 组织架构与工作组体系"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=3GPP 组织架构与工作组体系&body=Check out this article: http://example.com/2016/01/04/3gpp/01-3gpp%20organization/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&title=3GPP 组织架构与工作组体系"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&name=3GPP 组织架构与工作组体系&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/01/04/3gpp/01-3gpp%20organization/&t=3GPP 组织架构与工作组体系"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

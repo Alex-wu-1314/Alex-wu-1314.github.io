@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言软件工程的迷人之处在于，它同时需要艺术家的审美、工程师的严谨和经济学家的权衡。质量既是一种目标，也是一种持续的防御行为。对抗熵增，对抗认知偏差，对抗团队惰性，更对抗那个根植于人性的“先上线再说”的冲动。 本篇 11 条深刻影响软件质量的法则，从如何书写一行可读的代码，到如何在团队层面建立质量文化，再到整个软件系统演化的不可逆规律。这些法则共同构成了我们对代码腐烂的防御工事，也划定了我们应当坚守">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之质量篇：代码腐烂的防御与质量底线">
+<meta property="og:url" content="http://example.com/2021/10/14/software%20engineering/04-quality%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言软件工程的迷人之处在于，它同时需要艺术家的审美、工程师的严谨和经济学家的权衡。质量既是一种目标，也是一种持续的防御行为。对抗熵增，对抗认知偏差，对抗团队惰性，更对抗那个根植于人性的“先上线再说”的冲动。 本篇 11 条深刻影响软件质量的法则，从如何书写一行可读的代码，到如何在团队层面建立质量文化，再到整个软件系统演化的不可逆规律。这些法则共同构成了我们对代码腐烂的防御工事，也划定了我们应当坚守">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-10-14T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:02:47.407Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之质量篇：代码腐烂的防御与质量底线</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/28/software%20engineering/05-scale%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&text=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&is_video=false&description=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之质量篇：代码腐烂的防御与质量底线&body=Check out this article: http://example.com/2021/10/14/software%20engineering/04-quality%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&name=软件工程之质量篇：代码腐烂的防御与质量底线&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&t=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Boy-Scout-Rule-%E2%80%94%E2%80%94-%E8%AE%A9%E4%BB%A3%E7%A0%81%E6%AF%94%E4%BD%A0%E5%8F%91%E7%8E%B0%E6%97%B6%E6%9B%B4%E5%A5%BD"><span class="toc-number">2.</span> <span class="toc-text">The Boy Scout Rule —— 让代码比你发现时更好</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Murphy%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%87%A1%E6%98%AF%E5%8F%AF%E8%83%BD%E5%87%BA%E9%94%99%E7%9A%84%EF%BC%8C%E7%BB%88%E5%B0%86%E5%87%BA%E9%94%99"><span class="toc-number">3.</span> <span class="toc-text">Murphy’s Law —— 凡是可能出错的，终将出错</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Postel%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%8F%91%E9%80%81%E6%97%B6%E4%BF%9D%E5%AE%88%EF%BC%8C%E6%8E%A5%E6%94%B6%E6%97%B6%E5%AE%BD%E5%AE%B9"><span class="toc-number">4.</span> <span class="toc-text">Postel’s Law —— 发送时保守，接收时宽容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Broken-Windows-Theory-%E2%80%94%E2%80%94-%E4%B8%8D%E8%A6%81%E6%94%BE%E4%BB%BB%E2%80%9D%E7%A0%B4%E7%AA%97%E2%80%9D%E4%B8%8D%E4%BF%AE"><span class="toc-number">5.</span> <span class="toc-text">Broken Windows Theory —— 不要放任”破窗”不修</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Technical-Debt-%E2%80%94%E2%80%94-%E4%B8%80%E5%88%87%E6%8B%96%E6%85%A2%E6%88%91%E4%BB%AC%E5%BC%80%E5%8F%91%E8%BF%9B%E5%BA%A6%E7%9A%84%E4%BA%8B%E7%89%A9"><span class="toc-number">6.</span> <span class="toc-text">Technical Debt —— 一切拖慢我们开发进度的事物</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Linus%E2%80%99s-Law-%E2%80%94%E2%80%94-%E8%B6%B3%E5%A4%9F%E5%A4%9A%E7%9A%84%E7%9C%BC%E7%9D%9B%EF%BC%8C%E6%89%80%E6%9C%89-Bug-%E9%83%BD%E6%97%A0%E5%A4%84%E9%81%81%E5%BD%A2"><span class="toc-number">7.</span> <span class="toc-text">Linus’s Law —— 足够多的眼睛，所有 Bug 都无处遁形</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Kernighan%E2%80%99s-Law-%E2%80%94%E2%80%94-%E8%B0%83%E8%AF%95%E7%9A%84%E9%9A%BE%E5%BA%A6%E6%98%AF%E5%86%99%E4%BB%A3%E7%A0%81%E7%9A%84%E4%B8%A4%E5%80%8D"><span class="toc-number">8.</span> <span class="toc-text">Kernighan’s Law —— 调试的难度是写代码的两倍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Testing-Pyramid-%E2%80%94%E2%80%94-%E5%A4%9A%E5%86%99%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%EF%BC%8C%E5%B0%91%E5%86%99-UI-%E6%B5%8B%E8%AF%95"><span class="toc-number">9.</span> <span class="toc-text">Testing Pyramid —— 多写单元测试，少写 UI 测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pesticide-Paradox-%E2%80%94%E2%80%94-%E9%87%8D%E5%A4%8D%E6%89%A7%E8%A1%8C%E7%9B%B8%E5%90%8C%E7%9A%84%E6%B5%8B%E8%AF%95%EF%BC%8C%E6%95%88%E6%9E%9C%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%B7%AE"><span class="toc-number">10.</span> <span class="toc-text">Pesticide Paradox —— 重复执行相同的测试，效果越来越差</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Lehman%E2%80%99s-Laws-of-Software-Evolution-%E2%80%94%E2%80%94-%E8%BD%AF%E4%BB%B6%E5%BF%85%E9%A1%BB%E6%8C%81%E7%BB%AD%E6%BC%94%E5%8C%96%EF%BC%8C%E5%90%A6%E5%88%99%E4%BC%9A%E9%80%90%E6%B8%90%E9%80%80%E5%8C%96"><span class="toc-number">11.</span> <span class="toc-text">Lehman’s Laws of Software Evolution —— 软件必须持续演化，否则会逐渐退化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-9"><span class="toc-number">11.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-9"><span class="toc-number">11.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-9"><span class="toc-number">11.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Sturgeon%E2%80%99s-Law-%E2%80%94%E2%80%94-90-%E7%9A%84%E4%B8%80%E5%88%87%E9%83%BD%E6%98%AF%E5%9E%83%E5%9C%BE"><span class="toc-number">12.</span> <span class="toc-text">Sturgeon’s Law —— 90% 的一切都是垃圾</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-10"><span class="toc-number">12.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-10"><span class="toc-number">12.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-10"><span class="toc-number">12.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E8%B4%A8%E9%87%8F%E6%98%AF%E4%B8%80%E5%9C%BA%E6%B0%B8%E4%B8%8D%E7%BB%88%E6%AD%A2%E7%9A%84%E9%98%B2%E5%BE%A1%E6%88%98"><span class="toc-number">13.</span> <span class="toc-text">结语：质量是一场永不终止的防御战</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之质量篇：代码腐烂的防御与质量底线
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-14T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-10-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>软件工程的迷人之处在于，它同时需要艺术家的审美、工程师的严谨和经济学家的权衡。质量既是一种目标，也是一种持续的防御行为。对抗熵增，对抗认知偏差，对抗团队惰性，更对抗那个根植于人性的“先上线再说”的冲动。</p>
+<p>本篇 11 条深刻影响软件质量的法则，从如何书写一行可读的代码，到如何在团队层面建立质量文化，再到整个软件系统演化的不可逆规律。这些法则共同构成了我们对代码腐烂的防御工事，也划定了我们应当坚守的质量底线。</p>
+<hr>
+<h1 id="The-Boy-Scout-Rule-——-让代码比你发现时更好"><a href="#The-Boy-Scout-Rule-——-让代码比你发现时更好" class="headerlink" title="The Boy Scout Rule —— 让代码比你发现时更好"></a>The Boy Scout Rule —— 让代码比你发现时更好</h1><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>童子军有一条古老的准则：离开营地时，让它比你发现时更干净。1990 年代末，Robert C. Martin（江湖人称“Uncle Bob”）将这条准则引入了软件开发，命名为“童子军规则”。它在实践中不追求一次性的“大爆炸式”重写，而是倡导持续的、渐进式的改进。每当开发者修改一块代码时，无论是添加新功能还是修复 bug，都可以利用这个机会顺手改进一些东西，比如重命名一个令人困惑的函数名、消除一段重复的代码，或者补充一个缺失的测试用例。</p>
+<p>这些改变往往只需要额外花上几分钟，但如果团队中的每个成员都坚持践行，日积月累的效果就非常可观。Google 的工程师文化中有句话叫“If you touch it, you own it”，当你修改了某段代码，你就对它负责。这意味着，在完成手头任务的同时，你也会顺手修复那些被你触及到的“小问题”，防止它们逐渐腐烂成技术债务。</p>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p>假设你在维护一个老旧的模块，准备添加一个新特性。代码能工作，但有一个超过 200 行的函数 <code>processData()</code>，内部注释乱七八糟，还夹杂着大量被注释掉的死代码。遵循童子军规则，你可以做两件事：首先，尝试将那个臃肿的函数拆分成几个命名清晰、功能单一的子函数，提高可读性；其次，删除那些早已无用的注释代码。整个过程可能只花了十几分钟，但这一点小小的“清扫”让代码库变得稍微整洁了一些，下一次路过这里的开发者也能少一些困惑。</p>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>不要让坏代码在项目中腐烂。</strong> 每当你工作到某个模块时，花点时间重构或修复至少一个小问题，从变量命名到逻辑简化，什么都行。</li>
+<li><strong>增量改进的力量不容小觑。</strong> 更干净的代码库更容易阅读、修改和扩展，持续的小改进可以长期维持项目的可维护性并持续降低技术债务。</li>
+<li><strong>建立所有权文化。</strong> 当每个开发者都将这条内化为习惯时，整个团队便会形成一种共同为代码质量负责的文化氛围。</li>
+</ul>
+<hr>
+<h1 id="Murphy’s-Law-——-凡是可能出错的，终将出错"><a href="#Murphy’s-Law-——-凡是可能出错的，终将出错" class="headerlink" title="Murphy’s Law —— 凡是可能出错的，终将出错"></a>Murphy’s Law —— 凡是可能出错的，终将出错</h1><h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><p>墨菲定律的原始含义非常直接：如果一件事有出错的概率，那么它迟早会出错。在软件领域，这条定律经常被用来解释 bug 和生产事故的必然性。一段代码中任何一个可能的副作用，如空指针、数据竞态、网络超时，只要它存在于理论的可能中，最终都会在某个最不合适的时刻在线上暴露出来。</p>
+<p>这听起来很悲观，但它恰恰是软件工程从“想当然”走向“敬畏系统”的起点。墨菲定律不鼓励开发者幻想“这种错误不会发生”，而是提醒我们用防御性的思维去编写代码：检查空值、处理异常、验证输入、优雅降级。它也提醒运维团队，时刻准备好监控、回滚和应急方案，因为“服务器一定会在你唯一休假的那天崩溃”。</p>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p>一个典型的例子是文件处理函数直接假设目标文件一定存在。墨菲定律告诉我们，总有一天这个文件会丢失或损坏。负责任的代码应该在打开文件前检查其存在性并处理异常场景，而不是直接崩溃。另一个著名的现实案例是 Bill Gates 在 Windows 98 发布会上遭遇的蓝屏，如果你认为“现场演示不会出事”，墨菲定律会用现实教育你。</p>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>主动拥抱不确定性。</strong> 如果某类错误可能发生，就主动把它当作会发生的来规划和防御，编写健壮的异常处理和容错逻辑。</li>
+<li><strong>为最坏情况做预案。</strong> 在生产环境中，各种边缘条件终将被触发，确保测试覆盖这些场景，并做好监控、备份和应急计划。</li>
+</ul>
+<hr>
+<h1 id="Postel’s-Law-——-发送时保守，接收时宽容"><a href="#Postel’s-Law-——-发送时保守，接收时宽容" class="headerlink" title="Postel’s Law —— 发送时保守，接收时宽容"></a>Postel’s Law —— 发送时保守，接收时宽容</h1><h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><p>Postel 定律由互联网先驱 Jon Postel 在 1980 年的 TCP 规范（RFC 760）中提出：“TCP 实现应遵循一条普遍的鲁棒性原则：在发送时保持保守，在接收时保持宽容。”这条原则对互联网早期的发展起到了至关重要的作用，使得不同厂商、不同语言的实现能够彼此兼容。它的意思是：当你向外发送数据或定义 API 时，应严格遵守协议规范，输出精确、清晰的信息；当你接收外部的数据时，应尽可能地宽容，只要能够安全地解析和推断，就应处理各种非标准格式，而不轻易拒绝通信。</p>
+<p>这条理念极大地促进了互联网生态的繁荣，浏览器就是一个典型例子：即便 HTML 页面标签未闭合、属性缺失，浏览器依然会进行错误修正，尽力呈现页面。如果浏览器严格遵循标准，一半的网页都无法正常显示。</p>
+<p>然而，Postel 定律也有它的现代争议。过于宽容的接受往往会掩盖生产端的坏习惯，导致错误始终得不到修正；在安全敏感的上下文中，接受畸形的输入可能引入风险。因此，今天的工程师常常在宽容与严格之间谨慎权衡，既要保证互操作性，又不能纵容错误。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p>考虑一个接受时间戳参数的 API。如果你遵循 Postel 定律，在输出端你会始终包含时区信息，保持精确和保守；但在接收端，如果收到一个不带时区的时间戳，你不会简单地拒绝请求，而是尝试假设 UTC 或其他合理的默认值继续解析。</p>
+<p>邮件客户端也如出一辙：当你收到一封格式不太规范的邮件（比如缺少某个 MIME 边界），好的客户端不会直接抛出错误，而是尽力展示邮件内容。</p>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>发送端必须严格遵守标准。</strong> 系统对外输出的数据应严格遵循协议，保持精确、一致、可预测。</li>
+<li><strong>接收端应保持合理宽容。</strong> 在不引入安全隐患的前提下，接收数据时应容忍细微的偏差和格式变化，尽力保证通信能够继续。</li>
+<li><strong>宽容也有边界。</strong> 在现代实践中，过于宽松可能会掩盖问题，需根据安全需要和长期维护成本谨慎权衡。</li>
+</ul>
+<hr>
+<h1 id="Broken-Windows-Theory-——-不要放任”破窗”不修"><a href="#Broken-Windows-Theory-——-不要放任”破窗”不修" class="headerlink" title="Broken Windows Theory —— 不要放任”破窗”不修"></a>Broken Windows Theory —— 不要放任”破窗”不修</h1><h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><p>破窗效应最初是一个犯罪学理论：如果一栋建筑的一扇窗户破了没人修理，那么不久之后，其他窗户也会被人打破。无序会招致更大的无序。这一理论在 <em>The Pragmatic Programmer</em> 中被引入软件开发，形成了一条重要的质量法则：</p>
+<p>在代码库中，“破窗”可以是一个明显但懒得修复的 bug、一段风格丑陋的旧代码、一个被跳过的测试用例，或者一份过时的文档。如果你放任其在代码库中“破碎”，路过的开发者会默认“这个项目不重视质量”，于是自己也更倾向于走捷径、引入更多混乱。久而久之，软件熵增会加速，技术债务雪崩。</p>
+<p>反过来说，如果一个团队始终保持高标准，及时修复小问题，它就会在团队中建立一种质量文化，每个人都愿意维护整洁，而不是添乱。许多团队通过一次彻底的清理和一段时间的坚持，实现了质变：一旦大家习惯了整洁的环境，引入新 bug 的概率也就大大降低了。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><p>想想一个代码库中有几处显而易见的 hack：一段标注了 <code>// TODO: fix this hack</code> 但无人过问的代码。新接手的开发者看到这些会想：“反正这个项目到处都是 hack，再来一个也没什么。”破窗效应由此形成。同样的道理，如果一个模块完全没有测试覆盖，其他模块也可能在惯性下逐渐失去测试。</p>
+<p>很多开源项目的维护者会非常严格地审查每一行代码、每一次提交。在这种“没有破窗”的环境中，贡献者自然而然地就会保持高标准。</p>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>小漏洞不补，大灾难将至。</strong> 如果任由小 bug 和糟糕风格在项目中蔓延，团队成员会逐渐认为质量无关紧要，进而放任更糟糕的代码进入代码库。</li>
+<li><strong>整洁的环境是自我强化。</strong> 干净的代码库鼓励每个人保持它的整洁；相反，混乱的代码库则纵容更多人走捷径。</li>
+<li><strong>让问题保持微小。</strong> 在小问题演变成大麻烦之前及时修复它们，重构有问题的代码、更新过时的文档，主动防止代码健康的螺旋式下降。</li>
+</ul>
+<hr>
+<h1 id="Technical-Debt-——-一切拖慢我们开发进度的事物"><a href="#Technical-Debt-——-一切拖慢我们开发进度的事物" class="headerlink" title="Technical Debt —— 一切拖慢我们开发进度的事物"></a>Technical Debt —— 一切拖慢我们开发进度的事物</h1><h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><p>技术债务的比喻由 Ward Cunningham（敏捷宣言的联合作者之一）在 1992 年的 OOPSLA 会议上首次提出。当时他正在开发一个金融应用，为了说服老板需要投入时间重构代码，他借用了财务的比喻：</p>
+<p>写代码就像借钱。你可以选择走捷径，或者接受一个“临时方案”，以求快速交付功能、抢占市场或验证想法，这就好比借了一笔钱，获得了短期的收益。但你欠下了本金（未来需要修复的工作量）和利息（因代码混乱导致的 bug 和开发效率下降）。如果不还，利息会越滚越大。技术债务的核心张力就在于此：速度与质量的权衡。</p>
+<p>技术债务本身不一定是坏事。对初创团队来说，如果等到代码完美才发布，可能市场机会早就溜走了。关键是要有意识地借贷，清楚知道自己正在引入债务，并制定还款计划。忽视债务、从不还贷，是技术债务真正致命的陷阱，因为这会导致长期的维护困难和开发速度的持续下降。</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><p>一个典型的技术债务场景是：项目 deadline 临近，团队决定跳过写单元测试直接发布功能。上线成功了，但后续每次修改代码都如履薄冰，因为缺少了测试的安全网，每次改动都可能引入难以预见的 bug（这就是利息）。最终团队成员不得不停下来，专门用一个迭代来补全缺失的测试并重构关键模块。</p>
+<p>另一个经典例子是初创团队为了快速获得第一个客户而快速出活，代码中充斥着硬编码的变量和复制粘贴。这种做法让他们赢得了订单，但债务也同时增加。如果他们意识到这一点并主动规划“债务偿还周”，问题就还在掌控之中；如果忽视不顾，债务会逐渐瓦解开发效率。</p>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>借贷要有意识。</strong> 当你在代码中走捷径时，相当于从未来“借贷”时间，短期获益，但需偿还本金和利息。</li>
+<li><strong>利息是真实存在的。</strong> 若不偿还债务，每次在脏代码上花费的额外时间、修复 bug 的成本，都是为债务付出的利息，它会随着债务的积累而持续增加。</li>
+<li><strong>不是所有债务都坏。</strong> 适当的技术债务在特定情况下是实用的工具，如为了市场时机或验证原型；关键是要知道自己在做什么，并且有计划地偿还。</li>
+<li><strong>还债的方式。</strong> 偿还债务就是重构代码、补充测试、改进设计。有意识的借贷外加定期的“还贷”，是技术债务管理的黄金法则。</li>
+</ul>
+<hr>
+<h1 id="Linus’s-Law-——-足够多的眼睛，所有-Bug-都无处遁形"><a href="#Linus’s-Law-——-足够多的眼睛，所有-Bug-都无处遁形" class="headerlink" title="Linus’s Law —— 足够多的眼睛，所有 Bug 都无处遁形"></a>Linus’s Law —— 足够多的眼睛，所有 Bug 都无处遁形</h1><h3 id="Overview-5"><a href="#Overview-5" class="headerlink" title="Overview"></a>Overview</h3><p>Linus 定律是 Eric S. Raymond 在《大教堂与集市》中提出的著名论断，以 Linux 内核创始人 Linus Torvalds 的名字命名。Raymond 的原话是：“足够多的眼睛，所有 bug 都无处遁形。”</p>
+<p>这条定律揭示了开源开发模式的核心竞争优势：开放透明的代码库和庞大的贡献者社区。对某个开发者来说百思不得其解的 bug，在另一个同样遇到该问题的人眼中或许微不足道。成千上万的用户中总有一个人会找到稳定复现步骤，社区中总有某个人具备修复它的能力。</p>
+<p>但这并非说开源项目可以“自动”变好。定律的前提是“那些眼睛确实在看”，必须有活跃的用户群体和贡献者参与。否则，即便代码是公开的，也未必有人会去阅读和修复。Linus 定律在实践中也适用于内部团队的 code review 和结对编程：多个大脑比一个大脑更能揪出问题。</p>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><p>Apache HTTP Server 是一个经典的案例：因为它被数百万网站使用，代码开源，社区庞大，几乎任何安全漏洞或一般 bug 都有很高的概率被社区发现和报告。2021 年底震惊行业的 Log4Shell 漏洞就是在 Log4j 开源库中被社区发现并迅速修补的范例。</p>
+<p>与它形成对比的是，一个专有企业软件的 bug 可能潜藏很久而不被发现，因为只有它的内部团队和有限客户是“可用的眼睛”。</p>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>多人审阅的力量。</strong> Linus 定律凸显了代码审查和社区参与的重要性，当一个代码库被足够多的开发者阅读和使用时，几乎所有 bug 最终都会被识别并修复。</li>
+<li><strong>开源的优势。</strong> 开放源码之所以强大，正因为它能累积大量潜在的贡献者去发现和解决 bug。这也是开源软件通常能更快速演进的原因之一。</li>
+<li><strong>仅仅是开放是不够的。</strong> 定律的前提是“那些眼睛确实在看”，即有一个活跃的社区支撑。没有参与度的开源项目，bug 并不会自己消失。</li>
+</ul>
+<hr>
+<h1 id="Kernighan’s-Law-——-调试的难度是写代码的两倍"><a href="#Kernighan’s-Law-——-调试的难度是写代码的两倍" class="headerlink" title="Kernighan’s Law —— 调试的难度是写代码的两倍"></a>Kernighan’s Law —— 调试的难度是写代码的两倍</h1><h3 id="Overview-6"><a href="#Overview-6" class="headerlink" title="Overview"></a>Overview</h3><p>Kernighan 定律出自 Brian Kernighan 与 P.J. Plauger 合著的《The Elements of Programming Style》（1974）。Kernighan同时也是《The C Programming Language》的合著者，是在那个计算资源极其有限的年代提出这一警句的。</p>
+<p>为什么调试比写代码更难？因为在你写代码时，你的脑海中有一幅完整的蓝图：你知道你在做什么，你有着当前的上下文和意图。而当你开始调试，尤其是调试别人的代码，或者一个月之后调试自己的代码时，你已经没有那么清晰的上下文了。你不仅要理解“代码在做什么”，还要理解“它为什么没有做到该做的事”。Kernighan 认为，如果你写的代码复杂度接近甚至超过了你的智力处理能力的边界，那么自己就会被自己难倒。</p>
+<p>因此，Kernighan 定律实际上在鼓励一种谦卑的编码态度：不要写“聪明而晦涩”的代码，要写“朴素而清晰”的代码。维护性和可理解性，往往比极致的性能或缩写更重要。</p>
+<h3 id="Examples-6"><a href="#Examples-6" class="headerlink" title="Examples"></a>Examples</h3><p>想象一个开发者把极复杂的逻辑压缩在一行代码中，这段代码写了 30 分钟，但调试时花了 3 个小时。如果写成多行、清晰的判断结构，也许需要 45 分钟来编写，但后续的调试只需要 30 分钟，甚至在团队协作中根本不需要“调试”，因为所有人都能一眼看出逻辑。</p>
+<h3 id="Takeaways-6"><a href="#Takeaways-6" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>调试比编程更难。检测和修复 bug 之所以更难，是因为你必须同时理解“代码做了什么”和“它为什么没起作用”。</li>
+<li>不要挑战自己的极限。如果你在写代码时已经触碰到了自己智力能力的边界，那么你将无法在未来理解和调试它。</li>
+<li>简单代码是对未来的慈悲。结构清晰、文档良好的代码在长期维护中更容易调试，即便初期需要多花一点时间编写，总体上也节省时间。</li>
+<li>复杂即脆弱。即便代码运行成功，如果它过于复杂巧妙，它依然是脆弱的，因为未来任何一个接手的人都可能无法理解它，从而引入新的问题。</li>
+</ul>
+<h1 id="Testing-Pyramid-——-多写单元测试，少写-UI-测试"><a href="#Testing-Pyramid-——-多写单元测试，少写-UI-测试" class="headerlink" title="Testing Pyramid —— 多写单元测试，少写 UI 测试"></a>Testing Pyramid —— 多写单元测试，少写 UI 测试</h1><h3 id="Overview-7"><a href="#Overview-7" class="headerlink" title="Overview"></a>Overview</h3><p>测试金字塔是由 Mike Cohn 在其著作《Succeeding with Agile》（2009）中推广开来的概念，它用金字塔的形状对不同层次的测试进行了数量分布的指引：</p>
+<ul>
+<li>最底层（最大的层）：单元测试。它们运行速度飞快，数量最多、覆盖面最广。单元测试应该在每次代码变更时快速执行，提供最快的反馈。</li>
+<li>中间层：集成测试。它们测试模块间的交互，验证多个组件或子系统是否按预期协同工作。数量少于单元测试。</li>
+<li>最顶层（最小的层）：UI&#x2F;端到端测试。它们模拟完整用户旅程，运行最慢、维护成本最高，因此数量最少。</li>
+</ul>
+<p>如果金字塔倒置，团队依赖大量端到端 GUI 测试，却没有充分的单元测试，那测试集就会变得缓慢且脆弱。修改 UI、重构业务流程时，端到端测试频频失效，你无法确信到底是真 bug 还是测试不稳定；反馈周期也可能长达数小时甚至数天。金字塔的真正价值在于：让最多的 bug 在成本最低的层面就被发现和拦截。</p>
+<h3 id="Examples-7"><a href="#Examples-7" class="headerlink" title="Examples"></a>Examples</h3><p>一个电商网站团队按照测试金字塔构建测试体系：他们有数百个单元测试覆盖了价格计算、折扣逻辑和表单验证。他们还有几十个 API 集成测试，验证下单流程能否正确触达库存、支付和通知模块。最后，他们只保留了少数几个端到端测试，模拟关键用户路径（如登录、购物车、结算）。得益于大量单元测试，任何业务逻辑层面的错误都会在合并代码前就被捕获，部署自信且稳定。</p>
+<p>与之相反的团队则依赖 50 个 UI 端到端测试，缺乏足够快的反馈和可靠性，每次构建都要等待几小时才能发现失败，开发者往往不知道失败是真实的 bug 还是测试本身 flaky。</p>
+<h3 id="Takeaways-7"><a href="#Takeaways-7" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>单元测试是基础和核心。将最多的测试资源放在单元测试层面，它们运行快速，可以被频繁执行。</li>
+<li>集成测试的数量适中。它们验证模块之间的交互，但成本和复杂度高于单元测试，因此数量应少于单元测试。</li>
+<li>端到端测试最少。UI 测试虽不可或缺，但执行慢、维护昂贵，应控制在少数核心场景上。</li>
+<li>合理的分层结构。遵循金字塔结构，大多数 bug 会在最便宜的测试层面被拦截，从而获得最快的反馈；UI 测试失败时，它也更有可能对应一个真正的问题，而不是环境&#x2F;集成噪声。</li>
+</ul>
+<h1 id="Pesticide-Paradox-——-重复执行相同的测试，效果越来越差"><a href="#Pesticide-Paradox-——-重复执行相同的测试，效果越来越差" class="headerlink" title="Pesticide Paradox —— 重复执行相同的测试，效果越来越差"></a>Pesticide Paradox —— 重复执行相同的测试，效果越来越差</h1><h3 id="Overview-8"><a href="#Overview-8" class="headerlink" title="Overview"></a>Overview</h3><p>杀虫剂悖论源于农业生产中一个众所周知的现象。如果农民持续使用同一种杀虫剂，害虫最终会对它产生抗药性，杀虫剂失去效果。</p>
+<p>在软件测试中，这一悖论也有惊人的相似性。一套新的测试套件在第一次运行时可能发现大量 bug，修复后重复运行相同测试，不会再发现新 bug。软件似乎对已有测试产生了“免疫”。并不是说这些旧测试没有价值，它们仍然能够捕捉回归问题，但它们无法捕捉那些测试没有覆盖到的新错误。软件和系统在持续变化，测试脚本也必须不断进化和更新。</p>
+<p>杀虫剂悖论的核心是：不要安于现状。测试团队应每个发布周期复盘实际生产中的缺陷，以此更新测试用例；探索性测试也应定期进行，尝试新的输入组合和边界条件，揭示静态回归套件无法覆盖的问题。</p>
+<h3 id="Examples-8"><a href="#Examples-8" class="headerlink" title="Examples"></a>Examples</h3><p>一个移动应用在第一版发布时，测试团队为登录和个人资料功能编写了大量测试用例，并修复了 10 个 Bug。在接下来的几个版本中，这些测试全部通过，但应用新增了消息功能，而测试套件并未添加针对性测试。很快，关于消息功能频繁崩溃的反馈大量涌入。测试套件没有捕捉到这些问题，因为它还停留在老的功能覆盖上。这就是杀虫剂悖论的典型体现：旧测试已成为“免疫”，但新缺陷已然浮出水面。一旦他们更新测试，加入对消息功能的覆盖，问题就能在 Release 之前被甄别。</p>
+<h3 id="Takeaways-8"><a href="#Takeaways-8" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>测试套件也会“老化”。随着时间推移，一套固定的测试套件会发现越来越少的新 bug。它仍然有用，但在检测新缺陷方面变得无效。</li>
+<li>持续注入新的测试。这体现了持续注入新测试数据和测试场景的必要性，团队不能因为测试套件“一直绿”就懈怠，需要不断补充新功能、新输入组合和新的边界条件的测试。</li>
+<li>刷新“农药”的方法。定期创造新测试（修改现有测试或添加新场景）等同于“更新了农药配方”，从而有机会捕获新的 bug。</li>
+</ul>
+<h1 id="Lehman’s-Laws-of-Software-Evolution-——-软件必须持续演化，否则会逐渐退化"><a href="#Lehman’s-Laws-of-Software-Evolution-——-软件必须持续演化，否则会逐渐退化" class="headerlink" title="Lehman’s Laws of Software Evolution —— 软件必须持续演化，否则会逐渐退化"></a>Lehman’s Laws of Software Evolution —— 软件必须持续演化，否则会逐渐退化</h1><h3 id="Overview-9"><a href="#Overview-9" class="headerlink" title="Overview"></a>Overview</h3><p>在 1974 年，Meir M. Lehman 基于对 IBM 的 OS&#x2F;360 等大型软件系统的演进研究，提出了软件演化的第一组定律。在随后的二十多年间，随着更多项目提供数据支撑，这套定律不断被修订和扩充，最终形成了 8 条关于软件系统演化的深刻洞察。</p>
+<p><strong>The Eight Laws</strong></p>
+<ul>
+<li>Continuing Change</li>
+<li>Increasing Complexity</li>
+<li>Self-Regulation</li>
+<li>Conservation of Organizational Stability</li>
+<li>Conservation of Familiarity</li>
+<li>Continuing Growth</li>
+<li>Quality Degradation</li>
+<li>Feedback System</li>
+</ul>
+<p>这组定律中最核心的两条是：持续变化（Law 1）和复杂度增加（Law 2）。持续变化指出，成功的软件必须持续演进以适应新的需求、技术和环境；如果停止演进，软件就会变得不令人满意，用户会转向更有活力的替代品。复杂度增加指出，每次修改都会让系统的内部复杂度微幅上升，除非有意识地进行重构和清理（偿还技术债务）。如果放任不管，复杂度将逐渐降低开发速度、增加风险并提高后续修改的成本。</p>
+<p>Lehman 定律还有一个深刻的冷酷面：即使用户需求不断增加，一个开发团队在给定时间内只能做这么多（Law 4）。知识、协调和熟悉度的限制永远在制约我们的交付速率，添加更多的人并不能消除这些约束，它常常会强化它们。（这里与 Brooks 定律相互呼应。）</p>
+<p>Lehman 定律背后的哲学是：软件不是一个一次性的产品，它是一个需要持续耕耘的有机体。</p>
+<h3 id="Examples-9"><a href="#Examples-9" class="headerlink" title="Examples"></a>Examples</h3><p>一个在 2000 年部署的大型企业资源规划（ERP）系统，在过去 25 年里必须持续进行更新，新的业务规则、与现代技术的集成、UI 翻新。如果这个系统在 2005 年就停止演进，它早已不能满足业务需求。但这家公司也见证了另一个趋势：2025 年在系统上增加新功能比 2005 年更耗时，因为复杂度逐渐累积。他们必须定期进行清理型项目（重构），但产出的速度仍然趋于稳定。Linux 内核也是一个教科书级的例子：从单机到多核再到遍布嵌入式设备，如果内核停止演进，它早就被替换掉了。其增长的功能和复杂度要求子系统维护者保持版本迭代的节奏，确保社区的熟悉度和开发速度不被无限压垮。</p>
+<h3 id="Takeaways-9"><a href="#Takeaways-9" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>持续演化的宿命。软件一旦成功反映现实世界，就必须持续演化以适配变化；如果停止演进，用户会逐渐离开。完美的软件是不存在的。</li>
+<li>复杂度的积累。每个改动除非主动重构，否则都会略微增加系统的内部复杂性，这使得未来每个改动都变得更昂贵。</li>
+<li>组织与认知的限制。即便用户需求无限增长，团队交付能力也存在硬上限。知识、协调、熟悉度约束着演化的速度；增加人力并不能突破这些约束。</li>
+<li>质量感知的下降。随着系统演化，用户期望在提升，而系统中累积的微小缺陷可能让它的感知质量逐渐下降。</li>
+</ul>
+<h1 id="Sturgeon’s-Law-——-90-的一切都是垃圾"><a href="#Sturgeon’s-Law-——-90-的一切都是垃圾" class="headerlink" title="Sturgeon’s Law —— 90% 的一切都是垃圾"></a>Sturgeon’s Law —— 90% 的一切都是垃圾</h1><h3 id="Overview-10"><a href="#Overview-10" class="headerlink" title="Overview"></a>Overview</h3><p>Sturgeon 定律出自美国科幻作家 Theodore Sturgeon。在 1957 年，当有人批评“90% 的科幻小说是垃圾”时，Sturgeon 冷静地回应：“90% 的一切都是垃圾。”他并非只是在维护科幻小说，而是在陈述一个关于人类产出的普遍规律。</p>
+<p>在软件领域，这条定律是说：绝大多数代码、特性、项目想法或新概念最终不会产生显著的价值。也许 90% 的实验、特性或概念以失败告终，而真正驱动核心价值的，是那脱颖而出的 10%。Sturgeon 定律鼓励我们拥抱一种“持续淘汰”的思维：不是所有行代码都同等重要，不是每一个产品功能都值得投入，不是所有构想都值得启动。它也启发我们重新思考“10 倍工程师”，并不是因为他们写出的代码量是常人的 10 倍，而是因为他们识别出了那能产生 10 倍价值的 10% 的努力方向。</p>
+<p>这条定律最大的风险不在于承认 90% 是垃圾，而在于假装它不是。当一个团队认为所有工作的价值均等时，每个人都会陷入无效工作的死循环，不断给系统添加噪声和复杂度。</p>
+<h3 id="Examples-10"><a href="#Examples-10" class="headerlink" title="Examples"></a>Examples</h3><p>如果一个 App 拥有 100 项功能，用户分析可能会揭示：用户高频使用其中 10 项，其余 90 项几乎没有被触及。这恰恰与 Sturgeon 定律的预测吻合。同样，一个组织每季度可能会有大量项目构思，但真正能取得突破性成果的始终是少数，而其他的只是“噪声”。</p>
+<p>在代码审查的场景中，你会发现不少提交既不优雅也不是必要的。这支持了“优质代码是少数”的假设，大量的代码也许可以被减少而不影响任何业务需求。</p>
+<h3 id="Takeaways-10"><a href="#Takeaways-10" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>认识到“噪声”的存在。这是一个极端化的帕累托法则：绝大部分被产出的东西，特性、代码路径、新概念，价值极低，而真正产生影响力的只有那出色的 10%。</li>
+<li>聚焦高价值的 10%。在软件开发中，关键的挑战是识别以 20% 的努力产生 80% 价值的那部分工作，避免在低效的 90% 上浪费大量时间。</li>
+<li>警惕“平均主义的陷阱”，认为所有工作价值相等，会引入过多复杂度、拖慢交付速度。承认“90% 不产生太大价值”，才是有效管理质量的第一步。</li>
+</ul>
+<h1 id="结语：质量是一场永不终止的防御战"><a href="#结语：质量是一场永不终止的防御战" class="headerlink" title="结语：质量是一场永不终止的防御战"></a>结语：质量是一场永不终止的防御战</h1><p>回顾本篇所述的 11 条法则，我们可以勾勒出一幅软件质量的全景图：</p>
+<ul>
+<li>代码层面：童子军规则告诉我们，每一次提交都是一个改善的机遇；Kernighan 法则提醒我们，可读性是对自己和团队最大的善意。</li>
+<li>测试层面：测试金字塔为我们指引了成本与反馈之间的平衡，而杀虫剂悖论警告我们，停滞的测试无法捕捉演进的系统。</li>
+<li>团队文化：破窗效应警示我们，质量文化始于阻止第一扇窗户被打破；Postel 法则教导我们在严厉与宽容之间保持分寸。</li>
+<li>宏观演化：技术债务是速度与质量的永恒权衡；Lehman 定律让每个人看到，软件一旦投入真实世界，就必须持续演进，而复杂度必然增加；Sturgeon 法则则鼓励我们拥抱“90% 是垃圾”的现实，专注在高价值地带。</li>
+</ul>
+<p>墨菲定律和 Linus 定律从一正一反说明了一个道理：对“一切可能出错”保持谦卑，对“足够多的眼睛”保持信念。而贯穿这一切的，是一种持续改善的意志和严格自我审视的勇气。</p>
+<p>质量不是审查的结果，不是工具的馈赠，不是规范文档的产物。它是一系列日常的选择、无数次小的改进、以及整个团队共同守护底线的结果。正如童子军规则所要求的，不仅是今天，而且是每一个 push 的今天，让代码比你发现时更好。</p>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Boy-Scout-Rule-%E2%80%94%E2%80%94-%E8%AE%A9%E4%BB%A3%E7%A0%81%E6%AF%94%E4%BD%A0%E5%8F%91%E7%8E%B0%E6%97%B6%E6%9B%B4%E5%A5%BD"><span class="toc-number">2.</span> <span class="toc-text">The Boy Scout Rule —— 让代码比你发现时更好</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Murphy%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%87%A1%E6%98%AF%E5%8F%AF%E8%83%BD%E5%87%BA%E9%94%99%E7%9A%84%EF%BC%8C%E7%BB%88%E5%B0%86%E5%87%BA%E9%94%99"><span class="toc-number">3.</span> <span class="toc-text">Murphy’s Law —— 凡是可能出错的，终将出错</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Postel%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%8F%91%E9%80%81%E6%97%B6%E4%BF%9D%E5%AE%88%EF%BC%8C%E6%8E%A5%E6%94%B6%E6%97%B6%E5%AE%BD%E5%AE%B9"><span class="toc-number">4.</span> <span class="toc-text">Postel’s Law —— 发送时保守，接收时宽容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Broken-Windows-Theory-%E2%80%94%E2%80%94-%E4%B8%8D%E8%A6%81%E6%94%BE%E4%BB%BB%E2%80%9D%E7%A0%B4%E7%AA%97%E2%80%9D%E4%B8%8D%E4%BF%AE"><span class="toc-number">5.</span> <span class="toc-text">Broken Windows Theory —— 不要放任”破窗”不修</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Technical-Debt-%E2%80%94%E2%80%94-%E4%B8%80%E5%88%87%E6%8B%96%E6%85%A2%E6%88%91%E4%BB%AC%E5%BC%80%E5%8F%91%E8%BF%9B%E5%BA%A6%E7%9A%84%E4%BA%8B%E7%89%A9"><span class="toc-number">6.</span> <span class="toc-text">Technical Debt —— 一切拖慢我们开发进度的事物</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Linus%E2%80%99s-Law-%E2%80%94%E2%80%94-%E8%B6%B3%E5%A4%9F%E5%A4%9A%E7%9A%84%E7%9C%BC%E7%9D%9B%EF%BC%8C%E6%89%80%E6%9C%89-Bug-%E9%83%BD%E6%97%A0%E5%A4%84%E9%81%81%E5%BD%A2"><span class="toc-number">7.</span> <span class="toc-text">Linus’s Law —— 足够多的眼睛，所有 Bug 都无处遁形</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Kernighan%E2%80%99s-Law-%E2%80%94%E2%80%94-%E8%B0%83%E8%AF%95%E7%9A%84%E9%9A%BE%E5%BA%A6%E6%98%AF%E5%86%99%E4%BB%A3%E7%A0%81%E7%9A%84%E4%B8%A4%E5%80%8D"><span class="toc-number">8.</span> <span class="toc-text">Kernighan’s Law —— 调试的难度是写代码的两倍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Testing-Pyramid-%E2%80%94%E2%80%94-%E5%A4%9A%E5%86%99%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%EF%BC%8C%E5%B0%91%E5%86%99-UI-%E6%B5%8B%E8%AF%95"><span class="toc-number">9.</span> <span class="toc-text">Testing Pyramid —— 多写单元测试，少写 UI 测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pesticide-Paradox-%E2%80%94%E2%80%94-%E9%87%8D%E5%A4%8D%E6%89%A7%E8%A1%8C%E7%9B%B8%E5%90%8C%E7%9A%84%E6%B5%8B%E8%AF%95%EF%BC%8C%E6%95%88%E6%9E%9C%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%B7%AE"><span class="toc-number">10.</span> <span class="toc-text">Pesticide Paradox —— 重复执行相同的测试，效果越来越差</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Lehman%E2%80%99s-Laws-of-Software-Evolution-%E2%80%94%E2%80%94-%E8%BD%AF%E4%BB%B6%E5%BF%85%E9%A1%BB%E6%8C%81%E7%BB%AD%E6%BC%94%E5%8C%96%EF%BC%8C%E5%90%A6%E5%88%99%E4%BC%9A%E9%80%90%E6%B8%90%E9%80%80%E5%8C%96"><span class="toc-number">11.</span> <span class="toc-text">Lehman’s Laws of Software Evolution —— 软件必须持续演化，否则会逐渐退化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-9"><span class="toc-number">11.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-9"><span class="toc-number">11.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-9"><span class="toc-number">11.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Sturgeon%E2%80%99s-Law-%E2%80%94%E2%80%94-90-%E7%9A%84%E4%B8%80%E5%88%87%E9%83%BD%E6%98%AF%E5%9E%83%E5%9C%BE"><span class="toc-number">12.</span> <span class="toc-text">Sturgeon’s Law —— 90% 的一切都是垃圾</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-10"><span class="toc-number">12.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-10"><span class="toc-number">12.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-10"><span class="toc-number">12.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E8%B4%A8%E9%87%8F%E6%98%AF%E4%B8%80%E5%9C%BA%E6%B0%B8%E4%B8%8D%E7%BB%88%E6%AD%A2%E7%9A%84%E9%98%B2%E5%BE%A1%E6%88%98"><span class="toc-number">13.</span> <span class="toc-text">结语：质量是一场永不终止的防御战</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&text=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&is_video=false&description=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之质量篇：代码腐烂的防御与质量底线&body=Check out this article: http://example.com/2021/10/14/software%20engineering/04-quality%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&title=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&name=软件工程之质量篇：代码腐烂的防御与质量底线&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/14/software%20engineering/04-quality%20laws/&t=软件工程之质量篇：代码腐烂的防御与质量底线"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

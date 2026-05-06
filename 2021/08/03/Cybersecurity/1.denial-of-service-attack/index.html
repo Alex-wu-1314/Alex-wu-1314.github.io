@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述 DoS 与 DDoS 的区别 攻击动机 历史事件与里程碑 攻击类型详解 洪水攻击（Flood Attacks） 应用层攻击（Application Layer Attacks） 协议漏洞攻击 放大&#x2F;反射攻击（Amplification &amp; Reflection） 永久性拒绝服务攻击（PDoS） 高级持续性拒绝服务攻击（APDoS） 其他特殊攻击类型   僵尸网络与攻击">
+<meta property="og:type" content="article">
+<meta property="og:title" content="拒绝服务攻击（DoS &#x2F; DDoS）">
+<meta property="og:url" content="http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述 DoS 与 DDoS 的区别 攻击动机 历史事件与里程碑 攻击类型详解 洪水攻击（Flood Attacks） 应用层攻击（Application Layer Attacks） 协议漏洞攻击 放大&#x2F;反射攻击（Amplification &amp; Reflection） 永久性拒绝服务攻击（PDoS） 高级持续性拒绝服务攻击（APDoS） 其他特殊攻击类型   僵尸网络与攻击">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-29T00:34:44.472Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="Cyber Security">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>拒绝服务攻击（DoS / DDoS）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/07/22/cryptology/10.public_key_cryptography/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&text=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&is_video=false&description=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=拒绝服务攻击（DoS / DDoS）&body=Check out this article: http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&name=拒绝服务攻击（DoS / DDoS）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&t=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DoS-%E4%B8%8E-DDoS-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.</span> <span class="toc-text">DoS 与 DDoS 的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E5%8A%A8%E6%9C%BA"><span class="toc-number">4.</span> <span class="toc-text">攻击动机</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E4%BA%8B%E4%BB%B6%E4%B8%8E%E9%87%8C%E7%A8%8B%E7%A2%91"><span class="toc-number">5.</span> <span class="toc-text">历史事件与里程碑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A9%E6%9C%9F%E6%94%BB%E5%87%BB"><span class="toc-number">5.0.1.</span> <span class="toc-text">早期攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%91%E5%B9%B4%E9%87%8D%E5%A4%A7%E4%BA%8B%E4%BB%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">近年重大事件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">攻击类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%EF%BC%88Flood-Attacks%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">洪水攻击（Flood Attacks）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SYN-%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%EF%BC%88SYN-Flood%EF%BC%89"><span class="toc-number">6.0.1.1.</span> <span class="toc-text">SYN 洪水攻击（SYN Flood）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UDP-%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.1.2.</span> <span class="toc-text">UDP 洪水攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Ping-%E6%B4%AA%E6%B0%B4%EF%BC%88Ping-Flood%EF%BC%89"><span class="toc-number">6.0.1.3.</span> <span class="toc-text">Ping 洪水（Ping Flood）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%BB%E4%BA%A1-Ping%EF%BC%88Ping-of-Death%EF%BC%89"><span class="toc-number">6.0.1.4.</span> <span class="toc-text">死亡 Ping（Ping of Death）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82%E6%94%BB%E5%87%BB%EF%BC%88Application-Layer-Attacks%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">应用层攻击（Application Layer Attacks）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTP-%E6%85%A2%E9%80%9F-POST-%E6%94%BB%E5%87%BB%EF%BC%88Slow-POST%EF%BC%89"><span class="toc-number">6.0.2.1.</span> <span class="toc-text">HTTP 慢速 POST 攻击（Slow POST）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CC-%E6%94%BB%E5%87%BB%EF%BC%88Challenge-Collapsar%EF%BC%89"><span class="toc-number">6.0.2.2.</span> <span class="toc-text">CC 攻击（Challenge Collapsar）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RUDY-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.2.3.</span> <span class="toc-text">RUDY 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Slowloris"><span class="toc-number">6.0.2.4.</span> <span class="toc-text">Slowloris</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XDoS%EF%BC%88XML-DoS%EF%BC%89"><span class="toc-number">6.0.2.5.</span> <span class="toc-text">XDoS（XML DoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%99%8D%E7%BA%A7%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88Degradation-of-Service%EF%BC%89"><span class="toc-number">6.0.2.6.</span> <span class="toc-text">降级服务攻击（Degradation-of-Service）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%92%88%E5%AF%B9%E4%BA%91%E7%AB%AF%E8%87%AA%E5%8A%A8%E6%89%A9%E7%BC%A9%E7%9A%84-Yo-yo-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.2.7.</span> <span class="toc-text">针对云端自动扩缩的 Yo-yo 攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.</span> <span class="toc-text">协议漏洞攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Smurf-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.1.</span> <span class="toc-text">Smurf 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fraggle-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.2.</span> <span class="toc-text">Fraggle 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%AA%E6%BB%B4%E6%94%BB%E5%87%BB%EF%BC%88Teardrop-Attack%EF%BC%89"><span class="toc-number">6.0.3.3.</span> <span class="toc-text">泪滴攻击（Teardrop Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Nuke%EF%BC%88%E6%A0%B8%E5%BC%B9%E6%94%BB%E5%87%BB%EF%BC%89"><span class="toc-number">6.0.3.4.</span> <span class="toc-text">Nuke（核弹攻击）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#BlackNurse-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.5.</span> <span class="toc-text">BlackNurse 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%AA%E5%88%87%E6%94%BB%E5%87%BB%EF%BC%88Shrew-Attack%EF%BC%89"><span class="toc-number">6.0.3.6.</span> <span class="toc-text">剪切攻击（Shrew Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SACK-Panic%EF%BC%88Linux-%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%EF%BC%89"><span class="toc-number">6.0.3.7.</span> <span class="toc-text">SACK Panic（Linux 内核漏洞）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UPnP-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.8.</span> <span class="toc-text">UPnP 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSDP-%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.9.</span> <span class="toc-text">SSDP 反射攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ARP-%E6%AC%BA%E9%AA%97%EF%BC%88ARP-Spoofing%EF%BC%89"><span class="toc-number">6.0.3.10.</span> <span class="toc-text">ARP 欺骗（ARP Spoofing）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TTL-%E8%BF%87%E6%9C%9F%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.11.</span> <span class="toc-text">TTL 过期攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BE%E5%A4%A7-%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB%EF%BC%88Amplification-Reflection%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">放大&#x2F;反射攻击（Amplification &amp; Reflection）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DNS-%E6%94%BE%E5%A4%A7%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.4.1.</span> <span class="toc-text">DNS 放大攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NTP-%E6%94%BE%E5%A4%A7%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.4.2.</span> <span class="toc-text">NTP 放大攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B0%B8%E4%B9%85%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88PDoS%EF%BC%89"><span class="toc-number">6.0.5.</span> <span class="toc-text">永久性拒绝服务攻击（PDoS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E6%8C%81%E7%BB%AD%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88APDoS%EF%BC%89"><span class="toc-number">6.0.6.</span> <span class="toc-text">高级持续性拒绝服务攻击（APDoS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E7%89%B9%E6%AE%8A%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="toc-number">6.0.7.</span> <span class="toc-text">其他特殊攻击类型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%82%B9%E5%AF%B9%E7%82%B9-DDoS%EF%BC%88Peer-to-Peer-DDoS%EF%BC%89"><span class="toc-number">6.0.7.1.</span> <span class="toc-text">点对点 DDoS（Peer-to-Peer DDoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A6%99%E8%95%89%E6%94%BB%E5%87%BB%EF%BC%88Banana-Attack%EF%BC%89"><span class="toc-number">6.0.7.2.</span> <span class="toc-text">香蕉攻击（Banana Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E8%B0%83%E5%88%B6%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88Markov-Modulated-DoS%EF%BC%89"><span class="toc-number">6.0.7.3.</span> <span class="toc-text">马尔可夫调制拒绝服务攻击（Markov-Modulated DoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%B5%E8%AF%9D%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88TDoS%EF%BC%89"><span class="toc-number">6.0.7.4.</span> <span class="toc-text">电话拒绝服务攻击（TDoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Booter-Stresser-%E6%9C%8D%E5%8A%A1"><span class="toc-number">6.0.7.5.</span> <span class="toc-text">Booter &#x2F; Stresser 服务</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%83%B5%E5%B0%B8%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">7.</span> <span class="toc-text">僵尸网络与攻击基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%B7%A5%E5%85%B7"><span class="toc-number">7.0.1.</span> <span class="toc-text">典型工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Mirai-%E5%83%B5%E5%B0%B8%E7%BD%91%E7%BB%9C"><span class="toc-number">7.0.2.</span> <span class="toc-text">Mirai 僵尸网络</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%9E%E8%93%84%E6%84%8F%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1"><span class="toc-number">8.</span> <span class="toc-text">非蓄意拒绝服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E7%97%87%E7%8A%B6%E4%B8%8E%E6%A3%80%E6%B5%8B"><span class="toc-number">9.</span> <span class="toc-text">攻击症状与检测</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%98%B2%E5%BE%A1%E6%89%8B%E6%AE%B5"><span class="toc-number">10.</span> <span class="toc-text">防御手段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B5%81%E9%87%8F%E6%B8%85%E6%B4%97%E4%B8%AD%E5%BF%83%EF%BC%88Scrubbing-Center%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">1. 流量清洗中心（Scrubbing Center）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%BA%94%E7%94%A8%E5%89%8D%E7%AB%AF%E7%A1%AC%E4%BB%B6%EF%BC%88Application-Front-End-Hardware%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">2. 应用前端硬件（Application Front-End Hardware）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%BB%91%E6%B4%9E%E8%B7%AF%E7%94%B1%EF%BC%88Blackhole-Routing%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">3. 黑洞路由（Blackhole Routing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-DNS-%E6%B2%89%E6%B4%9E%EF%BC%88DNS-Sinkhole%EF%BC%89"><span class="toc-number">10.0.4.</span> <span class="toc-text">4. DNS 沉洞（DNS Sinkhole）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%85%A5%E4%BE%B5%E9%98%B2%E5%BE%A1%E7%B3%BB%E7%BB%9F%EF%BC%88IPS%EF%BC%89"><span class="toc-number">10.0.5.</span> <span class="toc-text">5. 入侵防御系统（IPS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-DoS-%E9%98%B2%E5%BE%A1%E7%B3%BB%E7%BB%9F%EF%BC%88DDS%EF%BC%89"><span class="toc-number">10.0.6.</span> <span class="toc-text">6. DoS 防御系统（DDS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E9%98%B2%E7%81%AB%E5%A2%99%EF%BC%88Firewall%EF%BC%89"><span class="toc-number">10.0.7.</span> <span class="toc-text">7. 防火墙（Firewall）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E8%B7%AF%E7%94%B1%E5%99%A8%EF%BC%88Router%EF%BC%89"><span class="toc-number">10.0.8.</span> <span class="toc-text">8. 路由器（Router）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-%E4%BA%A4%E6%8D%A2%E6%9C%BA%EF%BC%88Switch%EF%BC%89"><span class="toc-number">10.0.9.</span> <span class="toc-text">9. 交换机（Switch）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-%E7%AB%AF%E5%8F%A3%E5%B0%81%E9%94%81"><span class="toc-number">10.0.10.</span> <span class="toc-text">10. 端口封锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-TTL-%E8%BF%87%E6%9C%9F%E5%B0%81%E9%94%81"><span class="toc-number">10.0.11.</span> <span class="toc-text">11. TTL 过期封锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%95%E5%BE%8B%E4%B8%8E%E7%9B%91%E7%AE%A1"><span class="toc-number">11.</span> <span class="toc-text">法律与监管</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        拒绝服务攻击（DoS / DDoS）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-08-02T16:00:00.000Z" class="dt-published" itemprop="datePublished">2021-08-03</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Cyber-Security/" rel="tag">Cyber Security</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E6%A6%82%E8%BF%B0">概述</a></li>
+<li><a href="#dos-%E4%B8%8E-ddos-%E7%9A%84%E5%8C%BA%E5%88%AB">DoS 与 DDoS 的区别</a></li>
+<li><a href="#%E6%94%BB%E5%87%BB%E5%8A%A8%E6%9C%BA">攻击动机</a></li>
+<li><a href="#%E5%8E%86%E5%8F%B2%E4%BA%8B%E4%BB%B6%E4%B8%8E%E9%87%8C%E7%A8%8B%E7%A2%91">历史事件与里程碑</a></li>
+<li><a href="#%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3">攻击类型详解</a><ul>
+<li><a href="#%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BBflood-attacks">洪水攻击（Flood Attacks）</a></li>
+<li><a href="#%E5%BA%94%E7%94%A8%E5%B1%82%E6%94%BB%E5%87%BBapplication-layer-attacks">应用层攻击（Application Layer Attacks）</a></li>
+<li><a href="#%E5%8D%8F%E8%AE%AE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB">协议漏洞攻击</a></li>
+<li><a href="#%E6%94%BE%E5%A4%A7%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BBamplification--reflection">放大&#x2F;反射攻击（Amplification &amp; Reflection）</a></li>
+<li><a href="#%E6%B0%B8%E4%B9%85%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BBpdos">永久性拒绝服务攻击（PDoS）</a></li>
+<li><a href="#%E9%AB%98%E7%BA%A7%E6%8C%81%E7%BB%AD%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BBapdos">高级持续性拒绝服务攻击（APDoS）</a></li>
+<li><a href="#%E5%85%B6%E4%BB%96%E7%89%B9%E6%AE%8A%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B">其他特殊攻击类型</a></li>
+</ul>
+</li>
+<li><a href="#%E5%83%B5%E5%B0%B8%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD">僵尸网络与攻击基础设施</a></li>
+<li><a href="#%E9%9D%9E%E8%93%84%E6%84%8F%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1">非蓄意拒绝服务</a></li>
+<li><a href="#%E6%94%BB%E5%87%BB%E7%97%87%E7%8A%B6%E4%B8%8E%E6%A3%80%E6%B5%8B">攻击症状与检测</a></li>
+<li><a href="#%E9%98%B2%E5%BE%A1%E6%89%8B%E6%AE%B5">防御手段</a></li>
+<li><a href="#%E6%B3%95%E5%BE%8B%E4%B8%8E%E7%9B%91%E7%AE%A1">法律与监管</a></li>
+</ol>
+<hr>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p><strong>拒绝服务攻击</strong>（Denial-of-Service Attack，简称 <strong>DoS 攻击</strong>，读音 &#x2F;dɒs&#x2F;）是一种网络攻击手段，攻击者通过向目标机器或网络资源发送大量无效请求，试图使合法用户无法正常访问服务，从而临时或永久地中断连接在网络上的主机所提供的服务。</p>
+<p>DoS 攻击通常通过向目标机器或资源发送大量多余请求来实现，以期超载系统，阻止部分或全部合法请求得到响应。攻击范围相当广泛，从向服务器发送数百万个请求使其性能降低，到用大量无效数据压垮服务器，再到提交包含非法 IP 地址的请求，手段多种多样。</p>
+<blockquote>
+<p><strong>形象比喻</strong>：DDoS 攻击类似于一群人拥堵在商店门口，使合法顾客难以进入，从而扰乱正常经营并造成商业损失。</p>
+</blockquote>
+<hr>
+<h1 id="DoS-与-DDoS-的区别"><a href="#DoS-与-DDoS-的区别" class="headerlink" title="DoS 与 DDoS 的区别"></a>DoS 与 DDoS 的区别</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>DoS 攻击</th>
+<th>DDoS 攻击</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>来源</td>
+<td>单一主机或少量来源</td>
+<td>多个不同来源（通常 3-5 个节点以上）</td>
+</tr>
+<tr>
+<td>IP 地址</td>
+<td>通常为单一或少量 IP</td>
+<td>数千个感染恶意软件的主机 IP</td>
+</tr>
+<tr>
+<td>防御难度</td>
+<td>相对简单，可屏蔽单一来源</td>
+<td>复杂，仅屏蔽单一来源不够</td>
+</tr>
+<tr>
+<td>危害程度</td>
+<td>较低</td>
+<td>更高，难以追踪和停止</td>
+</tr>
+<tr>
+<td>典型工具</td>
+<td>单机洪水工具</td>
+<td>僵尸网络（Botnet）</td>
+</tr>
+</tbody></table>
+<p><strong>分布式拒绝服务攻击</strong>（Distributed Denial-of-Service，<strong>DDoS</strong>，读音 &#x2F;ˈdiː.dɒs&#x2F;）发生时，来自许多不同来源的入侵流量同时淹没受害目标。DDoS 攻击的规模在近年来持续上升，到 2016 年已超过每秒 1 Tbit（太比特）。</p>
+<hr>
+<h1 id="攻击动机"><a href="#攻击动机" class="headerlink" title="攻击动机"></a>攻击动机</h1><p>DoS&#x2F;DDoS 攻击的动机多种多样：</p>
+<ul>
+<li><strong>报复（Revenge）</strong>：针对特定组织或个人的报复行为</li>
+<li><strong>勒索（Blackmail&#x2F;Extortion）</strong>：攻击者威胁持续攻击，要求以比特币支付赎金</li>
+<li><strong>黑客行动主义（Hacktivism）</strong>：以政治或社会目的为由发动的抗议攻击，例如匿名者（Anonymous）组织</li>
+<li><strong>竞争性破坏</strong>：商业竞争对手雇用攻击者打击目标网站</li>
+<li><strong>网络战（Cyber Warfare）</strong>：国家支持的行为者针对他国关键基础设施</li>
+<li><strong>测试或炫耀技术</strong>：部分攻击出于技术炫耀或娱乐目的</li>
+</ul>
+<p>犯罪组织通常以银行、信用卡支付网关等高知名度 Web 服务器托管的网站或服务为目标。2015 年起，以 DD4BC 为代表的 DDoS 僵尸网络开始以金融机构为目标，惯用手法是先发动低烈度攻击，附带警告称若不支付比特币赎金将发动更大规模攻击。安全专家建议被攻击网站不要支付赎金，因为攻击者在意识到目标愿意付款后往往会变本加厉。</p>
+<hr>
+<h1 id="历史事件与里程碑"><a href="#历史事件与里程碑" class="headerlink" title="历史事件与里程碑"></a>历史事件与里程碑</h1><h3 id="早期攻击"><a href="#早期攻击" class="headerlink" title="早期攻击"></a>早期攻击</h3><ul>
+<li><strong>1996 年 9 月 6 日</strong>：全球第三古老的互联网服务提供商 <strong>Panix</strong> 遭受 SYN 洪水攻击，服务中断数天，直到思科等硬件厂商研发出应对防御方案。此次事件中泄露的样本代码，随后被用于攻击 Sprint、EarthLink、E-Trade 等大型企业。</li>
+<li><strong>2001 年初</strong>：微软（Microsoft）遭受 DoS 攻击，大量用户无法访问微软网站和相关服务。</li>
+<li><strong>2014 年 6 月 10 日</strong>：Evernote 遭受长达 24 小时的 DDoS 攻击。</li>
+</ul>
+<h3 id="近年重大事件"><a href="#近年重大事件" class="headerlink" title="近年重大事件"></a>近年重大事件</h3><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+<th>规模&#x2F;影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2016 年 10 月</td>
+<td>Mirai 僵尸网络攻击 Dyn DNS 服务商</td>
+<td>Netflix、Twitter 等大量网站对欧美用户不可用数小时</td>
+</tr>
+<tr>
+<td>2019 年</td>
+<td>维基百科遭受 DDoS 攻击</td>
+<td>欧洲和中东多地区维基百科访问中断</td>
+</tr>
+<tr>
+<td>2020 年 2 月</td>
+<td>AWS 遭受攻击</td>
+<td>峰值流量达 2.3 Tb&#x2F;s</td>
+</tr>
+<tr>
+<td>2021 年 7 月</td>
+<td>Cloudflare 拦截 Mirai 僵尸网络攻击</td>
+<td>峰值 1720 万请求&#x2F;秒</td>
+</tr>
+<tr>
+<td>2021 年 9 月</td>
+<td>Yandex 拦截 HTTP 流水线 DDoS 攻击</td>
+<td>来自未修补的 MikroTik 网络设备</td>
+</tr>
+<tr>
+<td>2022 年 2 月</td>
+<td>乌克兰政府和金融机构遭受攻击</td>
+<td>乌克兰史上最大 DDoS，波及英、美、德等西方盟国</td>
+</tr>
+<tr>
+<td>2023 年 2 月</td>
+<td>Cloudflare 面临攻击</td>
+<td>7100 万请求&#x2F;秒，当时最大 HTTP DDoS 攻击</td>
+</tr>
+<tr>
+<td>2023 年 7 月</td>
+<td>Archive of Our Own (AO3) 遭受攻击</td>
+<td>Anonymous Sudan 宣称以宗教和政治为由，索要 3 万美元比特币赎金</td>
+</tr>
+<tr>
+<td>2023 年 10 月</td>
+<td>HTTP&#x2F;2 协议漏洞攻击（Rapid Reset）</td>
+<td>首次 2.01 亿请求&#x2F;秒，再次 3.98 亿请求&#x2F;秒，接连破纪录</td>
+</tr>
+<tr>
+<td>2024 年 8 月</td>
+<td>Minecraft 非官方服务器遭受攻击</td>
+<td>创纪录的 31.5 亿数据包&#x2F;秒</td>
+</tr>
+<tr>
+<td>2024 年 10 月</td>
+<td>Internet Archive 遭受攻击</td>
+<td>网站完全下线，此前数据泄露超 3100 万用户信息</td>
+</tr>
+<tr>
+<td>2025 年 5 月</td>
+<td>Cloudflare 拦截攻击</td>
+<td>7.3 Tb&#x2F;s</td>
+</tr>
+<tr>
+<td>2025 年 9 月 1 日</td>
+<td>Cloudflare 拦截攻击</td>
+<td>11.5 Tb&#x2F;s</td>
+</tr>
+<tr>
+<td><strong>2025 年 9 月 23 日</strong></td>
+<td><strong>Cloudflare 自主拦截史上最大 DDoS 攻击</strong></td>
+<td><strong>22.2 Tb&#x2F;s，持续 40 秒，逾 40.4 万个源 IP，且源 IP 均未被伪造</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="攻击类型详解"><a href="#攻击类型详解" class="headerlink" title="攻击类型详解"></a>攻击类型详解</h1><h3 id="洪水攻击（Flood-Attacks）"><a href="#洪水攻击（Flood-Attacks）" class="headerlink" title="洪水攻击（Flood Attacks）"></a>洪水攻击（Flood Attacks）</h3><p>最简单的 DoS 攻击依靠蛮力，向目标发送大量数据包，使其连接带宽饱和或耗尽系统资源。</p>
+<h4 id="SYN-洪水攻击（SYN-Flood）"><a href="#SYN-洪水攻击（SYN-Flood）" class="headerlink" title="SYN 洪水攻击（SYN Flood）"></a>SYN 洪水攻击（SYN Flood）</h4><p>SYN 洪水发生时，主机发送大量 TCP&#x2F;SYN 数据包，通常使用伪造的发送方地址。每个数据包都被当作连接请求处理，导致服务器产生半开连接（half-open connection），发回 TCP&#x2F;SYN-ACK 数据包，并等待来自发送方地址的响应。然而由于发送方地址是伪造的，响应永远不会到来。这些半开连接耗尽服务器可用连接数，使其无法响应合法请求。</p>
+<p><strong>SYN cookies</strong> 技术是应对 SYN 队列洪水的有效缓解手段，但无法解决带宽耗尽问题。</p>
+<p>2022 年，TCP 攻击是 DDoS 事件中使用最多的方式，占所有 DDoS 活动的 <strong>63%</strong> ，包括 TCP SYN、TCP ACK 和 TCP 洪水等战术。</p>
+<h4 id="UDP-洪水攻击"><a href="#UDP-洪水攻击" class="headerlink" title="UDP 洪水攻击"></a>UDP 洪水攻击</h4><p>UDP 洪水是常见的 DDoS 攻击类型之一，通过向目标发送大量 UDP 数据包来消耗带宽。</p>
+<h4 id="Ping-洪水（Ping-Flood）"><a href="#Ping-洪水（Ping-Flood）" class="headerlink" title="Ping 洪水（Ping Flood）"></a>Ping 洪水（Ping Flood）</h4><p>向受害者发送压倒性数量的 ping 数据包，通常使用类 Unix 主机上的 ping 命令。主要要求是攻击者拥有比受害者更大的带宽。</p>
+<h4 id="死亡-Ping（Ping-of-Death）"><a href="#死亡-Ping（Ping-of-Death）" class="headerlink" title="死亡 Ping（Ping of Death）"></a>死亡 Ping（Ping of Death）</h4><p>向受害者发送格式错误的 ping 数据包，导致脆弱系统崩溃。</p>
+<hr>
+<h3 id="应用层攻击（Application-Layer-Attacks）"><a href="#应用层攻击（Application-Layer-Attacks）" class="headerlink" title="应用层攻击（Application Layer Attacks）"></a>应用层攻击（Application Layer Attacks）</h3><p>应用层 DDoS 攻击（也称第 7 层 DDoS 攻击）以应用层进程为目标，通过过度消耗网站的特定功能或特性使其失效。与整个网络攻击不同，它通常被用于对抗金融机构，以分散 IT 和安全人员对安全漏洞的注意力。</p>
+<ul>
+<li><strong>2013 年</strong>：应用层 DDoS 攻击占所有 DDoS 攻击的 <strong>20%</strong></li>
+<li><strong>2013 年 Q4 至 2014 年 Q4</strong>：应用层攻击增加了 <strong>51%</strong></li>
+<li><strong>2014 年 Q3 至 Q4</strong>：再增加 <strong>16%</strong></li>
+<li><strong>2017 年</strong>：Cloudflare 工程师指出，尽管网络级攻击频率下降，但应用层攻击丝毫没有放缓迹象。</li>
+</ul>
+<h4 id="HTTP-慢速-POST-攻击（Slow-POST）"><a href="#HTTP-慢速-POST-攻击（Slow-POST）" class="headerlink" title="HTTP 慢速 POST 攻击（Slow POST）"></a>HTTP 慢速 POST 攻击（Slow POST）</h4><p>首次发现于 2009 年。攻击者发送完整合法的 HTTP POST 头，其中包含 Content-Length 字段指定后续消息体大小，但随后以极低速率（如 1 字节&#x2F;110 秒）发送实际消息体。服务器会遵从 Content-Length 字段等待完整消息体，攻击者建立数百甚至数千个此类连接，直到服务器上所有传入连接资源耗尽。</p>
+<p>该攻击的特点是<strong>针对逻辑资源而非网络带宽</strong>，因此受害者仍有足够带宽和 CPU，但连接池被耗尽。Apache HTTP Server 默认接受最大 2 GB 的请求，使此攻击极具威力。OWASP 发布了测试服务器对该类攻击防御能力的工具。</p>
+<h4 id="CC-攻击（Challenge-Collapsar）"><a href="#CC-攻击（Challenge-Collapsar）" class="headerlink" title="CC 攻击（Challenge Collapsar）"></a>CC 攻击（Challenge Collapsar）</h4><p>2004 年由中国黑客 KiKi 发明，针对 NSFOCUS 防火墙”Collapsar”而得名。CC 攻击向目标 Web 服务器频繁发送标准 HTTP 请求，这些请求的 URI 需要耗时的复杂算法或数据库操作，从而耗尽目标服务器资源。</p>
+<h4 id="RUDY-攻击"><a href="#RUDY-攻击" class="headerlink" title="RUDY 攻击"></a>RUDY 攻击</h4><p>RUDY（R-U-Dead-Yet）针对 Web 应用，通过 Web 服务器上可用会话的耗尽来实现攻击。类似于 Slowloris，使用永无止境的 POST 传输来保持会话挂起，并发送任意大的 content-length 头值。</p>
+<h4 id="Slowloris"><a href="#Slowloris" class="headerlink" title="Slowloris"></a>Slowloris</h4><p>Slowloris 是一种慢速攻击工具，通过与受害者建立大量挂起连接来实现拒绝服务。其代码嵌入在恶意软件中，可在系统所有者不知情的情况下发动攻击。</p>
+<h4 id="XDoS（XML-DoS）"><a href="#XDoS（XML-DoS）" class="headerlink" title="XDoS（XML DoS）"></a>XDoS（XML DoS）</h4><p>一种可由现代 Web 应用防火墙（WAF）控制的应用级 DoS 攻击，属于超时利用类攻击。</p>
+<h4 id="降级服务攻击（Degradation-of-Service）"><a href="#降级服务攻击（Degradation-of-Service）" class="headerlink" title="降级服务攻击（Degradation-of-Service）"></a>降级服务攻击（Degradation-of-Service）</h4><p>脉冲僵尸（Pulsing Zombies）是一组受控制的被入侵计算机，被指令对目标网站发动断断续续、短暂的洪水攻击，目的仅仅是降低其性能而非使其崩溃。这类攻击被称为”降级服务攻击”，比普通 DoS 更难检测，可长期持续地扰乱网站连接，造成的整体破坏可能更大。</p>
+<h4 id="针对云端自动扩缩的-Yo-yo-攻击"><a href="#针对云端自动扩缩的-Yo-yo-攻击" class="headerlink" title="针对云端自动扩缩的 Yo-yo 攻击"></a>针对云端自动扩缩的 Yo-yo 攻击</h4><p>Yo-yo 攻击是一种针对使用<strong>自动扩缩（Autoscaling）</strong>的云托管应用程序的特定 DoS&#x2F;DDoS 类型。攻击者在发送大量流量（导致向上扩展）和停止突发（导致向下缩减）之间反复切换，通过频繁触发扩缩操作向应用运营商增加额外云计算费用，或使其陷入持续的资源调度混乱。</p>
+<hr>
+<h3 id="协议漏洞攻击"><a href="#协议漏洞攻击" class="headerlink" title="协议漏洞攻击"></a>协议漏洞攻击</h3><h4 id="Smurf-攻击"><a href="#Smurf-攻击" class="headerlink" title="Smurf 攻击"></a>Smurf 攻击</h4><p>Smurf 攻击依赖于错误配置的网络设备，允许数据包通过网络广播地址发送到特定网络上的所有计算机。攻击者发送大量 IP 数据包，其源地址被伪造成受害者地址，网络上的大多数设备会向该源 IP 地址回复，导致受害者计算机被流量淹没，甚至无法使用。</p>
+<p>Ping 洪水是 Smurf 攻击的基础形式之一。</p>
+<h4 id="Fraggle-攻击"><a href="#Fraggle-攻击" class="headerlink" title="Fraggle 攻击"></a>Fraggle 攻击</h4><p>类似于 Smurf 攻击的带宽消耗攻击。</p>
+<h4 id="泪滴攻击（Teardrop-Attack）"><a href="#泪滴攻击（Teardrop-Attack）" class="headerlink" title="泪滴攻击（Teardrop Attack）"></a>泪滴攻击（Teardrop Attack）</h4><p>向目标机器发送带有重叠、超大载荷的破损 IP 分片。这会导致各种操作系统崩溃，因为其 TCP&#x2F;IP 分片重组代码存在漏洞。Windows 3.1x、Windows 95、Windows NT 以及 2.0.32 和 2.1.63 版本之前的 Linux 均易受此攻击。</p>
+<h4 id="Nuke（核弹攻击）"><a href="#Nuke（核弹攻击）" class="headerlink" title="Nuke（核弹攻击）"></a>Nuke（核弹攻击）</h4><p>一种老式拒绝服务攻击，通过向目标发送分片的或无效的 ICMP 数据包，使用改装的 ping 工具反复发送这些损坏数据，使受影响的计算机速度减慢直到完全停止。典型案例是 <strong>WinNuke</strong>，利用了 Windows 95 中 NetBIOS 处理程序的漏洞，向受害者机器的 TCP 139 端口发送带外数据，导致系统锁死并显示蓝屏死机（BSOD）。</p>
+<h4 id="BlackNurse-攻击"><a href="#BlackNurse-攻击" class="headerlink" title="BlackNurse 攻击"></a>BlackNurse 攻击</h4><p>利用目标端口不可达 ICMP 数据包的一种攻击。</p>
+<h4 id="剪切攻击（Shrew-Attack）"><a href="#剪切攻击（Shrew-Attack）" class="headerlink" title="剪切攻击（Shrew Attack）"></a>剪切攻击（Shrew Attack）</h4><p>针对传输控制协议（TCP）的拒绝服务攻击，攻击者采用中间人技术，利用 TCP 重传超时机制的弱点，使用短暂的同步突发流量破坏同一链路上的 TCP 连接。</p>
+<h4 id="SACK-Panic（Linux-内核漏洞）"><a href="#SACK-Panic（Linux-内核漏洞）" class="headerlink" title="SACK Panic（Linux 内核漏洞）"></a>SACK Panic（Linux 内核漏洞）</h4><p>通过操纵最大分段大小（MSS）和选择性确认（SACK）触发 Linux 内核的整数溢出，可能导致内核崩溃（kernel panic）。2019 年 6 月 17 日，Jonathan Looney 发现了相关 CVE（CVE-2019-11477、CVE-2019-11478、CVE-2019-11479）。</p>
+<h4 id="UPnP-攻击"><a href="#UPnP-攻击" class="headerlink" title="UPnP 攻击"></a>UPnP 攻击</h4><p>利用通用即插即用（UPnP）协议中的现有漏洞，绕过网络安全并向目标网络和服务器发动洪水攻击，基于 DNS 放大技术，但攻击机制是将请求从一个外部来源转发到另一个来源的 UPnP 路由器。返回的数据来自意外 UDP 端口和虚假 IP 地址，使流量难以被简单封堵。</p>
+<h4 id="SSDP-反射攻击"><a href="#SSDP-反射攻击" class="headerlink" title="SSDP 反射攻击"></a>SSDP 反射攻击</h4><p>2014 年发现简单服务发现协议（SSDP）被用于 DDoS 攻击。许多设备（包括家用路由器）的 UPnP 软件中存在漏洞，允许攻击者将来自 UDP 端口 1900 的回复发送到其选择的目的地址。借助数千台设备的僵尸网络，攻击者可以产生足够的数据包速率和占用带宽来饱和链路。Cloudflare 将 SSDP 描述为”愚蠢简单的 DDoS 协议”（Stupidly Simple DDoS Protocol）。</p>
+<h4 id="ARP-欺骗（ARP-Spoofing）"><a href="#ARP-欺骗（ARP-Spoofing）" class="headerlink" title="ARP 欺骗（ARP Spoofing）"></a>ARP 欺骗（ARP Spoofing）</h4><p>常见的 DoS 攻击，利用 ARP 协议中的漏洞，使攻击者能将其 MAC 地址与另一台计算机或网关的 IP 地址关联，导致发往原始 IP 的流量被重定向到攻击者，从而造成拒绝服务。</p>
+<h4 id="TTL-过期攻击"><a href="#TTL-过期攻击" class="headerlink" title="TTL 过期攻击"></a>TTL 过期攻击</h4><p>丢弃 TTL 值为 1 或更低的数据包比转发 TTL 较高的数据包需要更多路由器资源。当数据包因 TTL 到期被丢弃时，路由器 CPU 必须生成并发送 ICMP 超时响应。大量产生这些响应会使路由器 CPU 过载。</p>
+<hr>
+<h3 id="放大-反射攻击（Amplification-Reflection）"><a href="#放大-反射攻击（Amplification-Reflection）" class="headerlink" title="放大&#x2F;反射攻击（Amplification &amp; Reflection）"></a>放大&#x2F;反射攻击（Amplification &amp; Reflection）</h3><p><strong>分布式反射拒绝服务（DRDoS）攻击</strong>：攻击者向大量计算机发送伪造请求，使用目标受害者的 IP 地址作为源地址，所有回复将涌入并淹没目标。</p>
+<p><strong>放大攻击</strong>用于放大发送给受害者的带宽。US-CERT 观察到不同服务可能产生不同的放大系数：</p>
+<table>
+<thead>
+<tr>
+<th>协议</th>
+<th>放大倍数</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mitel MiCollab</td>
+<td><strong>2,200,000,000×</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>Memcached</td>
+<td>50,000×</td>
+<td>1.5.6 版本已修复</td>
+</tr>
+<tr>
+<td>NTP</td>
+<td>556.9×</td>
+<td>4.2.7p26 版本已修复</td>
+</tr>
+<tr>
+<td>CHARGEN</td>
+<td>358.8×</td>
+<td></td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>最高 179×</td>
+<td></td>
+</tr>
+<tr>
+<td>QOTD</td>
+<td>140.3×</td>
+<td></td>
+</tr>
+<tr>
+<td>Quake 网络协议</td>
+<td>63.9×</td>
+<td>71 版本已修复</td>
+</tr>
+<tr>
+<td>BitTorrent</td>
+<td>4.0–54.3×</td>
+<td>libuTP 2015 年已修复</td>
+</tr>
+<tr>
+<td>CoAP</td>
+<td>10–50×</td>
+<td></td>
+</tr>
+<tr>
+<td>ARMS</td>
+<td>33.5×</td>
+<td></td>
+</tr>
+<tr>
+<td>SSDP</td>
+<td>30.8×</td>
+<td></td>
+</tr>
+<tr>
+<td>Kad</td>
+<td>16.3×</td>
+<td></td>
+</tr>
+<tr>
+<td>SNMPv2</td>
+<td>6.3×</td>
+<td></td>
+</tr>
+<tr>
+<td>Steam 协议</td>
+<td>5.5×</td>
+<td></td>
+</tr>
+<tr>
+<td>NetBIOS</td>
+<td>3.8×</td>
+<td></td>
+</tr>
+</tbody></table>
+<h4 id="DNS-放大攻击"><a href="#DNS-放大攻击" class="headerlink" title="DNS 放大攻击"></a>DNS 放大攻击</h4><p>攻击者向一个或多个公共 DNS 服务器发送 DNS 名称查询请求，将目标受害者的源 IP 地址欺骗为发送方。攻击者尽量请求尽可能多的信息，从而放大发送给目标受害者的 DNS 响应，大幅增加针对目标的流量。</p>
+<h4 id="NTP-放大攻击"><a href="#NTP-放大攻击" class="headerlink" title="NTP 放大攻击"></a>NTP 放大攻击</h4><p>利用 NTP 服务器的 <code>monlist</code> 命令（返回请求过时间的最后 600 个主机的详细信息）。向该时间服务器发送伪造源 IP 地址的小请求，将收到 <strong>556.9 倍</strong>大小的响应发送给受害者。与僵尸网络结合后，所有发送相同欺骗 IP 源请求的节点将导致大量数据被发回受害者，且响应数据来自合法服务器，极难防御。</p>
+<hr>
+<h3 id="永久性拒绝服务攻击（PDoS）"><a href="#永久性拒绝服务攻击（PDoS）" class="headerlink" title="永久性拒绝服务攻击（PDoS）"></a>永久性拒绝服务攻击（PDoS）</h3><p><strong>永久性拒绝服务攻击</strong>（Permanent Denial-of-Service，PDoS），也称为”<strong>phlashing</strong>“，是一种损坏系统严重到需要更换或重新安装硬件的攻击。</p>
+<p>PDoS 攻击利用受害者硬件（路由器、打印机或其他网络硬件）管理接口的远程管理安全漏洞，将设备固件替换为修改过的、损坏的或有缺陷的固件镜像——即”刷机”操作。目的是将设备变砖（brick），使其无法用于原始用途，直到修复或更换。</p>
+<p>PDoS 是纯粹针对硬件的攻击，比 DDoS 攻击更快速，所需资源更少。</p>
+<ul>
+<li><strong>BrickerBot</strong>：一款针对 IoT 设备的恶意软件，使用 PDoS 攻击禁用目标设备。</li>
+<li><strong>PhlashDance</strong>：由 HP 系统安全实验室员工 Rich Smith 创建的工具，用于在 2008 年伦敦 EUSecWest 应用安全会议上检测和演示 PDoS 漏洞。</li>
+</ul>
+<hr>
+<h3 id="高级持续性拒绝服务攻击（APDoS）"><a href="#高级持续性拒绝服务攻击（APDoS）" class="headerlink" title="高级持续性拒绝服务攻击（APDoS）"></a>高级持续性拒绝服务攻击（APDoS）</h3><p><strong>高级持续性拒绝服务攻击</strong>（Advanced Persistent DoS，APDoS）与高级持续性威胁（APT）相关联，需要专门的 DDoS 缓解措施。</p>
+<p>记录在案的最长连续攻击持续了 <strong>38 天</strong>，涉及约 <strong>50+ Pb（50,000+ TB）的恶意流量</strong>。攻击者可能战术性地在多个目标之间切换，制造干扰以规避 DDoS 防御措施，但最终将主要攻击力量集中在单一受害者身上。</p>
+<p>APDoS 攻击的特征：</p>
+<ul>
+<li><strong>高级侦察</strong>：攻击前进行开源情报（OSINT）收集和大量诱饵扫描，以长期规避检测</li>
+<li><strong>战术执行</strong>：同时攻击主要和次要目标，但焦点在于主要目标</li>
+<li><strong>明确动机</strong>：有精心设计的最终目标</li>
+<li><strong>强大计算能力</strong>：具备访问大量计算机能力和网络带宽</li>
+<li><strong>多线程 OSI 层攻击</strong>：在 OSI 第 3 层至第 7 层同时运作的复杂工具</li>
+<li><strong>长期持续性</strong>：将上述所有特点整合成跨多目标的协调、精心管理的攻击</li>
+</ul>
+<hr>
+<h3 id="其他特殊攻击类型"><a href="#其他特殊攻击类型" class="headerlink" title="其他特殊攻击类型"></a>其他特殊攻击类型</h3><h4 id="点对点-DDoS（Peer-to-Peer-DDoS）"><a href="#点对点-DDoS（Peer-to-Peer-DDoS）" class="headerlink" title="点对点 DDoS（Peer-to-Peer DDoS）"></a>点对点 DDoS（Peer-to-Peer DDoS）</h4><p>攻击者利用对等网络服务器中的漏洞发动 DDoS 攻击。最具攻击性的此类攻击利用 DC++ 协议。攻击者充当”幕后操控者”，指示大型点对点文件共享中心的客户端断开与对等网络的连接，转而连接受害者的网站，无需僵尸网络，也无需与被颠覆的客户端通信。</p>
+<h4 id="香蕉攻击（Banana-Attack）"><a href="#香蕉攻击（Banana-Attack）" class="headerlink" title="香蕉攻击（Banana Attack）"></a>香蕉攻击（Banana Attack）</h4><p>一种特殊类型的 DoS 攻击，通过将客户端发出的消息重定向回客户端本身，既阻止外部访问，又用发送的数据包淹没客户端。LAND 攻击属于此类型。</p>
+<h4 id="马尔可夫调制拒绝服务攻击（Markov-Modulated-DoS）"><a href="#马尔可夫调制拒绝服务攻击（Markov-Modulated-DoS）" class="headerlink" title="马尔可夫调制拒绝服务攻击（Markov-Modulated DoS）"></a>马尔可夫调制拒绝服务攻击（Markov-Modulated DoS）</h4><p>攻击者使用隐马尔可夫模型破坏控制数据包。在在线游戏等场景中较为常见，控制数据包的破坏会破坏游戏进程和系统功能。</p>
+<h4 id="电话拒绝服务攻击（TDoS）"><a href="#电话拒绝服务攻击（TDoS）" class="headerlink" title="电话拒绝服务攻击（TDoS）"></a>电话拒绝服务攻击（TDoS）</h4><p>语音网络电话（VoIP）使大量语音呼叫的发起成本低廉且易于自动化，同时允许通过来电显示欺骗（Caller ID Spoofing）伪造呼叫来源。FBI 记录的相关欺诈场景包括：</p>
+<ul>
+<li>诈骗者联系受害者的银行或经纪商，伪装成受害者请求转账，同时用虚假来电淹没受害者电话线，使其无法被联系到</li>
+<li>诈骗者向消费者谎称追收发薪日贷款，当消费者反对时，用自动呼叫淹没受害者雇主</li>
+<li><strong>骚扰性攻击（Swatting）</strong>：诈骗者以收债为由威胁报警，当受害者拒绝时，用来电显示欺骗成受害者号码淹没当地警局，警察随后上门</li>
+</ul>
+<p>历史案例：<strong>2002 年新罕布什尔州参议院选举电话堵塞丑闻</strong>中，电话推销员被用于向政治对手的电话热线发送大量虚假来电。</p>
+<h4 id="Booter-Stresser-服务"><a href="#Booter-Stresser-服务" class="headerlink" title="Booter &#x2F; Stresser 服务"></a>Booter &#x2F; Stresser 服务</h4><p>部分供应商提供所谓的”booter”或”stresser”服务，这些服务具有简单的基于 Web 的前端，并通过网络接受付款。以压力测试工具为名进行营销，实际上可用于执行未经授权的拒绝服务攻击，允许技术能力有限的攻击者访问复杂的攻击工具。由僵尸网络驱动，此类工具产生的流量通常在 5–50 Gbit&#x2F;s 之间，足以使普通家庭用户无法上网。</p>
+<hr>
+<h1 id="僵尸网络与攻击基础设施"><a href="#僵尸网络与攻击基础设施" class="headerlink" title="僵尸网络与攻击基础设施"></a>僵尸网络与攻击基础设施</h1><p><strong>僵尸网络（Botnet）</strong> 是被入侵计算机的集合，是现代 DDoS 攻击的核心基础设施。</p>
+<h3 id="典型工具"><a href="#典型工具" class="headerlink" title="典型工具"></a>典型工具</h3><ul>
+<li><strong>Stacheldraht</strong>：经典 DDoS 工具，使用分层结构——攻击者通过客户端程序连接到处理程序（被入侵系统），处理程序向僵尸代理发出命令，每个处理程序可控制多达 <strong>1000 个代理</strong></li>
+<li><strong>Low Orbit Ion Cannon（LOIC）</strong> 和 <strong>High Orbit Ion Cannon（HOIC）</strong>：常用于黑客行动主义攻击（如匿名者的”Operation Payback”行动），部分情况下机器所有者知情并同意参与</li>
+<li><strong>MyDoom</strong>：DoS 机制在特定日期和时间触发，目标 IP 地址在发布前硬编码，无需进一步交互即可发动攻击</li>
+</ul>
+<h3 id="Mirai-僵尸网络"><a href="#Mirai-僵尸网络" class="headerlink" title="Mirai 僵尸网络"></a>Mirai 僵尸网络</h3><p>Mirai 通过计算机蠕虫感染数十万台 IoT 设备（温控器、Wi-Fi 时钟、洗衣机等保护不足的设备），设备所有者通常无法立即察觉设备被感染。2016 年 10 月，Mirai 僵尸网络攻击了 Dyn（Netflix 等网站的 DNS 提供商），导致这些网站数小时不可访问。</p>
+<p>IoT 设备引发的新型攻击也在增加，曾记录到约 900 台 CCTV 摄像头发起的峰值约 <strong>2 万请求&#x2F;秒</strong>的攻击。</p>
+<p>英国 GCHQ 也拥有名为 PREDATORS FACE 和 ROLLING THUNDER 的 DDoS 工具。</p>
+<hr>
+<h1 id="非蓄意拒绝服务"><a href="#非蓄意拒绝服务" class="headerlink" title="非蓄意拒绝服务"></a>非蓄意拒绝服务</h1><p>非蓄意拒绝服务（Unintentional DoS）不是由蓄意攻击造成的，而是由于突然的巨大流量激增导致系统被拒绝访问。</p>
+<p><strong>常见场景</strong>：</p>
+<ul>
+<li>一个极受欢迎的网站在新闻报道中发布了指向一个准备不足的次要网站的显著链接，导致该次要网站在几个小时内被数十万用户点击，效果等同于 DDoS 攻击，也称为”<strong>Slashdot 效应</strong>“</li>
+<li><strong>VIPDoS</strong>：当链接由名人发布时，由此产生的流量激增尤为剧烈</li>
+<li><strong>搜索引擎抓取</strong>：搜索引擎频繁地对尚未准备好处理高流量的小站点进行索引</li>
+</ul>
+<p>典型案例：<strong>2009 年迈克尔·杰克逊逝世</strong>时，谷歌、Twitter 等网站显著减速甚至崩溃，许多网站服务器误认为这些请求来自病毒或间谍软件。</p>
+<hr>
+<h1 id="攻击症状与检测"><a href="#攻击症状与检测" class="headerlink" title="攻击症状与检测"></a>攻击症状与检测</h1><p>美国计算机应急准备小组（US-CERT）识别出的拒绝服务攻击症状包括：</p>
+<ul>
+<li>网络性能异常缓慢（打开文件或访问网站）</li>
+<li>特定网站无法访问</li>
+<li>无法访问任何网站</li>
+</ul>
+<p>对于云端应用，基于应用层分析的检测方法可判断大量入站流量是否合法。这些方法主要依赖于在应用程序内识别出的价值路径，通过”关键完成指标”（Key Completion Indicators）标记来监控请求进度。本质上是通过统计方法评估入站请求行为，检测是否存在异常。</p>
+<hr>
+<h1 id="防御手段"><a href="#防御手段" class="headerlink" title="防御手段"></a>防御手段</h1><p>防御 DoS&#x2F;DDoS 攻击通常需要综合使用攻击检测、流量分类和响应工具，旨在拦截被识别为非法的流量，同时允许合法流量通过。</p>
+<h3 id="1-流量清洗中心（Scrubbing-Center）"><a href="#1-流量清洗中心（Scrubbing-Center）" class="headerlink" title="1. 流量清洗中心（Scrubbing Center）"></a>1. 流量清洗中心（Scrubbing Center）</h3><p>所有发往受害者的流量被转移，通过各种方式（DNS 系统中更改受害者 IP 地址、隧道方法 GRE&#x2F;VRF、MPLS、SDN、代理、数字交叉连接或直接电路）经过清洗中心。清洗中心分离恶意流量，仅将合法流量转发给受害者服务器。</p>
+<h3 id="2-应用前端硬件（Application-Front-End-Hardware）"><a href="#2-应用前端硬件（Application-Front-End-Hardware）" class="headerlink" title="2. 应用前端硬件（Application Front-End Hardware）"></a>2. 应用前端硬件（Application Front-End Hardware）</h3><p>放置在流量到达服务器之前的网络上的智能硬件，可与路由器和交换机配合使用，分析进入网络的数据包，识别并丢弃危险或可疑流量。</p>
+<h3 id="3-黑洞路由（Blackhole-Routing）"><a href="#3-黑洞路由（Blackhole-Routing）" class="headerlink" title="3. 黑洞路由（Blackhole Routing）"></a>3. 黑洞路由（Blackhole Routing）</h3><p>将对攻击 DNS 或 IP 地址的所有流量发送到黑洞（空接口或不存在的服务器）。可由 ISP 管理以提高效率并避免影响网络连接。</p>
+<h3 id="4-DNS-沉洞（DNS-Sinkhole）"><a href="#4-DNS-沉洞（DNS-Sinkhole）" class="headerlink" title="4. DNS 沉洞（DNS Sinkhole）"></a>4. DNS 沉洞（DNS Sinkhole）</h3><p>将流量路由到一个分析流量并拒绝恶意数据包的有效 IP 地址。对严重攻击可能效率不足。</p>
+<h3 id="5-入侵防御系统（IPS）"><a href="#5-入侵防御系统（IPS）" class="headerlink" title="5. 入侵防御系统（IPS）"></a>5. 入侵防御系统（IPS）</h3><p>IPS 在攻击具有关联签名时有效。但基于内容识别的 IPS 无法拦截基于行为的 DoS 攻击。基于 ASIC 的 IPS 具备检测和拦截 DoS 攻击的处理能力，可自动作为断路器运作。</p>
+<h3 id="6-DoS-防御系统（DDS）"><a href="#6-DoS-防御系统（DDS）" class="headerlink" title="6. DoS 防御系统（DDS）"></a>6. DoS 防御系统（DDS）</h3><p>比 IPS 更专注于该问题，DDS 可拦截基于连接的 DoS 攻击和内容合法但意图恶意的攻击，同时可应对协议攻击（如泪滴攻击、死亡 Ping）和基于速率的攻击（如 ICMP 洪水、SYN 洪水）。目的构建的系统可以比基于软件的系统更快识别和阻止拒绝服务攻击。</p>
+<h3 id="7-防火墙（Firewall）"><a href="#7-防火墙（Firewall）" class="headerlink" title="7. 防火墙（Firewall）"></a>7. 防火墙（Firewall）</h3><p>在简单攻击的情况下，可调整防火墙基于协议、端口或来源 IP 地址拒绝所有来自攻击者的入站流量。然而对于复杂攻击则较难，防火墙也可能位于网络层次结构的深处，路由器在流量到达防火墙之前就受到不利影响。许多安全工具仍不支持 IPv6，可能被攻击绕过。</p>
+<h3 id="8-路由器（Router）"><a href="#8-路由器（Router）" class="headerlink" title="8. 路由器（Router）"></a>8. 路由器（Router）</h3><p>路由器具有速率限制和 ACL 能力，但需手动设置，且在 DoS 攻击下容易被压垮。Nokia SR-OS 使用 FP4 或 FP5 处理器提供 DDoS 保护，同时使用基于大数据分析的 Nokia Deepfield Defender。Cisco IOS 有可选功能可减少洪水影响。</p>
+<h3 id="9-交换机（Switch）"><a href="#9-交换机（Switch）" class="headerlink" title="9. 交换机（Switch）"></a>9. 交换机（Switch）</h3><p>大多数交换机具有速率限制和 ACL 能力。部分高端交换机提供自动或全系统速率限制、流量整形、延迟绑定（TCP 拼接）、深包检测（DPI）和 bogon 过滤，以自动检测和修复 DoS 攻击：</p>
+<ul>
+<li>SYN 洪水：可用延迟绑定或 TCP 拼接防止</li>
+<li>基于内容的 DoS：可用深包检测防止</li>
+<li>火星包攻击：可用 bogon 过滤防止</li>
+</ul>
+<h3 id="10-端口封锁"><a href="#10-端口封锁" class="headerlink" title="10. 端口封锁"></a>10. 端口封锁</h3><p>威胁可能与特定 TCP 或 UDP 端口号相关联，在防火墙封锁这些端口可缓解攻击。例如在 SSDP 反射攻击中，关键缓解措施是封锁端口 1900 上的入站 UDP 流量。</p>
+<h3 id="11-TTL-过期封锁"><a href="#11-TTL-过期封锁" class="headerlink" title="11. TTL 过期封锁"></a>11. TTL 过期封锁</h3><p>根据网络路径长度封锁特定 TTL 值，可作为封锁欺骗攻击的可行选项。</p>
+<hr>
+<h1 id="法律与监管"><a href="#法律与监管" class="headerlink" title="法律与监管"></a>法律与监管</h1><p>在许多国家，发动 DoS 攻击属于违法行为。</p>
+<table>
+<thead>
+<tr>
+<th>国家&#x2F;地区</th>
+<th>相关法律</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>美国</td>
+<td>《计算机欺诈和滥用法》（CFAA）第 18 章 1030 节，可处以最高 10 年监禁</td>
+</tr>
+<tr>
+<td>欧盟</td>
+<td>《网络攻击指令》（2013&#x2F;40&#x2F;EU），要求成员国将 DDoS 攻击列为刑事犯罪，处以至少 2 年监禁</td>
+</tr>
+<tr>
+<td>英国</td>
+<td>《计算机滥用法》1990，可处以最高 10 年监禁</td>
+</tr>
+<tr>
+<td>德国</td>
+<td>《刑法典》第 303b 条，可处以最高 3 年监禁，情节严重者最高 10 年</td>
+</tr>
+<tr>
+<td>中国</td>
+<td>《网络安全法》及相关刑法条款，可处以拘留或有期徒刑</td>
+</tr>
+</tbody></table>
+<p>值得关注的是，部分 DoS 攻击工具（如 LOIC）被黑客行动主义者使用，在一些判例中法庭需要判断参与者是否自愿参与以及是否构成实质损害。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Denial-of-service_attack">Wikipedia: Denial-of-service attack</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cisa.gov/uscert/ncas/tips/ST04-015">US-CERT: Understanding Denial-of-Service Attacks</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/">Cloudflare: DDoS Attack Trends</a></li>
+<li><a target="_blank" rel="noopener" href="https://cheatsheetseries.owasp.org/cheatsheets/Denial_of_Service_Cheat_Sheet.html">OWASP: Denial of Service Cheat Sheet</a></li>
+<li>Taghavi Zargar, S. et al. (2013). “A Survey of Defense Mechanisms Against DDoS Flooding Attacks.” <em>IEEE Communications Surveys &amp; Tutorials</em>, 15(4), 2046–2069.</li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DoS-%E4%B8%8E-DDoS-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.</span> <span class="toc-text">DoS 与 DDoS 的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E5%8A%A8%E6%9C%BA"><span class="toc-number">4.</span> <span class="toc-text">攻击动机</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E4%BA%8B%E4%BB%B6%E4%B8%8E%E9%87%8C%E7%A8%8B%E7%A2%91"><span class="toc-number">5.</span> <span class="toc-text">历史事件与里程碑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A9%E6%9C%9F%E6%94%BB%E5%87%BB"><span class="toc-number">5.0.1.</span> <span class="toc-text">早期攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%91%E5%B9%B4%E9%87%8D%E5%A4%A7%E4%BA%8B%E4%BB%B6"><span class="toc-number">5.0.2.</span> <span class="toc-text">近年重大事件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">攻击类型详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%EF%BC%88Flood-Attacks%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">洪水攻击（Flood Attacks）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SYN-%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%EF%BC%88SYN-Flood%EF%BC%89"><span class="toc-number">6.0.1.1.</span> <span class="toc-text">SYN 洪水攻击（SYN Flood）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UDP-%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.1.2.</span> <span class="toc-text">UDP 洪水攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Ping-%E6%B4%AA%E6%B0%B4%EF%BC%88Ping-Flood%EF%BC%89"><span class="toc-number">6.0.1.3.</span> <span class="toc-text">Ping 洪水（Ping Flood）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%BB%E4%BA%A1-Ping%EF%BC%88Ping-of-Death%EF%BC%89"><span class="toc-number">6.0.1.4.</span> <span class="toc-text">死亡 Ping（Ping of Death）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82%E6%94%BB%E5%87%BB%EF%BC%88Application-Layer-Attacks%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">应用层攻击（Application Layer Attacks）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTP-%E6%85%A2%E9%80%9F-POST-%E6%94%BB%E5%87%BB%EF%BC%88Slow-POST%EF%BC%89"><span class="toc-number">6.0.2.1.</span> <span class="toc-text">HTTP 慢速 POST 攻击（Slow POST）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CC-%E6%94%BB%E5%87%BB%EF%BC%88Challenge-Collapsar%EF%BC%89"><span class="toc-number">6.0.2.2.</span> <span class="toc-text">CC 攻击（Challenge Collapsar）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RUDY-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.2.3.</span> <span class="toc-text">RUDY 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Slowloris"><span class="toc-number">6.0.2.4.</span> <span class="toc-text">Slowloris</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XDoS%EF%BC%88XML-DoS%EF%BC%89"><span class="toc-number">6.0.2.5.</span> <span class="toc-text">XDoS（XML DoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%99%8D%E7%BA%A7%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88Degradation-of-Service%EF%BC%89"><span class="toc-number">6.0.2.6.</span> <span class="toc-text">降级服务攻击（Degradation-of-Service）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%92%88%E5%AF%B9%E4%BA%91%E7%AB%AF%E8%87%AA%E5%8A%A8%E6%89%A9%E7%BC%A9%E7%9A%84-Yo-yo-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.2.7.</span> <span class="toc-text">针对云端自动扩缩的 Yo-yo 攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.</span> <span class="toc-text">协议漏洞攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Smurf-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.1.</span> <span class="toc-text">Smurf 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Fraggle-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.2.</span> <span class="toc-text">Fraggle 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%AA%E6%BB%B4%E6%94%BB%E5%87%BB%EF%BC%88Teardrop-Attack%EF%BC%89"><span class="toc-number">6.0.3.3.</span> <span class="toc-text">泪滴攻击（Teardrop Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Nuke%EF%BC%88%E6%A0%B8%E5%BC%B9%E6%94%BB%E5%87%BB%EF%BC%89"><span class="toc-number">6.0.3.4.</span> <span class="toc-text">Nuke（核弹攻击）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#BlackNurse-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.5.</span> <span class="toc-text">BlackNurse 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%AA%E5%88%87%E6%94%BB%E5%87%BB%EF%BC%88Shrew-Attack%EF%BC%89"><span class="toc-number">6.0.3.6.</span> <span class="toc-text">剪切攻击（Shrew Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SACK-Panic%EF%BC%88Linux-%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%EF%BC%89"><span class="toc-number">6.0.3.7.</span> <span class="toc-text">SACK Panic（Linux 内核漏洞）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UPnP-%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.8.</span> <span class="toc-text">UPnP 攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SSDP-%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.9.</span> <span class="toc-text">SSDP 反射攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ARP-%E6%AC%BA%E9%AA%97%EF%BC%88ARP-Spoofing%EF%BC%89"><span class="toc-number">6.0.3.10.</span> <span class="toc-text">ARP 欺骗（ARP Spoofing）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TTL-%E8%BF%87%E6%9C%9F%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.3.11.</span> <span class="toc-text">TTL 过期攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BE%E5%A4%A7-%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB%EF%BC%88Amplification-Reflection%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">放大&#x2F;反射攻击（Amplification &amp; Reflection）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#DNS-%E6%94%BE%E5%A4%A7%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.4.1.</span> <span class="toc-text">DNS 放大攻击</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NTP-%E6%94%BE%E5%A4%A7%E6%94%BB%E5%87%BB"><span class="toc-number">6.0.4.2.</span> <span class="toc-text">NTP 放大攻击</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B0%B8%E4%B9%85%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88PDoS%EF%BC%89"><span class="toc-number">6.0.5.</span> <span class="toc-text">永久性拒绝服务攻击（PDoS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E6%8C%81%E7%BB%AD%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88APDoS%EF%BC%89"><span class="toc-number">6.0.6.</span> <span class="toc-text">高级持续性拒绝服务攻击（APDoS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E7%89%B9%E6%AE%8A%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="toc-number">6.0.7.</span> <span class="toc-text">其他特殊攻击类型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%82%B9%E5%AF%B9%E7%82%B9-DDoS%EF%BC%88Peer-to-Peer-DDoS%EF%BC%89"><span class="toc-number">6.0.7.1.</span> <span class="toc-text">点对点 DDoS（Peer-to-Peer DDoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A6%99%E8%95%89%E6%94%BB%E5%87%BB%EF%BC%88Banana-Attack%EF%BC%89"><span class="toc-number">6.0.7.2.</span> <span class="toc-text">香蕉攻击（Banana Attack）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E8%B0%83%E5%88%B6%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88Markov-Modulated-DoS%EF%BC%89"><span class="toc-number">6.0.7.3.</span> <span class="toc-text">马尔可夫调制拒绝服务攻击（Markov-Modulated DoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%B5%E8%AF%9D%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88TDoS%EF%BC%89"><span class="toc-number">6.0.7.4.</span> <span class="toc-text">电话拒绝服务攻击（TDoS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Booter-Stresser-%E6%9C%8D%E5%8A%A1"><span class="toc-number">6.0.7.5.</span> <span class="toc-text">Booter &#x2F; Stresser 服务</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%83%B5%E5%B0%B8%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">7.</span> <span class="toc-text">僵尸网络与攻击基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%B7%A5%E5%85%B7"><span class="toc-number">7.0.1.</span> <span class="toc-text">典型工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Mirai-%E5%83%B5%E5%B0%B8%E7%BD%91%E7%BB%9C"><span class="toc-number">7.0.2.</span> <span class="toc-text">Mirai 僵尸网络</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%9E%E8%93%84%E6%84%8F%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1"><span class="toc-number">8.</span> <span class="toc-text">非蓄意拒绝服务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E7%97%87%E7%8A%B6%E4%B8%8E%E6%A3%80%E6%B5%8B"><span class="toc-number">9.</span> <span class="toc-text">攻击症状与检测</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%98%B2%E5%BE%A1%E6%89%8B%E6%AE%B5"><span class="toc-number">10.</span> <span class="toc-text">防御手段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B5%81%E9%87%8F%E6%B8%85%E6%B4%97%E4%B8%AD%E5%BF%83%EF%BC%88Scrubbing-Center%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">1. 流量清洗中心（Scrubbing Center）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%BA%94%E7%94%A8%E5%89%8D%E7%AB%AF%E7%A1%AC%E4%BB%B6%EF%BC%88Application-Front-End-Hardware%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">2. 应用前端硬件（Application Front-End Hardware）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%BB%91%E6%B4%9E%E8%B7%AF%E7%94%B1%EF%BC%88Blackhole-Routing%EF%BC%89"><span class="toc-number">10.0.3.</span> <span class="toc-text">3. 黑洞路由（Blackhole Routing）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-DNS-%E6%B2%89%E6%B4%9E%EF%BC%88DNS-Sinkhole%EF%BC%89"><span class="toc-number">10.0.4.</span> <span class="toc-text">4. DNS 沉洞（DNS Sinkhole）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%85%A5%E4%BE%B5%E9%98%B2%E5%BE%A1%E7%B3%BB%E7%BB%9F%EF%BC%88IPS%EF%BC%89"><span class="toc-number">10.0.5.</span> <span class="toc-text">5. 入侵防御系统（IPS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-DoS-%E9%98%B2%E5%BE%A1%E7%B3%BB%E7%BB%9F%EF%BC%88DDS%EF%BC%89"><span class="toc-number">10.0.6.</span> <span class="toc-text">6. DoS 防御系统（DDS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E9%98%B2%E7%81%AB%E5%A2%99%EF%BC%88Firewall%EF%BC%89"><span class="toc-number">10.0.7.</span> <span class="toc-text">7. 防火墙（Firewall）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E8%B7%AF%E7%94%B1%E5%99%A8%EF%BC%88Router%EF%BC%89"><span class="toc-number">10.0.8.</span> <span class="toc-text">8. 路由器（Router）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-%E4%BA%A4%E6%8D%A2%E6%9C%BA%EF%BC%88Switch%EF%BC%89"><span class="toc-number">10.0.9.</span> <span class="toc-text">9. 交换机（Switch）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-%E7%AB%AF%E5%8F%A3%E5%B0%81%E9%94%81"><span class="toc-number">10.0.10.</span> <span class="toc-text">10. 端口封锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-TTL-%E8%BF%87%E6%9C%9F%E5%B0%81%E9%94%81"><span class="toc-number">10.0.11.</span> <span class="toc-text">11. TTL 过期封锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%95%E5%BE%8B%E4%B8%8E%E7%9B%91%E7%AE%A1"><span class="toc-number">11.</span> <span class="toc-text">法律与监管</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&text=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&is_video=false&description=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=拒绝服务攻击（DoS / DDoS）&body=Check out this article: http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&title=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&name=拒绝服务攻击（DoS / DDoS）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/08/03/Cybersecurity/1.denial-of-service-attack/&t=拒绝服务攻击（DoS / DDoS）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

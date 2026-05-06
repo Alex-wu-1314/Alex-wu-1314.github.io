@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言软件架构的本质是在不确定性与约束之间做出取舍。我们总希望系统是可控的，API 有明确的契约，抽象能完美隐藏细节，分布式环境像单机一样可靠。但现实反复证明，这些期望都是幻觉。 下面九条定律，从不同维度揭示了系统运行的客观规律。它们不是教条，而是无数工程师在构建和运维复杂系统时反复验证的经验。理解它们，不是为了找到完美的解决方案，因为完美并不存在，而是为了在面对不可避免的取舍时，做出清醒的选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之架构篇：系统运行的客观规律">
+<meta property="og:url" content="http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言软件架构的本质是在不确定性与约束之间做出取舍。我们总希望系统是可控的，API 有明确的契约，抽象能完美隐藏细节，分布式环境像单机一样可靠。但现实反复证明，这些期望都是幻觉。 下面九条定律，从不同维度揭示了系统运行的客观规律。它们不是教条，而是无数工程师在构建和运维复杂系统时反复验证的经验。理解它们，不是为了找到完美的解决方案，因为完美并不存在，而是为了在面对不可避免的取舍时，做出清醒的选择。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-09-01T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:02:27.687Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之架构篇：系统运行的客观规律</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/08/03/Cybersecurity/1.denial-of-service-attack/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&text=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&is_video=false&description=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之架构篇：系统运行的客观规律&body=Check out this article: http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&name=软件工程之架构篇：系统运行的客观规律&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&t=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Hyrum%E2%80%99s-Law-%E2%80%94-%E5%BD%93%E7%94%A8%E6%88%B7%E8%B6%B3%E5%A4%9F%E5%A4%9A%E6%97%B6%EF%BC%8C%E6%89%80%E6%9C%89%E5%8F%AF%E8%A7%82%E5%AF%9F%E8%A1%8C%E4%B8%BA%E9%83%BD%E4%BC%9A%E8%A2%AB%E4%BE%9D%E8%B5%96"><span class="toc-number">2.</span> <span class="toc-text">Hyrum’s Law — 当用户足够多时，所有可观察行为都会被依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Gall%E2%80%99s-Law-%E2%80%94-%E5%A4%8D%E6%9D%82%E7%B3%BB%E7%BB%9F%E9%83%BD%E4%BB%8E%E5%8F%AF%E8%BF%90%E8%A1%8C%E7%9A%84%E7%AE%80%E5%8D%95%E7%B3%BB%E7%BB%9F%E6%BC%94%E5%8C%96%E8%80%8C%E6%9D%A5"><span class="toc-number">3.</span> <span class="toc-text">Gall’s Law — 复杂系统都从可运行的简单系统演化而来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Law-of-Leaky-Abstractions-%E2%80%94-%E6%89%80%E6%9C%89%E9%9D%9E%E5%B9%B3%E5%87%A1%E6%8A%BD%E8%B1%A1%E9%83%BD%E6%98%AF%E6%9C%89%E6%BC%8F%E6%B4%9E%E7%9A%84"><span class="toc-number">4.</span> <span class="toc-text">The Law of Leaky Abstractions — 所有非平凡抽象都是有漏洞的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Tesler%E2%80%99s-Law-Conservation-of-Complexity-%E2%80%94-%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%8F%AA%E8%83%BD%E8%BD%AC%E7%A7%BB%EF%BC%8C%E4%B8%8D%E8%83%BD%E6%B6%88%E9%99%A4"><span class="toc-number">5.</span> <span class="toc-text">Tesler’s Law (Conservation of Complexity) — 复杂度只能转移，不能消除</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CAP-Theorem-%E2%80%94-%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E9%80%89%E4%BA%8C%E5%9B%B0%E5%A2%83"><span class="toc-number">6.</span> <span class="toc-text">CAP Theorem — 分布式系统的三选二困境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Second-System-Effect-%E2%80%94-%E7%AC%AC%E4%BA%8C%E4%B8%AA%E7%B3%BB%E7%BB%9F%E6%80%BB%E6%98%AF%E8%BF%87%E5%BA%A6%E8%AE%BE%E8%AE%A1%E7%9A%84"><span class="toc-number">7.</span> <span class="toc-text">Second-System Effect — 第二个系统总是过度设计的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Fallacies-of-Distributed-Computing-%E2%80%94-%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%85%AB%E5%A4%A7%E8%B0%AC%E8%AF%AF"><span class="toc-number">8.</span> <span class="toc-text">Fallacies of Distributed Computing — 分布式系统的八大谬误</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Law-of-Unintended-Consequences-%E2%80%94-%E6%94%B9%E5%8F%98%E5%A4%8D%E6%9D%82%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%87%86%E5%A4%87%E5%A5%BD%E8%BF%8E%E6%8E%A5%E6%84%8F%E5%A4%96"><span class="toc-number">9.</span> <span class="toc-text">Law of Unintended Consequences — 改变复杂系统，准备好迎接意外</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Zawinski%E2%80%99s-Law-%E2%80%94-%E6%AF%8F%E4%B8%AA%E7%A8%8B%E5%BA%8F%E9%83%BD%E8%AF%95%E5%9B%BE%E6%89%A9%E5%BC%A0%EF%BC%8C%E7%9B%B4%E5%88%B0%E5%AE%83%E8%83%BD%E6%94%B6%E5%8F%91%E9%82%AE%E4%BB%B6"><span class="toc-number">10.</span> <span class="toc-text">Zawinski’s Law — 每个程序都试图扩张，直到它能收发邮件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E6%9E%B6%E6%9E%84%E7%9A%84%E8%89%BA%E6%9C%AF%E5%9C%A8%E4%BA%8E%E5%8F%96%E8%88%8D"><span class="toc-number">11.</span> <span class="toc-text">结语：架构的艺术在于取舍</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之架构篇：系统运行的客观规律
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-01T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-09-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>软件架构的本质是在不确定性与约束之间做出取舍。我们总希望系统是可控的，API 有明确的契约，抽象能完美隐藏细节，分布式环境像单机一样可靠。但现实反复证明，这些期望都是幻觉。</p>
+<p>下面九条定律，从不同维度揭示了系统运行的客观规律。它们不是教条，而是无数工程师在构建和运维复杂系统时反复验证的经验。理解它们，不是为了找到完美的解决方案，因为完美并不存在，而是为了在面对不可避免的取舍时，做出清醒的选择。</p>
+<h1 id="Hyrum’s-Law-—-当用户足够多时，所有可观察行为都会被依赖"><a href="#Hyrum’s-Law-—-当用户足够多时，所有可观察行为都会被依赖" class="headerlink" title="Hyrum’s Law — 当用户足够多时，所有可观察行为都会被依赖"></a>Hyrum’s Law — 当用户足够多时，所有可观察行为都会被依赖</h1><blockquote>
+<p>当 API 的用户足够多时，你承诺什么并不重要：系统的所有可观察行为都会被某些人所依赖。</p>
+</blockquote>
+<h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>Hyrum’s Law 描述的是一种在实践中反复出现的现象：软件文档化接口与实现细节之间的边界会逐渐模糊。不论你在 API 契约中承诺了什么，只要使用的人足够多，他们就会依赖那些你从未正式支持的行为。随着时间的推移，实现本身就变成了接口，每一个可观察的特性、性能表现、错误码，都成了某个用户工作流的基石。这极大地限制了系统演进的自由度，因为哪怕是最”内部”的改动，也可能破坏那些依赖旧行为的人。</p>
+<p>这条定律由 Google 工程师 Hyrum Wright 在 2011-2012 年左右首次提出。他注意到，即使是对 Google 核心库的改动，理论上不应产生可见影响，也总会破坏某个项目，因为那个项目依赖了未文档化的行为。他的同事 Titus Winters 随后将这个观察命名为”Hyrum’s Law”。</p>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p><strong>Microsoft Windows 的兼容性负担</strong>：Windows 系统中有许多未文档化的行为和 Bug，大量第三方应用实际上依赖它们运行。当微软在更新中修复或改变这些行为时，那些应用就会崩溃。为此，微软不得不反复回退修改，或刻意维持这些”怪异”行为以保证兼容性。</p>
+<p><strong>API 返回顺序的隐性契约</strong>：某个库的文档声明返回的是无序列表，但实际上它返回的是有序列表。一些用户开始依赖这个有序行为。当库在后续版本中真的改为无序时，那些用户的代码就会出问题。</p>
+<p><strong>API 版本控制的困境</strong>：即使是最小版本号的变更，从某些用户的角度看也可能是破坏性变更。异步属性替换同步属性、错误信息的措辞调整、响应时间的变化，任何可观察到的差异都可能成为隐性的依赖点。</p>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>随着用户数量的增长，系统的每一个行为都会变成依赖点。意料之外的副作用或 Bug 也可能成为某些人工作流中的关键”特性”。</li>
+<li>Hyrum’s Law 提醒维护者：任何改动都可能破坏某人的系统。消费者可能以你预期不到的方式集成了你的 API，包括依赖时序、错误消息、格式化等细节。</li>
+<li>你的软件的实际契约不仅是官方 API 或规格说明，而是在现实中被观察到的精确行为。这个契约甚至可以是某种非正式的约定，比如用户已经习惯的 UI 交互方式。</li>
+</ol>
+<h1 id="Gall’s-Law-—-复杂系统都从可运行的简单系统演化而来"><a href="#Gall’s-Law-—-复杂系统都从可运行的简单系统演化而来" class="headerlink" title="Gall’s Law — 复杂系统都从可运行的简单系统演化而来"></a>Gall’s Law — 复杂系统都从可运行的简单系统演化而来</h1><blockquote>
+<p>一个能运行的复杂系统，毫无例外地是从一个能运行的简单系统演化而来的。</p>
+</blockquote>
+<h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><p>John Gall 观察到，能成功运行的复杂系统，无一例外是从成功的简单系统起步的。如果你试图从一开始就创建一个复杂系统，它通常不会工作，因为有太多尚未验证的未知因素。正确的做法是，从一个简单的架构开始，在真实世界的使用中学习，然后逐步增加能力或复杂度，确保每一步变更仍然工作。</p>
+<p>当你从一个小型、可运行的核心开始，你就能尽早验证假设。每一次新能力的增量添加都会在现实中被测试，迫使系统不断适应。建立最小可行产品（MVP），一个简单的可运行内核，然后迭代增长，而不是采用一次性的”大爆炸”式交付，是这条定律最直接的工程实践指导。</p>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p><strong>Facebook 的演化路径</strong>：Facebook 最初只是一个面向哈佛学生的简单网站，本质上是一个基础的用户资料系统。它在那个小规模下能够运行，然后逐步扩展，添加功能，承载更多用户。如果 Mark Zuckerberg 在 2004 年试图从零直接构建今天的 Facebook，它几乎必然会被自身的复杂性压垮。</p>
+<p><strong>微服务的起点建议</strong>：在微服务时代，受 Gall’s Law 影响的一条常见建议是：不要从微服务开始。先构建一个能工作的单体应用（更简单的架构），随着系统增长，再识别出可以拆分为独立服务的模块。这些模块因为有过在单体架构中存在和运行的历史，其需求更明确，隔离后成功运行的概率也更高。</p>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>不要试图从零构建复杂系统。先做一个能运行的简单版本，然后迭代并增加复杂度。这种方式为实验和创新提供了发射平台。</li>
+<li>成功的大型系统通常是有机生长的。一个从头开始全面设计的复杂系统常常失败，因为你无法预见所有交互。</li>
+<li>逐步生长的系统能更好地适应和处理复杂性，因为它们在每个阶段都经过了测试和打磨。过度复杂的初始设计在遇到意外情况时容易崩溃。</li>
+</ol>
+<h1 id="The-Law-of-Leaky-Abstractions-—-所有非平凡抽象都是有漏洞的"><a href="#The-Law-of-Leaky-Abstractions-—-所有非平凡抽象都是有漏洞的" class="headerlink" title="The Law of Leaky Abstractions — 所有非平凡抽象都是有漏洞的"></a>The Law of Leaky Abstractions — 所有非平凡抽象都是有漏洞的</h1><blockquote>
+<p>所有非平凡的抽象，在某种程度上，都是有漏洞的。</p>
+</blockquote>
+<h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><p>这条定律认为，在复杂系统中，我们为隐藏复杂性而创建的抽象层，最终不可避免地会在某些场景下失效，将底层的复杂性暴露给程序员。这并不是说抽象不好，正相反，抽象是必不可少的。但定律提醒我们，必须做好准备，迎接它们失效的时刻。</p>
+<p>Joel Spolsky 在 2002 年的一篇博客文章中提出了这条定律。他以 TCP 为例做了经典阐释：TCP 在不可靠的 IP 上抽象出可靠连接，但在网络状况糟糕时，这个抽象会泄露，导致超时。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p><strong>ORM 的”干净代码”陷阱</strong>：对象关系映射（ORM）让你可以将数据库记录当作普通对象操作。大多数时候它工作得很好，但偶尔你会遇到性能极差的场景，不得不去思考底层生成的 SQL 查询究竟是什么。抽象层”泄露”了数据库的内部细节。</p>
+<p><strong>垃圾回收的抽象漏洞</strong>：Java 和 Python 等高级语言通过垃圾回收抽象掉了手动内存管理。但内存泄露仍然会发生（由于对象持有引用无法释放），你也会遇到 GC 暂停影响性能的情况。开发者突然需要了解垃圾回收的内部运作原理，”无限内存”的抽象失效了。</p>
+<p><strong>网络的不可靠性泄露</strong>：Web 开发者通常将 HTTP 请求看作一个快速的操作，抽象掉了网络细节。然而，当延迟飙升或数据包丢失时，网络的现实就会透过抽象层渗入你的应用。</p>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>无论抽象层设计得多好（库、框架等），总会有边界情况需要依赖内部细节才能处理。</li>
+<li>开发者需要明白，使用高级工具并不代表可以完全不了解底层发生的事情，至少应当掌握基础知识。</li>
+<li>“泄露”意味着你可能会遇到性能问题、Bug 或迫使你关注底层系统（如网络、OS）的行为。</li>
+<li>在创建抽象层时，应当尽量最小化泄露，并文档化可能失效的场景。</li>
+</ol>
+<h1 id="Tesler’s-Law-Conservation-of-Complexity-—-复杂度只能转移，不能消除"><a href="#Tesler’s-Law-Conservation-of-Complexity-—-复杂度只能转移，不能消除" class="headerlink" title="Tesler’s Law (Conservation of Complexity) — 复杂度只能转移，不能消除"></a>Tesler’s Law (Conservation of Complexity) — 复杂度只能转移，不能消除</h1><blockquote>
+<p>每个应用都有一份固有的、不可简化的复杂度，这份复杂度只能被转移，不能被消除。</p>
+</blockquote>
+<h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><p>Tesler’s Law，也被称为复杂度守恒定律，指出对于任何系统而言，都存在一定量的复杂度是无法被消除的，它内在于问题本身。关键在于由谁来处理它。如果你设计了让用户使用非常简单的软件，很可能意味着软件内部在做大量复杂的工作。如果你让软件内部极为简单，它可能就把复杂度倾倒在了用户身上（比如需要大量手工操作）。Tesler’s Law 鼓励设计者尽可能将复杂度从用户体验中移开。</p>
+<p>这条定律的命名来自 Larry Tesler，他曾参与 Apple Lisa 和早期 GUI 概念的工作，在 1980 年代提出了这一原则。他观察到，你不可能让一切都很简单，却没有人来承担复杂度，这是设计中的一个根本性取舍。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><p><strong>会议排期工具</strong>：安排会议这件事本质上就很复杂（需要找到共同可用时间）。Calendly 等工具将这种复杂度隐藏在用户界面背后（软件代劳），而通过邮件链来约定时间则将复杂度完全放在了用户身上，让用户自己去摸索。两种方案都面对同一份固有复杂度，区别只在于谁承担它。</p>
+<p><strong>数据库与应用的取舍</strong>：设计数据库时，有时将逻辑下推到数据库（如存储过程）可以简化应用代码，但增加了数据库层的复杂度；反过来则将复杂度留在应用层。复杂度没有消失，只是被重新分配了。</p>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>好的设计通常要求开发者吸收大部分复杂度（通过智能默认设置、算法等手段），让用户的交互更简单。</li>
+<li>如果你的 UI 要求用户管理大量设置或步骤，那你把复杂度守恒在了错误的地方（用户侧）。让产品内部管理复杂性通常是更好的选择。</li>
+<li>好的设计通过内部消化复杂性来隐藏它，而不是消除它。</li>
+</ol>
+<h1 id="CAP-Theorem-—-分布式系统的三选二困境"><a href="#CAP-Theorem-—-分布式系统的三选二困境" class="headerlink" title="CAP Theorem — 分布式系统的三选二困境"></a>CAP Theorem — 分布式系统的三选二困境</h1><blockquote>
+<p>一个分布式系统只能同时保证一致性、可用性和分区容错性这三者中的两个。</p>
+</blockquote>
+<h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><p>CAP 定理指出，分布式系统无法同时提供三项保证：一致性（所有节点看到相同的数据）、可用性（每个请求都能收到响应）和分区容错性（系统在网络故障时仍能运行）。在实践中，网络分区不可避免，因此系统必须是分区容错的。这意味着在设计分布式架构时必须选择：当网络分区发生时，是优先保障一致性还是可用性。</p>
+<p>CAP 定理是一个有效的思维起点，虽然它是一个简化的模型，并不能覆盖设计空间中的所有维度。这个定理由 Eric Brewer 在 2000 年提出，后来 Gilbert 和 Lynch 在 2002 年给出了严格的形式化证明。</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><p><strong>DNS：AP 系统</strong>：域名系统被设计为 AP（可用且分区容错）。即使某些名称服务器被网络隔离，它们仍然会回复请求（可用性），哪怕这些信息在区域同步完成前可能略有滞后。</p>
+<p><strong>MongoDB：CP 系统</strong>：CP（一致且分区容错）数据库，在网络分区期间会阻塞写操作，以保证所有副本保持一致。</p>
+<p><strong>Cassandra：AP 系统</strong>：AP（可用且分区容错）数据库，即使副本之间暂时出现分歧，也会继续响应查询。</p>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>一个分布式系统只能同时保证三者中的两个。当网络健康时你可以三者兼顾，但一旦发生网络分区，你就必须放弃其中一个。</li>
+<li>当网络分裂发生时，你面临的选择是：保持一致性（所有节点数据一致，但部分请求可能失败），或保持可用性（所有请求都有应答，但数据可能略微过期）。两者无法兼得。</li>
+<li>实际的数据库产品都需要站队。MongoDB 倾向于一致性（分区时阻塞写入以保证所有副本同步），Cassandra 倾向于可用性（即使副本出现短暂分歧也保持响应）。</li>
+</ol>
+<h1 id="Second-System-Effect-—-第二个系统总是过度设计的"><a href="#Second-System-Effect-—-第二个系统总是过度设计的" class="headerlink" title="Second-System Effect — 第二个系统总是过度设计的"></a>Second-System Effect — 第二个系统总是过度设计的</h1><blockquote>
+<p>小型、成功的系统之后，往往会跟着一个过度工程化、臃肿的替代品。</p>
+</blockquote>
+<h3 id="Overview-5"><a href="#Overview-5" class="headerlink" title="Overview"></a>Overview</h3><p>一个小而精的系统被成功构建并运行良好。然后，第二个版本的项目启动了，设计者从第一个项目的各种约束中解放出来，试图构建一个规模更大、更复杂的系统。他们会添加各种增强功能，考虑所有边界情况，集成所有心愿清单上的特性。结果往往是一个过于复杂且进度严重滞后的系统。</p>
+<p>Fred Brooks 在 IBM 目睹了这一现象：IBM OS&#x2F;360 之前有一些简单但成功的操作系统，而 OS&#x2F;360 本身由于试图做太多事而陷入延迟和困境。他在 1975 年的《人月神话》中创造了这个词。</p>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><p><strong>创业公司从 V1 到 V2 的陷阱</strong>：一个创业公司构建了一个极简的 Web 服务，取得了巨大成功。对于版本 2，团队计划全面重写，增加微服务架构、大量配置选项、插件框架和用户从未要求过的功能。项目的复杂度急剧膨胀，交付日期一推再推。</p>
+<p><strong>Netscape 的陨落</strong>：1990 年代的 Netscape Navigator 在早期大获成功后，决定重写他们的浏览器，最终推出了 Mozilla Suite（Netscape Communicator）。重写耗时数年，在此期间 Internet Explorer 迎头赶上。新的套件被认为过于复杂，Netscape 丧失了其领先地位。</p>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>第一个系统因为资源约束或经验不足而保持精简。设计其继任者时，人们倾向于一股脑地加入最初被舍弃的所有特性，导致功能膨胀。</li>
+<li>过度自信在其中推波助澜。有了第一次成功，团队认为自己能处理更大的目标，却低估了复杂性。</li>
+<li>第二系统效应常常导致过度工程化，更多的模块、更泛化的设计、超出必要的功能，最终损害了性能和可维护性。</li>
+</ol>
+<h1 id="Fallacies-of-Distributed-Computing-—-分布式系统的八大谬误"><a href="#Fallacies-of-Distributed-Computing-—-分布式系统的八大谬误" class="headerlink" title="Fallacies of Distributed Computing — 分布式系统的八大谬误"></a>Fallacies of Distributed Computing — 分布式系统的八大谬误</h1><blockquote>
+<p>一组新入行的分布式系统设计师常犯的八个错误假设。</p>
+<ul>
+<li>The network is reliable: 网络是可靠的，认为网络传输永远不会丢包、出错、中断。</li>
+<li>Latency is zero：延迟为零，认为数据在网络中传输不需要任何时间。</li>
+<li>Bandwidth is infinite：带宽是无限的，认为网络可以无限制地传输数据，不会出现拥塞。</li>
+<li>The network is secure：网络是安全的，认为网络不会被攻击、窃听或篡改。</li>
+<li>Topology doesn’t change：网络拓扑不会变化，认为设备不会上下线、网络结构不会发生变化。</li>
+<li>There is one administrator：只有一个管理员，认为整个网络由一个人 &#x2F; 一个机构完全控制和管理。</li>
+<li>Transport cost is zero：传输成本为零，认为网络传输数据不需要任何成本（流量、硬件、运维等）。</li>
+<li>The network is homogeneous：网络是同构的，认为网络中的所有设备、协议、技术都是统一标准的。</li>
+</ul>
+</blockquote>
+<h3 id="Overview-6"><a href="#Overview-6" class="headerlink" title="Overview"></a>Overview</h3><p>分布式计算的八大谬误是一份”不要假设什么”的检查清单。它们都源自将分布式系统当作本地系统来对待的思维。开发者可能写出调用远程服务就像调用本地函数一样的代码，忽略了延迟和失败。这些错误假设会导致严重问题：网络断开时未处理的错误、由于忽略延迟导致的低性能、未能对远程调用进行认证引发的安全漏洞。</p>
+<p>这些谬误由 Sun Microsystems 的 L. Peter Deutsch 在 1994 年左右提出（James Gosling 等人后来增补），最初是七条，Gosling 后来补充了第八条（”网络是同构的”）。Deutsch 观察到，许多工程师，尤其是习惯了本地计算的工程师，潜意识里会假设网络总是可靠的。</p>
+<h3 id="Examples-6"><a href="#Examples-6" class="headerlink" title="Examples"></a>Examples</h3><p><strong>分布式缓存的延迟陷阱</strong>：开发者构建分布式缓存系统时假设”网络延迟为零”，于是设计缓存每次查询都从远程节点获取数据。实际运行中，系统因高延迟而性能糟糕。</p>
+<p><strong>忽视安全的代价</strong>：系统假设”网络是安全的”，在服务间发送未加密的敏感数据，或不对来自其他服务的输入进行验证。一旦网络被攻破，就会造成安全事件。</p>
+<p><strong>拓扑变化的冲击</strong>：没有为拓扑变化做规划的系统，在机器意外增减时往往会崩溃。</p>
+<h3 id="Takeaways-6"><a href="#Takeaways-6" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>网络会丢包、有延迟、带宽有限、而且可能不安全。一个正确构建的分布式系统必须通过重试、超时、安全措施和动态发现来应对这些问题。</li>
+<li>这些谬误常常以微妙的 Bug 形式表现出来。假设延迟为零可能导致在本地工作良好的频繁远程调用，在网络上变得痛苦地缓慢。</li>
+<li>将这些谬误纳入考量，意味着采用防御性设计：使用缓存（带宽和延迟不是完美的），构建冗余（网络不可靠），并处理动态成员关系（拓扑会变化）。</li>
+</ol>
+<h1 id="Law-of-Unintended-Consequences-—-改变复杂系统，准备好迎接意外"><a href="#Law-of-Unintended-Consequences-—-改变复杂系统，准备好迎接意外" class="headerlink" title="Law of Unintended Consequences — 改变复杂系统，准备好迎接意外"></a>Law of Unintended Consequences — 改变复杂系统，准备好迎接意外</h1><blockquote>
+<p>每当你改变一个复杂系统，准备好迎接意外。</p>
+</blockquote>
+<h3 id="Overview-7"><a href="#Overview-7" class="headerlink" title="Overview"></a>Overview</h3><p>意外后果定律指出，结果并不完全可预测。系统具有复杂的相互依赖关系和人的因素，这可能导致各种意外。添加一个新功能可能因为与某个不相关模块的交互而意外降低性能。简化 UI 可能导致后端负载飙升，因为用户比预期更频繁地使用该功能。它提醒工程师，系统是复杂的，而我们的心智模型是不完整的；在实施变更时，需要预见到”未知的未知”会浮现出来。</p>
+<p>社会学家 Robert K. Merton 在 20 世纪普及了这个术语，他识别了意外后果的五个来源：无知、错误、即时利益、基本价值观，以及自我挫败的预言。</p>
+<h3 id="Examples-7"><a href="#Examples-7" class="headerlink" title="Examples"></a>Examples</h3><p><strong>日志功能的意外灾难</strong>：启用一个新的日志功能用于调试，结果因为日志迅速写满磁盘导致系统崩溃，一个与”提升稳定性”这一初衷截然相反的悖谬结果。</p>
+<p><strong>算法的连锁反应</strong>：社交网络调整算法以提升用户参与度，但意外地放大了愤怒情绪和错误信息。</p>
+<p><strong>Bug 修复引发回归</strong>：修复某个模块的 Bug，却意外导致另一个模块出现回归问题，因为那个模块恰好依赖了被修复的 Bug 行为。</p>
+<h3 id="Takeaways-7"><a href="#Takeaways-7" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>无论你规划得多周密，对复杂系统的任何重大变更都可能产生你无法预料的结果。</li>
+<li>后果可能是意外之喜（惊喜）、意外之弊（副作用），或悖谬之果（行为反而让原始问题更加恶化）。</li>
+<li>在软件工程中，这常常表现为一次修复或新功能在别处引入了 Bug 或性能问题。</li>
+</ol>
+<h1 id="Zawinski’s-Law-—-每个程序都试图扩张，直到它能收发邮件"><a href="#Zawinski’s-Law-—-每个程序都试图扩张，直到它能收发邮件" class="headerlink" title="Zawinski’s Law — 每个程序都试图扩张，直到它能收发邮件"></a>Zawinski’s Law — 每个程序都试图扩张，直到它能收发邮件</h1><blockquote>
+<p>每个程序都试图不断扩张，直到它能读取邮件。那些不能如此扩张的，终将被那些能扩张的程序所取代。</p>
+</blockquote>
+<h3 id="Overview-8"><a href="#Overview-8" class="headerlink" title="Overview"></a>Overview</h3><p>Zawinski’s Law 是一条半玩笑式的观察，描述了软件演化中的功能蔓延现象：应用持续不断获取新功能，直到它能做一切事情，甚至包括那些完全超出其原始范畴的事。随着应用吸引更多用户，它会面临越来越大的压力去增加更多能力。一个基础的笔记应用后来可能加入聊天或分享功能。”读取邮件”是 Zawinski 挑选的典型例子，因为在 90 年代中期，用户常常需要退出当前应用再单独打开邮件程序。</p>
+<p>Jamie Zawinski（也称 jwz）在 1995 年前后于 Netscape 工作期间提出了这条定律。他是 Netscape Navigator 的核心程序员之一，后来为浏览器添加了集成的邮件阅读器。</p>
+<h3 id="Examples-8"><a href="#Examples-8" class="headerlink" title="Examples"></a>Examples</h3><p><strong>Netscape 自身的扩张史</strong>：从一个轻量浏览器成长为 Netscape Communicator，一个集浏览器、邮件客户端、新闻组阅读器和网页编辑器于一体的庞大套件。它变得臃肿缓慢，最终为 Firefox 的崛起铺平了道路，后者刻意回归到一个纯粹快速的浏览器。不过有趣的是，Firefox 后来也因插件和主题变得越来越重。</p>
+<p><strong>Slack 的平台化</strong>：Slack 起初的口号是”杀死邮件”，但现在集成了语音通话、视频会议、文件共享、Bot 和应用插件。它现在试图成为一个一站式的 workplace hub，远远超出了简单的即时通讯。</p>
+<p><strong>GitHub 的不断扩展</strong>：从最初托管代码，扩展到 Issue 跟踪、Wiki、项目看板、Discussion、CI 流水线和 Package Registry。</p>
+<h3 id="Takeaways-8"><a href="#Takeaways-8" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li>功能蔓延无法避免。软件会不断积累更多功能，导致软件臃肿。</li>
+<li>一个精干、极简的应用一旦开始流行，就会持续添加功能，直到变得和竞品一样复杂。</li>
+<li>程序会扩张，因为用户（以及产品经理）在不断要求”再多一个功能”。持续的压力来自为阻止用户流失而必须加入流行的能力。</li>
+<li>每个新功能都会增加复杂度，让产品对用户来说更令人困惑。开发者应当守护工具的核心焦点，抵制平台化蔓延。</li>
+</ol>
+<h1 id="结语：架构的艺术在于取舍"><a href="#结语：架构的艺术在于取舍" class="headerlink" title="结语：架构的艺术在于取舍"></a>结语：架构的艺术在于取舍</h1><p>回顾这九条定律，一个贯穿始终的主题是：<strong>软件架构中没有银弹，只有取舍</strong>。</p>
+<ul>
+<li>Hyrum’s Law 告诉我们任何改动都有代价；</li>
+<li>Gall’s Law 揭示了复杂必须逐步生长；</li>
+<li>Leaky Abstractions 戳破了”完全透明”的幻象；</li>
+<li>Tesler’s Law 指出复杂度永不会消失，只能重新分配；</li>
+<li>CAP Theorem 在分布式系统的根本层面上画出了物理边界；</li>
+<li>Second-System Effect 警示了傲慢的代价；</li>
+<li>Fallacies of Distributed Computing 列出了我们对网络最荒谬的幻想；</li>
+<li>Law of Unintended Consequences 提醒我们永远无法完全预见结果；</li>
+<li>Zawinski’s Law 则用幽默揭示了熵增在软件开发中的真实面貌。</li>
+</ul>
+<p>理解这些定律，并不意味着能避免它们，许多定律本身就是不可规避的客观限制。但当面对架构决策、技术选型、系统演化时，它们会成为手中的罗盘，帮助在迷雾中看清哪些路是走不通的，哪些代价是必须承受的，哪些取舍是值得做的。而这，正是架构师真正的修养所在。</p>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Hyrum%E2%80%99s-Law-%E2%80%94-%E5%BD%93%E7%94%A8%E6%88%B7%E8%B6%B3%E5%A4%9F%E5%A4%9A%E6%97%B6%EF%BC%8C%E6%89%80%E6%9C%89%E5%8F%AF%E8%A7%82%E5%AF%9F%E8%A1%8C%E4%B8%BA%E9%83%BD%E4%BC%9A%E8%A2%AB%E4%BE%9D%E8%B5%96"><span class="toc-number">2.</span> <span class="toc-text">Hyrum’s Law — 当用户足够多时，所有可观察行为都会被依赖</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Gall%E2%80%99s-Law-%E2%80%94-%E5%A4%8D%E6%9D%82%E7%B3%BB%E7%BB%9F%E9%83%BD%E4%BB%8E%E5%8F%AF%E8%BF%90%E8%A1%8C%E7%9A%84%E7%AE%80%E5%8D%95%E7%B3%BB%E7%BB%9F%E6%BC%94%E5%8C%96%E8%80%8C%E6%9D%A5"><span class="toc-number">3.</span> <span class="toc-text">Gall’s Law — 复杂系统都从可运行的简单系统演化而来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Law-of-Leaky-Abstractions-%E2%80%94-%E6%89%80%E6%9C%89%E9%9D%9E%E5%B9%B3%E5%87%A1%E6%8A%BD%E8%B1%A1%E9%83%BD%E6%98%AF%E6%9C%89%E6%BC%8F%E6%B4%9E%E7%9A%84"><span class="toc-number">4.</span> <span class="toc-text">The Law of Leaky Abstractions — 所有非平凡抽象都是有漏洞的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Tesler%E2%80%99s-Law-Conservation-of-Complexity-%E2%80%94-%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%8F%AA%E8%83%BD%E8%BD%AC%E7%A7%BB%EF%BC%8C%E4%B8%8D%E8%83%BD%E6%B6%88%E9%99%A4"><span class="toc-number">5.</span> <span class="toc-text">Tesler’s Law (Conservation of Complexity) — 复杂度只能转移，不能消除</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#CAP-Theorem-%E2%80%94-%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E9%80%89%E4%BA%8C%E5%9B%B0%E5%A2%83"><span class="toc-number">6.</span> <span class="toc-text">CAP Theorem — 分布式系统的三选二困境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Second-System-Effect-%E2%80%94-%E7%AC%AC%E4%BA%8C%E4%B8%AA%E7%B3%BB%E7%BB%9F%E6%80%BB%E6%98%AF%E8%BF%87%E5%BA%A6%E8%AE%BE%E8%AE%A1%E7%9A%84"><span class="toc-number">7.</span> <span class="toc-text">Second-System Effect — 第二个系统总是过度设计的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Fallacies-of-Distributed-Computing-%E2%80%94-%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%85%AB%E5%A4%A7%E8%B0%AC%E8%AF%AF"><span class="toc-number">8.</span> <span class="toc-text">Fallacies of Distributed Computing — 分布式系统的八大谬误</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Law-of-Unintended-Consequences-%E2%80%94-%E6%94%B9%E5%8F%98%E5%A4%8D%E6%9D%82%E7%B3%BB%E7%BB%9F%EF%BC%8C%E5%87%86%E5%A4%87%E5%A5%BD%E8%BF%8E%E6%8E%A5%E6%84%8F%E5%A4%96"><span class="toc-number">9.</span> <span class="toc-text">Law of Unintended Consequences — 改变复杂系统，准备好迎接意外</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Zawinski%E2%80%99s-Law-%E2%80%94-%E6%AF%8F%E4%B8%AA%E7%A8%8B%E5%BA%8F%E9%83%BD%E8%AF%95%E5%9B%BE%E6%89%A9%E5%BC%A0%EF%BC%8C%E7%9B%B4%E5%88%B0%E5%AE%83%E8%83%BD%E6%94%B6%E5%8F%91%E9%82%AE%E4%BB%B6"><span class="toc-number">10.</span> <span class="toc-text">Zawinski’s Law — 每个程序都试图扩张，直到它能收发邮件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD%EF%BC%9A%E6%9E%B6%E6%9E%84%E7%9A%84%E8%89%BA%E6%9C%AF%E5%9C%A8%E4%BA%8E%E5%8F%96%E8%88%8D"><span class="toc-number">11.</span> <span class="toc-text">结语：架构的艺术在于取舍</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&text=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&is_video=false&description=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之架构篇：系统运行的客观规律&body=Check out this article: http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&title=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&name=软件工程之架构篇：系统运行的客观规律&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/01/software%20engineering/01-Architecture%20laws/&t=软件工程之架构篇：系统运行的客观规律"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

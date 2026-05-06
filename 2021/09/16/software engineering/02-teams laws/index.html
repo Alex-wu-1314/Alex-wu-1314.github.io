@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言软件工程从来不只是写代码。代码是人写的，团队是人组的，决策是人做的。无论工具多么先进，框架多么优雅，最终决定项目成败的，往往经常是人和人之间的协作方式。 然而，人与组织的协作从来不是线性的、可预测的。一个 5 人团队能高效运作，不代表 50 人团队也能等比例放大。一个技术精湛的工程师不一定能成为优秀的管理者。一个看似合理的组织架构，可能会悄然塑造出你意想不到的系统结构。 在《团队篇》中，我们整">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之团队篇：人与组织在协作中的摩擦">
+<meta property="og:url" content="http://example.com/2021/09/16/software%20engineering/02-teams%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言软件工程从来不只是写代码。代码是人写的，团队是人组的，决策是人做的。无论工具多么先进，框架多么优雅，最终决定项目成败的，往往经常是人和人之间的协作方式。 然而，人与组织的协作从来不是线性的、可预测的。一个 5 人团队能高效运作，不代表 50 人团队也能等比例放大。一个技术精湛的工程师不一定能成为优秀的管理者。一个看似合理的组织架构，可能会悄然塑造出你意想不到的系统结构。 在《团队篇》中，我们整">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-09-16T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:02:31.631Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之团队篇：人与组织在协作中的摩擦</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/01/software%20engineering/01-Architecture%20laws/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&text=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&is_video=false&description=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之团队篇：人与组织在协作中的摩擦&body=Check out this article: http://example.com/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&name=软件工程之团队篇：人与组织在协作中的摩擦&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&t=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Conway%E2%80%99s-Law-%E2%80%94%E2%80%94-%E7%BB%84%E7%BB%87%E6%9E%B6%E6%9E%84%E5%86%B3%E5%AE%9A%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">Conway’s Law —— 组织架构决定系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Brooks%E2%80%99s-Law-%E2%80%94%E2%80%94-%E7%BB%99%E5%BB%B6%E6%9C%9F%E9%A1%B9%E7%9B%AE%E5%8A%A0%E4%BA%BA%E5%8F%AA%E4%BC%9A%E8%AE%A9%E5%AE%83%E6%9B%B4%E6%99%9A"><span class="toc-number">3.</span> <span class="toc-text">Brooks’s Law —— 给延期项目加人只会让它更晚</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dunbar%E2%80%99s-Number-%E2%80%94%E2%80%94-%E4%BA%BA%E7%B1%BB%E7%A8%B3%E5%AE%9A%E7%A4%BE%E4%BA%A4%E5%85%B3%E7%B3%BB%E7%9A%84%E4%B8%8A%E9%99%90%E6%98%AF-150"><span class="toc-number">4.</span> <span class="toc-text">Dunbar’s Number —— 人类稳定社交关系的上限是 150</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Ringelmann-Effect-%E2%80%94%E2%80%94-%E5%9B%A2%E9%98%9F%E8%B6%8A%E5%A4%A7%EF%BC%8C%E4%B8%AA%E4%BA%BA%E8%B4%A1%E7%8C%AE%E8%B6%8A%E5%B0%91"><span class="toc-number">5.</span> <span class="toc-text">The Ringelmann Effect —— 团队越大，个人贡献越少</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Price%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%80%BB%E4%BA%BA%E6%95%B0%E7%9A%84%E5%B9%B3%E6%96%B9%E6%A0%B9%E5%AE%8C%E6%88%90-50-%E7%9A%84%E5%B7%A5%E4%BD%9C"><span class="toc-number">6.</span> <span class="toc-text">Price’s Law —— 总人数的平方根完成 50% 的工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Putt%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%87%82%E6%8A%80%E6%9C%AF%E7%9A%84%E4%BA%BA%E4%B8%8D%E7%AE%A1%E7%90%86%EF%BC%8C%E7%AE%A1%E7%90%86%E7%9A%84%E4%BA%BA%E4%B8%8D%E6%87%82%E6%8A%80%E6%9C%AF"><span class="toc-number">7.</span> <span class="toc-text">Putt’s Law —— 懂技术的人不管理，管理的人不懂技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Peter-Principle-%E2%80%94%E2%80%94-%E6%AF%8F%E4%B8%AA%E4%BA%BA%E9%83%BD%E4%BC%9A%E6%99%8B%E5%8D%87%E5%88%B0%E8%87%AA%E5%B7%B1%E6%97%A0%E8%83%BD%E4%B8%BA%E5%8A%9B%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">8.</span> <span class="toc-text">Peter Principle —— 每个人都会晋升到自己无能为力的位置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Bus-Factor-%E2%80%94%E2%80%94-%E6%9C%80%E5%B0%91%E5%87%A0%E4%B8%AA%E4%BA%BA%E7%A6%BB%E5%BC%80%E4%BC%9A%E8%AE%A9%E9%A1%B9%E7%9B%AE%E5%B4%A9%E6%BA%83"><span class="toc-number">9.</span> <span class="toc-text">Bus Factor —— 最少几个人离开会让项目崩溃</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dilbert-Principle-%E2%80%94%E2%80%94-%E5%85%AC%E5%8F%B8%E5%80%BE%E5%90%91%E4%BA%8E%E6%8A%8A%E6%9C%80%E6%97%A0%E8%83%BD%E7%9A%84%E4%BA%BA%E6%8F%90%E6%8B%94%E5%88%B0%E7%AE%A1%E7%90%86%E5%B2%97"><span class="toc-number">10.</span> <span class="toc-text">Dilbert Principle —— 公司倾向于把最无能的人提拔到管理岗</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E%E8%BF%99%E4%BA%9B%E8%A7%84%E5%BE%8B%E4%B8%AD%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">11.</span> <span class="toc-text">总结：从这些规律中看到什么？</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之团队篇：人与组织在协作中的摩擦
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-16T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-09-16</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>软件工程从来不只是写代码。代码是人写的，团队是人组的，决策是人做的。无论工具多么先进，框架多么优雅，最终决定项目成败的，往往经常是人和人之间的协作方式。</p>
+<p>然而，人与组织的协作从来不是线性的、可预测的。一个 5 人团队能高效运作，不代表 50 人团队也能等比例放大。一个技术精湛的工程师不一定能成为优秀的管理者。一个看似合理的组织架构，可能会悄然塑造出你意想不到的系统结构。</p>
+<p>在《团队篇》中，我们整理了 9 条与人和组织紧密相关的定律。它们有的来自经典管理学著作，有的来自软件工程的实践经验，有的甚至来自带有讽刺意味的漫画。无论来源如何，这些定律共同揭示了一个事实：<strong>理解人的规律，比掌握任何技术栈都更重要。</strong></p>
+<hr>
+<h1 id="Conway’s-Law-——-组织架构决定系统架构"><a href="#Conway’s-Law-——-组织架构决定系统架构" class="headerlink" title="Conway’s Law —— 组织架构决定系统架构"></a>Conway’s Law —— 组织架构决定系统架构</h1><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>Conway’s Law 指出：<strong>软件系统的结构反映了构建它的组织的沟通结构。</strong> 如果一个公司划分为前端、后端和数据库三个独立部门，那么它产出的软件大概率也是三层架构。小而分散的团队倾向于构建模块化的服务架构，而集中式的大型团队则倾向于构建单体系统。</p>
+<p>这个定律的影响是深远的。它意味着，你想要的系统架构，几乎不可能在不调整团队结构的情况下实现。换句话说，<strong>如果你想改变架构，先改变组织。</strong></p>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>某公司分设前端部、后端部和数据库部。各部门独立设计自己负责的层级，结果系统集成时痛苦不堪，不同层级之间的接口对齐困难，因为各部门的目标本身就不同。</li>
+<li>亚马逊推行著名的“双披萨团队”（two-pizza team），每个团队约 5-10 人，独立负责一个服务。Conway’s Law 解释了为什么亚马逊最终演化为面向服务的架构，各服务之间有清晰的 API 契约。</li>
+</ul>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>软件架构常常是组织架构的镜像。</strong> 系统的模块边界往往映射了团队之间的沟通边界。</li>
+<li><strong>如果公司按职能竖井组织，软件模块也可能形成竖井</strong>，彼此之间缺乏有效通信，反映了组织中的沟通障碍。</li>
+<li><strong>要实现期望的软件架构（如微服务），可能需要先重组团队</strong>，因为团队会沿着自己的沟通路径来构建软件。</li>
+<li><strong>启动项目时就要意识到：如何划分团队或部门，很可能导致软件边界出现在同样的地方。</strong></li>
+</ul>
+<hr>
+<h1 id="Brooks’s-Law-——-给延期项目加人只会让它更晚"><a href="#Brooks’s-Law-——-给延期项目加人只会让它更晚" class="headerlink" title="Brooks’s Law —— 给延期项目加人只会让它更晚"></a>Brooks’s Law —— 给延期项目加人只会让它更晚</h1><h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><p>Brooks’s Law 是对“人月神话”最直接的挑战：<strong>向一个已经延期的软件项目增加人力，只会让它更延期。</strong> 这不是说加人永远没用，而是说作为应对延期的措施，加人通常是反效果的。</p>
+<p>核心原因有三：第一，新人需要时间上手（ramp-up），这期间无法有效产出；第二，培训新人会消耗现有团队成员的时间；第三，团队成员增多意味着沟通路径呈指数级增长。正如 Brooks 那句经典比喻：“你不能让九个女人怀孕，然后期望一个月生出孩子。”</p>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>一个项目已经延期一个月，管理层向 5 人团队中新增 3 名开发者。接下来几周，进度反而变慢。原团队成员大量时间用于给新人讲解设计和代码，合并新人的代码又引发集成冲突。项目最终延期两个月。</li>
+<li>一个复杂 Bug 需要深入的领域知识。增加更多人来调试无济于事，因为只有原有的开发者理解系统，更多的人只会让调试变得更混乱。</li>
+<li>软件团队的扩展不是线性的。超过一定规模后，新增成员带来的边际产出递减，人均产出不断下降。</li>
+</ul>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>简单地向延期的项目增加开发者，通常会在初期进一步拖慢进度。</strong></li>
+<li><strong>新人需要时间上手</strong>，这会消耗现有团队成员的时间用于培训和协调，从而降低整体生产力。</li>
+<li><strong>与其寄望于人海战术解决延期，不如调整范围或时间线。</strong> 对“多招几个程序员就能赶上”的方案要保持警惕。</li>
+</ul>
+<hr>
+<h1 id="Dunbar’s-Number-——-人类稳定社交关系的上限是-150"><a href="#Dunbar’s-Number-——-人类稳定社交关系的上限是-150" class="headerlink" title="Dunbar’s Number —— 人类稳定社交关系的上限是 150"></a>Dunbar’s Number —— 人类稳定社交关系的上限是 150</h1><h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><p>Dunbar’s Number（邓巴数）指出：<strong>一个人能维持的稳定社交关系数量存在认知上限，约为 150 人。</strong> 在这个规模之内，人们可以通过非正式的方式相互了解和协作；一旦超过，就需要更正式的规则、层级和沟通渠道。</p>
+<p>邓巴还进一步划分了更小的社交层级：约 5 人的亲密关系、约 15 人的信任协作圈、约 50 人的紧密工作关系，以及约 150 人的稳定社交连接。对于软件团队而言，高信任度的工作发生在极小的群体中，超过 10-15 人的团队开始失去凝聚力，而 150 人的上限适用于部门或社区层面，而非日常协作。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>许多创业公司报告，在大约 150 名员工的节点，公司文化会发生显著转变。你不再认识每个人的名字，非正式沟通开始失效，需要全员会议和内部新闻通讯来传递信息。这就是邓巴数在起作用。</li>
+<li>Linux 内核社区有上千名贡献者，但内部有维护者和子系统团队，规模都相对较小。沟通按子系统划分邮件列表，使得每个人实际只与少数人频繁交流。</li>
+<li>亚马逊的“双披萨团队”（5-10 人）表明，即使在邓巴数的范围内，高绩效工作单元仍需要更小的规模。</li>
+</ul>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>邓巴数（约 150）是一个社区中每个人都能了解彼此身份和角色的上限。</strong> 超过这个数字，大脑就难以跟踪关系了。</li>
+<li><strong>在软件组织中，超过 100-150 人的团队将需要更多的层级或拆分为子团队才能有效运作</strong>，协调成本急剧上升。</li>
+<li><strong>更亲密的关系存在更小的限制。</strong> 有效的工作小组可能远小于 150，但 150 是社区感的硬上限。</li>
+<li><strong>强大的协作发生在远低于 150 阈值的小群体中。小团队胜出。</strong></li>
+</ul>
+<hr>
+<h1 id="The-Ringelmann-Effect-——-团队越大，个人贡献越少"><a href="#The-Ringelmann-Effect-——-团队越大，个人贡献越少" class="headerlink" title="The Ringelmann Effect —— 团队越大，个人贡献越少"></a>The Ringelmann Effect —— 团队越大，个人贡献越少</h1><h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><p>Ringelmann 效应（又称“社会惰化” Social Loafing）揭示了一个反直觉的现象：<strong>随着群体规模增加，个体的生产力会下降。</strong> 在软件团队中，这种效应源于两个机制：一是责任分散，人们觉得别人会补上，自己的贡献不那么关键；二是协调成本，更多的人意味着更多的会议、对齐和沟通，留给真正工作的时间反而减少。</p>
+<p>Ringelmann 效应与 Brooks’s Law 相互呼应：二者都说明团队效率无法线性扩展。关键对策是保持小团队、明确角色、增强个体的主人翁意识。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>在一个 3 人的头脑风暴中，每个人可能贡献许多想法。但在一场 15 人的头脑风暴中，很多人会一言不发，默认别人会发言。</li>
+<li>如果 10 个开发者同时工作在一个模块上，合并代码、解决冲突、沟通设计决策会消耗大量时间。这正是亚马逊提出“双披萨规则”（一个团队约 5-8 人，能被两张大披萨喂饱）的动因之一。</li>
+</ul>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>在大团队中，有些人会减少投入</strong>，因为他们假定别人会补上，或者自己的贡献不易被察觉。</li>
+<li><strong>人越多，沟通、会议和对齐的需求就越多。</strong> 协调时间增加，留给实际工作的时间减少。</li>
+<li><strong>存在一个临界点，超过后增加人手带来的回报递减，甚至人均产出为负。</strong> 小而专注的团队通常碾压协调不畅的大团队。</li>
+<li><strong>小团队或个人对结果有更强的主人翁感和责任感。</strong></li>
+</ul>
+<hr>
+<h1 id="Price’s-Law-——-总人数的平方根完成-50-的工作"><a href="#Price’s-Law-——-总人数的平方根完成-50-的工作" class="headerlink" title="Price’s Law —— 总人数的平方根完成 50% 的工作"></a>Price’s Law —— 总人数的平方根完成 50% 的工作</h1><h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><p>Price’s Law 描述的是一种极端的产出不均衡：<strong>在一群人中，总人数的平方根完成了 50% 的工作。</strong> 例如，在一个 100 人的工程组织中，大约 10 个人可能产出总量的一半。随着团队扩大，产出不会线性增长，大多数人贡献甚微或在从事边缘任务。</p>
+<p>这是对“加人就能加产出”的又一记重拳。它提醒我们，在招聘时质量远比数量重要，一个优秀的工程师可能胜过数个平庸之辈。但使用这一定律需要谨慎，不能因此贬低那些从事必要但不那么显眼的工作的人。同时，它也警示了一个风险：如果那些核心的 √N 贡献者离开，组织会失去大量生产力，因此对这些人的留存和防止倦怠至关重要。</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>一个 GitHub 上有 30 位贡献者的开源项目，通常约 5 人（√30 ≈ 5）承担了大约一半的代码提交或主要功能开发，其余人贡献较小的补丁或文档。</li>
+<li>马斯克收购 Twitter 后大幅裁员，但产品仍在运行，这是一个耐人寻味的案例。收购前 Twitter 有约 7,500 名员工，√7,500 ≈ 87。Price’s Law 暗示，如果那核心的 80-100 人留任，平台确实可能继续运转。但这只在正确的人被保留时成立，也不能预测可靠性，因为裁员同时去除了 SRE、安全和审核等领域的冗余。实际上 Twitter 甚至要求部分被裁员工回归，这恰恰说明他们低估了某些关键技能的重要性。</li>
+</ul>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>一小部分人往往贡献了绝大部分成果。</strong> 在一个 100 人的工程组织中，约 10 人可能产出一半的成果。</li>
+<li><strong>随着团队扩大，产出不会线性增长。</strong> 新增的多数人可能贡献远小于核心团队。</li>
+<li><strong>理解这一点有助于团队规划和理解为什么失去特定个体对生产力影响重大。</strong></li>
+<li><strong>明智的做法是识别并留住那些对公司产出至关重要的小群体。</strong></li>
+</ul>
+<hr>
+<h1 id="Putt’s-Law-——-懂技术的人不管理，管理的人不懂技术"><a href="#Putt’s-Law-——-懂技术的人不管理，管理的人不懂技术" class="headerlink" title="Putt’s Law —— 懂技术的人不管理，管理的人不懂技术"></a>Putt’s Law —— 懂技术的人不管理，管理的人不懂技术</h1><h3 id="Overview-5"><a href="#Overview-5" class="headerlink" title="Overview"></a>Overview</h3><p>Putt’s Law 直击技术组织的核心矛盾：<strong>理解技术的人不去管理技术，管理技术的人不理解技术。</strong> 它还有一个推论：“每个技术层级体系，最终都会发展出一种能力倒置（competence inversion）”，处于顶层的人对工作内容的了解反而少于底层的人。</p>
+<p>这种断层会导致双向的错位：管理者因为不了解技术复杂性而设定不切实际的期限，工程师因为不了解业务上下文而构建错误的解决方案。成功组织的应对之道是培养懂技术基础的管理者，或者提拔有技术背景的领导者来弥合这个鸿沟。</p>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>一个从销售或业务背景晋升的软件经理，可能催促团队以极快速度添加复杂功能，却不理解为什么需要质量和测试。他们“管理着他们不理解的东西”。</li>
+<li>与之相对，一位出色的系统管理员深知如何优化基础设施，却不参与预算或项目方向的管理决策。他们“理解着他们不管理的东西”。</li>
+<li>经理向客户承诺一个下周交付的功能（不了解技术难度），工程团队却非常沮丧，经理根本不知道实现这个功能需要什么。</li>
+<li>许多初创公司初期能避免这种断层，因为创始人通常既管理又深谙技术。但随着公司成长，专业化会分离这些角色。一个补救方案是让 CTO 或技术负责人充当桥梁，一只脚在管理中，一只脚在技术细节里。</li>
+</ul>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>深厚的技术理解与管理角色之间往往存在鸿沟。</strong> 很少有人能同时在这两方面都出色。</li>
+<li><strong>技术专家通常不在管理岗位，而管理者通常不懂技术细节。</strong></li>
+<li><strong>这会导致不切实际的期望</strong>：管理者因为不了解领域和复杂性而设定不可能的目标，工程师则感到被误解。</li>
+<li><strong>成功的组织通过培训管理者的技术基础或提拔有技术嗅觉的领导者来弥合这一鸿沟。</strong></li>
+</ul>
+<hr>
+<h1 id="Peter-Principle-——-每个人都会晋升到自己无能为力的位置"><a href="#Peter-Principle-——-每个人都会晋升到自己无能为力的位置" class="headerlink" title="Peter Principle —— 每个人都会晋升到自己无能为力的位置"></a>Peter Principle —— 每个人都会晋升到自己无能为力的位置</h1><h3 id="Overview-6"><a href="#Overview-6" class="headerlink" title="Overview"></a>Overview</h3><p>Peter Principle 用一句话概括了一个令人不安的事实：<strong>在层级体系中，每个员工都会趋向于晋升到自己不能胜任的级别。</strong> 逻辑很简单：一个人在当前的岗位表现优秀，因此被提拔到更高的岗位；如果他在新的岗位继续优秀，会继续被提拔，直到最终他到达一个不再能胜任的位置，然后停滞在那里。</p>
+<p>在软件行业，这条定律的危害尤为明显。一个出色的程序员被提拔为团队经理后表现糟糕，结果是公司既少了一个好程序员，又多了一个坏经理。缓解方案是建立双轨职业路径：技术路线（IC 路线）和管理路线，让想深耕技术的人不必靠转管理才能晋升。</p>
+<h3 id="Examples-6"><a href="#Examples-6" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>Alice 是团队里最出色的程序员。管理层因为她经验最丰富而任命她为团队经理。但她既没有经验也没有意愿做人员管理。结果团队陷入困境：她要么事无巨细地管，要么遗漏重要的管理任务，同时代码产出也大幅下降（她最擅长的领域）。Alice 到达了她的“不胜任层级”，并可能无限期停留在此。</li>
+<li>一个擅长找 Bug 的 QA 工程师被提拔为 QA 主管，角色涉及大量文书和策略工作。如果这不是他们的强项，QA 过程可能因此退步。</li>
+<li>现今许多技术公司使用独立贡献者（IC）职业轨道来对抗这条原则：让优秀的工程师保持工程师身份，同时获得加薪和更高的职称，而不是必须转向管理才能晋升。一些公司还推行轮岗或临时领导角色，以确保在正式任命前验证胜任力。</li>
+</ul>
+<h3 id="Takeaways-6"><a href="#Takeaways-6" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>人们基于在当前角色的成功而被提拔，直到到达一个不再胜任的位置。</strong></li>
+<li><strong>一个出色的开发者被提升为管理者后可能表现糟糕</strong>，结果失去了好开发者，得到了差管理者。</li>
+<li><strong>组织应当提供双轨职业路径（技术轨道 vs. 管理轨道）</strong>，以防止这种停滞。</li>
+</ul>
+<hr>
+<h1 id="Bus-Factor-——-最少几个人离开会让项目崩溃"><a href="#Bus-Factor-——-最少几个人离开会让项目崩溃" class="headerlink" title="Bus Factor —— 最少几个人离开会让项目崩溃"></a>Bus Factor —— 最少几个人离开会让项目崩溃</h1><h3 id="Overview-7"><a href="#Overview-7" class="headerlink" title="Overview"></a>Overview</h3><p>Bus Factor（巴士因子，有时也被更乐观地称为“彩票因子”）是一个风险度量：<strong>最少有多少团队成员突然离开（无论是被巴士撞了还是中了彩票），会让项目陷入严重困境。</strong></p>
+<p>Bus Factor 等于 1 意味着存在一个关键人掌握了所有核心知识，如果这个人消失，项目基本“玩完”或停滞。Bus Factor 等于 5 意味着只要五名关键人员中的任何一人离开，项目就会停止运作。本质上，Bus Factor 衡量的是知识分布风险和单点故障，高 Bus Factor 是好事（知识分散在多人之间），低 Bus Factor 是坏事（存在专业知识的单点故障）。</p>
+<p>这一理念旨在鼓励人们主动避免这种依赖关系。提升“总线因素”与知识管理实践不谋而合：比如结对编程、代码审查、文档编写、导师指导以及职责轮换等。</p>
+<h3 id="Examples-7"><a href="#Examples-7" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>如果一家初创公司只有 Alice 是数据库专家，那么数据库知识的 Bus Factor 就是 1。如果 Alice 离职，没人知道备份策略、表结构细节或性能调优的方法。</li>
+<li>Left-pad 事件是整个生态系统中 Bus Factor 为 1 的经典案例：一个单独的 NPM 包维护者下架了一个微小的包，导致成千上万的构建失败。</li>
+</ul>
+<h3 id="Takeaways-7"><a href="#Takeaways-7" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>Bus Factor 等于 1 意味着一个人掌握关键知识</strong>；如果他消失，项目基本上“完蛋”或停滞。更高的 Bus Factor（如 5）意味着项目即使失去特定几人中的任何一个也能继续。</li>
+<li><strong>它本质上是对知识分布和风险的衡量。</strong> 高 Bus Factor 是好事（知识多人共享），低 Bus Factor 是坏事（存在专业知识的单点故障）。</li>
+<li><strong>团队应该通过知识共享、记录关键系统、代码审查和轮换职责来提高 Bus Factor。</strong></li>
+</ul>
+<hr>
+<h1 id="Dilbert-Principle-——-公司倾向于把最无能的人提拔到管理岗"><a href="#Dilbert-Principle-——-公司倾向于把最无能的人提拔到管理岗" class="headerlink" title="Dilbert Principle —— 公司倾向于把最无能的人提拔到管理岗"></a>Dilbert Principle —— 公司倾向于把最无能的人提拔到管理岗</h1><h3 id="Overview-8"><a href="#Overview-8" class="headerlink" title="Overview"></a>Overview</h3><p>Dilbert Principle 带着漫画式的讽刺，却说出了许多工程师心中不敢明说的话：<strong>公司倾向于将最无能的员工提拔到管理层，以限制他们能造成的实际破坏。</strong></p>
+<p>这条原则虽然戏谑，但反映了一个真实的组织缺陷：许多公司把管理当作工程师的默认职业路径，而不去认真考虑这名员工到底想要什么、适合什么。当晋升替代了问责，管理层就会充斥着既没有技术公信力也缺乏领导能力的人。结果是糟糕的决策、错误的优先级，以及工程师与领导层之间的信任崩塌。</p>
+<h3 id="Examples-8"><a href="#Examples-8" class="headerlink" title="Examples"></a>Examples</h3><ul>
+<li>一个平庸的程序员或失败的研发组长被“晋升”到管理或架构师的岗位，这些调动与其说是认可领导才能，不如说是把问题人物调离关键工作。结果是反效果的：现在你有了一个无能的管理者，同时少了一个开发者。</li>
+<li>积极的一面是，对 Dilbert Principle 的认知让一些组织变得更加审慎。现代科技公司越来越多地提供双轨职业路径（技术 vs. 管理），避免强迫优秀工程师转入管理。当一名表现不佳的员工不适合工程岗位时，好的公司会尝试辅导或重新安排岗位，如果所有方式都无效则让他离开，而不是让他成为老板。</li>
+</ul>
+<h3 id="Takeaways-8"><a href="#Takeaways-8" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li><strong>组织有时通过把表现不佳的人提拔到管理层来控制损害</strong>，让他们离开实际生产工作。</li>
+<li><strong>这反映了一种讽刺的现实：基层员工做实际工作，而有些管理者几乎不增加什么价值。</strong></li>
+<li><strong>技术卓越和人员领导力需要不同的技能。</strong> 在一方面失败，并不代表在另一方面就能胜任。</li>
+</ul>
+<hr>
+<h1 id="总结：从这些规律中看到什么？"><a href="#总结：从这些规律中看到什么？" class="headerlink" title="总结：从这些规律中看到什么？"></a>总结：从这些规律中看到什么？</h1><p>回顾这 9 条定律，可以提炼出几个贯穿始终的主题：</p>
+<p><strong>1. 规模不是免费的午餐。</strong> Brooks’s Law、Ringelmann Effect、Price’s Law 和 Dunbar’s Number 虽视角不同，但指向同一个结论：团队规模扩大不会带来线性的产出增长。沟通成本、社会惰化、产出不均衡，多种力量共同作用，让简单粗暴的“加人”策略在大多数情况下适得其反。<strong>小而精的队伍，才是高绩效的基石。</strong></p>
+<p><strong>2. 结构塑造行为。</strong> Conway’s Law 的洞察是颠覆性的：你设计系统的方式，首先取决于你设计团队的方式。如果你想要一个模块化的系统，就需要先有模块化的团队。结构不是中性的，它是你最重要的设计工具之一。</p>
+<p><strong>3. 管理与技术之间存在天然张力。</strong> Putt’s Law、Peter Principle 和 Dilbert Principle 从不同角度描绘了同一个困境：技术能力与管理能力是两套不同的技能树，但大多数组织并没有为它们设计好分流机制。结果是优秀的技术人才被推入不适合他们的管理岗位，而真正优秀的管理者因为“不懂技术”而被架空。双轨制（IC 路线 vs. 管理路线）是当前最佳实践，但实施起来远比听起来复杂。</p>
+<p><strong>4. 知识分布即风险。</strong> Bus Factor 提醒我们，软件项目最大的单点故障往往不是某台服务器，而是某个人。知识如果高度集中，组织就极其脆弱。系统地做知识共享、文档建设和责任轮换，不是可有可无的“锦上添花”，而是项目存续的底线保障。</p>
+<p><strong>5. 协作的真实规模有硬限制。</strong> Dunbar’s Number 告诉我们，所谓的“公司文化”在超过 150 人后会发生质变。这不是管理技巧的问题，而是人类大脑的认知局限。聪明的组织不会试图对抗这个限制，而是顺应它，设计出“团队中的团队”这样的嵌套结构来维系协作的质量。</p>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Conway%E2%80%99s-Law-%E2%80%94%E2%80%94-%E7%BB%84%E7%BB%87%E6%9E%B6%E6%9E%84%E5%86%B3%E5%AE%9A%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">Conway’s Law —— 组织架构决定系统架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Brooks%E2%80%99s-Law-%E2%80%94%E2%80%94-%E7%BB%99%E5%BB%B6%E6%9C%9F%E9%A1%B9%E7%9B%AE%E5%8A%A0%E4%BA%BA%E5%8F%AA%E4%BC%9A%E8%AE%A9%E5%AE%83%E6%9B%B4%E6%99%9A"><span class="toc-number">3.</span> <span class="toc-text">Brooks’s Law —— 给延期项目加人只会让它更晚</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dunbar%E2%80%99s-Number-%E2%80%94%E2%80%94-%E4%BA%BA%E7%B1%BB%E7%A8%B3%E5%AE%9A%E7%A4%BE%E4%BA%A4%E5%85%B3%E7%B3%BB%E7%9A%84%E4%B8%8A%E9%99%90%E6%98%AF-150"><span class="toc-number">4.</span> <span class="toc-text">Dunbar’s Number —— 人类稳定社交关系的上限是 150</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Ringelmann-Effect-%E2%80%94%E2%80%94-%E5%9B%A2%E9%98%9F%E8%B6%8A%E5%A4%A7%EF%BC%8C%E4%B8%AA%E4%BA%BA%E8%B4%A1%E7%8C%AE%E8%B6%8A%E5%B0%91"><span class="toc-number">5.</span> <span class="toc-text">The Ringelmann Effect —— 团队越大，个人贡献越少</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Price%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%80%BB%E4%BA%BA%E6%95%B0%E7%9A%84%E5%B9%B3%E6%96%B9%E6%A0%B9%E5%AE%8C%E6%88%90-50-%E7%9A%84%E5%B7%A5%E4%BD%9C"><span class="toc-number">6.</span> <span class="toc-text">Price’s Law —— 总人数的平方根完成 50% 的工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Putt%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%87%82%E6%8A%80%E6%9C%AF%E7%9A%84%E4%BA%BA%E4%B8%8D%E7%AE%A1%E7%90%86%EF%BC%8C%E7%AE%A1%E7%90%86%E7%9A%84%E4%BA%BA%E4%B8%8D%E6%87%82%E6%8A%80%E6%9C%AF"><span class="toc-number">7.</span> <span class="toc-text">Putt’s Law —— 懂技术的人不管理，管理的人不懂技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Peter-Principle-%E2%80%94%E2%80%94-%E6%AF%8F%E4%B8%AA%E4%BA%BA%E9%83%BD%E4%BC%9A%E6%99%8B%E5%8D%87%E5%88%B0%E8%87%AA%E5%B7%B1%E6%97%A0%E8%83%BD%E4%B8%BA%E5%8A%9B%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">8.</span> <span class="toc-text">Peter Principle —— 每个人都会晋升到自己无能为力的位置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Bus-Factor-%E2%80%94%E2%80%94-%E6%9C%80%E5%B0%91%E5%87%A0%E4%B8%AA%E4%BA%BA%E7%A6%BB%E5%BC%80%E4%BC%9A%E8%AE%A9%E9%A1%B9%E7%9B%AE%E5%B4%A9%E6%BA%83"><span class="toc-number">9.</span> <span class="toc-text">Bus Factor —— 最少几个人离开会让项目崩溃</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dilbert-Principle-%E2%80%94%E2%80%94-%E5%85%AC%E5%8F%B8%E5%80%BE%E5%90%91%E4%BA%8E%E6%8A%8A%E6%9C%80%E6%97%A0%E8%83%BD%E7%9A%84%E4%BA%BA%E6%8F%90%E6%8B%94%E5%88%B0%E7%AE%A1%E7%90%86%E5%B2%97"><span class="toc-number">10.</span> <span class="toc-text">Dilbert Principle —— 公司倾向于把最无能的人提拔到管理岗</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E4%BB%8E%E8%BF%99%E4%BA%9B%E8%A7%84%E5%BE%8B%E4%B8%AD%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">11.</span> <span class="toc-text">总结：从这些规律中看到什么？</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&text=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&is_video=false&description=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之团队篇：人与组织在协作中的摩擦&body=Check out this article: http://example.com/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&title=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&name=软件工程之团队篇：人与组织在协作中的摩擦&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/16/software%20engineering/02-teams%20laws/&t=软件工程之团队篇：人与组织在协作中的摩擦"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

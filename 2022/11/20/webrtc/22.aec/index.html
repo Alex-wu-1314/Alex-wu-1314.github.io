@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 什么是声学回声 AEC 在 WebRTC 音频引擎中的位置 AEC 核心原理：自适应滤波 完整处理流水线 4.1 延迟估计（Delay Estimation） 4.2 线性自适应滤波（Linear Adaptive Filter） 4.3 双讲检测（Double-Talk Detection） 4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块">
+<meta property="og:url" content="http://example.com/2022/11/20/webrtc/22.aec/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 什么是声学回声 AEC 在 WebRTC 音频引擎中的位置 AEC 核心原理：自适应滤波 完整处理流水线 4.1 延迟估计（Delay Estimation） 4.2 线性自适应滤波（Linear Adaptive Filter） 4.3 双讲检测（Double-Talk Detection） 4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-11-20T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-29T12:30:41.743Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/12/10/webrtc/23-h264/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/20/webrtc/22.aec/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/20/webrtc/22.aec/&text=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/20/webrtc/22.aec/&is_video=false&description=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块&body=Check out this article: http://example.com/2022/11/20/webrtc/22.aec/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/20/webrtc/22.aec/&name=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/20/webrtc/22.aec/&t=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%A3%B0%E5%AD%A6%E5%9B%9E%E5%A3%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是声学回声</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-AEC-%E5%9C%A8-WebRTC-%E9%9F%B3%E9%A2%91%E5%BC%95%E6%93%8E%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">2. AEC 在 WebRTC 音频引擎中的位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-AEC-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%EF%BC%9A%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2"><span class="toc-number">4.</span> <span class="toc-text">3. AEC 核心原理：自适应滤波</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%8C%E6%95%B4%E5%A4%84%E7%90%86%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">5.</span> <span class="toc-text">4. 完整处理流水线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BB%B6%E8%BF%9F%E4%BC%B0%E8%AE%A1%EF%BC%88Delay-Estimation%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 延迟估计（Delay Estimation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BA%BF%E6%80%A7%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%EF%BC%88Linear-Adaptive-Filter%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 线性自适应滤波（Linear Adaptive Filter）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8F%8C%E8%AE%B2%E6%A3%80%E6%B5%8B%EF%BC%88Double-Talk-Detection-DTD%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 双讲检测（Double-Talk Detection, DTD）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%AE%8B%E4%BD%99%E5%9B%9E%E5%A3%B0%E6%8A%91%E5%88%B6%EF%BC%88Residual-Echo-Suppression-NLP%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E8%88%92%E9%80%82%E5%99%AA%E5%A3%B0%E7%94%9F%E6%88%90%EF%BC%88Comfort-Noise-Generation-CNG%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 舒适噪声生成（Comfort Noise Generation, CNG）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-WebRTC-AEC-%E6%BC%94%E8%BF%9B%E5%8F%B2%EF%BC%9AAEC-%E2%86%92-AECM-%E2%86%92-AEC3"><span class="toc-number">6.</span> <span class="toc-text">5. WebRTC AEC 演进史：AEC → AECM → AEC3</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-AEC3-%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">6. AEC3 架构深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%86%E5%9D%97%E9%A2%91%E5%9F%9F%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88PBFDAF%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 分块频域自适应滤波器（PBFDAF）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%9B%9E%E5%A3%B0%E8%B7%AF%E5%BE%84%E5%8F%98%E5%8C%96%E6%A3%80%E6%B5%8B"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 回声路径变化检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-ERLE-%E6%8C%87%E6%A0%87"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 ERLE 指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%9D%97%E5%A4%84%E7%90%86%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%80%A7"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 块处理与实时性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%85%B3%E9%94%AE%E7%AE%97%E6%B3%95%EF%BC%9ANLMS"><span class="toc-number">8.</span> <span class="toc-text">7. 关键算法：NLMS</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E9%9F%B3%E9%A2%91%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">9.</span> <span class="toc-text">8. 与其他音频模块的协作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%A7%BB%E5%8A%A8%E7%AB%AF%E7%89%B9%E6%AE%8A%E6%8C%91%E6%88%98"><span class="toc-number">10.</span> <span class="toc-text">9. 移动端特殊挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Android-%E7%9A%84%E5%8F%AF%E5%8F%98%E5%BB%B6%E8%BF%9F%E9%97%AE%E9%A2%98"><span class="toc-number">10.0.1.</span> <span class="toc-text">Android 的可变延迟问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iOS-AVAudioSession"><span class="toc-number">10.0.2.</span> <span class="toc-text">iOS AVAudioSession</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%93%9D%E7%89%99-SCO-%E8%B7%AF%E7%94%B1"><span class="toc-number">10.0.3.</span> <span class="toc-text">蓝牙 SCO 路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%AC%E5%A3%B0%E5%99%A8%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%A4%B1%E7%9C%9F"><span class="toc-number">10.0.4.</span> <span class="toc-text">扬声器非线性失真</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E5%9B%9E%E5%A3%B0%E7%A9%BF%E9%80%8F%EF%BC%88Echo-Breakthrough%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">问题一：回声穿透（Echo Breakthrough）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%8A%E5%8F%8C%E5%B7%A5%E6%95%88%E6%9E%9C%EF%BC%88Half-Duplex-Walkie-Talkie-Effect%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">问题二：半双工效果（Half-Duplex &#x2F; Walkie-Talkie Effect）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E6%BB%A4%E6%B3%A2%E5%99%A8%E5%8F%91%E6%95%A3%EF%BC%88Filter-Divergence%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">问题三：滤波器发散（Filter Divergence）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-WebRTC-%E6%BA%90%E7%A0%81%E5%AF%BC%E8%A7%88"><span class="toc-number">12.</span> <span class="toc-text">11. WebRTC 源码导览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%BB%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-20T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-11-20</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%A3%B0%E5%AD%A6%E5%9B%9E%E5%A3%B0">什么是声学回声</a></li>
+<li><a href="#2-aec-%E5%9C%A8-webrtc-%E9%9F%B3%E9%A2%91%E5%BC%95%E6%93%8E%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE">AEC 在 WebRTC 音频引擎中的位置</a></li>
+<li><a href="#3-aec-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2">AEC 核心原理：自适应滤波</a></li>
+<li><a href="#4-%E5%AE%8C%E6%95%B4%E5%A4%84%E7%90%86%E6%B5%81%E6%B0%B4%E7%BA%BF">完整处理流水线</a><ul>
+<li>4.1 <a href="#41-%E5%BB%B6%E8%BF%9F%E4%BC%B0%E8%AE%A1delay-estimation">延迟估计（Delay Estimation）</a></li>
+<li>4.2 <a href="#42-%E7%BA%BF%E6%80%A7%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2linear-adaptive-filter">线性自适应滤波（Linear Adaptive Filter）</a></li>
+<li>4.3 <a href="#43-%E5%8F%8C%E8%AE%B2%E6%A3%80%E6%B5%8Bdouble-talk-detection">双讲检测（Double-Talk Detection）</a></li>
+<li>4.4 <a href="#44-%E6%AE%8B%E4%BD%99%E5%9B%9E%E5%A3%B0%E6%8A%91%E5%88%B6residual-echo-suppression-nlp">残余回声抑制（Residual Echo Suppression &#x2F; NLP）</a></li>
+<li>4.5 <a href="#45-comfort-noise-generation-cng">舒适噪声生成（Comfort Noise Generation, CNG）</a></li>
+</ul>
+</li>
+<li><a href="#5-webrtc-aec-%E6%BC%94%E8%BF%9B%E5%8F%B2aec--aecm--aec3">WebRTC AEC 演进史：AEC → AECM → AEC3</a></li>
+<li><a href="#6-aec3-%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90">AEC3 架构深度解析</a><ul>
+<li>6.1 <a href="#61-%E5%88%86%E5%9D%97%E9%A2%91%E5%9F%9F%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2pbfdaf">分块频域自适应滤波器（PBFDAF）</a></li>
+<li>6.2 <a href="#62-%E5%9B%9E%E5%A3%B0%E8%B7%AF%E5%BE%84%E5%8F%98%E5%8C%96%E6%A3%80%E6%B5%8B">回声路径变化检测</a></li>
+<li>6.3 <a href="#63-erle-%E6%8C%87%E6%A0%87">ERLE 指标</a></li>
+<li>6.4 <a href="#64-%E5%9D%97%E5%A4%84%E7%90%86%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%80%A7">块处理与实时性</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%85%B3%E9%94%AE%E7%AE%97%E6%B3%95nlms">关键算法：NLMS</a></li>
+<li><a href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E9%9F%B3%E9%A2%91%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C">与其他音频模块的协作</a></li>
+<li><a href="#9-%E7%A7%BB%E5%8A%A8%E7%AB%AF%E7%89%B9%E6%AE%8A%E6%8C%91%E6%88%98">移动端特殊挑战</a></li>
+<li><a href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95">常见问题与调试</a></li>
+<li><a href="#11-webrtc-%E6%BA%90%E7%A0%81%E5%AF%BC%E8%A7%88">WebRTC 源码导览</a></li>
+<li><a href="#12-%E6%80%BB%E7%BB%93">总结</a></li>
+</ol>
+<hr>
+<h1 id="1-什么是声学回声"><a href="#1-什么是声学回声" class="headerlink" title="1. 什么是声学回声"></a>1. 什么是声学回声</h1><p>在全双工音视频通话中，<strong>声学回声（Acoustic Echo）</strong> 是指：远端说话人（Far-End）的声音从本地扬声器播放出来后，经过房间的声学传播路径，被本地麦克风重新拾取，并回传至远端，远端因此听到了自己延迟后的声音。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">远端说话人</span><br><span class="line">    │</span><br><span class="line">    │ (RTP/OPUS)</span><br><span class="line">    ▼</span><br><span class="line">本地扬声器  ──声学路径──►  本地麦克风</span><br><span class="line">                                │</span><br><span class="line">                                │ 回声混入近端语音</span><br><span class="line">                                ▼</span><br><span class="line">                           发往远端  ◄── 远端听到自己的回声</span><br></pre></td></tr></table></figure>
+
+<p>声学回声与<strong>电路回声（Circuit Echo，即 PSTN 混合线圈引起的电气回声）</strong> 不同：</p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>声学回声</th>
+<th>电路回声</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>产生原因</td>
+<td>扬声器→房间→麦克风的物理声学路径</td>
+<td>PSTN 混合变压器阻抗不匹配</td>
+</tr>
+<tr>
+<td>延迟</td>
+<td>20 ms ~ 数百 ms（含系统缓冲）</td>
+<td>通常较短（&lt;10 ms）</td>
+</tr>
+<tr>
+<td>路径变化</td>
+<td>随人员移动、房间变化动态变化</td>
+<td>相对固定</td>
+</tr>
+<tr>
+<td>处理方式</td>
+<td>AEC（Acoustic Echo Cancellation）</td>
+<td>电话网络侧 EC</td>
+</tr>
+</tbody></table>
+<p>WebRTC 针对的主要是<strong>声学回声</strong>，以及部分因设备硬件耦合引起的近端电气串扰。</p>
+<hr>
+<h1 id="2-AEC-在-WebRTC-音频引擎中的位置"><a href="#2-AEC-在-WebRTC-音频引擎中的位置" class="headerlink" title="2. AEC 在 WebRTC 音频引擎中的位置"></a>2. AEC 在 WebRTC 音频引擎中的位置</h1><p>WebRTC 的音频处理由 <strong>APM（Audio Processing Module）</strong> 统一管理，API 位于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/api/audio/audio_processing.h               ← 公共 API</span><br><span class="line">/modules/audio_processing/include/          ← 旧式 include（兼容）</span><br><span class="line">/modules/audio_processing/aec3/             ← AEC3 实现</span><br></pre></td></tr></table></figure>
+
+<p>APM 处于采集链路（Capture Path）中，在音频数据被编码发送之前完成所有增强处理。它完全线程安全，支持自动重配置以适应任意采样率（&lt; 384 kHz）和任意声道数。</p>
+<p>APM 的处理分为<strong>两条流</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">远端音频（Far-End / Render Stream）</span><br><span class="line">    └──► ProcessReverseStream()  ──► 写入参考信号缓冲区</span><br><span class="line">                                          │</span><br><span class="line">本地麦克风（Near-End / Capture Stream）     │</span><br><span class="line">    └──► ProcessStream()  ◄───────────────┘</span><br><span class="line">         ├── High-Pass Filter（HPF）</span><br><span class="line">         ├── AEC（回声消除）       ◄── 依赖参考信号</span><br><span class="line">         ├── NS（噪声抑制）</span><br><span class="line">         ├── AGC（自动增益控制）</span><br><span class="line">         └── VAD（语音活动检测）</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键约束</strong>：<code>ProcessReverseStream()</code> 必须在 <code>ProcessStream()</code> 之前调用，AEC 才能正确对齐参考信号与回声信号的时序关系。</p>
+<hr>
+<h1 id="3-AEC-核心原理：自适应滤波"><a href="#3-AEC-核心原理：自适应滤波" class="headerlink" title="3. AEC 核心原理：自适应滤波"></a>3. AEC 核心原理：自适应滤波</h1><p>回声消除的核心思想如下：</p>
+<blockquote>
+<p>已知扬声器播放的信号（参考信号 <code>x(n)</code>），以及麦克风采集到的混合信号（<code>d(n) = s(n) + echo(n)</code>），通过对声学传播路径建模，预测出回声分量 <code>ŷ(n)</code>，从而还原近端纯净语音：</p>
+<p><code>e(n) = d(n) - ŷ(n)</code></p>
+</blockquote>
+<p>这一过程用自适应 FIR 滤波器实现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">参考信号 x(n) ─────────────────────────────►  扬声器</span><br><span class="line">                │</span><br><span class="line">                │ 经过房间冲激响应 h(n)（未知）</span><br><span class="line">                ▼</span><br><span class="line">麦克风采集 d(n) = s(n) + x(n)*h(n)</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">自适应滤波器 ŷ(n) = x(n) * ĥ(n)   （估计回声）</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">e(n) = d(n) - ŷ(n)   ← 误差信号 / 消除回声后的输出</span><br><span class="line">                │</span><br><span class="line">                └──► 更新 ĥ(n) 使 e(n) 趋近于纯净语音</span><br></pre></td></tr></table></figure>
+
+<p>滤波器的<strong>长度（tap 数）</strong> 决定了它能处理的最大回声拖尾（Reverberation Tail）：</p>
+<ul>
+<li>普通房间混响时长约 100 ms ~ 300 ms</li>
+<li>对应 8 kHz 采样率需要 800 ~ 2400 个系数</li>
+<li>频域实现可大幅降低计算量（时域卷积 → 频域乘法）</li>
+</ul>
+<hr>
+<h1 id="4-完整处理流水线"><a href="#4-完整处理流水线" class="headerlink" title="4. 完整处理流水线"></a>4. 完整处理流水线</h1><p>一个生产级 AEC 远不止一个自适应滤波器，其完整流水线如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">参考信号（Far-End）</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">┌───────────────────┐</span><br><span class="line">│  1. 延迟估计       │  ← 对齐参考信号与回声信号的时间偏移</span><br><span class="line">└────────┬──────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌───────────────────┐</span><br><span class="line">│  2. 线性自适应滤波  │  ← PBFDAF / NLMS，消除线性回声（-20~-40 dB）</span><br><span class="line">└────────┬──────────┘</span><br><span class="line">         │          ▲</span><br><span class="line">         │          │ 双讲检测（DTD）保护滤波器不被污染</span><br><span class="line">         ▼</span><br><span class="line">┌───────────────────┐</span><br><span class="line">│  3. 残余回声抑制    │  ← NLP，消除非线性残余回声</span><br><span class="line">│  （NLP / RES）     │</span><br><span class="line">└────────┬──────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌───────────────────┐</span><br><span class="line">│  4. CNG           │  ← 舒适噪声填充，避免静音感觉不自然</span><br><span class="line">└────────┬──────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">      输出：近端纯净语音</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-1-延迟估计（Delay-Estimation）"><a href="#4-1-延迟估计（Delay-Estimation）" class="headerlink" title="4.1 延迟估计（Delay Estimation）"></a>4.1 延迟估计（Delay Estimation）</h3><p>回声延迟来源于多个环节的叠加：</p>
+<table>
+<thead>
+<tr>
+<th>延迟来源</th>
+<th>典型值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>音频播放缓冲区</td>
+<td>10 ~ 80 ms</td>
+</tr>
+<tr>
+<td>DAC（数模转换器）</td>
+<td>1 ~ 5 ms</td>
+</tr>
+<tr>
+<td>扬声器→麦克风声学路径</td>
+<td>1 ~ 30 ms</td>
+</tr>
+<tr>
+<td>ADC（模数转换器）</td>
+<td>1 ~ 5 ms</td>
+</tr>
+<tr>
+<td>采集缓冲区</td>
+<td>10 ~ 80 ms</td>
+</tr>
+<tr>
+<td><strong>合计（移动端）</strong></td>
+<td><strong>20 ~ 200 ms</strong></td>
+</tr>
+</tbody></table>
+<p>AEC3 采用<strong>持续自适应延迟控制器（Render Delay Controller）</strong>，通过计算参考信号与采集信号的<strong>互相关（Cross-Correlation）</strong>来估计时延，并在通话过程中动态跟踪。延迟估计错误是 AEC 失效的首要原因——哪怕偏差几毫秒，自适应滤波器就无法收敛。</p>
+<h3 id="4-2-线性自适应滤波（Linear-Adaptive-Filter）"><a href="#4-2-线性自适应滤波（Linear-Adaptive-Filter）" class="headerlink" title="4.2 线性自适应滤波（Linear Adaptive Filter）"></a>4.2 线性自适应滤波（Linear Adaptive Filter）</h3><p>延迟对齐后，线性自适应滤波器进行主要回声消除工作。AEC3 采用<strong>分块频域自适应滤波器（PBFDAF，Partitioned Block Frequency-Domain Adaptive Filter）</strong>：</p>
+<ul>
+<li>将滤波器分割为多个子块，逐块在频域进行 FFT 处理</li>
+<li>时域卷积转为频域逐点乘法，计算效率大幅提升</li>
+<li>分块更新降低了相比整体更新的延迟</li>
+<li>典型消除量：<strong>20 ~ 40 dB</strong></li>
+</ul>
+<p>WebRTC 早期版本（AEC v1）使用的是<strong>分块频域自适应滤波（PBFDAF，基于 Paez Borrallo &amp; Otero 算法）</strong>，以 64 点&#x2F;块、12 块（96 ms @ 8 kHz）的配置为默认参数。</p>
+<h3 id="4-3-双讲检测（Double-Talk-Detection-DTD）"><a href="#4-3-双讲检测（Double-Talk-Detection-DTD）" class="headerlink" title="4.3 双讲检测（Double-Talk Detection, DTD）"></a>4.3 双讲检测（Double-Talk Detection, DTD）</h3><p>双讲（Double-Talk）是指<strong>近端与远端同时说话</strong>的场景。这是 AEC 最棘手的问题：</p>
+<ul>
+<li>自适应滤波器的更新机制假设误差信号 <code>e(n)</code> 只包含滤波器估计误差</li>
+<li>双讲时 <code>e(n)</code> 中混入近端语音，若继续更新滤波器，系数会被污染（<strong>滤波器发散</strong>）</li>
+<li>滤波器一旦发散，即使双讲结束，消除效果也会持续劣化</li>
+</ul>
+<p>AEC3 的 DTD 通过监测参考信号与采集信号的<strong>相干性（Coherence）</strong>以及两路信号的能量比来判定双讲状态，检测到双讲后<strong>降低或暂停滤波器更新步长</strong>，保护系数不被污染。</p>
+<h3 id="4-4-残余回声抑制（Residual-Echo-Suppression-NLP）"><a href="#4-4-残余回声抑制（Residual-Echo-Suppression-NLP）" class="headerlink" title="4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）"></a>4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）</h3><p>线性滤波后，部分回声依然残留，来源有两类：</p>
+<ol>
+<li><strong>滤波器未收敛</strong>：房间冲激响应变化过快，滤波器跟不上</li>
+<li><strong>非线性失真</strong>：扬声器在高音量下产生谐波失真，线性滤波器无法建模</li>
+</ol>
+<p>残余回声抑制（RES，也称 NLP——非线性处理）在<strong>频带级别</strong>对各子带估计残余回声功率，并施加<strong>频率相关的抑制增益</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">G(f) = 1 - α · P_echo(f) / (P_echo(f) + P_near(f) + ε)</span><br></pre></td></tr></table></figure>
+
+<p>抑制过重会导致近端语音出现「水下说话」的金属感（Musical Noise）；抑制不足则回声穿透。AEC3 以 <strong>ERLE（Echo Return Loss Enhancement）</strong> 作为反馈，动态校准抑制力度。</p>
+<h3 id="4-5-舒适噪声生成（Comfort-Noise-Generation-CNG）"><a href="#4-5-舒适噪声生成（Comfort-Noise-Generation-CNG）" class="headerlink" title="4.5 舒适噪声生成（Comfort Noise Generation, CNG）"></a>4.5 舒适噪声生成（Comfort Noise Generation, CNG）</h3><p>NLP 在压制回声时，也会造成背景噪声的骤然消失，导致主观上的不适感（俗称「死寂感」）。CNG 模块分析当前背景噪声的频谱特征，在抑制期间填充相应频谱的合成噪声，维持自然的聆听体验。</p>
+<hr>
+<h1 id="5-WebRTC-AEC-演进史：AEC-→-AECM-→-AEC3"><a href="#5-WebRTC-AEC-演进史：AEC-→-AECM-→-AEC3" class="headerlink" title="5. WebRTC AEC 演进史：AEC → AECM → AEC3"></a>5. WebRTC AEC 演进史：AEC → AECM → AEC3</h1><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>引入时间</th>
+<th>特点</th>
+<th>主要局限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>AEC v1</strong></td>
+<td>WebRTC 早期</td>
+<td>时域自适应滤波，固定延迟估计</td>
+<td>对 Android 可变延迟适应性差，路径变化恢复慢</td>
+</tr>
+<tr>
+<td><strong>AECM</strong>（Mobile）</td>
+<td>早期</td>
+<td>轻量化移动端版本，更激进的 NLP</td>
+<td>质量明显低于 AEC v1，牺牲质量换性能</td>
+</tr>
+<tr>
+<td><strong>AEC3</strong></td>
+<td>2017–2018</td>
+<td>全新架构，频域 PBFDAF，持续自适应延迟跟踪</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>AEC3 是目前 <strong>Chrome、Edge 及所有 Chromium 系浏览器</strong>内置的标准实现，也是 Android&#x2F;iOS WebRTC 原生应用的默认选择。</p>
+<hr>
+<h1 id="6-AEC3-架构深度解析"><a href="#6-AEC3-架构深度解析" class="headerlink" title="6. AEC3 架构深度解析"></a>6. AEC3 架构深度解析</h1><h3 id="6-1-分块频域自适应滤波器（PBFDAF）"><a href="#6-1-分块频域自适应滤波器（PBFDAF）" class="headerlink" title="6.1 分块频域自适应滤波器（PBFDAF）"></a>6.1 分块频域自适应滤波器（PBFDAF）</h3><p>AEC3 的线性滤波器将整个回声拖尾分割为 $N$ 个子块，每块长度 $B$（默认 64 点 @ 16 kHz，即 4 ms&#x2F;块）。每个子块独立在频域中更新：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">H_k(ω) ← H_k(ω) + μ · E(ω) · X_k*(ω) / ||X_k(ω)||²</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>X_k</code> 是第 <code>k</code> 块的参考信号频谱，<code>E</code> 是残差频谱，<code>μ</code> 是归一化步长。</p>
+<p>分块策略带来两大好处：</p>
+<ul>
+<li><strong>低延迟</strong>：每块处理完毕即输出，无需等待整个滤波器长度的数据</li>
+<li><strong>高效率</strong>：FFT 将时域 O(NB²) 卷积降为 O(NB·log B) 的频域乘法</li>
+</ul>
+<h3 id="6-2-回声路径变化检测"><a href="#6-2-回声路径变化检测" class="headerlink" title="6.2 回声路径变化检测"></a>6.2 回声路径变化检测</h3><p>当用户移动设备、开关门窗或切换蓝牙音频路由时，声学传播路径会突变，已收敛的滤波器系数瞬间失效。AEC3 设有<strong>回声路径变化检测器（Echo Path Change Detector）</strong>，通过监测误差能量的突变来触发滤波器重置，使其快速重新收敛。</p>
+<h3 id="6-3-ERLE-指标"><a href="#6-3-ERLE-指标" class="headerlink" title="6.3 ERLE 指标"></a>6.3 ERLE 指标</h3><p><strong>ERLE（Echo Return Loss Enhancement，回声返回损耗增强）</strong> 是衡量 AEC 消除效果的核心指标：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERLE(dB) = 10 · log₁₀ ( P_echo_in / P_echo_out )</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>P_echo_in</code>：AEC 输入端回声功率</li>
+<li><code>P_echo_out</code>：AEC 输出端残余回声功率</li>
+<li>ERLE 越高，消除越彻底；通常 AEC3 线性滤波阶段可达 <strong>20 ~ 40 dB</strong></li>
+</ul>
+<p>AEC3 使用 ERLE 动态调节 NLP 抑制力度：ERLE 高说明线性滤波表现好，NLP 可以保守一些，避免损伤近端语音；ERLE 低则 NLP 需要更激进地抑制残余回声。</p>
+<h3 id="6-4-块处理与实时性"><a href="#6-4-块处理与实时性" class="headerlink" title="6.4 块处理与实时性"></a>6.4 块处理与实时性</h3><p>AEC3 以 <strong>64 样本&#x2F;块（@ 16 kHz &#x3D; 4 ms）</strong> 为单位处理音频，完整流水线（延迟估计 → 线性滤波 → NLP → CNG）在一个 4 ms 块内完成，在移动端 ARM 处理器上通常远低于预算。</p>
+<p>其底层代码针对 x86（SSE2）和 ARM（NEON）均有<strong>手写 SIMD 优化路径</strong>，确保在低端设备上也能以极低 CPU 开销运行。</p>
+<hr>
+<h1 id="7-关键算法：NLMS"><a href="#7-关键算法：NLMS" class="headerlink" title="7. 关键算法：NLMS"></a>7. 关键算法：NLMS</h1><p>WebRTC AEC（以及 AEC3 的内层更新步骤）均基于 <strong>NLMS（Normalized Least Mean Squares，归一化最小均方）</strong> 算法。</p>
+<p><strong>基本 LMS 更新</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ĥ(n+1) = ĥ(n) + μ · e(n) · x(n)</span><br></pre></td></tr></table></figure>
+
+<p><strong>归一化 LMS（NLMS）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ĥ(n+1) = ĥ(n) + (μ / (||x(n)||² + ε)) · e(n) · x(n)</span><br></pre></td></tr></table></figure>
+
+<p>归一化项 <code>||x(n)||²</code> 将步长按输入能量缩放：</p>
+<ul>
+<li>输入信号能量大时，步长自动收缩，防止系数震荡</li>
+<li>输入能量小时，步长扩大，加快收敛</li>
+</ul>
+<p>NLMS 在频域推广即为 FDAF（Frequency-Domain Adaptive Filter），分块则为 PBFDAF，这是 AEC3 的核心。</p>
+<hr>
+<h1 id="8-与其他音频模块的协作"><a href="#8-与其他音频模块的协作" class="headerlink" title="8. 与其他音频模块的协作"></a>8. 与其他音频模块的协作</h1><p>AEC 不是孤立工作的，APM 中各模块顺序严格：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">采集信号输入（PCM）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">High-Pass Filter（HPF）   — 去除直流与低频干扰（IIR）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">AEC3（回声消除）           — 依赖 Far-End 参考信号</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">NS（Noise Suppression）   — 频谱减法或维纳滤波抑制背景噪声</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">AGC（Auto Gain Control）  — 归一化音量至目标电平</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">VAD（Voice Activity Det.）— 检测静默段，配合 DTX/CNG 降低码率</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">编码器（Opus）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">RTP 发送</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键联动</strong>：</p>
+<ul>
+<li><strong>VAD ↔ AEC</strong>：VAD 检测到静默后，AEC 可以更安全地更新滤波器（无近端语音干扰）</li>
+<li><strong>NS → AEC 输出质量</strong>：NS 在 AEC 之后处理，可清理 AEC 未能消除的残余噪声</li>
+<li><strong>AGC ← AEC</strong>：回声消除后音量更稳定，AGC 效果更准确</li>
+<li><strong>AECM + NS 联合</strong>：在 AECM 路径中，NS 会在 AEC 处理前先执行低通参考复制（<code>CopyLowPassToReference</code>），以优化 AEC 的参考信号质量</li>
+</ul>
+<hr>
+<h1 id="9-移动端特殊挑战"><a href="#9-移动端特殊挑战" class="headerlink" title="9. 移动端特殊挑战"></a>9. 移动端特殊挑战</h1><h3 id="Android-的可变延迟问题"><a href="#Android-的可变延迟问题" class="headerlink" title="Android 的可变延迟问题"></a>Android 的可变延迟问题</h3><p>Android 音频子系统的缓冲区延迟因设备厂商、ROM、音频路由（内置扬声器&#x2F;耳机&#x2F;蓝牙）不同而差异显著，范围可达 20 ms ~ 200 ms，且在通话中动态变化。早期 AEC v1 的固定延迟估计在此场景下频繁失效，AEC3 的持续自适应延迟控制器专门针对此问题设计。</p>
+<h3 id="iOS-AVAudioSession"><a href="#iOS-AVAudioSession" class="headerlink" title="iOS AVAudioSession"></a>iOS AVAudioSession</h3><p>iOS 通过 <code>AVAudioSession</code> 管理音频路由，系统本身在 <code>.voiceChat</code> &#x2F; <code>.videoChat</code> 模式下会启用硬件级 AEC（Hardware AEC）。WebRTC iOS SDK 默认优先使用系统 AEC，仅在系统 AEC 不可用时回退到软件 AEC3。开发者应确保 <code>AVAudioSession.Category</code> 配置正确，避免软硬件 AEC 叠加（Double AEC），否则反而会损害语音质量。</p>
+<h3 id="蓝牙-SCO-路由"><a href="#蓝牙-SCO-路由" class="headerlink" title="蓝牙 SCO 路由"></a>蓝牙 SCO 路由</h3><p>蓝牙耳机通过 SCO（Synchronous Connection-Oriented）链路传输音频时，编解码（通常为 mSBC 或 CVSD）会引入额外延迟，且切换路由时延迟突变，AEC3 的回声路径变化检测对此尤为重要。</p>
+<h3 id="扬声器非线性失真"><a href="#扬声器非线性失真" class="headerlink" title="扬声器非线性失真"></a>扬声器非线性失真</h3><p>移动设备的小尺寸扬声器在中高音量下会产生明显谐波失真（非线性失真），线性自适应滤波器无法对此建模，因此移动端对 NLP 的依赖比桌面端更强，这也是 AECM 使用更激进 NLP 的原因。</p>
+<hr>
+<h1 id="10-常见问题与调试"><a href="#10-常见问题与调试" class="headerlink" title="10. 常见问题与调试"></a>10. 常见问题与调试</h1><h3 id="问题一：回声穿透（Echo-Breakthrough）"><a href="#问题一：回声穿透（Echo-Breakthrough）" class="headerlink" title="问题一：回声穿透（Echo Breakthrough）"></a>问题一：回声穿透（Echo Breakthrough）</h3><p><strong>现象</strong>：远端清晰听到自己的回声，尽管 AEC 已启用。</p>
+<p><strong>可能原因</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>原因</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>延迟估计偏差</td>
+<td>估计错误时，线性滤波器对齐到错误的参考信号帧，无法收敛</td>
+</tr>
+<tr>
+<td>滤波器长度不足</td>
+<td>房间混响拖尾超出滤波器覆盖范围</td>
+</tr>
+<tr>
+<td>回声路径突变</td>
+<td>设备被移动、音频路由切换后滤波器还未重新收敛</td>
+</tr>
+<tr>
+<td>参考信号污染</td>
+<td>消除后的输出被意外重新注入参考信号通路，形成反馈环路</td>
+</tr>
+</tbody></table>
+<p><strong>调试方法</strong>：记录 <code>render delay</code> 估计值与 ERLE 值。ERLE 持续低于 10 dB，说明线性滤波未收敛；延迟估计频繁跳变，说明延迟控制器适应困难。</p>
+<h3 id="问题二：半双工效果（Half-Duplex-Walkie-Talkie-Effect）"><a href="#问题二：半双工效果（Half-Duplex-Walkie-Talkie-Effect）" class="headerlink" title="问题二：半双工效果（Half-Duplex &#x2F; Walkie-Talkie Effect）"></a>问题二：半双工效果（Half-Duplex &#x2F; Walkie-Talkie Effect）</h3><p><strong>现象</strong>：远端说话时，近端说话声被切断，体验像对讲机。</p>
+<p><strong>可能原因</strong>：</p>
+<ul>
+<li>NLP 过于激进，在双讲时将近端语音误判为回声而抑制</li>
+<li>DTD 未识别双讲，滤波器发散后 NLP 被迫极度压制来弥补</li>
+</ul>
+<p><strong>调试方法</strong>：检查 <code>EchoCanceller3Config</code> 中的 suppressor 参数。若问题在高音量远端信号时更明显，考虑是扬声器非线性失真使 NLP 过敏。</p>
+<h3 id="问题三：滤波器发散（Filter-Divergence）"><a href="#问题三：滤波器发散（Filter-Divergence）" class="headerlink" title="问题三：滤波器发散（Filter Divergence）"></a>问题三：滤波器发散（Filter Divergence）</h3><p><strong>现象</strong>：通话初期回声消除正常，随时间推移 ERLE 下降，回声再度出现。</p>
+<p><strong>可能原因</strong>：</p>
+<ul>
+<li>双讲检测失效，双讲期间滤波器持续更新，系数被近端语音污染</li>
+<li>音频路由存在反馈环路（AEC 输出误作为参考信号输入）</li>
+<li>自适应步长过大，数值不稳定</li>
+</ul>
+<p><strong>调试原则</strong>：参考信号必须是<strong>远端音频的原始播放流</strong>，不能与任何近端信号混合。验证 <code>ProcessReverseStream()</code> 传入的是纯 far-end PCM，而非混音结果。</p>
+<hr>
+<h1 id="11-WebRTC-源码导览"><a href="#11-WebRTC-源码导览" class="headerlink" title="11. WebRTC 源码导览"></a>11. WebRTC 源码导览</h1><p>AEC3 的核心代码位于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">modules/audio_processing/aec3/</span><br><span class="line">├── echo_canceller3.cc / .h         ← 主入口，协调整个流水线</span><br><span class="line">├── render_delay_controller.cc      ← 延迟估计与对齐</span><br><span class="line">├── adaptive_fir_filter.cc          ← 线性自适应滤波器（PBFDAF）</span><br><span class="line">├── erle_estimator.cc               ← ERLE 估计</span><br><span class="line">├── echo_path_variability.cc        ← 回声路径变化检测</span><br><span class="line">├── suppression_gain.cc             ← NLP 抑制增益计算</span><br><span class="line">├── comfort_noise_generator.cc      ← CNG</span><br><span class="line">├── aec3_common.h                   ← 块大小等公共常量</span><br><span class="line">└── echo_canceller3_config.h        ← 可调参数结构体</span><br></pre></td></tr></table></figure>
+
+<p>APM 的上层协调逻辑位于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">modules/audio_processing/audio_processing_impl.cc</span><br><span class="line">    └── ProcessStream()             ← Capture 链路处理入口</span><br><span class="line">    └── ProcessReverseStream()      ← Render 链路参考信号注入</span><br></pre></td></tr></table></figure>
+
+<p>公共 API 位于：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">api/audio/audio_processing.h       ← AudioProcessing 接口定义</span><br><span class="line">api/audio/builtin_audio_processing_builder.h  ← APM 构建器</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>EchoCanceller3Config</code> 关键可调参数</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">EchoCanceller3Config</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> <span class="title class_">Delay</span> &#123;</span><br><span class="line">    <span class="type">int</span> default_delay = <span class="number">5</span>;           <span class="comment">// 默认延迟（块数）</span></span><br><span class="line">    <span class="type">int</span> num_filters = <span class="number">5</span>;             <span class="comment">// 滤波器分块数</span></span><br><span class="line">  &#125; delay;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">struct</span> <span class="title class_">Filter</span> &#123;</span><br><span class="line">    <span class="type">int</span> main_length_blocks = <span class="number">13</span>;     <span class="comment">// 线性滤波器长度（块数）</span></span><br><span class="line">    <span class="type">float</span> leakage_converged = <span class="number">0.001f</span>;</span><br><span class="line">    <span class="type">float</span> leakage_diverged = <span class="number">0.1f</span>;</span><br><span class="line">  &#125; filter;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">struct</span> <span class="title class_">Suppressor</span> &#123;</span><br><span class="line">    <span class="type">float</span> nearend_average_blocks = <span class="number">4</span>;</span><br><span class="line">    <span class="comment">// ... 残余回声抑制参数</span></span><br><span class="line">  &#125; suppressor;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="12-总结"><a href="#12-总结" class="headerlink" title="12. 总结"></a>12. 总结</h1><p>AEC 是 WebRTC 音频引擎中技术复杂度最高的模块之一，其核心挑战在于<strong>实时性</strong>（毫秒级处理预算）、<strong>适应性</strong>（动态声学环境）和<strong>鲁棒性</strong>（双讲、非线性、路径突变）三者的平衡。</p>
+<p>WebRTC AEC3 通过以下关键设计解决了这些挑战：</p>
+<ul>
+<li><strong>持续自适应延迟估计</strong>：应对移动端可变硬件延迟</li>
+<li><strong>PBFDAF 频域分块滤波</strong>：在计算效率和延迟之间取得最优平衡</li>
+<li><strong>基于相干性的双讲检测</strong>：保护滤波器不被双讲场景污染</li>
+<li><strong>ERLE 驱动的动态 NLP</strong>：在回声消除与语音质量之间自动权衡</li>
+<li><strong>回声路径变化检测</strong>：快速响应声学环境突变</li>
+<li><strong>SIMD 优化</strong>：确保在移动端低功耗运行</li>
+</ul>
+<p>理解 AEC 的工作原理，不仅有助于调试通话中的音频质量问题，也是深入理解 BWE、Jitter Buffer 等其他 WebRTC 模块在<strong>端到端音质保障体系</strong>中所扮演角色的基础。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://webrtc.googlesource.com/src/+/refs/heads/main/modules/audio_processing/aec3/">WebRTC 源码 - AEC3 模块</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtc.googlesource.com/src//+/refs/heads/main/modules/audio_processing/g3doc/audio_processing_module.md">WebRTC APM 官方文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://switchboard.audio/hub/how-webrtc-aec3-works/">Switchboard Audio - How WebRTC AEC3 Works</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtc.github.io/webrtc-org/blog/2011/07/11/webrtc-improvement-optimized-aec-acoustic-echo-cancellation/">WebRTC Blog - AEC Optimization (2011)</a></li>
+<li>Paez Borrallo J M &amp; Otero M G - “Partitioned Block Frequency Domain Adaptive Filter” (算法原始论文)</li>
+<li>ITU-T G.167 - Acoustic echo controllers（声学回声控制标准）</li>
+<li>ITU-T G.168 - Digital network echo cancellers（数字网络回声消除标准）</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%A3%B0%E5%AD%A6%E5%9B%9E%E5%A3%B0"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是声学回声</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-AEC-%E5%9C%A8-WebRTC-%E9%9F%B3%E9%A2%91%E5%BC%95%E6%93%8E%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">2. AEC 在 WebRTC 音频引擎中的位置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-AEC-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%EF%BC%9A%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2"><span class="toc-number">4.</span> <span class="toc-text">3. AEC 核心原理：自适应滤波</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%AE%8C%E6%95%B4%E5%A4%84%E7%90%86%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">5.</span> <span class="toc-text">4. 完整处理流水线</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BB%B6%E8%BF%9F%E4%BC%B0%E8%AE%A1%EF%BC%88Delay-Estimation%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 延迟估计（Delay Estimation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BA%BF%E6%80%A7%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%EF%BC%88Linear-Adaptive-Filter%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 线性自适应滤波（Linear Adaptive Filter）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%8F%8C%E8%AE%B2%E6%A3%80%E6%B5%8B%EF%BC%88Double-Talk-Detection-DTD%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 双讲检测（Double-Talk Detection, DTD）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%AE%8B%E4%BD%99%E5%9B%9E%E5%A3%B0%E6%8A%91%E5%88%B6%EF%BC%88Residual-Echo-Suppression-NLP%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 残余回声抑制（Residual Echo Suppression &#x2F; NLP）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E8%88%92%E9%80%82%E5%99%AA%E5%A3%B0%E7%94%9F%E6%88%90%EF%BC%88Comfort-Noise-Generation-CNG%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 舒适噪声生成（Comfort Noise Generation, CNG）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-WebRTC-AEC-%E6%BC%94%E8%BF%9B%E5%8F%B2%EF%BC%9AAEC-%E2%86%92-AECM-%E2%86%92-AEC3"><span class="toc-number">6.</span> <span class="toc-text">5. WebRTC AEC 演进史：AEC → AECM → AEC3</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-AEC3-%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">6. AEC3 架构深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%86%E5%9D%97%E9%A2%91%E5%9F%9F%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88PBFDAF%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 分块频域自适应滤波器（PBFDAF）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%9B%9E%E5%A3%B0%E8%B7%AF%E5%BE%84%E5%8F%98%E5%8C%96%E6%A3%80%E6%B5%8B"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 回声路径变化检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-ERLE-%E6%8C%87%E6%A0%87"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 ERLE 指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%9D%97%E5%A4%84%E7%90%86%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%80%A7"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 块处理与实时性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%85%B3%E9%94%AE%E7%AE%97%E6%B3%95%EF%BC%9ANLMS"><span class="toc-number">8.</span> <span class="toc-text">7. 关键算法：NLMS</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E9%9F%B3%E9%A2%91%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">9.</span> <span class="toc-text">8. 与其他音频模块的协作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%A7%BB%E5%8A%A8%E7%AB%AF%E7%89%B9%E6%AE%8A%E6%8C%91%E6%88%98"><span class="toc-number">10.</span> <span class="toc-text">9. 移动端特殊挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Android-%E7%9A%84%E5%8F%AF%E5%8F%98%E5%BB%B6%E8%BF%9F%E9%97%AE%E9%A2%98"><span class="toc-number">10.0.1.</span> <span class="toc-text">Android 的可变延迟问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iOS-AVAudioSession"><span class="toc-number">10.0.2.</span> <span class="toc-text">iOS AVAudioSession</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%93%9D%E7%89%99-SCO-%E8%B7%AF%E7%94%B1"><span class="toc-number">10.0.3.</span> <span class="toc-text">蓝牙 SCO 路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%AC%E5%A3%B0%E5%99%A8%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%A4%B1%E7%9C%9F"><span class="toc-number">10.0.4.</span> <span class="toc-text">扬声器非线性失真</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E5%9B%9E%E5%A3%B0%E7%A9%BF%E9%80%8F%EF%BC%88Echo-Breakthrough%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">问题一：回声穿透（Echo Breakthrough）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9A%E5%8D%8A%E5%8F%8C%E5%B7%A5%E6%95%88%E6%9E%9C%EF%BC%88Half-Duplex-Walkie-Talkie-Effect%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">问题二：半双工效果（Half-Duplex &#x2F; Walkie-Talkie Effect）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%89%EF%BC%9A%E6%BB%A4%E6%B3%A2%E5%99%A8%E5%8F%91%E6%95%A3%EF%BC%88Filter-Divergence%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">问题三：滤波器发散（Filter Divergence）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-WebRTC-%E6%BA%90%E7%A0%81%E5%AF%BC%E8%A7%88"><span class="toc-number">12.</span> <span class="toc-text">11. WebRTC 源码导览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%BB%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/20/webrtc/22.aec/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/20/webrtc/22.aec/&text=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/20/webrtc/22.aec/&is_video=false&description=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块&body=Check out this article: http://example.com/2022/11/20/webrtc/22.aec/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/20/webrtc/22.aec/&title=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/20/webrtc/22.aec/&name=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/20/webrtc/22.aec/&t=AEC（Acoustic Echo Cancellation）— 回声消除，音频引擎核心处理模块"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

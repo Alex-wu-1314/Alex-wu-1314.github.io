@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 概述与背景 标准体系与规范文档 编码核心原理 3.1 两层架构：VCL 与 NAL 3.2 帧类型与 GOP 结构 3.3 宏块与预测编码 3.4 变换、量化与熵编码   NAL 单元详解 4.1 NAL 头结构 4.2 关键 NAL 类型 4.3 字节流格式与 NALU 流格式   Profile 与 Level 5.1 常见 Profile 5.2 Level 定义 5.3 profil">
+<meta property="og:type" content="article">
+<meta property="og:title" content="H.264 —— 最广泛支持的视频编码，硬件加速成熟">
+<meta property="og:url" content="http://example.com/2022/12/10/webrtc/23-h264/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 概述与背景 标准体系与规范文档 编码核心原理 3.1 两层架构：VCL 与 NAL 3.2 帧类型与 GOP 结构 3.3 宏块与预测编码 3.4 变换、量化与熵编码   NAL 单元详解 4.1 NAL 头结构 4.2 关键 NAL 类型 4.3 字节流格式与 NALU 流格式   Profile 与 Level 5.1 常见 Profile 5.2 Level 定义 5.3 profil">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-12-10T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-29T22:19:10.985Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>H.264 —— 最广泛支持的视频编码，硬件加速成熟</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/12/25/webrtc/24-h265-hevc/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/20/webrtc/22.aec/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/10/webrtc/23-h264/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/10/webrtc/23-h264/&text=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/10/webrtc/23-h264/&is_video=false&description=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=H.264 —— 最广泛支持的视频编码，硬件加速成熟&body=Check out this article: http://example.com/2022/12/10/webrtc/23-h264/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/10/webrtc/23-h264/&name=H.264 —— 最广泛支持的视频编码，硬件加速成熟&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/10/webrtc/23-h264/&t=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">2.0.1.</span> <span class="toc-text">历史沿革</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%82%E5%9C%BA%E5%9C%B0%E4%BD%8D"><span class="toc-number">2.0.2.</span> <span class="toc-text">市场地位</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%87%E5%87%86%E4%BD%93%E7%B3%BB%E4%B8%8E%E8%A7%84%E8%8C%83%E6%96%87%E6%A1%A3"><span class="toc-number">3.</span> <span class="toc-text">2. 标准体系与规范文档</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 编码核心原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E5%B1%82%E6%9E%B6%E6%9E%84%EF%BC%9AVCL-%E4%B8%8E-NAL"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 两层架构：VCL 与 NAL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%B8%A7%E7%B1%BB%E5%9E%8B%E4%B8%8E-GOP-%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 帧类型与 GOP 结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%8F%E5%9D%97%E4%B8%8E%E9%A2%84%E6%B5%8B%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 宏块与预测编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%8F%98%E6%8D%A2%E3%80%81%E9%87%8F%E5%8C%96%E4%B8%8E%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 变换、量化与熵编码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NAL-%E5%8D%95%E5%85%83%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. NAL 单元详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-NAL-%E5%A4%B4%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 NAL 头结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B3%E9%94%AE-NAL-%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 关键 NAL 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AD%97%E8%8A%82%E6%B5%81%E6%A0%BC%E5%BC%8F%E4%B8%8E-NALU-%E6%B5%81%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 字节流格式与 NALU 流格式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Profile-%E4%B8%8E-Level"><span class="toc-number">6.</span> <span class="toc-text">5. Profile 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B8%B8%E8%A7%81-Profile"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 常见 Profile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Level-%E5%AE%9A%E4%B9%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Level 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-profile-level-id-%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 profile-level-id 编码规则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-H-264-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">6. H.264 在 WebRTC 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RFC-7742-%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RFC 7742 强制要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTP-%E5%B0%81%E8%A3%85%EF%BC%9ARFC-6184"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RTP 封装：RFC 6184</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-SDP-%E5%8D%8F%E5%95%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 SDP 协商示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SEI-%E6%B6%88%E6%81%AF%E4%B8%8E-WebRTC-%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A6%81%E6%B1%82"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SEI 消息与 WebRTC 的特殊要求</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">8.</span> <span class="toc-text">7. 硬件加速</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%90%84%E5%B9%B3%E5%8F%B0%E7%A1%AC%E4%BB%B6%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 各平台硬件编解码器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E9%99%B7%E9%98%B1"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 硬件加速的优势与陷阱</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">9.</span> <span class="toc-text">8. 与其他编码的横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">10.</span> <span class="toc-text">9. 专利与许可</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.</span> <span class="toc-text">10. 实践建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#WebRTC-%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91"><span class="toc-number">11.0.1.</span> <span class="toc-text">WebRTC 应用开发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%92%E6%9F%A5%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">11.0.2.</span> <span class="toc-text">排查常见问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">12.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        H.264 —— 最广泛支持的视频编码，硬件加速成熟
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-12-10T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-12-10</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF">概述与背景</a></li>
+<li><a href="#2-%E6%A0%87%E5%87%86%E4%BD%93%E7%B3%BB%E4%B8%8E%E8%A7%84%E8%8C%83%E6%96%87%E6%A1%A3">标准体系与规范文档</a></li>
+<li><a href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86">编码核心原理</a><ul>
+<li>3.1 <a href="#31-%E4%B8%A4%E5%B1%82%E6%9E%B6%E6%9E%84vcl-%E4%B8%8E-nal">两层架构：VCL 与 NAL</a></li>
+<li>3.2 <a href="#32-%E5%B8%A7%E7%B1%BB%E5%9E%8B%E4%B8%8E-gop-%E7%BB%93%E6%9E%84">帧类型与 GOP 结构</a></li>
+<li>3.3 <a href="#33-%E5%AE%8F%E5%9D%97%E4%B8%8E%E9%A2%84%E6%B5%8B%E7%BC%96%E7%A0%81">宏块与预测编码</a></li>
+<li>3.4 <a href="#34-%E5%8F%98%E6%8D%A2%E9%87%8F%E5%8C%96%E4%B8%8E%E7%86%B5%E7%BC%96%E7%A0%81">变换、量化与熵编码</a></li>
+</ul>
+</li>
+<li><a href="#4-nal-%E5%8D%95%E5%85%83%E8%AF%A6%E8%A7%A3">NAL 单元详解</a><ul>
+<li>4.1 <a href="#41-nal-%E5%A4%B4%E7%BB%93%E6%9E%84">NAL 头结构</a></li>
+<li>4.2 <a href="#42-%E5%85%B3%E9%94%AE-nal-%E7%B1%BB%E5%9E%8B">关键 NAL 类型</a></li>
+<li>4.3 <a href="#43-%E5%AD%97%E8%8A%82%E6%B5%81%E6%A0%BC%E5%BC%8F%E4%B8%8E-nalu-%E6%B5%81%E6%A0%BC%E5%BC%8F">字节流格式与 NALU 流格式</a></li>
+</ul>
+</li>
+<li><a href="#5-profile-%E4%B8%8E-level">Profile 与 Level</a><ul>
+<li>5.1 <a href="#51-%E5%B8%B8%E8%A7%81-profile">常见 Profile</a></li>
+<li>5.2 <a href="#52-level-%E5%AE%9A%E4%B9%89">Level 定义</a></li>
+<li>5.3 <a href="#53-profile-level-id-%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99">profile-level-id 编码规则</a></li>
+</ul>
+</li>
+<li><a href="#6-h264-%E5%9C%A8-webrtc-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">H.264 在 WebRTC 中的应用</a><ul>
+<li>6.1 <a href="#61-rfc-7742-%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82">RFC 7742 强制要求</a></li>
+<li>6.2 <a href="#62-rtp-%E5%B0%81%E8%A3%85rfc-6184">RTP 封装：RFC 6184</a></li>
+<li>6.3 <a href="#63-sdp-%E5%8D%8F%E5%95%86%E7%A4%BA%E4%BE%8B">SDP 协商示例</a></li>
+<li>6.4 <a href="#64-sei-%E6%B6%88%E6%81%AF%E4%B8%8E-webrtc-%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A6%81%E6%B1%82">SEI 消息与 WebRTC 的特殊要求</a></li>
+</ul>
+</li>
+<li><a href="#7-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F">硬件加速</a><ul>
+<li>7.1 <a href="#71-%E5%90%84%E5%B9%B3%E5%8F%B0%E7%A1%AC%E4%BB%B6%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8">各平台硬件编解码器</a></li>
+<li>7.2 <a href="#72-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E9%99%B7%E9%98%B1">硬件加速的优势与陷阱</a></li>
+</ul>
+</li>
+<li><a href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94">与其他编码的横向对比</a></li>
+<li><a href="#9-%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF">专利与许可</a></li>
+<li><a href="#10-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE">实践建议</a></li>
+</ol>
+<hr>
+<h1 id="1-概述与背景"><a href="#1-概述与背景" class="headerlink" title="1. 概述与背景"></a>1. 概述与背景</h1><p>H.264，正式名称为 <strong>ITU-T Recommendation H.264 | ISO&#x2F;IEC 14496-10</strong>，又称 <strong>Advanced Video Coding（AVC）</strong> 或 <strong>MPEG-4 Part 10</strong>，是当今世界上部署最广泛的视频压缩标准。</p>
+<h3 id="历史沿革"><a href="#历史沿革" class="headerlink" title="历史沿革"></a>历史沿革</h3><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2003 年 5 月</td>
+<td>由 ITU-T 视频编码专家组（VCEG）与 ISO&#x2F;IEC 运动图像专家组（MPEG）联合成立的”联合视频团队”（JVT）发布第一版</td>
+</tr>
+<tr>
+<td>2004 年</td>
+<td>引入 FRExt（Fidelity Range Extensions），支持更高保真度视频，添加 High Profile</td>
+</tr>
+<tr>
+<td>2007 年</td>
+<td>引入可伸缩视频编码扩展（SVC）</td>
+</tr>
+<tr>
+<td>2009 年</td>
+<td>引入多视角视频编码扩展（MVC）</td>
+</tr>
+<tr>
+<td>2016 年</td>
+<td>IETF RFC 7742 将其列为 WebRTC 强制实现（MTI）编解码器之一</td>
+</tr>
+</tbody></table>
+<p>三个名字指向同一个技术规范：</p>
+<ul>
+<li><strong>H.264</strong>：ITU-T 的命名惯例</li>
+<li><strong>AVC</strong>：全称 Advanced Video Coding，ISO&#x2F;IEC 侧的名称</li>
+<li><strong>MPEG-4 Part 10</strong>：ISO&#x2F;IEC 14496-10 的简称</li>
+</ul>
+<h3 id="市场地位"><a href="#市场地位" class="headerlink" title="市场地位"></a>市场地位</h3><p>H.264 是有史以来商业化最成功的视频编码标准之一：</p>
+<ul>
+<li>全球超过 <strong>90%</strong> 的视频流内容使用 H.264 编码</li>
+<li>在 2024 年，H.264 在桌面和移动平台拥有约 <strong>98.23% 的浏览器兼容性</strong></li>
+<li>在移动无线标准中被强制要求用于多媒体电话和分组流媒体</li>
+<li>是 HLS、RTMP、WebRTC（RFC 7742）等主流协议的核心或默认编码</li>
+</ul>
+<p>尽管 H.265&#x2F;HEVC、VP9、AV1 等更新一代编码在压缩效率上有 35%<del>65% 的提升，H.264 凭借三大优势持续主导市场：**2010 年以来制造的设备普遍内置硬件解码器、实时编码速度领先后继编码 3</del>40 倍、以及主流协议的强制支持**。</p>
+<hr>
+<h1 id="2-标准体系与规范文档"><a href="#2-标准体系与规范文档" class="headerlink" title="2. 标准体系与规范文档"></a>2. 标准体系与规范文档</h1><p>理解 H.264 在 WebRTC 中的应用，需要掌握以下核心规范文档：</p>
+<table>
+<thead>
+<tr>
+<th>文档</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ITU-T H.264 &#x2F; ISO&#x2F;IEC 14496-10</strong></td>
+<td>H.264 核心技术规范，定义码流语法、解码过程</td>
+</tr>
+<tr>
+<td><strong>RFC 6184</strong></td>
+<td>H.264 视频的 RTP Payload 格式（obsoletes RFC 3984）</td>
+</tr>
+<tr>
+<td><strong>RFC 7742</strong></td>
+<td>WebRTC 视频处理与编解码器要求，确立 H.264 为 MTI</td>
+</tr>
+<tr>
+<td><strong>RFC 3984</strong></td>
+<td>RFC 6184 的前身，历史参考</td>
+</tr>
+</tbody></table>
+<p>这三层规范形成清晰的分工：H.264 标准本身定义”如何压缩”，RFC 6184 定义”如何封包进 RTP”，RFC 7742 定义”WebRTC 场景下必须支持哪些配置”。</p>
+<hr>
+<h1 id="3-编码核心原理"><a href="#3-编码核心原理" class="headerlink" title="3. 编码核心原理"></a>3. 编码核心原理</h1><p>H.264 是一种基于<strong>宏块（Macroblock）</strong>的混合编码器，其核心思路是利用视频中的<strong>时间冗余</strong>（相邻帧内容相似）和<strong>空间冗余</strong>（同一帧内相邻区域相似）来实现高效压缩。</p>
+<h3 id="3-1-两层架构：VCL-与-NAL"><a href="#3-1-两层架构：VCL-与-NAL" class="headerlink" title="3.1 两层架构：VCL 与 NAL"></a>3.1 两层架构：VCL 与 NAL</h3><p>H.264 在架构上将编解码职责切分为两层，这一设计使其能够在不同网络协议上灵活运作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────┐</span><br><span class="line">│        Video Coding Layer (VCL)          │</span><br><span class="line">│   负责实际的视频内容压缩，输出 Slice 数据     │</span><br><span class="line">├──────────────────────────────────────────┤</span><br><span class="line">│     Network Abstraction Layer (NAL)      │</span><br><span class="line">│   将 VCL 输出封装为 NAL 单元，适配网络传输    │</span><br><span class="line">└──────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>VCL（Video Coding Layer）</strong>：执行帧内&#x2F;帧间预测、变换、量化、熵编码等核心压缩操作，其输出为”切片（Slice）”，包含若干宏块数据的比特串。</li>
+<li><strong>NAL（Network Abstraction Layer）</strong>：将 VCL 输出的切片封装为 <strong>NAL 单元（NALU）</strong>，并附加元数据（参数集等），使其适合在 RTP 包、字节流等不同传输环境中使用。</li>
+</ul>
+<h3 id="3-2-帧类型与-GOP-结构"><a href="#3-2-帧类型与-GOP-结构" class="headerlink" title="3.2 帧类型与 GOP 结构"></a>3.2 帧类型与 GOP 结构</h3><p>H.264 定义了三种基本帧（更准确地说是”切片类型”）：</p>
+<table>
+<thead>
+<tr>
+<th>帧类型</th>
+<th>全称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>I 帧</strong></td>
+<td>Intra-coded Frame</td>
+<td>帧内编码，不依赖任何其他帧，可独立解码。也称关键帧。特殊的 I 帧叫 <strong>IDR（Instantaneous Decoding Refresh）</strong>，解码器收到后会立即清空已缓存的参考帧</td>
+</tr>
+<tr>
+<td><strong>P 帧</strong></td>
+<td>Predictive Frame</td>
+<td>仅参考前面已解码的帧进行预测，压缩率比 I 帧高</td>
+</tr>
+<tr>
+<td><strong>B 帧</strong></td>
+<td>Bi-directional Frame</td>
+<td>同时参考前后帧进行双向预测，压缩率最高，但引入额外延迟，<strong>WebRTC 实时通话通常不启用 B 帧</strong></td>
+</tr>
+</tbody></table>
+<p>多帧组成一个 <strong>GOP（Group of Pictures）</strong>。在实时通信场景下，IDR 帧通常由对端通过 RTCP <strong>PLI（Picture Loss Indication）</strong> 或 <strong>FIR（Full Intra Request）</strong> 触发，以从丢包中快速恢复。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">典型实时通信 GOP（无 B 帧，短 GOP）：</span><br><span class="line"></span><br><span class="line">IDR  P  P  P  P  P  P  P  IDR  P  P ...</span><br><span class="line"> |___________________________|</span><br><span class="line">          一个 GOP</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-宏块与预测编码"><a href="#3-3-宏块与预测编码" class="headerlink" title="3.3 宏块与预测编码"></a>3.3 宏块与预测编码</h3><p><strong>宏块（Macroblock，MB）</strong> 是 H.264 编码的基本处理单位，每个宏块固定为 <strong>16×16 亮度（luma）样本</strong>，加上对应的色度（chroma）样本（在 4:2:0 格式下为 2 个 8×8 的色度块）。</p>
+<p><strong>帧内预测（Intra Prediction）</strong>：利用已编码的相邻宏块像素值预测当前宏块，I 帧中每个宏块均使用帧内预测。H.264 支持 4×4、8×8 和 16×16 三种帧内预测块大小，4×4 模式有 9 种预测方向，能精细描述纹理细节。</p>
+<p><strong>帧间预测（Inter Prediction）</strong>：通过<strong>运动补偿</strong>实现。编码器在参考帧中搜索与当前块最相似的区域（运动估计），记录其偏移量（运动矢量），仅编码残差。H.264 支持 1&#x2F;4 像素精度的亚像素插值运动补偿，并引入了<strong>多参考帧</strong>机制（最多 16 个参考帧），显著提升了对复杂运动场景的预测精度。</p>
+<p>H.264 还支持灵活的<strong>可变块大小分割（Variable Block-size Motion Compensation，VBMC）</strong>，宏块可被进一步划分为 16×8、8×16、8×8 及更小的子块，每个子块独立进行运动估计，大幅提升了运动复杂场景的压缩效率。</p>
+<h3 id="3-4-变换、量化与熵编码"><a href="#3-4-变换、量化与熵编码" class="headerlink" title="3.4 变换、量化与熵编码"></a>3.4 变换、量化与熵编码</h3><p><strong>变换（Transform）</strong>：对帧内&#x2F;帧间预测的残差信号施加整数 <strong>DCT 变换</strong>，将空间域能量集中到少数低频系数。H.264 使用的是精确的 4×4 整数 DCT，避免了浮点运算，保证了编解码器间的一致性。</p>
+<p><strong>量化（Quantization）</strong>：通过量化参数 <strong>QP（Quantization Parameter）</strong> 控制压缩损失。QP 范围 0~51，QP 增大 6 约等于码率减半（质量下降）。编码器根据带宽估计（BWE）动态调整 QP，这是 WebRTC 码率自适应的核心机制之一。</p>
+<p><strong>熵编码（Entropy Coding）</strong>：H.264 支持两种熵编码方式：</p>
+<ul>
+<li><strong>CAVLC（Context-Adaptive Variable Length Coding）</strong>：计算复杂度较低，用于 Baseline&#x2F;Main Profile</li>
+<li><strong>CABAC（Context-Adaptive Binary Arithmetic Coding）</strong>：压缩效率约高出 10%~15%，计算复杂度稍高，用于 Main&#x2F;High Profile。Constrained Baseline Profile 不支持 CABAC</li>
+</ul>
+<p><strong>去块滤波（In-loop Deblocking Filter）</strong>：编码环路内的自适应去块滤波器，平滑宏块边界的方块效应（Blocking Artifact），同时作用于参考帧以提升后续帧的预测质量。这是 H.264 相对早期标准的重要改进之一。</p>
+<hr>
+<h1 id="4-NAL-单元详解"><a href="#4-NAL-单元详解" class="headerlink" title="4. NAL 单元详解"></a>4. NAL 单元详解</h1><h3 id="4-1-NAL-头结构"><a href="#4-1-NAL-头结构" class="headerlink" title="4.1 NAL 头结构"></a>4.1 NAL 头结构</h3><p>每个 NAL 单元以 1 字节的头部开始，其位域定义如下（RFC 6184 §5.3）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|F|NRI|  Type   |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>F（forbidden_zero_bit）</strong></td>
+<td>1 bit</td>
+<td>规范要求必须为 0；置 1 表示语法错误</td>
+</tr>
+<tr>
+<td><strong>NRI（nal_ref_idc）</strong></td>
+<td>2 bit</td>
+<td>重要性指示，00&#x3D;非参考帧数据，11&#x3D;最重要（如 IDR、SPS、PPS）</td>
+</tr>
+<tr>
+<td><strong>Type（nal_unit_type）</strong></td>
+<td>5 bit</td>
+<td>NAL 单元类型，1<del>23 由 H.264 规范定义，24</del>31 由 RFC 6184 扩展用于 RTP 封装</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-关键-NAL-类型"><a href="#4-2-关键-NAL-类型" class="headerlink" title="4.2 关键 NAL 类型"></a>4.2 关键 NAL 类型</h3><table>
+<thead>
+<tr>
+<th>Type 值</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>Coded slice of a non-IDR picture</strong></td>
+<td>普通 P&#x2F;B 帧的切片</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Coded slice of an IDR picture</strong></td>
+<td>IDR 关键帧，解码器收到后清空 DPB（Decoded Picture Buffer）</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>SEI（Supplemental Enhancement Information）</strong></td>
+<td>辅助增强信息，携带时间戳、显示方向、画面冻结等元数据</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>SPS（Sequence Parameter Set）</strong></td>
+<td>序列参数集，包含 Profile、Level、分辨率、帧率等解码所需的全局配置</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>PPS（Picture Parameter Set）</strong></td>
+<td>图像参数集，包含熵编码模式、切片组、运动预测方式、QP、去块滤波等参数</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>AUD（Access Unit Delimiter）</strong></td>
+<td>访问单元分隔符，用于定位帧边界</td>
+</tr>
+<tr>
+<td>24</td>
+<td><strong>STAP-A（Single-Time Aggregation Packet type A）</strong></td>
+<td>RTP 扩展：将多个同时间戳的 NALU 合并入一个 RTP 包</td>
+</tr>
+<tr>
+<td>28</td>
+<td><strong>FU-A（Fragmentation Unit type A）</strong></td>
+<td>RTP 扩展：将一个大 NALU 拆分为多个 RTP 包</td>
+</tr>
+</tbody></table>
+<p><strong>SPS 和 PPS 的重要性</strong>：SPS 和 PPS 是解码一切后续 NAL 单元的前提。在 WebRTC 中，每个 IDR 帧之前通常会前置发送 SPS 和 PPS，确保接收端在任何时刻加入会话都能正确初始化解码器。</p>
+<h3 id="4-3-字节流格式与-NALU-流格式"><a href="#4-3-字节流格式与-NALU-流格式" class="headerlink" title="4.3 字节流格式与 NALU 流格式"></a>4.3 字节流格式与 NALU 流格式</h3><p>H.264 码流有两种封装形式：</p>
+<p><strong>Annex B 字节流格式</strong>：NALU 之间以起始码（Start Code）<code>0x000001</code> 或 <code>0x00000001</code> 分隔，常见于 MPEG-TS、文件存储和广播场景。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[0x00 0x00 0x00 0x01][NALU#1][0x00 0x00 0x00 0x01][NALU#2]...</span><br></pre></td></tr></table></figure>
+
+<p><strong>AVCC&#x2F;MP4 格式（长度前缀格式）</strong>：每个 NALU 前有 4 字节（或 2&#x2F;1 字节）的长度字段，常见于 MP4 容器和 iOS&#x2F;Android 平台的 MediaCodec API 输出。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[4字节长度][NALU#1][4字节长度][NALU#2]...</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>WebRTC 开发注意</strong>：iOS VideoToolbox 输出 AVCC 格式，而 RTP 封装（RFC 6184）要求 NALU 流格式。开发者在对接硬件编码器时，需要在两种格式之间进行转换，通常称为”起始码替换”（Start Code Substitution）。</p>
+</blockquote>
+<hr>
+<h1 id="5-Profile-与-Level"><a href="#5-Profile-与-Level" class="headerlink" title="5. Profile 与 Level"></a>5. Profile 与 Level</h1><p>H.264 定义了大量可选工具，通过 <strong>Profile（配置文件）</strong> 和 <strong>Level（级别）</strong> 两个维度来约束实现复杂度与硬件资源需求。</p>
+<h3 id="5-1-常见-Profile"><a href="#5-1-常见-Profile" class="headerlink" title="5.1 常见 Profile"></a>5.1 常见 Profile</h3><table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>profile_idc</th>
+<th>主要特性</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Baseline Profile (BP)</strong></td>
+<td>66 (0x42)</td>
+<td>无 B 帧、无 CABAC、无 FMO</td>
+<td>低功耗设备、早期移动视频</td>
+</tr>
+<tr>
+<td><strong>Constrained Baseline Profile (CBP)</strong></td>
+<td>66 + constraint_set1_flag</td>
+<td>BP 子集，额外禁止 ASO&#x2F;FMO</td>
+<td><strong>WebRTC MTI 要求</strong>，兼容性最强</td>
+</tr>
+<tr>
+<td><strong>Main Profile (MP)</strong></td>
+<td>77 (0x4D)</td>
+<td>支持 B 帧、CABAC</td>
+<td>DVD、广播</td>
+</tr>
+<tr>
+<td><strong>High Profile (HiP)</strong></td>
+<td>100 (0x64)</td>
+<td>支持 8x8 帧内预测、自定义量化矩阵</td>
+<td>蓝光、高清广播</td>
+</tr>
+<tr>
+<td><strong>Constrained High Profile</strong></td>
+<td>100 + constraint_set4&#x2F;5</td>
+<td>High 子集，无 B 帧</td>
+<td><strong>WebRTC SHOULD 支持</strong>，兼顾质量与兼容性</td>
+</tr>
+</tbody></table>
+<p>Constrained Baseline Profile（CBP）是所有 WebRTC 实现的<strong>最低强制要求</strong>。值得注意的是，CBP 是 2009 年后 BP 的细化子集——所有 CBP 码流同时也是合法的 BP 码流，因此两者共用 profile_idc &#x3D; 66，靠 constraint 标志位区分。</p>
+<h3 id="5-2-Level-定义"><a href="#5-2-Level-定义" class="headerlink" title="5.2 Level 定义"></a>5.2 Level 定义</h3><p>Level 定义了编解码器的计算复杂度上限，主要约束参数包括：最大宏块处理速率（max-mbps）、最大帧大小（max-fs，单位为宏块数）、最大码率（max-br）和解码图像缓冲区大小（max-dpb）。</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>最大分辨率（示例）</th>
+<th>最大帧率</th>
+<th>典型应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.2</td>
+<td>320×240</td>
+<td>15 fps</td>
+<td><strong>WebRTC CBP 最低要求</strong></td>
+</tr>
+<tr>
+<td>3.1</td>
+<td>1280×720</td>
+<td>30 fps</td>
+<td><strong>WebRTC 推荐支持</strong></td>
+</tr>
+<tr>
+<td>4.0</td>
+<td>1920×1080</td>
+<td>30 fps</td>
+<td>高清视频</td>
+</tr>
+<tr>
+<td>4.1</td>
+<td>1920×1080</td>
+<td>60 fps</td>
+<td>蓝光</td>
+</tr>
+<tr>
+<td>5.1</td>
+<td>4096×2304</td>
+<td>30 fps</td>
+<td>超高清</td>
+</tr>
+</tbody></table>
+<p>RFC 7742 要求 WebRTC 实现至少支持 <strong>Constrained Baseline Profile Level 1.2</strong>，并推荐支持 <strong>Constrained High Profile Level 3.1</strong>（扩展至 720p@30fps）。</p>
+<h3 id="5-3-profile-level-id-编码规则"><a href="#5-3-profile-level-id-编码规则" class="headerlink" title="5.3 profile-level-id 编码规则"></a>5.3 profile-level-id 编码规则</h3><p><code>profile-level-id</code> 是 SDP 中用于协商 H.264 能力的关键参数，其值为 <strong>6 位十六进制字符串</strong>，由三个字节组成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">profile-level-id = profile_idc | profile_iop | level_idc</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字节</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>profile_idc</code></td>
+<td>Profile 标识符的十进制值（十六进制表示）</td>
+</tr>
+<tr>
+<td><code>profile_iop</code></td>
+<td>Profile 约束标志（constraint flags），各 bit 对应 constraint_set0~5_flag</td>
+</tr>
+<tr>
+<td><code>level_idc</code></td>
+<td>Level 值 × 10（Level 3.1 → 0x1F &#x3D; 31）</td>
+</tr>
+</tbody></table>
+<p><strong>常见 profile-level-id 示例解析</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">42e01f:</span><br><span class="line">  42 = 0x42 = 66  → Baseline Profile</span><br><span class="line">  e0 = 1110 0000 → constraint_set0=1, constraint_set1=1, constraint_set2=1</span><br><span class="line">                   (constraint_set1=1 且 profile_idc=66 → Constrained Baseline)</span><br><span class="line">  1f = 0x1F = 31  → Level 3.1</span><br><span class="line"></span><br><span class="line">640c1f:</span><br><span class="line">  64 = 0x64 = 100 → High Profile</span><br><span class="line">  0c = 0000 1100 → constraint_set4=1, constraint_set5=1</span><br><span class="line">                   (两者均为1 → Constrained High Profile)</span><br><span class="line">  1f = 0x1F = 31  → Level 3.1</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="6-H-264-在-WebRTC-中的应用"><a href="#6-H-264-在-WebRTC-中的应用" class="headerlink" title="6. H.264 在 WebRTC 中的应用"></a>6. H.264 在 WebRTC 中的应用</h1><h3 id="6-1-RFC-7742-强制要求"><a href="#6-1-RFC-7742-强制要求" class="headerlink" title="6.1 RFC 7742 强制要求"></a>6.1 RFC 7742 强制要求</h3><p>RFC 7742 第 6.2 节对 WebRTC 端点提出了以下强制性要求（MUST&#x2F;SHOULD 语义参照 RFC 2119）：</p>
+<ol>
+<li><strong>MUST</strong> 支持 RFC 6184 定义的 H.264 RTP payload 格式</li>
+<li><strong>MUST</strong> 支持 <strong>Constrained Baseline Profile Level 1.2</strong></li>
+<li><strong>SHOULD</strong> 支持 <strong>Constrained High Profile Level 3.1</strong>（扩展至 720p@30fps）</li>
+<li>SDP 中 <strong>MUST</strong> 包含 <code>profile-level-id</code> 参数，并 <strong>MUST</strong> 正确解读对端的该参数</li>
+<li><strong>MUST</strong> 支持 <code>packetization-mode=1</code>（Non-Interleaved Mode）</li>
+</ol>
+<p>此外，RFC 7742 还规定：</p>
+<ul>
+<li>默认色彩空间为 <strong>sRGB</strong>，扫描格式为 <strong>Y’CbCr 4:2:0</strong></li>
+<li>默认像素宽高比为 <strong>1:1（方形像素）</strong>，除非 SDP 另有指定</li>
+</ul>
+<h3 id="6-2-RTP-封装：RFC-6184"><a href="#6-2-RTP-封装：RFC-6184" class="headerlink" title="6.2 RTP 封装：RFC 6184"></a>6.2 RTP 封装：RFC 6184</h3><p>RFC 6184 定义了三种 NALU 的 RTP 封装模式，由 SDP 参数 <code>packetization-mode</code> 控制：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>packetization-mode 值</th>
+<th>支持的 RTP 包类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Single NAL Unit Mode</strong></td>
+<td>0</td>
+<td>仅单 NALU 包</td>
+<td>最简单，每包一个 NALU，适合低延迟受控网络</td>
+</tr>
+<tr>
+<td><strong>Non-Interleaved Mode</strong></td>
+<td>1</td>
+<td>单 NALU、STAP-A、FU-A</td>
+<td><strong>WebRTC 必须支持</strong>，解码顺序等于传输顺序</td>
+</tr>
+<tr>
+<td><strong>Interleaved Mode</strong></td>
+<td>2</td>
+<td>STAP-B、MTAP16、MTAP24、FU-B</td>
+<td>允许乱序传输，增加复杂度，不常用</td>
+</tr>
+</tbody></table>
+<p><strong>三种核心封装包类型详解</strong>：</p>
+<p><strong>① Single NAL Unit Packet（NALU type 1~23）</strong>：<br>当 NALU 大小不超过 MTU（通常 1200~1400 字节）时，直接将一个完整 NALU 放入一个 RTP 包。RTP payload 即为完整的 NALU（含 NAL 头）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RTP Header | NAL Header (1 byte) | NAL Payload</span><br></pre></td></tr></table></figure>
+
+<p><strong>② STAP-A（Single-Time Aggregation Packet type A，NALU type 24）</strong>：<br>将多个时间戳相同的小 NALU（如 SPS + PPS）合并进一个 RTP 包，节省 RTP 头开销。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RTP Header | STAP-A NAL HDR (0x18) | Size1 | NALU1 | Size2 | NALU2 | ...</span><br></pre></td></tr></table></figure>
+
+<p><strong>③ FU-A（Fragmentation Unit type A，NALU type 28）</strong>：<br>当单个 NALU 超过 MTU 时，将其拆分为多个 FU-A 包传输。每个 FU-A 包含一个 FU indicator 和一个 FU header：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">RTP Header | FU Indicator (1B) | FU Header (1B) | Payload Fragment</span><br><span class="line"></span><br><span class="line">FU Header:</span><br><span class="line"> 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|S|E|R|  Type   |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">S: Start bit（第一个分片）</span><br><span class="line">E: End bit（最后一个分片）</span><br><span class="line">R: Reserved（必须为 0）</span><br><span class="line">Type: 原始 NALU 类型</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-SDP-协商示例"><a href="#6-3-SDP-协商示例" class="headerlink" title="6.3 SDP 协商示例"></a>6.3 SDP 协商示例</h3><p>下面是一段典型的 WebRTC Offer SDP 中关于 H.264 的部分：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">a=rtpmap:96 H264/90000</span><br><span class="line">a=fmtp:96 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f</span><br><span class="line">a=rtpmap:97 H264/90000</span><br><span class="line">a=fmtp:97 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=640c1f</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br></pre></td></tr></table></figure>
+
+<p>关键 SDP 参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值示例</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>profile-level-id</code></td>
+<td><code>42e01f</code></td>
+<td>CBP Level 3.1</td>
+</tr>
+<tr>
+<td><code>packetization-mode</code></td>
+<td><code>1</code></td>
+<td>Non-Interleaved Mode，WebRTC 必须支持</td>
+</tr>
+<tr>
+<td><code>level-asymmetry-allowed</code></td>
+<td><code>1</code></td>
+<td>允许发送端和接收端使用不同的 Level，实践中几乎总是设为 1</td>
+</tr>
+<tr>
+<td><code>max-fs</code></td>
+<td><code>3600</code></td>
+<td>最大帧大小（以宏块为单位，3600MB ≈ 1080p）</td>
+</tr>
+<tr>
+<td><code>max-mbps</code></td>
+<td><code>108000</code></td>
+<td>最大宏块处理速率，超过 Level 默认值时使用</td>
+</tr>
+<tr>
+<td><code>sprop-parameter-sets</code></td>
+<td>base64 字符串</td>
+<td>带外（out-of-band）传递的 SPS&#x2F;PPS，可选</td>
+</tr>
+</tbody></table>
+<p><strong><code>level-asymmetry-allowed</code></strong> 是一个重要的实践参数。当设为 1 时，Offer 方声明的 Level 仅代表其<strong>发送</strong>能力，而不约束其接收能力。这意味着一个移动端（发送 Level 3.1）可以接收来自高端服务器（发送 Level 5.1）的视频流，在异构设备互联时非常关键。</p>
+<h3 id="6-4-SEI-消息与-WebRTC-的特殊要求"><a href="#6-4-SEI-消息与-WebRTC-的特殊要求" class="headerlink" title="6.4 SEI 消息与 WebRTC 的特殊要求"></a>6.4 SEI 消息与 WebRTC 的特殊要求</h3><p>RFC 7742 对 SEI（Supplemental Enhancement Information）消息提出了特定要求：</p>
+<ul>
+<li><strong>Filler payload SEI</strong> 和 <strong>Full frame freeze SEI</strong>：H.264 编码端 MAY 发送，接收端 <strong>MUST</strong> 能正确处理。<code>Full frame freeze</code> 在视频切换 MCU 中用于保持稳定的显示画面，避免切换时的花屏。</li>
+<li><strong>Display Orientation SEI</strong>（显示方向）：若未使用 CVO RTP 头扩展进行方向信令，实现端 MAY 发送，SHOULD 能正确解读此 SEI 消息，以支持横竖屏旋转。</li>
+<li><strong>User data registered&#x2F;unregistered SEI</strong>：实现端 MAY 发送和处理，即便不处理，也 <strong>MUST</strong> 在收到时不产生错误行为。</li>
+</ul>
+<hr>
+<h1 id="7-硬件加速"><a href="#7-硬件加速" class="headerlink" title="7. 硬件加速"></a>7. 硬件加速</h1><p>H.264 是目前硬件加速最成熟的视频编解码标准，几乎所有 2010 年后生产的消费级设备都内置了 H.264 硬件解码器。</p>
+<h3 id="7-1-各平台硬件编解码器"><a href="#7-1-各平台硬件编解码器" class="headerlink" title="7.1 各平台硬件编解码器"></a>7.1 各平台硬件编解码器</h3><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>硬件 API &#x2F; 框架</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>macOS &#x2F; iOS</strong></td>
+<td><strong>VideoToolbox</strong></td>
+<td>Apple 提供的原生硬件编解码框架，WebRTC native SDK 已集成，iOS Safari 的 WebRTC 视频强制使用 H.264 + VideoToolbox</td>
+</tr>
+<tr>
+<td><strong>Android</strong></td>
+<td><strong>MediaCodec</strong></td>
+<td>Android 4.1+ 提供的硬件编解码 API，WebRTC Android SDK 通过 <code>HardwareVideoEncoderFactory</code> 调用</td>
+</tr>
+<tr>
+<td><strong>Windows</strong></td>
+<td><strong>Media Foundation &#x2F; DXVA2</strong></td>
+<td>DirectX Video Acceleration，DirectX 集成的视频加速 API</td>
+</tr>
+<tr>
+<td><strong>NVIDIA GPU</strong></td>
+<td><strong>NVENC &#x2F; NVDEC</strong></td>
+<td>适用于服务器端 SFU&#x2F;MCU 的高性能 GPU 加速，GTX 600 系列及以上支持</td>
+</tr>
+<tr>
+<td><strong>Intel CPU</strong></td>
+<td><strong>Intel Quick Sync</strong></td>
+<td>Sandy Bridge（2011）起，CPU 集成显卡支持 H.264 硬件编解码</td>
+</tr>
+<tr>
+<td><strong>AMD GPU</strong></td>
+<td><strong>VCE &#x2F; VCN</strong></td>
+<td>AMD Video Codec Engine，驱动通过 VAAPI（Linux）或 AMF（Windows）暴露</td>
+</tr>
+<tr>
+<td><strong>Linux</strong></td>
+<td><strong>VAAPI &#x2F; V4L2 M2M</strong></td>
+<td>Video Acceleration API，ARM 设备广泛使用 V4L2 M2M 接口</td>
+</tr>
+</tbody></table>
+<p><strong>软件编码器</strong>：开源软件编码器 <strong>x264</strong> 是 H.264 软件编码的事实标准，广泛用于 FFmpeg、OBS Studio 等工具中，提供极高的压缩效率但 CPU 开销较大。</p>
+<h3 id="7-2-硬件加速的优势与陷阱"><a href="#7-2-硬件加速的优势与陷阱" class="headerlink" title="7.2 硬件加速的优势与陷阱"></a>7.2 硬件加速的优势与陷阱</h3><p><strong>优势</strong>：</p>
+<ul>
+<li>显著降低 CPU 占用，释放算力给业务逻辑</li>
+<li>在低功耗移动设备上实现高分辨率实时编码</li>
+<li>硬件解码延迟通常远低于软件解码</li>
+</ul>
+<p><strong>常见陷阱</strong>：</p>
+<ol>
+<li><p><strong>格式转换</strong>：iOS VideoToolbox 输出 AVCC（MP4）格式，必须转换为 Annex B 字节流或直接封装为 RTP NALU 流，否则接收端无法解析。</p>
+</li>
+<li><p><strong>Profile 兼容性</strong>：某些硬件编码器默认使用 High Profile 而非 Constrained Baseline，若 SDP 中协商的是 CBP（<code>42e01f</code>）但实际发送 High Profile 码流，接收端（特别是 Firefox）会拒绝解码。</p>
+</li>
+<li><p>**并非”保证有效”**：即便设备在硬件上支持 H.264 加速，操作系统、驱动、WebRTC 库版本等中间层任一环节缺失，实际调用都可能回退到软件实现或完全失败。Android 碎片化尤为严重，部分设备虽有硬件编码芯片，但 MediaCodec 接口暴露不正确。</p>
+</li>
+<li><p><strong>NVENC 并发限制</strong>：消费级 NVIDIA GPU（GeForce 系列）对 NVENC 并发编码会话数有限制（通常为 2~3 个），服务器端 SFU 需使用 Tesla&#x2F;A 系列 GPU 或通过软件 fallback 处理超额请求。</p>
+</li>
+</ol>
+<hr>
+<h1 id="8-与其他编码的横向对比"><a href="#8-与其他编码的横向对比" class="headerlink" title="8. 与其他编码的横向对比"></a>8. 与其他编码的横向对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>H.264 (AVC)</th>
+<th>H.265 (HEVC)</th>
+<th>VP8</th>
+<th>VP9</th>
+<th>AV1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准组织</td>
+<td>ITU-T + ISO&#x2F;IEC</td>
+<td>ITU-T + ISO&#x2F;IEC</td>
+<td>Google</td>
+<td>Google</td>
+<td>AOMedia</td>
+</tr>
+<tr>
+<td>首发年份</td>
+<td>2003</td>
+<td>2013</td>
+<td>2008</td>
+<td>2013</td>
+<td>2018</td>
+</tr>
+<tr>
+<td>相对 H.264 压缩效率</td>
+<td>基准</td>
+<td>+35~50%</td>
+<td>-10~20%</td>
+<td>+30~40%</td>
+<td>+40~60%</td>
+</tr>
+<tr>
+<td>专利&#x2F;授权</td>
+<td>需要 MPEG LA 授权</td>
+<td>复杂多池专利，成本更高</td>
+<td>开源免费</td>
+<td>开源免费</td>
+<td>开源免费</td>
+</tr>
+<tr>
+<td>浏览器 WebRTC 支持</td>
+<td><strong>全平台（Chrome、Firefox、Safari、Edge）</strong></td>
+<td>有限（实验性）</td>
+<td>Chrome、Firefox、Edge（Safari 不支持）</td>
+<td>部分浏览器</td>
+<td>逐步推进</td>
+</tr>
+<tr>
+<td>硬件加速成熟度</td>
+<td><strong>最成熟，2010+ 设备全覆盖</strong></td>
+<td>较成熟，2015+ 设备</td>
+<td>一般</td>
+<td>一般</td>
+<td>较新，持续扩展中</td>
+</tr>
+<tr>
+<td>实时编码性能</td>
+<td><strong>最优</strong></td>
+<td>约 H.264 的 1&#x2F;5 速度</td>
+<td>优</td>
+<td>较 H.264 慢</td>
+<td>最慢（软编）</td>
+</tr>
+<tr>
+<td>WebRTC MTI 状态</td>
+<td><strong>是（RFC 7742）</strong></td>
+<td>否</td>
+<td>是（RFC 7742）</td>
+<td>否</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>实践结论</strong>：H.264 在 WebRTC 实时通信中仍是综合考量最优的选择。若业务场景允许（如 SFU 控制编码参数、接收端可控），VP9 或 AV1 可带来更低带宽成本，但需承担更高的编码延迟和兼容性风险。</p>
+</blockquote>
+<hr>
+<h1 id="9-专利与许可"><a href="#9-专利与许可" class="headerlink" title="9. 专利与许可"></a>9. 专利与许可</h1><p>H.264 是一个专利密集型标准，实施者需注意以下授权池：</p>
+<ul>
+<li><strong>MPEG LA AVC Patent Pool</strong>：由 Sisvel 管理（2024 年起从 MPEG LA 接手），汇集了全球数十家专利持有人的 H.264 相关必要专利。对最终产品的免费分发（如浏览器向用户免费提供 H.264 解码）通常有豁免条款，但具体条款随时间变化，使用前应查阅最新授权协议。</li>
+<li><strong>Via Licensing</strong>：另一个 H.264 专利池，部分厂商通过此渠道获得授权。</li>
+<li><strong>软件实现的授权</strong>：使用 OpenH264（由思科开发并捐赠专利授权）作为 H.264 软件编解码库，是 Firefox 的解决方案，可在一定范围内绕过专利授权问题。</li>
+</ul>
+<p>相比之下，VP8、VP9 和 AV1 均为开源免专利授权，这是部分大型互联网公司倾向于推广后三者的重要动因。</p>
+<hr>
+<h1 id="10-实践建议"><a href="#10-实践建议" class="headerlink" title="10. 实践建议"></a>10. 实践建议</h1><h3 id="WebRTC-应用开发"><a href="#WebRTC-应用开发" class="headerlink" title="WebRTC 应用开发"></a>WebRTC 应用开发</h3><ol>
+<li><p><strong>SDP 协商层</strong>：始终在 SDP 中包含 <code>profile-level-id</code> 和 <code>packetization-mode=1</code>。Offer 中可同时提供 CBP（<code>42e01f</code>）和 Constrained High Profile（<code>640c1f</code>）两个 payload type，由对端在 Answer 中选择兼容的最高质量选项。</p>
+</li>
+<li><p><strong>关键帧策略</strong>：合理响应 RTCP PLI&#x2F;FIR，及时发送 IDR 帧。IDR 前必须发送 SPS 和 PPS（可合并为一个 STAP-A 包以减少包数）。关键帧间隔（IDR interval）在实时通话中通常设为 2~5 秒；在网络质量差时应缩短间隔以加速恢复。</p>
+</li>
+<li><p><strong>移动端硬件加速</strong>：</p>
+<ul>
+<li>iOS：通过 WebRTC SDK 的 <code>RTCVideoEncoderFactoryH264</code> 使用 VideoToolbox</li>
+<li>Android：使用 <code>HardwareVideoEncoderFactory</code>，并在初始化时启用 Constrained High Profile（需确认设备支持）</li>
+<li>始终提供软件编码（<code>LibvpxVp8Encoder</code> 或 OpenH264）作为硬件加速不可用时的 fallback</li>
+</ul>
+</li>
+<li><p><strong>NALU 格式转换</strong>：处理 iOS&#x2F;Android 硬件编码器输出时，务必将 AVCC 格式转换为 Annex B 或直接构建 RTP NALU，避免将长度前缀误作 Annex B 起始码发送。</p>
+</li>
+<li><p><strong>服务端 SFU</strong>：使用 NVENC（<code>h264_nvenc</code>）或 Intel Quick Sync（<code>h264_qsv</code>）进行转码，但注意控制并发 session 数量并配置合适的 Rate Control 模式（推荐 CBR 或 ABR 配合 <code>zerolatency</code> tuning）。</p>
+</li>
+</ol>
+<h3 id="排查常见问题"><a href="#排查常见问题" class="headerlink" title="排查常见问题"></a>排查常见问题</h3><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>可能原因</th>
+<th>排查方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>花屏&#x2F;绿屏后恢复</td>
+<td>IDR 帧丢失</td>
+<td>检查 RTCP PLI 响应逻辑、关键帧发送频率</td>
+</tr>
+<tr>
+<td>单向无视频</td>
+<td>profile-level-id 不匹配</td>
+<td>检查 SDP 的 <code>profile-level-id</code>，确认双端使用兼容的值</td>
+</tr>
+<tr>
+<td>iOS Safari 无法接收视频</td>
+<td>Profile&#x2F;格式不兼容</td>
+<td>Safari 对 H.264 profile 严格，确保使用 CBP <code>42e01f</code></td>
+</tr>
+<tr>
+<td>编码 CPU 占用过高</td>
+<td>未启用硬件加速</td>
+<td>确认 VideoToolbox&#x2F;MediaCodec 已正确初始化</td>
+</tr>
+<tr>
+<td>第一帧延迟过高</td>
+<td>SPS&#x2F;PPS 在 IDR 帧之前未发送</td>
+<td>确认 IDR 前的参数集发送逻辑</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>文档</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[1]</td>
+<td><strong>ITU-T Recommendation H.264</strong></td>
+<td><a target="_blank" rel="noopener" href="https://www.itu.int/rec/T-REC-H.264">https://www.itu.int/rec/T-REC-H.264</a></td>
+</tr>
+<tr>
+<td>[2]</td>
+<td><strong>RFC 6184</strong> — RTP Payload Format for H.264 Video</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc6184">https://datatracker.ietf.org/doc/html/rfc6184</a></td>
+</tr>
+<tr>
+<td>[3]</td>
+<td><strong>RFC 7742</strong> — WebRTC Video Processing and Codec Requirements</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7742">https://datatracker.ietf.org/doc/html/rfc7742</a></td>
+</tr>
+<tr>
+<td>[4]</td>
+<td><strong>RFC 3984</strong> — RTP Payload Format for H.264 Video（历史版本）</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3984">https://datatracker.ietf.org/doc/html/rfc3984</a></td>
+</tr>
+<tr>
+<td>[5]</td>
+<td><strong>RFC 2119</strong> — Key words for use in RFCs</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc2119">https://datatracker.ietf.org/doc/html/rfc2119</a></td>
+</tr>
+<tr>
+<td>[6]</td>
+<td>MDN Web Docs — Codecs used by WebRTC</td>
+<td><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/WebRTC_codecs">https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/WebRTC_codecs</a></td>
+</tr>
+<tr>
+<td>[7]</td>
+<td>IETF Draft — H.264 as MTI Video Codec for WebRTC</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-burman-rtcweb-h264-proposal-05">https://datatracker.ietf.org/doc/html/draft-burman-rtcweb-h264-proposal-05</a></td>
+</tr>
+<tr>
+<td>[8]</td>
+<td>IETF Draft — H.264&#x2F;AVC as MTI for RTCweb (Cisco&#x2F;Apple)</td>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-dbenham-webrtc-videomti-01">https://datatracker.ietf.org/doc/html/draft-dbenham-webrtc-videomti-01</a></td>
+</tr>
+<tr>
+<td>[9]</td>
+<td>WebRTC 官方代码库（libwebrtc）</td>
+<td><a target="_blank" rel="noopener" href="https://webrtc.googlesource.com/src">https://webrtc.googlesource.com/src</a></td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%86%E5%8F%B2%E6%B2%BF%E9%9D%A9"><span class="toc-number">2.0.1.</span> <span class="toc-text">历史沿革</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%82%E5%9C%BA%E5%9C%B0%E4%BD%8D"><span class="toc-number">2.0.2.</span> <span class="toc-text">市场地位</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%87%E5%87%86%E4%BD%93%E7%B3%BB%E4%B8%8E%E8%A7%84%E8%8C%83%E6%96%87%E6%A1%A3"><span class="toc-number">3.</span> <span class="toc-text">2. 标准体系与规范文档</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 编码核心原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E5%B1%82%E6%9E%B6%E6%9E%84%EF%BC%9AVCL-%E4%B8%8E-NAL"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 两层架构：VCL 与 NAL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%B8%A7%E7%B1%BB%E5%9E%8B%E4%B8%8E-GOP-%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 帧类型与 GOP 结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%8F%E5%9D%97%E4%B8%8E%E9%A2%84%E6%B5%8B%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 宏块与预测编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%8F%98%E6%8D%A2%E3%80%81%E9%87%8F%E5%8C%96%E4%B8%8E%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 变换、量化与熵编码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NAL-%E5%8D%95%E5%85%83%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. NAL 单元详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-NAL-%E5%A4%B4%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 NAL 头结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B3%E9%94%AE-NAL-%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 关键 NAL 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AD%97%E8%8A%82%E6%B5%81%E6%A0%BC%E5%BC%8F%E4%B8%8E-NALU-%E6%B5%81%E6%A0%BC%E5%BC%8F"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 字节流格式与 NALU 流格式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Profile-%E4%B8%8E-Level"><span class="toc-number">6.</span> <span class="toc-text">5. Profile 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B8%B8%E8%A7%81-Profile"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 常见 Profile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Level-%E5%AE%9A%E4%B9%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Level 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-profile-level-id-%E7%BC%96%E7%A0%81%E8%A7%84%E5%88%99"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 profile-level-id 编码规则</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-H-264-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">6. H.264 在 WebRTC 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RFC-7742-%E5%BC%BA%E5%88%B6%E8%A6%81%E6%B1%82"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RFC 7742 强制要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTP-%E5%B0%81%E8%A3%85%EF%BC%9ARFC-6184"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RTP 封装：RFC 6184</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-SDP-%E5%8D%8F%E5%95%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 SDP 协商示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SEI-%E6%B6%88%E6%81%AF%E4%B8%8E-WebRTC-%E7%9A%84%E7%89%B9%E6%AE%8A%E8%A6%81%E6%B1%82"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SEI 消息与 WebRTC 的特殊要求</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">8.</span> <span class="toc-text">7. 硬件加速</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%90%84%E5%B9%B3%E5%8F%B0%E7%A1%AC%E4%BB%B6%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 各平台硬件编解码器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E9%99%B7%E9%98%B1"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 硬件加速的优势与陷阱</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">9.</span> <span class="toc-text">8. 与其他编码的横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">10.</span> <span class="toc-text">9. 专利与许可</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.</span> <span class="toc-text">10. 实践建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#WebRTC-%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91"><span class="toc-number">11.0.1.</span> <span class="toc-text">WebRTC 应用开发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%92%E6%9F%A5%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">11.0.2.</span> <span class="toc-text">排查常见问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">12.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/10/webrtc/23-h264/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/10/webrtc/23-h264/&text=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/10/webrtc/23-h264/&is_video=false&description=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=H.264 —— 最广泛支持的视频编码，硬件加速成熟&body=Check out this article: http://example.com/2022/12/10/webrtc/23-h264/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/10/webrtc/23-h264/&title=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/10/webrtc/23-h264/&name=H.264 —— 最广泛支持的视频编码，硬件加速成熟&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/10/webrtc/23-h264/&t=H.264 —— 最广泛支持的视频编码，硬件加速成熟"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源 1.1 背景：ITU IMT-2020 与 3GPP 的场景定义 1.2 eMBB（增强移动宽带） 1.3 URLLC（超可靠低时延通信） 1.4 mMTC（海量机器类通信） 1.5 三大场景 KPI 对比 1.6 场景间的设计张力   2. NSA（Option 3x）vs SA（Option 2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="5G NR 三大场景、组网策略与核心技术改进">
+<meta property="og:url" content="http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源 1.1 背景：ITU IMT-2020 与 3GPP 的场景定义 1.2 eMBB（增强移动宽带） 1.3 URLLC（超可靠低时延通信） 1.4 mMTC（海量机器类通信） 1.5 三大场景 KPI 对比 1.6 场景间的设计张力   2. NSA（Option 3x）vs SA（Option 2">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-02-16T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-05T22:29:11.768Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>5G NR 三大场景、组网策略与核心技术改进</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/02/07/3gpp/04_LTE_Core_Technologies/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&text=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&is_video=false&description=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=5G NR 三大场景、组网策略与核心技术改进&body=Check out this article: http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&name=5G NR 三大场景、组网策略与核心技术改进&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&t=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-5G-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AF%EF%BC%9AeMBB-URLLC-mMTC-%E7%9A%84%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90"><span class="toc-number">2.</span> <span class="toc-text">1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%83%8C%E6%99%AF%EF%BC%9AITU-IMT-2020-%E4%B8%8E-3GPP-%E7%9A%84%E5%9C%BA%E6%99%AF%E5%AE%9A%E4%B9%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 背景：ITU IMT-2020 与 3GPP 的场景定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-eMBB%EF%BC%88%E5%A2%9E%E5%BC%BA%E7%A7%BB%E5%8A%A8%E5%AE%BD%E5%B8%A6%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 eMBB（增强移动宽带）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-1%EF%BC%89"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7.1）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">典型应用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-URLLC%EF%BC%88%E8%B6%85%E5%8F%AF%E9%9D%A0%E4%BD%8E%E6%97%B6%E5%BB%B6%E9%80%9A%E4%BF%A1%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 URLLC（超可靠低时延通信）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90-1"><span class="toc-number">2.0.3.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-2%EF%BC%89"><span class="toc-number">2.0.3.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7.2）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%8C%91%E6%88%98"><span class="toc-number">2.0.3.3.</span> <span class="toc-text">技术挑战</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-mMTC%EF%BC%88%E6%B5%B7%E9%87%8F%E6%9C%BA%E5%99%A8%E7%B1%BB%E9%80%9A%E4%BF%A1%EF%BC%89"><span class="toc-number">2.0.4.</span> <span class="toc-text">1.4 mMTC（海量机器类通信）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90-2"><span class="toc-number">2.0.4.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-TR-22-863%EF%BC%89"><span class="toc-number">2.0.4.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7 &amp; TR 22.863）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AF-KPI-%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.5.</span> <span class="toc-text">1.5 三大场景 KPI 对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%9C%BA%E6%99%AF%E9%97%B4%E7%9A%84%E8%AE%BE%E8%AE%A1%E5%BC%A0%E5%8A%9B"><span class="toc-number">2.0.6.</span> <span class="toc-text">1.6 场景间的设计张力</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NSA%EF%BC%88Option-3x%EF%BC%89vs-SA%EF%BC%88Option-2%EF%BC%89%E7%BB%84%E7%BD%91%E7%AD%96%E7%95%A5%E4%B8%8E%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6"><span class="toc-number">3.</span> <span class="toc-text">2. NSA（Option 3x）vs SA（Option 2）组网策略与部署现状</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-3GPP-%E5%AE%9A%E4%B9%89%E7%9A%84-8-%E7%A7%8D%E9%83%A8%E7%BD%B2%E9%80%89%E9%A1%B9%E5%85%A8%E8%A7%88"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 3GPP 定义的 8 种部署选项全览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NSA-Option-3-3a-3x-%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NSA Option 3 &#x2F; 3a &#x2F; 3x 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Option-3-3a-3x-%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%88%E4%BB%85%E7%94%A8%E6%88%B7%E9%9D%A2%E8%B7%AF%E5%BE%84%E4%B8%8D%E5%90%8C%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Option 3 &#x2F; 3a &#x2F; 3x 的区别（仅用户面路径不同）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSA-%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">NSA 的优势与局限</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SA-Option-2-%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 SA Option 2 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84-1"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">SA 的核心能力</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-NSA-vs-SA-%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 NSA vs SA 深度对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%85%B6%E4%BB%96-Option%EF%BC%884-5-7%EF%BC%89%E7%AE%80%E4%BB%8B"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 其他 Option（4 &#x2F; 5 &#x2F; 7）简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%85%A8%E7%90%83%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6%E4%B8%8E%E6%BC%94%E8%BF%9B%E8%B7%AF%E5%BE%84"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 全球部署现状与演进路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-5G-NR-%E7%9B%B8%E5%AF%B9-LTE-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%94%B9%E8%BF%9B%E7%82%B9"><span class="toc-number">4.</span> <span class="toc-text">3. 5G NR 相对 LTE 的核心改进点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B8%A7%E7%BB%93%E6%9E%84%E4%B8%8E-Numerology-%E7%9A%84%E9%9D%A9%E5%91%BD%E6%80%A7%E5%8F%98%E5%8C%96"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 帧结构与 Numerology 的革命性变化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E5%B1%80%E9%99%90%EF%BC%9A%E5%9B%BA%E5%AE%9A%E7%9A%84-Numerology"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">LTE 的局限：固定的 Numerology</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E7%81%B5%E6%B4%BB-Numerology"><span class="toc-number">4.0.1.2.</span> <span class="toc-text">5G NR 的解决方案：灵活 Numerology</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Mini-Slot%EF%BC%88%E5%BE%AE%E6%97%B6%E9%9A%99%EF%BC%89"><span class="toc-number">4.0.1.3.</span> <span class="toc-text">Mini-Slot（微时隙）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TDD-%E7%81%B5%E6%B4%BB%E5%B8%A7%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.4.</span> <span class="toc-text">TDD 灵活帧结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BF%A1%E9%81%93%E7%BC%96%E7%A0%81%EF%BC%9A%E4%BB%8E-Turbo-%E5%88%B0-LDPC-Polar"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 信道编码：从 Turbo 到 LDPC + Polar</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%9ATurbo-%E7%A0%81%E4%B8%80%E7%BB%9F%E5%A4%A9%E4%B8%8B"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">LTE 的方案：Turbo 码一统天下</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%9ALDPC-Polar-%E5%8F%8C%E5%BC%95%E6%93%8E"><span class="toc-number">4.0.2.2.</span> <span class="toc-text">5G NR 的方案：LDPC + Polar 双引擎</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AF%EF%BC%9AMassive-MIMO-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 多天线技术：Massive MIMO 与波束管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E5%A4%A9%E7%BA%BF%E8%83%BD%E5%8A%9B"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">LTE 的天线能力</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84-Massive-MIMO"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">5G NR 的 Massive MIMO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%EF%BC%88Beam-Management%EF%BC%8CBM%EF%BC%89"><span class="toc-number">4.0.3.3.</span> <span class="toc-text">波束管理（Beam Management，BM）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FR1-vs-FR2-%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.3.4.</span> <span class="toc-text">FR1 vs FR2 对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%B3%A2%E5%BD%A2%E4%B8%8E%E4%B8%8A%E8%A1%8C%E5%A2%9E%E5%BC%BA"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 波形与上行增强</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM%EF%BC%88%E4%B8%8E-LTE-%E4%B8%80%E8%87%B4%EF%BC%89"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">下行波形：CP-OFDM（与 LTE 一致）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM-DFT-s-OFDM%EF%BC%88%E6%96%B0%E5%A2%9E%EF%BC%89"><span class="toc-number">4.0.4.2.</span> <span class="toc-text">上行波形：CP-OFDM + DFT-s-OFDM（新增）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E8%A1%A5%E5%85%85%E4%BF%A1%E9%81%93%EF%BC%9ASUL%EF%BC%88%E8%A1%A5%E5%85%85%E4%B8%8A%E8%A1%8C%EF%BC%89"><span class="toc-number">4.0.4.3.</span> <span class="toc-text">上行补充信道：SUL（补充上行）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%9E%B6%E6%9E%84%E6%94%B9%E8%BF%9B%EF%BC%9ACU-DU-%E5%88%86%E7%A6%BB%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%A0%B8%E5%BF%83%E7%BD%91"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 架构改进：CU&#x2F;DU 分离与服务化核心网</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-RAN%EF%BC%9ACU-DU-RU-%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">NG-RAN：CU&#x2F;DU&#x2F;RU 功能拆分</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GC%EF%BC%9A%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%9E%B6%E6%9E%84%EF%BC%88SBA%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">5GC：服务化架构（SBA）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E5%85%B6%E4%BB%96%E5%85%B3%E9%94%AE%E6%94%B9%E8%BF%9B"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 其他关键改进</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%A6%E5%AE%BD%E9%83%A8%E5%88%86%EF%BC%88BWP%EF%BC%8CBandwidth-Part%EF%BC%89"><span class="toc-number">4.0.6.1.</span> <span class="toc-text">带宽部分（BWP，Bandwidth Part）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%8D%E8%B0%83%E5%BA%A6%E4%B8%8A%E8%A1%8C%EF%BC%88Configured-Grant-Type-1-2%EF%BC%89"><span class="toc-number">4.0.6.2.</span> <span class="toc-text">免调度上行（Configured Grant &#x2F; Type 1 &amp; 2）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HARQ-%E5%A2%9E%E5%BC%BA"><span class="toc-number">4.0.6.3.</span> <span class="toc-text">HARQ 增强</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E9%87%8D%E6%9E%84"><span class="toc-number">4.0.6.4.</span> <span class="toc-text">参考信号重构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E6%8E%A5%E5%85%A5%EF%BC%9ASSB-%E6%9B%BF%E4%BB%A3-CRS-PSS-SSS"><span class="toc-number">4.0.6.5.</span> <span class="toc-text">初始接入：SSB 替代 CRS + PSS&#x2F;SSS</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-NR-vs-LTE-%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 NR vs LTE 核心参数对比表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.1.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">4.2.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        5G NR 三大场景、组网策略与核心技术改进
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-02-16T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-02-16</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#1-5g-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AFembb--urllc--mmtc-%E7%9A%84%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90">1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源</a><ul>
+<li><a href="#11-%E8%83%8C%E6%99%AFitu-imt-2020-%E4%B8%8E-3gpp-%E7%9A%84%E5%9C%BA%E6%99%AF%E5%AE%9A%E4%B9%89">1.1 背景：ITU IMT-2020 与 3GPP 的场景定义</a></li>
+<li><a href="#12-embb%E5%A2%9E%E5%BC%BA%E7%A7%BB%E5%8A%A8%E5%AE%BD%E5%B8%A6">1.2 eMBB（增强移动宽带）</a></li>
+<li><a href="#13-urllc%E8%B6%85%E5%8F%AF%E9%9D%A0%E4%BD%8E%E6%97%B6%E5%BB%B6%E9%80%9A%E4%BF%A1">1.3 URLLC（超可靠低时延通信）</a></li>
+<li><a href="#14-mmtc%E6%B5%B7%E9%87%8F%E6%9C%BA%E5%99%A8%E7%B1%BB%E9%80%9A%E4%BF%A1">1.4 mMTC（海量机器类通信）</a></li>
+<li><a href="#15-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AF-kpi-%E5%AF%B9%E6%AF%94">1.5 三大场景 KPI 对比</a></li>
+<li><a href="#16-%E5%9C%BA%E6%99%AF%E9%97%B4%E7%9A%84%E8%AE%BE%E8%AE%A1%E5%BC%A0%E5%8A%9B">1.6 场景间的设计张力</a></li>
+</ul>
+</li>
+<li><a href="#2-nsaoption-3x-vs-saoption-2%E7%BB%84%E7%BD%91%E7%AD%96%E7%95%A5%E4%B8%8E%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6">2. NSA（Option 3x）vs SA（Option 2）组网策略与部署现状</a><ul>
+<li><a href="#21-3gpp-%E5%AE%9A%E4%B9%89%E7%9A%84-8-%E7%A7%8D%E9%83%A8%E7%BD%B2%E9%80%89%E9%A1%B9%E5%85%A8%E8%A7%88">2.1 3GPP 定义的 8 种部署选项全览</a></li>
+<li><a href="#22-nsa-option-3--3a--3x-%E8%AF%A6%E8%A7%A3">2.2 NSA Option 3 &#x2F; 3a &#x2F; 3x 详解</a></li>
+<li><a href="#23-sa-option-2-%E8%AF%A6%E8%A7%A3">2.3 SA Option 2 详解</a></li>
+<li><a href="#24-nsa-vs-sa-%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94">2.4 NSA vs SA 深度对比</a></li>
+<li><a href="#25-%E5%85%B6%E4%BB%96-option4--5--7%E7%AE%80%E4%BB%8B">2.5 其他 Option（4 &#x2F; 5 &#x2F; 7）简介</a></li>
+<li><a href="#26-%E5%85%A8%E7%90%83%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6%E4%B8%8E%E6%BC%94%E8%BF%9B%E8%B7%AF%E5%BE%84">2.6 全球部署现状与演进路径</a></li>
+</ul>
+</li>
+<li><a href="#3-5g-nr-%E7%9B%B8%E5%AF%B9-lte-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%94%B9%E8%BF%9B%E7%82%B9">3. 5G NR 相对 LTE 的核心改进点</a><ul>
+<li><a href="#31-%E5%B8%A7%E7%BB%93%E6%9E%84%E4%B8%8E-numerology-%E7%9A%84%E9%9D%A9%E5%91%BD%E6%80%A7%E5%8F%98%E5%8C%96">3.1 帧结构与 Numerology 的革命性变化</a></li>
+<li><a href="#32-%E4%BF%A1%E9%81%93%E7%BC%96%E7%A0%81%E4%BB%8E-turbo-%E5%88%B0-ldpc--polar">3.2 信道编码：从 Turbo 到 LDPC + Polar</a></li>
+<li><a href="#33-%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AFmassive-mimo-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86">3.3 多天线技术：Massive MIMO 与波束管理</a></li>
+<li><a href="#34-%E6%B3%A2%E5%BD%A2%E4%B8%8E%E4%B8%8A%E8%A1%8C%E5%A2%9E%E5%BC%BA">3.4 波形与上行增强</a></li>
+<li><a href="#35-%E6%9E%B6%E6%9E%84%E6%94%B9%E8%BF%9Bcudu-%E5%88%86%E7%A6%BB%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%A0%B8%E5%BF%83%E7%BD%91">3.5 架构改进：CU&#x2F;DU 分离与服务化核心网</a></li>
+<li><a href="#36-%E5%85%B6%E4%BB%96%E5%85%B3%E9%94%AE%E6%94%B9%E8%BF%9B">3.6 其他关键改进</a></li>
+<li><a href="#37-nr-vs-lte-%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E5%AF%B9%E6%AF%94%E8%A1%A8">3.7 NR vs LTE 核心参数对比表</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+<hr>
+<h1 id="1-5G-三大场景：eMBB-URLLC-mMTC-的需求来源"><a href="#1-5G-三大场景：eMBB-URLLC-mMTC-的需求来源" class="headerlink" title="1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源"></a>1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源</h1><h3 id="1-1-背景：ITU-IMT-2020-与-3GPP-的场景定义"><a href="#1-1-背景：ITU-IMT-2020-与-3GPP-的场景定义" class="headerlink" title="1.1 背景：ITU IMT-2020 与 3GPP 的场景定义"></a>1.1 背景：ITU IMT-2020 与 3GPP 的场景定义</h3><p>在讨论具体场景之前，需要厘清需求的两个来源：<strong>ITU（国际电信联盟）</strong> 定义了 IMT-2020 的宏观愿景，而 <strong>3GPP</strong> 则将其转化为可工程化实现的技术规范。</p>
+<p><strong>ITU 层面</strong>：ITU-R M.2083（2015 年）正式确立 IMT-2020 框架，将 5G 的应用场景归纳为三大类，并给出八项关键性能指标（KPI）：峰值速率、用户体验速率、频谱效率、移动性、时延、连接密度、网络能效、区域流量密度。</p>
+<p><strong>3GPP 层面</strong>：在研究课题 FS_SMARTER（TR 22.891，”面向新服务和市场技术赋能的可行性研究”）中，3GPP 梳理了超过 70 个具体用例，并将其汇聚为 eMBB、URLLC、mMTC 三大类别。随后，三大场景分别在 TR 22.861（eMBB）、TR 22.862（URLLC&#x2F;CriC）、TR 22.863（mMTC）中深化研究，最终汇总至规范性文档 <strong>TS 22.261</strong>（5G 系统服务需求）。</p>
+<blockquote>
+<p><strong>关键区别</strong>：与 4G 系统试图用”一套方案覆盖所有需求”不同，TS 22.261 明确指出，5G 系统旨在为不同服务、不同流量负载、不同用户群体提供<strong>优化的差异化支持</strong>。</p>
+</blockquote>
+<hr>
+<h3 id="1-2-eMBB（增强移动宽带）"><a href="#1-2-eMBB（增强移动宽带）" class="headerlink" title="1.2 eMBB（增强移动宽带）"></a>1.2 eMBB（增强移动宽带）</h3><h4 id="需求来源"><a href="#需求来源" class="headerlink" title="需求来源"></a>需求来源</h4><p>eMBB 的驱动力来自人类对多媒体内容的持续渴求：</p>
+<ul>
+<li><strong>视频流媒体爆炸</strong>：4K&#x2F;8K 视频、VR&#x2F;AR 沉浸体验对下行带宽的需求急剧攀升；</li>
+<li><strong>高密度场景</strong>：体育场、演唱会、地铁站等高密度公共场所，用户密度极大，LTE 容量捉襟见肘；</li>
+<li><strong>云端化趋势</strong>：云游戏、远程桌面、企业协作等业务要求稳定的高速率连接；</li>
+<li><strong>固定无线接入（FWA）</strong>：替代光纤宽带的”最后一公里”解决方案。</li>
+</ul>
+<p>TS 22.261 将 eMBB 场景细分为两类：</p>
+<table>
+<thead>
+<tr>
+<th>子场景</th>
+<th>特征</th>
+<th>典型部署</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>热点（Hotspot）</strong></td>
+<td>高用户密度、极高容量、低移动性</td>
+<td>室内办公、体育场、购物中心</td>
+</tr>
+<tr>
+<td><strong>广域覆盖（Wide Area）</strong></td>
+<td>无缝覆盖、中高移动性、显著改善的用户速率</td>
+<td>郊区、高速公路、高铁</td>
+</tr>
+</tbody></table>
+<h4 id="关键-KPI（来自-TS-22-261-§7-1）"><a href="#关键-KPI（来自-TS-22-261-§7-1）" class="headerlink" title="关键 KPI（来自 TS 22.261 §7.1）"></a>关键 KPI（来自 TS 22.261 §7.1）</h4><ul>
+<li><strong>峰值下行速率</strong>：20 Gbps（ITU IMT-2020 要求）</li>
+<li><strong>峰值上行速率</strong>：10 Gbps</li>
+<li><strong>用户体验下行速率</strong>（室内热点）：1 Gbps</li>
+<li><strong>用户体验下行速率</strong>（广域覆盖）：50 Mbps</li>
+<li><strong>峰值频谱效率</strong>（下行）：30 bps&#x2F;Hz（8 层空分复用）</li>
+<li><strong>区域流量密度</strong>：室内热点可达 15 Tbps&#x2F;km²，对应 250,000 用户&#x2F;km²</li>
+<li><strong>移动性</strong>：支持高达 500 km&#x2F;h（高铁场景）</li>
+</ul>
+<h4 id="典型应用"><a href="#典型应用" class="headerlink" title="典型应用"></a>典型应用</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">沉浸式 XR（VR/AR/MR）</span><br><span class="line">4K/8K 超高清视频直播</span><br><span class="line">云游戏（毫秒级渲染卸载）</span><br><span class="line">无人机高清图传</span><br><span class="line">固定无线接入（FWA）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="1-3-URLLC（超可靠低时延通信）"><a href="#1-3-URLLC（超可靠低时延通信）" class="headerlink" title="1.3 URLLC（超可靠低时延通信）"></a>1.3 URLLC（超可靠低时延通信）</h3><h4 id="需求来源-1"><a href="#需求来源-1" class="headerlink" title="需求来源"></a>需求来源</h4><p>URLLC 的驱动力来自工业互联网、公共安全和智能交通领域，这些领域中通信失败的代价不仅是用户体验下降，而是人身安全与工业损失。</p>
+<p>3GPP TR 22.862（CriC&#x2F;URLLC 研究报告）及后续的 TR 22.804（垂直域通信自动化研究）梳理了核心驱动力：</p>
+<ul>
+<li><strong>工业 4.0</strong>：柔性制造中的机械臂协同控制、AGV 调度要求控制环路时延极低；</li>
+<li><strong>远程操控&#x2F;遥控驾驶</strong>：操作人员与远端机器之间的往返时延必须在感知阈值（约 10 ms）以内；</li>
+<li><strong>V2X（车联网）</strong>：车辆碰撞预警、交叉路口协同需要端到端时延 &lt;10 ms、可靠性 &gt;99.999%；</li>
+<li><strong>医疗（远程手术）</strong>：外科机器人的精确控制要求极低抖动和极高可靠性；</li>
+<li><strong>电网保护</strong>：配电网差动保护继电器的动作时延要求在 8 ms 以内。</li>
+</ul>
+<h4 id="关键-KPI（来自-TS-22-261-§7-2）"><a href="#关键-KPI（来自-TS-22-261-§7-2）" class="headerlink" title="关键 KPI（来自 TS 22.261 §7.2）"></a>关键 KPI（来自 TS 22.261 §7.2）</h4><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>用户面时延</strong>（UL）</td>
+<td>0.5 ms</td>
+<td>触觉交互场景</td>
+</tr>
+<tr>
+<td><strong>用户面时延</strong>（DL）</td>
+<td>0.5 ms</td>
+<td>触觉交互场景</td>
+</tr>
+<tr>
+<td><strong>用户面时延</strong>（eMBB 参考值）</td>
+<td>4 ms</td>
+<td>DL &#x2F; UL</td>
+</tr>
+<tr>
+<td><strong>可靠性</strong></td>
+<td>99.9999%（六个九）</td>
+<td>1 ms 内数据包投递成功率</td>
+</tr>
+<tr>
+<td><strong>端到端时延</strong>（V2X）</td>
+<td>≤ 3 ms</td>
+<td>高优先级场景</td>
+</tr>
+<tr>
+<td><strong>可用性</strong></td>
+<td>&gt;99.9999%</td>
+<td>工业控制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：上述 0.5 ms 为空口单向时延（one-way radio latency），不含核心网和应用层处理时延。实际端到端时延需综合考量网络拓扑。</p>
+</blockquote>
+<h4 id="技术挑战"><a href="#技术挑战" class="headerlink" title="技术挑战"></a>技术挑战</h4><p>URLLC 在物理层带来了根本性挑战：</p>
+<ul>
+<li><strong>短包传输</strong>：传统 FEC 码针对长码块优化，短包情况下编码增益不足；</li>
+<li><strong>小时隙（Mini-Slot）调度</strong>：无法等待整个 slot 才传输，需要符号级别的抢占调度；</li>
+<li><strong>重传代价</strong>：HARQ 重传会引入 RTT 时延，与低时延目标矛盾；</li>
+<li><strong>可靠性与资源效率的权衡</strong>：高冗余编码消耗大量频谱资源。</li>
+</ul>
+<hr>
+<h3 id="1-4-mMTC（海量机器类通信）"><a href="#1-4-mMTC（海量机器类通信）" class="headerlink" title="1.4 mMTC（海量机器类通信）"></a>1.4 mMTC（海量机器类通信）</h3><h4 id="需求来源-2"><a href="#需求来源-2" class="headerlink" title="需求来源"></a>需求来源</h4><p>IoT 设备的爆炸式增长是 mMTC 的核心驱动力。Ericsson、Cisco 等机构预测，到 2030 年全球连接物联网设备将超过数百亿台。这类设备的特点与 eMBB 截然相反：</p>
+<ul>
+<li>传输数据量<strong>极小</strong>（传感器读数、状态上报）；</li>
+<li>对时延<strong>不敏感</strong>（周期性上报间隔分钟&#x2F;小时级）；</li>
+<li>对<strong>功耗</strong>极度敏感（要求电池寿命 10 年以上）；</li>
+<li><strong>成本</strong>要求极低（模组成本需降至数美元量级）；</li>
+<li>部署环境恶劣（地下管道、偏远农村、建筑内深层覆盖）。</li>
+</ul>
+<h4 id="关键-KPI（来自-TS-22-261-§7-TR-22-863）"><a href="#关键-KPI（来自-TS-22-261-§7-TR-22-863）" class="headerlink" title="关键 KPI（来自 TS 22.261 §7 &amp; TR 22.863）"></a>关键 KPI（来自 TS 22.261 §7 &amp; TR 22.863）</h4><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>连接密度</strong></td>
+<td>1,000,000 设备&#x2F;km²</td>
+</tr>
+<tr>
+<td><strong>电池寿命</strong></td>
+<td>≥ 10 年（AA 电池）</td>
+</tr>
+<tr>
+<td><strong>覆盖增强</strong></td>
+<td>相比 LTE Cat-1 额外 20 dB MCL 改善</td>
+</tr>
+<tr>
+<td><strong>数据速率</strong></td>
+<td>低（kbps 量级即可满足）</td>
+</tr>
+<tr>
+<td><strong>时延容忍</strong></td>
+<td>秒~小时级均可接受</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>与 4G 的关系</strong>：从部署现实来看，5G Release 15&#x2F;16 主要聚焦 eMBB 和 URLLC。mMTC 在 5G NR 中由 3GPP 早期（R13）就已引入的 <strong>NB-IoT</strong> 和 <strong>LTE-M（eMTC）</strong> 承担，二者被纳入 5G 体系以满足 IMT-2020 要求。面向中高端 IoT 需求（介于 eMBB 与 mMTC 之间），R17 引入了 <strong>RedCap（Reduced Capability）</strong>。</p>
+</blockquote>
+<hr>
+<h3 id="1-5-三大场景-KPI-对比"><a href="#1-5-三大场景-KPI-对比" class="headerlink" title="1.5 三大场景 KPI 对比"></a>1.5 三大场景 KPI 对比</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">                    eMBB          URLLC         mMTC</span><br><span class="line">                   ┌─────────────────────────────────────┐</span><br><span class="line">峰值速率            │ 20 Gbps DL   ~几百 Mbps    kbps      │</span><br><span class="line">用户体验速率         │ 100M~1Gbps   ~10 Mbps      不关注    │</span><br><span class="line">空口时延            │ 4 ms         0.5~1 ms      秒~小时   │</span><br><span class="line">可靠性              │ ~99.9%       99.9999%      较低即可  │</span><br><span class="line">连接密度            │ 中等         较低          10^6/km²  │</span><br><span class="line">移动性              │ 0~500 km/h  0~500 km/h    低移动性   │</span><br><span class="line">电池寿命            │ 不关注       不关注         &gt;10 年    │</span><br><span class="line">                   └─────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>来源</strong>：ITU-R M.2083（IMT-2020 愿景）及 3GPP TS 22.261</p>
+</blockquote>
+<hr>
+<h3 id="1-6-场景间的设计张力"><a href="#1-6-场景间的设计张力" class="headerlink" title="1.6 场景间的设计张力"></a>1.6 场景间的设计张力</h3><p>三大场景的 KPI 需求存在内在冲突，对空口设计构成根本约束：</p>
+<ul>
+<li><strong>eMBB vs URLLC</strong>：eMBB 希望大带宽、高阶调制（256QAM）、长码块以提升吞吐量；URLLC 需要小时隙、短包、低码率强编码和快速 HARQ 反馈，两者在资源分配上相互竞争。</li>
+<li><strong>eMBB vs mMTC</strong>：eMBB 需要复杂的大规模 MIMO 与频繁的信令交互；mMTC 设备要求极简协议栈和深度覆盖（MCL 164 dBm 量级）。</li>
+<li><strong>URLLC vs mMTC</strong>：URLLC 需要冗余资源保障可靠性；mMTC 要求极高资源利用效率。</li>
+</ul>
+<p>正是为了在<strong>同一套空口</strong>上同时满足三大场景，5G NR 才引入了 Numerology（灵活子载波间距）、Mini-Slot、网络切片、灵活帧结构等一系列革命性设计，这些内容将在 §3 详细展开。</p>
+<hr>
+<h1 id="2-NSA（Option-3x）vs-SA（Option-2）组网策略与部署现状"><a href="#2-NSA（Option-3x）vs-SA（Option-2）组网策略与部署现状" class="headerlink" title="2. NSA（Option 3x）vs SA（Option 2）组网策略与部署现状"></a>2. NSA（Option 3x）vs SA（Option 2）组网策略与部署现状</h1><h3 id="2-1-3GPP-定义的-8-种部署选项全览"><a href="#2-1-3GPP-定义的-8-种部署选项全览" class="headerlink" title="2.1 3GPP 定义的 8 种部署选项全览"></a>2.1 3GPP 定义的 8 种部署选项全览</h3><p>在 3GPP RAN 第 72 次全会上，针对 5G 网络部署定义了 8 种架构选项（Option 1~8），按照核心网类型（EPC vs 5GC）和接入节点类型（eNB vs gNB&#x2F;ng-eNB）进行组合：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">独立组网（SA）：</span><br><span class="line">  Option 1  = eNB  + EPC   （传统 4G，参考基线）</span><br><span class="line">  Option 2  = gNB  + 5GC   ← 5G SA 目标架构</span><br><span class="line">  Option 5  = ng-eNB + 5GC （eLTE，无 NR 无线）</span><br><span class="line">  Option 6  = en-gNB + EPC  （理论选项，无实用价值）</span><br><span class="line"></span><br><span class="line">非独立组网（NSA）：</span><br><span class="line">  Option 3/3a/3x = eNB(MN) + en-gNB(SN) + EPC  ← 主流 NSA 方案</span><br><span class="line">  Option 4/4a    = gNB(MN) + ng-eNB(SN) + 5GC</span><br><span class="line">  Option 7/7a/7x = ng-eNB(MN) + gNB(SN) + 5GC</span><br><span class="line">  Option 8       = en-gNB(MN) + eNB(SN) + EPC  （理论选项）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>规范依据</strong>：NSA 多无线双连接（MR-DC）架构详见 <strong>3GPP TS 37.340</strong>；SA 架构详见 <strong>3GPP TS 38.300</strong>。</p>
+</blockquote>
+<p>Option 6 和 Option 8 因缺乏实际部署价值，在标准化阶段就被业界放弃。<strong>Option 3x（NSA）和 Option 2（SA）</strong> 已成为行业共识的两种主要商用部署路径。</p>
+<hr>
+<h3 id="2-2-NSA-Option-3-3a-3x-详解"><a href="#2-2-NSA-Option-3-3a-3x-详解" class="headerlink" title="2.2 NSA Option 3 &#x2F; 3a &#x2F; 3x 详解"></a>2.2 NSA Option 3 &#x2F; 3a &#x2F; 3x 详解</h3><h4 id="基本架构"><a href="#基本架构" class="headerlink" title="基本架构"></a>基本架构</h4><p>NSA Option 3 系列均属于 <strong>EN-DC（E-UTRA-NR Dual Connectivity）</strong> 架构，核心特征是：</p>
+<ul>
+<li><strong>核心网</strong>：沿用 4G EPC（Evolved Packet Core），即 SGW&#x2F;PGW 不变；</li>
+<li><strong>主节点（Master Node，MN）</strong>：LTE eNB，负责全部控制面（S1-MME、X2-C）；</li>
+<li><strong>辅节点（Secondary Node，SN）</strong>：5G NR 基站（en-gNB，”en” 表示连接 EPC 的 gNB），仅承载用户面数据；</li>
+<li><strong>UE</strong>：同时与 eNB 和 en-gNB 保持连接。</li>
+</ul>
+<p>控制面路径：<code>UE ↔ eNB ↔ EPC（via S1-MME）</code>，NR 侧无直接控制面信令到核心网。</p>
+<h4 id="Option-3-3a-3x-的区别（仅用户面路径不同）"><a href="#Option-3-3a-3x-的区别（仅用户面路径不同）" class="headerlink" title="Option 3 &#x2F; 3a &#x2F; 3x 的区别（仅用户面路径不同）"></a>Option 3 &#x2F; 3a &#x2F; 3x 的区别（仅用户面路径不同）</h4><p>三种子选项的差异完全体现在下行数据的路由方式：</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>用户面路由（下行）</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Option 3</strong></td>
+<td>EPC → eNB → 分流至 en-gNB</td>
+<td>eNB 作为数据锚点，en-gNB 数据来自 eNB（X2-U 接口分流）；对 EPC 无修改，但 X2 接口压力大</td>
+</tr>
+<tr>
+<td><strong>Option 3a</strong></td>
+<td>EPC → eNB（独立）+ EPC → en-gNB（独立）</td>
+<td>EPC 直接向 en-gNB 建立独立 S1-U 隧道；减少 X2 压力，但 EPC 需支持双流分发</td>
+</tr>
+<tr>
+<td><strong>Option 3x</strong></td>
+<td>EPC → en-gNB → 分流至 eNB</td>
+<td><strong>en-gNB 作为用户面锚点</strong>；充分利用 NR 大带宽承载主数据流，LTE 路径分担余量；对 EPC 修改最少，是业界部署最广泛的选项</td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Option 3x 用户面示意图：</span><br><span class="line"></span><br><span class="line">  EPC</span><br><span class="line">   │ S1-U（主隧道）</span><br><span class="line">   ▼</span><br><span class="line"> en-gNB ──── X2-U 分流 ────► eNB</span><br><span class="line">   │                          │</span><br><span class="line">   ▼                          ▼</span><br><span class="line">  UE ◄──── NR 主数据流         UE ◄──── LTE 分流数据</span><br></pre></td></tr></table></figure>
+
+<p><strong>Option 3x 胜出的原因</strong>：5G NR 频段（尤其是 3.5 GHz 的 n78 频段）拥有更大带宽（100 MHz），以 en-gNB 作为用户面锚点可最大化利用 NR 吞吐量；同时对 EPC 核心网改动最小，部署成本最低。</p>
+<h4 id="NSA-的优势与局限"><a href="#NSA-的优势与局限" class="headerlink" title="NSA 的优势与局限"></a>NSA 的优势与局限</h4><p><strong>优势：</strong></p>
+<ul>
+<li>可复用现有 LTE 无线站点和 EPC，5G 无线网可快速叠加部署；</li>
+<li>eNB 提供覆盖锚点，解决早期 NR 覆盖不连续问题；</li>
+<li>核心网无需立即升级至 5GC，降低初期投资风险；</li>
+<li>可通过软件升级逐步演进至 SA。</li>
+</ul>
+<p><strong>局限：</strong></p>
+<ul>
+<li>无法充分发挥 5GC 的网络切片、URLLC 等核心能力（受限于 EPC）；</li>
+<li>控制面依赖 LTE，NR 切换受 4G 网络质量制约；</li>
+<li>无法实现独立的 5G 注册（UE 必须先有 LTE 锚点）；</li>
+<li>端到端时延仍受 EPC 影响，URLLC 场景支持能力不足；</li>
+<li>对 NB-IoT&#x2F;eMTC 等 mMTC 能力无增益。</li>
+</ul>
+<hr>
+<h3 id="2-3-SA-Option-2-详解"><a href="#2-3-SA-Option-2-详解" class="headerlink" title="2.3 SA Option 2 详解"></a>2.3 SA Option 2 详解</h3><h4 id="基本架构-1"><a href="#基本架构-1" class="headerlink" title="基本架构"></a>基本架构</h4><p>SA Option 2 是 5G 的<strong>目标架构</strong>，完全独立运行于 5G 体系之上：</p>
+<ul>
+<li><strong>核心网</strong>：全新 <strong>5GC（5G Core Network）</strong>，即 AMF、SMF、UPF 等服务化网元；</li>
+<li><strong>接入网</strong>：5G NR <strong>gNB</strong>（Next Generation Node B），通过 <strong>NG 接口</strong>连接 5GC；</li>
+<li><strong>UE</strong>：直接注册至 5GC，无需 LTE 锚点；</li>
+<li><strong>控制面</strong>：<code>UE ↔ gNB ↔ AMF（via N2）</code>；</li>
+<li><strong>用户面</strong>：<code>UE ↔ gNB ↔ UPF（via N3）</code>。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SA Option 2 架构：</span><br><span class="line"></span><br><span class="line">  UE</span><br><span class="line">  │  NR Uu 接口</span><br><span class="line">  ▼</span><br><span class="line"> gNB ──── N2（控制面）────► AMF</span><br><span class="line">  │</span><br><span class="line">  └────── N3（用户面）────► UPF ──── DN（数据网络）</span><br></pre></td></tr></table></figure>
+
+<h4 id="SA-的核心能力"><a href="#SA-的核心能力" class="headerlink" title="SA 的核心能力"></a>SA 的核心能力</h4><p>SA 是 5G 差异化能力的真正载体：</p>
+<ul>
+<li><strong>网络切片（Network Slicing）</strong>：通过 NSSF（网络切片选择功能）为不同业务分配独立的虚拟网络资源（S-NSSAI），eMBB&#x2F;URLLC&#x2F;mMTC 可共享物理基础设施但逻辑隔离；</li>
+<li><strong>服务化架构（SBA）</strong>：5GC 网元通过 HTTP&#x2F;2 + JSON 的 SBI（Service Based Interface）互通，支持微服务化部署；</li>
+<li><strong>MEC（多接入边缘计算）</strong>：UPF 可下沉至边缘，结合 5GC 的 ULCL（上行分类器）实现本地流量卸载，实现真正意义上的低时延；</li>
+<li><strong>独立的 5G 注册和移动性管理</strong>：AMF 独立处理 5G NAS 信令，支持 RRC_INACTIVE 态等 5G 专属优化；</li>
+<li><strong>完整 URLLC 支持</strong>：5GC 的 QoS 框架（5QI）与 NR 空口的 mini-slot 协同，才能实现端到端 1 ms 时延；</li>
+<li><strong>独立语音（VoNR）</strong>：原生支持 IMS over 5G，无需 EPS Fallback 回退。</li>
+</ul>
+<hr>
+<h3 id="2-4-NSA-vs-SA-深度对比"><a href="#2-4-NSA-vs-SA-深度对比" class="headerlink" title="2.4 NSA vs SA 深度对比"></a>2.4 NSA vs SA 深度对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>NSA Option 3x</th>
+<th>SA Option 2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>核心网</strong></td>
+<td>4G EPC</td>
+<td>5GC（AMF&#x2F;SMF&#x2F;UPF）</td>
+</tr>
+<tr>
+<td><strong>控制面锚点</strong></td>
+<td>LTE eNB</td>
+<td>5G gNB</td>
+</tr>
+<tr>
+<td><strong>UE 注册</strong></td>
+<td>4G MME</td>
+<td>5G AMF</td>
+</tr>
+<tr>
+<td><strong>初始部署成本</strong></td>
+<td>低（复用 LTE 基础设施）</td>
+<td>高（需全新 5GC）</td>
+</tr>
+<tr>
+<td><strong>5G 独立覆盖要求</strong></td>
+<td>不需要（LTE 托底）</td>
+<td>需要（gNB 独立覆盖）</td>
+</tr>
+<tr>
+<td><strong>网络切片</strong></td>
+<td>不支持</td>
+<td>完整支持</td>
+</tr>
+<tr>
+<td><strong>URLLC 端到端</strong></td>
+<td>受限于 EPC</td>
+<td>完整支持</td>
+</tr>
+<tr>
+<td><strong>mMTC（NB-IoT 增强）</strong></td>
+<td>部分支持</td>
+<td>完整支持</td>
+</tr>
+<tr>
+<td><strong>MEC 本地卸载</strong></td>
+<td>受限</td>
+<td>UPF 灵活下沉</td>
+</tr>
+<tr>
+<td><strong>VoNR</strong></td>
+<td>（通常需 EPS Fallback）</td>
+<td>原生支持</td>
+</tr>
+<tr>
+<td><strong>5G 专属移动性优化</strong></td>
+<td>（依赖 4G HO 机制）</td>
+<td>CHO、DAPS 等</td>
+</tr>
+<tr>
+<td><strong>演进路径</strong></td>
+<td>可升级至 Option 2&#x2F;4&#x2F;7</td>
+<td>5G 目标架构</td>
+</tr>
+<tr>
+<td><strong>商用时间</strong></td>
+<td>较早（2019 年起）</td>
+<td>较晚（2020 年起逐步成熟）</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="2-5-其他-Option（4-5-7）简介"><a href="#2-5-其他-Option（4-5-7）简介" class="headerlink" title="2.5 其他 Option（4 &#x2F; 5 &#x2F; 7）简介"></a>2.5 其他 Option（4 &#x2F; 5 &#x2F; 7）简介</h3><ul>
+<li><strong>Option 4（gNB 主 + ng-eNB 辅 + 5GC）</strong>：5GC 核心网，5G gNB 作为主节点，LTE ng-eNB 作为辅节点提供覆盖补充。适合 5G 覆盖已足够但仍需 LTE 容量补充的过渡期，目前较少商用。</li>
+<li><strong>Option 5（ng-eNB + 5GC）</strong>：即”增强型 LTE”（eLTE），LTE 无线 + 5GC 核心网，是 4G 网络对接 5GC 的升级路径，可使现有 LTE 用户享受网络切片等 5GC 能力。</li>
+<li><strong>Option 7（ng-eNB 主 + gNB 辅 + 5GC）</strong>：5GC 核心网，LTE 作为控制面主节点，NR 辅助。目前商用较少，主要作为 Option 5 向 Option 2 演进的中间态。</li>
+</ul>
+<hr>
+<h3 id="2-6-全球部署现状与演进路径"><a href="#2-6-全球部署现状与演进路径" class="headerlink" title="2.6 全球部署现状与演进路径"></a>2.6 全球部署现状与演进路径</h3><p><strong>部署现状（截至本文写作时）</strong>：</p>
+<p>全球主要运营商最初大多选择 <strong>Option 3x（NSA）</strong> 作为 5G 首发方案，理由很简单：以最小成本最快速度推出 5G 服务（主要是 eMBB），吸引用户从 4G 升级。</p>
+<p>随后，随着 5GC 产品成熟和 5G 专网、网络切片、工业互联网等场景需求兴起，<strong>Option 2（SA）</strong> 加速商用。中国（三大运营商）、美国（Dish Network）、德国电信、SK Telecom 等已建设或正在大规模建设 SA 网络。</p>
+<p><strong>典型演进路径</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">当前多数运营商路径：</span><br><span class="line">Option 1（4G）→ Option 3x（NSA，快速推5G）→ Option 2（SA，全5G能力）</span><br><span class="line"></span><br><span class="line">部分运营商直接 SA 路径：</span><br><span class="line">Option 1（4G）→ Option 2（SA，跳过 NSA）</span><br></pre></td></tr></table></figure>
+
+<p>GSMA 的实施指南指出，NSA 生态系统成熟度领先 SA 约 6 个月，运营商可根据自身网络情况选择跨越式直接 SA 或渐进式 NSA→SA 演进。</p>
+<hr>
+<h1 id="3-5G-NR-相对-LTE-的核心改进点"><a href="#3-5G-NR-相对-LTE-的核心改进点" class="headerlink" title="3. 5G NR 相对 LTE 的核心改进点"></a>3. 5G NR 相对 LTE 的核心改进点</h1><p>5G NR 的设计并非 LTE 的线性升级，而是在帧结构、编码、天线、架构等多个维度进行了<strong>系统性重构</strong>，以同时满足 eMBB、URLLC、mMTC 三大场景的迥异需求。以下分维度深入分析。</p>
+<hr>
+<h3 id="3-1-帧结构与-Numerology-的革命性变化"><a href="#3-1-帧结构与-Numerology-的革命性变化" class="headerlink" title="3.1 帧结构与 Numerology 的革命性变化"></a>3.1 帧结构与 Numerology 的革命性变化</h3><h4 id="LTE-的局限：固定的-Numerology"><a href="#LTE-的局限：固定的-Numerology" class="headerlink" title="LTE 的局限：固定的 Numerology"></a>LTE 的局限：固定的 Numerology</h4><p>LTE 仅支持<strong>单一子载波间距 15 kHz</strong>，每个时隙固定 0.5 ms（7 个 OFDM 符号，使用正常 CP），最小调度单元（TTI）为 1 ms（1 个子帧）。这种固定设计在覆盖 eMBB 时尚可，但对于 URLLC（需要 0.5 ms 时延）和毫米波（高相噪要求更大子载波间距）则无能为力。</p>
+<h4 id="5G-NR-的解决方案：灵活-Numerology"><a href="#5G-NR-的解决方案：灵活-Numerology" class="headerlink" title="5G NR 的解决方案：灵活 Numerology"></a>5G NR 的解决方案：灵活 Numerology</h4><p><strong>3GPP TS 38.211</strong> 定义了 5G NR 的 Numerology 体系，引入参数 <strong>μ（mu）</strong>，子载波间距按 $\Delta f &#x3D; 2^\mu \times 15$ kHz 计算：</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>子载波间距</th>
+<th>每时隙符号数（Normal CP）</th>
+<th>每子帧时隙数</th>
+<th>时隙时长</th>
+<th>主要应用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td><strong>15 kHz</strong></td>
+<td>14</td>
+<td>1</td>
+<td>1 ms</td>
+<td>FR1 广域覆盖（与 LTE 兼容）</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>30 kHz</strong></td>
+<td>14</td>
+<td>2</td>
+<td>0.5 ms</td>
+<td>FR1 城区 eMBB 主流选项</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>60 kHz</strong></td>
+<td>14（12 扩展 CP）</td>
+<td>4</td>
+<td>0.25 ms</td>
+<td>FR1 低时延 &#x2F; FR2 部分场景</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>120 kHz</strong></td>
+<td>14</td>
+<td>8</td>
+<td>0.125 ms</td>
+<td>FR2（毫米波）eMBB</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>240 kHz</strong></td>
+<td>14</td>
+<td>16</td>
+<td>62.5 μs</td>
+<td>FR2 同步信号（SSB）仅用</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>来源</strong>：3GPP TS 38.211 Table 4.2-1（V15.3.0）</p>
+</blockquote>
+<p><strong>关键设计理念</strong>：无论 μ 取何值，<strong>帧长固定 10 ms，子帧固定 1 ms</strong>，变化的是每个子帧内包含的时隙数（2^μ 个）。这确保了不同 Numerology 之间可以时域对齐，便于在同一载波上混合使用。</p>
+<h4 id="Mini-Slot（微时隙）"><a href="#Mini-Slot（微时隙）" class="headerlink" title="Mini-Slot（微时隙）"></a>Mini-Slot（微时隙）</h4><p>除完整时隙（14 符号）外，NR 还支持 <strong>Mini-Slot</strong> 调度，即仅使用 2、4 或 7 个 OFDM 符号进行传输。Mini-Slot 是 URLLC 的关键使能技术：</p>
+<ul>
+<li>无需等待时隙边界，可在任意符号位置开始传输；</li>
+<li>结合 μ&#x3D;2（60 kHz，0.25 ms&#x2F;slot），Mini-Slot 可将空口等待时延压缩至符号级（约几十微秒）；</li>
+<li>支持 URLLC 业务<strong>抢占</strong>已调度的 eMBB 数据（通过 DCI format 2_1 发送抢占指示）。</li>
+</ul>
+<h4 id="TDD-灵活帧结构"><a href="#TDD-灵活帧结构" class="headerlink" title="TDD 灵活帧结构"></a>TDD 灵活帧结构</h4><p>NR 的 TDD 帧结构不再像 LTE 那样使用固定的上下行配比（如 TDD Config 2），而是通过 <strong>Slot Format Indicator（SFI）</strong> 在每个时隙内灵活指定每个符号的方向（Downlink &#x2F; Uplink &#x2F; Flexible），由 RRC 配置半静态部分，DCI 指示动态部分，最大化频谱利用效率。</p>
+<hr>
+<h3 id="3-2-信道编码：从-Turbo-到-LDPC-Polar"><a href="#3-2-信道编码：从-Turbo-到-LDPC-Polar" class="headerlink" title="3.2 信道编码：从 Turbo 到 LDPC + Polar"></a>3.2 信道编码：从 Turbo 到 LDPC + Polar</h3><h4 id="LTE-的方案：Turbo-码一统天下"><a href="#LTE-的方案：Turbo-码一统天下" class="headerlink" title="LTE 的方案：Turbo 码一统天下"></a>LTE 的方案：Turbo 码一统天下</h4><p>LTE 对数据信道（PDSCH&#x2F;PUSCH）和控制信道（PDCCH）均使用 <strong>Turbo 码</strong>（咬尾卷积码用于 PBCH 等少量场景）。Turbo 码在 LTE 时代性能已属优异，但其缺点在 5G 高速率场景暴露无遗：</p>
+<ul>
+<li><strong>解码复杂度随码块长度急剧增加</strong>，在 Gbps 级吞吐量下，Turbo 解码器的硬件面积和功耗不可接受；</li>
+<li><strong>并行化能力有限</strong>，Turbo 解码本质上是串行迭代过程，难以在硬件上充分展开；</li>
+<li><strong>低码率下的增益</strong>依赖重复编码（码率 &lt; 1&#x2F;3），效率不高。</li>
+</ul>
+<h4 id="5G-NR-的方案：LDPC-Polar-双引擎"><a href="#5G-NR-的方案：LDPC-Polar-双引擎" class="headerlink" title="5G NR 的方案：LDPC + Polar 双引擎"></a>5G NR 的方案：LDPC + Polar 双引擎</h4><p>5G NR 摒弃了 Turbo 码，在数据信道与控制信道上采用不同的编码策略，实现”按需分配最优编码”：</p>
+<p><strong>① 数据信道（PDSCH &#x2F; PUSCH）：LDPC 码</strong></p>
+<p>LDPC（Low-Density Parity-Check，低密度奇偶校验）码由 Gallager 于 1963 年提出，2016 年在 3GPP RAN1 #86 会议上被选为 5G 数据信道编码方案（华为提案的 Polar 与 LDPC 均在该会议最终确定分工）。</p>
+<p>NR LDPC 的核心设计：</p>
+<ul>
+<li>定义了<strong>两种基图（Base Graph）</strong>：BG1（适用于大码块，长度 &gt; 3840 bit）和 BG2（适用于小码块），涵盖从高码率（约 8&#x2F;9）到低码率（约 1&#x2F;3）的范围；</li>
+<li>基于<strong>准循环（QC-LDPC）</strong> 结构，天然支持硬件并行化（向量处理器、GPU 加速）；</li>
+<li>奇偶校验矩阵可延伸至比 Turbo 码更低的码率，在低码率下的编码增益更好，有利于高可靠性场景；</li>
+<li>支持 HARQ 增量冗余（IR）：不同轮次重传发送不同冗余版本（RV0~RV3），软合并累积接收能量，无需全部解码即可显著提升成功概率。</li>
+</ul>
+<p><strong>② 控制信道（PDCCH &#x2F; PUCCH &#x2F; PBCH）：Polar 码</strong></p>
+<p>Polar 码由土耳其学者 Erdal Arıkan 于 2008 年提出，是<strong>理论上首个被证明可达信道容量</strong>的编码方案。在 3GPP RAN1 #87 会议上击败 LDPC 和 Tail-Biting 卷积码，成为 5G 控制信道的编码方案。</p>
+<p>NR Polar 码的核心特征：</p>
+<ul>
+<li>对<strong>短码块</strong>性能出色（控制信息通常仅几十到几百比特）；</li>
+<li>通过 CRC 辅助的<strong>列表译码（CA-List Decoding）</strong> 显著提升短块性能；</li>
+<li>编码结构简洁，便于硬件低功耗实现；</li>
+<li>相比 LTE PDCCH 使用的咬尾卷积码，在相同码长下可获得约 0.5~2 dB 增益。</li>
+</ul>
+<p><strong>分工逻辑总结</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">大码块 / 高吞吐 / 需要高并行度  → LDPC（数据信道）</span><br><span class="line">短码块 / 低时延 / 控制信令     → Polar（控制信道）</span><br><span class="line">极短消息（&lt; 11 bit）          → 重复码 / Reed-Muller 码（上行控制）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="3-3-多天线技术：Massive-MIMO-与波束管理"><a href="#3-3-多天线技术：Massive-MIMO-与波束管理" class="headerlink" title="3.3 多天线技术：Massive MIMO 与波束管理"></a>3.3 多天线技术：Massive MIMO 与波束管理</h3><h4 id="LTE-的天线能力"><a href="#LTE-的天线能力" class="headerlink" title="LTE 的天线能力"></a>LTE 的天线能力</h4><p>LTE 支持最多 <strong>8 发 8 收天线</strong>（通过 UE Category 8 支持 8 层空分复用），实际部署中通常为 2T2R 或 4T4R。LTE 对 Beamforming 的支持有限，主要是基于码本的波束形成，天线物理尺寸和重量限制了大规模部署。</p>
+<h4 id="5G-NR-的-Massive-MIMO"><a href="#5G-NR-的-Massive-MIMO" class="headerlink" title="5G NR 的 Massive MIMO"></a>5G NR 的 Massive MIMO</h4><p>NR 对天线能力的定义在 <strong>3GPP TS 38.211 &#x2F; TS 38.214</strong> 中规范，在 <strong>TR 38.913</strong>（NR 场景和需求）中提出性能目标：</p>
+<ul>
+<li><strong>天线规模大幅扩展</strong>：NR 在下行支持最多 <strong>256 天线端口</strong>，上行支持 <strong>32 端口</strong>；典型的 64T64R 有源天线单元（AAU）在 3.5 GHz 频段已广泛部署；</li>
+<li><strong>下行峰值频谱效率</strong>：30 bps&#x2F;Hz（8 层 SU-MIMO），相比 LTE 的 16 bps&#x2F;Hz 近乎翻倍；</li>
+<li><strong>波束赋形（Beamforming）</strong>：大量天线阵列可在三维空间（方位角 + 俯仰角）形成高增益窄波束，将能量精确指向目标 UE，而非广播辐射；</li>
+<li><strong>MU-MIMO（多用户 MIMO）</strong>：通过空间隔离，同时在同一时频资源上服务多个 UE，显著提升系统级频谱效率；</li>
+<li><strong>3D-MIMO &#x2F; FD-MIMO</strong>：在垂直维度（仰俯角）也进行波束控制，实现立体空间复用。</li>
+</ul>
+<h4 id="波束管理（Beam-Management，BM）"><a href="#波束管理（Beam-Management，BM）" class="headerlink" title="波束管理（Beam Management，BM）"></a>波束管理（Beam Management，BM）</h4><p>毫米波（FR2，24.25 GHz~52.6 GHz）的高路径损耗要求窄波束才能维持链路预算，因此 NR 引入了完整的<strong>波束管理（BM）</strong> 框架（3GPP TS 38.214 §5.1.4 &#x2F; §6.1.4）：</p>
+<ul>
+<li><strong>P1（波束扫描）</strong>：gNB 周期性发送多个 SSB&#x2F;CSI-RS 波束，覆盖不同空间方向；</li>
+<li><strong>P2（波束测量）</strong>：UE 测量各波束的 RSRP&#x2F;RSRQ，上报最优波束；</li>
+<li><strong>P3（波束精化）</strong>：在粗选波束的基础上，通过 CSI-RS 进行更精细的波束对准；</li>
+<li><strong>波束失败恢复（BFR）</strong>：快速检测波束失败并触发候选波束恢复，保证通信连续性；</li>
+<li><strong>L1-RSRP 上报</strong>：与 RRC 层 A&#x2F;B 事件不同，波束管理依托物理层 L1-RSRP 测量实现快速切换（毫秒级）。</li>
+</ul>
+<h4 id="FR1-vs-FR2-对比"><a href="#FR1-vs-FR2-对比" class="headerlink" title="FR1 vs FR2 对比"></a>FR1 vs FR2 对比</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>FR1（Sub-6 GHz，&lt; 7.125 GHz）</th>
+<th>FR2（毫米波，24.25~52.6 GHz）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>典型频段</td>
+<td>n78（3.5 GHz）、n41（2.5 GHz）</td>
+<td>n257（28 GHz）、n258（26 GHz）</td>
+</tr>
+<tr>
+<td>最大信道带宽</td>
+<td>100 MHz</td>
+<td>400 MHz</td>
+</tr>
+<tr>
+<td>覆盖距离</td>
+<td>较远（公里级）</td>
+<td>较近（数百米）</td>
+</tr>
+<tr>
+<td>穿透损耗</td>
+<td>较小</td>
+<td>极高（玻璃、墙体可造成 10~40 dB 损耗）</td>
+</tr>
+<tr>
+<td>Massive MIMO</td>
+<td>64T64R（主流）</td>
+<td>可达 256T（相控阵）</td>
+</tr>
+<tr>
+<td>波束赋形必要性</td>
+<td>推荐</td>
+<td><strong>必须</strong>（路径损耗补偿）</td>
+</tr>
+<tr>
+<td>主要应用</td>
+<td>宏覆盖 + eMBB</td>
+<td>热点 eMBB、固定无线接入（FWA）</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="3-4-波形与上行增强"><a href="#3-4-波形与上行增强" class="headerlink" title="3.4 波形与上行增强"></a>3.4 波形与上行增强</h3><h4 id="下行波形：CP-OFDM（与-LTE-一致）"><a href="#下行波形：CP-OFDM（与-LTE-一致）" class="headerlink" title="下行波形：CP-OFDM（与 LTE 一致）"></a>下行波形：CP-OFDM（与 LTE 一致）</h4><p>NR 下行沿用 <strong>CP-OFDM</strong>（循环前缀正交频分复用），但通过 Numerology 支持更大带宽（单载波最大 100 MHz @FR1，400 MHz @FR2）。</p>
+<h4 id="上行波形：CP-OFDM-DFT-s-OFDM（新增）"><a href="#上行波形：CP-OFDM-DFT-s-OFDM（新增）" class="headerlink" title="上行波形：CP-OFDM + DFT-s-OFDM（新增）"></a>上行波形：CP-OFDM + DFT-s-OFDM（新增）</h4><p>LTE 上行使用 <strong>SC-FDMA</strong>（单载波频分多址，即 DFT-s-OFDM 的一种形式），峰均比（PAPR）低，对 UE 功放友好。</p>
+<p>NR 上行<strong>同时支持</strong>：</p>
+<ul>
+<li><strong>CP-OFDM</strong>：支持上行 MIMO 多流传输（最大 4 层），适合近点 UE；</li>
+<li><strong>DFT-s-OFDM</strong>：延续 LTE SC-FDMA 的低 PAPR 特性，适合覆盖边缘 UE（功放效率优化）。</li>
+</ul>
+<p>两种波形可由 gNB 动态调度选择，在吞吐量与覆盖之间灵活权衡。</p>
+<h4 id="上行补充信道：SUL（补充上行）"><a href="#上行补充信道：SUL（补充上行）" class="headerlink" title="上行补充信道：SUL（补充上行）"></a>上行补充信道：SUL（补充上行）</h4><p>NR 引入 <strong>SUL（Supplementary Uplink）</strong>，允许在一个低频段（如 2.1 GHz）部署上行覆盖补充，与 TDD 高频段（如 3.5 GHz）的下行共同工作，解决 TDD 系统上行覆盖不足的问题（因 TDD 上下行共享带宽，上行时隙比例通常较少）。</p>
+<hr>
+<h3 id="3-5-架构改进：CU-DU-分离与服务化核心网"><a href="#3-5-架构改进：CU-DU-分离与服务化核心网" class="headerlink" title="3.5 架构改进：CU&#x2F;DU 分离与服务化核心网"></a>3.5 架构改进：CU&#x2F;DU 分离与服务化核心网</h3><h4 id="NG-RAN：CU-DU-RU-功能拆分"><a href="#NG-RAN：CU-DU-RU-功能拆分" class="headerlink" title="NG-RAN：CU&#x2F;DU&#x2F;RU 功能拆分"></a>NG-RAN：CU&#x2F;DU&#x2F;RU 功能拆分</h4><p>LTE eNB 是单体架构，基带与射频一体化。5G NR 引入了 <strong>gNB 内部的功能拆分</strong>（3GPP TS 38.401 定义）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">gNB 内部架构：</span><br><span class="line">┌──────────────────────────────────────────────────┐</span><br><span class="line">│                     gNB                          │</span><br><span class="line">│  ┌─────────┐    F1    ┌──────────┐  前传   ┌────┐ │</span><br><span class="line">│  │ gNB-CU  │──────────│ gNB-DU   │────────│ RU │ │</span><br><span class="line">│  │(RRC/PDCP│  (接口)   │(RLC/MAC  │ (接口) │(射频│ │</span><br><span class="line">│  │/SDAP)   │          │/PHY 高层) │       │天线)│ │</span><br><span class="line">│  └─────────┘          └──────────┘        └────┘ │</span><br><span class="line">└──────────────────────────────────────────────────┘</span><br><span class="line">  CU = 集中单元（Centralized Unit）</span><br><span class="line">  DU = 分布单元（Distributed Unit）</span><br><span class="line">  RU = 射频单元（Radio Unit）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>gNB-CU（集中单元）</strong>：处理 RRC &#x2F; PDCP &#x2F; SDAP，可进一步拆分为 CU-CP（控制面）和 CU-UP（用户面），通过 <strong>E1 接口</strong>互连；</li>
+<li><strong>gNB-DU（分布单元）</strong>：处理 RLC &#x2F; MAC &#x2F; 物理层高层，通过 <strong>F1 接口</strong>（F1-C 控制面 &#x2F; F1-U 用户面）与 CU 互连；</li>
+<li><strong>RU（射频单元）</strong>：实现物理层底层（FFT&#x2F;iFFT、前向纠错等）及射频，通过<strong>前传（Fronthaul）</strong> 与 DU 相连（O-RAN 定义了开放前传接口 O-RAN FH）。</li>
+</ul>
+<p>CU&#x2F;DU 分离的价值：CU 云化（部署于数据中心），DU 靠近天线部署，在集中化处理（降成本）与低时延（分布化）之间取得平衡。</p>
+<h4 id="5GC：服务化架构（SBA）"><a href="#5GC：服务化架构（SBA）" class="headerlink" title="5GC：服务化架构（SBA）"></a>5GC：服务化架构（SBA）</h4><p>LTE 核心网 EPC 采用”点对点”接口（S11、S5&#x2F;S8 等 GTP-C），而 5GC 引入 <strong>SBA（Service Based Architecture）</strong>：</p>
+<ul>
+<li>所有网元通过 <strong>SBI（Service Based Interface）</strong> 注册到 <strong>NRF（NF Repository Function）</strong> 进行服务发现；</li>
+<li>接口协议使用 <strong>HTTP&#x2F;2 + JSON（RESTful API）</strong>，替代 GTP-C + Diameter；</li>
+<li>网元可按微服务粒度独立扩缩容；</li>
+<li>控制面（AMF&#x2F;SMF&#x2F;PCF&#x2F;NSSF 等）与用户面（UPF）彻底分离（<strong>CUPS</strong>，Control and User Plane Separation），UPF 可灵活下沉。</li>
+</ul>
+<hr>
+<h3 id="3-6-其他关键改进"><a href="#3-6-其他关键改进" class="headerlink" title="3.6 其他关键改进"></a>3.6 其他关键改进</h3><h4 id="带宽部分（BWP，Bandwidth-Part）"><a href="#带宽部分（BWP，Bandwidth-Part）" class="headerlink" title="带宽部分（BWP，Bandwidth Part）"></a>带宽部分（BWP，Bandwidth Part）</h4><p>NR 引入 <strong>BWP</strong> 概念（TS 38.213 &#x2F; 38.214），允许 UE 仅激活载波带宽的一个子集（如在 100 MHz 载波上仅激活 20 MHz BWP）：</p>
+<ul>
+<li><strong>省电</strong>：UE 仅需监听激活的 BWP，降低基带处理功耗；</li>
+<li><strong>灵活性</strong>：不同 BWP 可配置不同 Numerology，同一载波上同时服务多场景；</li>
+<li><strong>前向兼容</strong>：为未来新信号预留资源，不影响当前 UE。</li>
+</ul>
+<h4 id="免调度上行（Configured-Grant-Type-1-2）"><a href="#免调度上行（Configured-Grant-Type-1-2）" class="headerlink" title="免调度上行（Configured Grant &#x2F; Type 1 &amp; 2）"></a>免调度上行（Configured Grant &#x2F; Type 1 &amp; 2）</h4><p>相比 LTE 仅支持 SPS（半静态调度），NR 进一步增强了<strong>配置授权（CG）</strong> 机制，允许 URLLC 业务在不经历 SR→BSR→UL Grant 的完整调度流程下直接发送数据，大幅减少上行时延。</p>
+<h4 id="HARQ-增强"><a href="#HARQ-增强" class="headerlink" title="HARQ 增强"></a>HARQ 增强</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>LTE</th>
+<th>5G NR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HARQ 进程数</td>
+<td>最多 8 个</td>
+<td><strong>最多 16 个</strong></td>
+</tr>
+<tr>
+<td>异步 HARQ</td>
+<td>仅 FDD 支持</td>
+<td><strong>TDD 和 FDD 均支持异步 HARQ</strong></td>
+</tr>
+<tr>
+<td>HARQ 码本</td>
+<td>静态</td>
+<td><strong>动态 &#x2F; 半静态码本</strong>，URLLC 可配置禁用重传（减少时延）</td>
+</tr>
+<tr>
+<td>CBG（码块组）重传</td>
+<td>不支持</td>
+<td>支持，减少不必要的完整 TB 重传</td>
+</tr>
+</tbody></table>
+<h4 id="参考信号重构"><a href="#参考信号重构" class="headerlink" title="参考信号重构"></a>参考信号重构</h4><p>LTE 使用 CRS（小区专属参考信号）连续发送，即便无数据也持续占用资源（”always-on” 信号），造成干扰和功耗浪费。NR 彻底重构参考信号体系：</p>
+<ul>
+<li><strong>DMRS（解调参考信号）</strong>：前置（Front-loaded）设计，尽量靠近数据符号位置，降低信道估计误差，且仅在有数据时发送；</li>
+<li><strong>CSI-RS（信道状态信息参考信号）</strong>：周期&#x2F;非周期&#x2F;半持续多种方式，按需配置；</li>
+<li><strong>PTRS（相位追踪参考信号）</strong>：专为毫米波设计，补偿高频段的相位噪声；</li>
+<li><strong>TRS（追踪参考信号）</strong>：辅助 UE 时频追踪，降低功耗；</li>
+<li><strong>SRS（探测参考信号）</strong>：上行，用于信道估计和 TDD 上下行互易性校正，支持 Massive MIMO 的波束成形权值计算。</li>
+</ul>
+<h4 id="初始接入：SSB-替代-CRS-PSS-SSS"><a href="#初始接入：SSB-替代-CRS-PSS-SSS" class="headerlink" title="初始接入：SSB 替代 CRS + PSS&#x2F;SSS"></a>初始接入：SSB 替代 CRS + PSS&#x2F;SSS</h4><p>LTE 的同步信号（PSS&#x2F;SSS）和 PBCH 分散在不同时频位置，NR 将其整合为 <strong>SS&#x2F;PBCH Block（SSB）</strong>：PSS（127 子载波）+ SSS（127 子载波）+ PBCH（240 子载波）封装在连续的 4 个 OFDM 符号内，支持波束扫描（多个 SSB 可代表不同波束方向），UE 搜索更高效。</p>
+<hr>
+<h3 id="3-7-NR-vs-LTE-核心参数对比表"><a href="#3-7-NR-vs-LTE-核心参数对比表" class="headerlink" title="3.7 NR vs LTE 核心参数对比表"></a>3.7 NR vs LTE 核心参数对比表</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>4G LTE（Release 12&#x2F;13）</th>
+<th>5G NR（Release 15&#x2F;16）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标准基础规范</strong></td>
+<td>TS 36.211 &#x2F; TS 36.300</td>
+<td>TS 38.211 &#x2F; TS 38.300</td>
+</tr>
+<tr>
+<td><strong>子载波间距</strong></td>
+<td>15 kHz（固定）</td>
+<td>15 &#x2F; 30 &#x2F; 60 &#x2F; 120 &#x2F; 240 kHz（灵活）</td>
+</tr>
+<tr>
+<td><strong>最小调度单元（TTI）</strong></td>
+<td>1 ms（1 子帧）</td>
+<td>1 slot（<del>0.125</del>1 ms）或 Mini-Slot（2&#x2F;4&#x2F;7 符号）</td>
+</tr>
+<tr>
+<td><strong>最大信道带宽</strong></td>
+<td>20 MHz</td>
+<td>100 MHz（FR1）&#x2F; 400 MHz（FR2）</td>
+</tr>
+<tr>
+<td><strong>下行波形</strong></td>
+<td>CP-OFDM</td>
+<td>CP-OFDM</td>
+</tr>
+<tr>
+<td><strong>上行波形</strong></td>
+<td>SC-FDMA（DFT-s-OFDM）</td>
+<td>CP-OFDM + DFT-s-OFDM（可选）</td>
+</tr>
+<tr>
+<td><strong>数据信道编码</strong></td>
+<td>Turbo 码</td>
+<td><strong>LDPC 码</strong></td>
+</tr>
+<tr>
+<td><strong>控制信道编码</strong></td>
+<td>Turbo</td>
+<td><strong>Polar 码</strong></td>
+</tr>
+<tr>
+<td><strong>最大 MIMO 层数（DL）</strong></td>
+<td>8 层</td>
+<td><strong>8 层（FR1）</strong>（天线端口数大幅扩展至 256）</td>
+</tr>
+<tr>
+<td><strong>峰值下行频谱效率</strong></td>
+<td>16.3 bps&#x2F;Hz</td>
+<td><strong>30 bps&#x2F;Hz</strong>（8 层 SU-MIMO）</td>
+</tr>
+<tr>
+<td><strong>峰值下行速率</strong></td>
+<td>~1 Gbps（20 MHz @8 层）</td>
+<td><strong>20 Gbps</strong>（FR2 400 MHz @8 层）</td>
+</tr>
+<tr>
+<td><strong>用户面时延</strong></td>
+<td>~4 ms</td>
+<td><strong>0.5 ms</strong>（URLLC 空口）</td>
+</tr>
+<tr>
+<td><strong>连接密度</strong></td>
+<td>~100,000&#x2F;km²</td>
+<td><strong>1,000,000&#x2F;km²</strong></td>
+</tr>
+<tr>
+<td><strong>HARQ 最大进程数</strong></td>
+<td>8</td>
+<td><strong>16</strong></td>
+</tr>
+<tr>
+<td><strong>接入网架构</strong></td>
+<td>eNB（单体）</td>
+<td><strong>gNB（CU&#x2F;DU&#x2F;RU 分离）</strong></td>
+</tr>
+<tr>
+<td><strong>核心网架构</strong></td>
+<td>EPC（点对点接口，GTP-C+Diameter）</td>
+<td><strong>5GC（SBA，HTTP&#x2F;2+JSON）</strong></td>
+</tr>
+<tr>
+<td><strong>网络切片</strong></td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>参考信号设计</strong></td>
+<td>CRS（常开，”always-on”）</td>
+<td><strong>按需参考信号</strong>（DMRS 前置 + CSI-RS&#x2F;TRS 灵活配置）</td>
+</tr>
+<tr>
+<td><strong>初始接入信号</strong></td>
+<td>PSS&#x2F;SSS + CRS + PBCH（分散）</td>
+<td><strong>SSB（整合，支持波束扫描）</strong></td>
+</tr>
+<tr>
+<td><strong>频段范围</strong></td>
+<td>&lt; 3.5 GHz（FDD&#x2F;TDD）</td>
+<td><strong>FR1（&lt; 7.125 GHz）+ FR2（24.25~52.6 GHz）</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文系统梳理了 5G NR 三大核心主题：</p>
+<p><strong>三大场景（§6）</strong> 是 5G 存在的根本理由。eMBB 追求极致带宽体验（20 Gbps 峰值速率），URLLC 追求极限可靠低时延（0.5 ms、六个九可靠性），mMTC 追求海量连接低功耗（100 万设备&#x2F;km²、10 年电池寿命）。三者 KPI 的根本冲突，驱动了 5G NR 全系统的设计哲学——<strong>灵活、可配置、场景驱动</strong>。</p>
+<p><strong>NSA vs SA（§7）</strong> 是 5G 从概念到商用的现实路径选择。Option 3x 以最小代价快速推出 5G 服务，Option 2 则是承载全部 5G 能力（切片、MEC、URLLC、VoNR）的目标架构。全球运营商正沿着 NSA→SA 或直接 SA 的路径快速演进。</p>
+<p><strong>NR 核心改进（§8）</strong> 则是工程实现三大场景的技术底座：灵活 Numerology 同时支持 eMBB 的高效率与 URLLC 的低时延；LDPC+Polar 替换 Turbo 码大幅提升编码效率；Massive MIMO + 波束管理提升空口容量；CU&#x2F;DU 分离与 5GC SBA 赋予网络云化和弹性扩展能力。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><table>
+<thead>
+<tr>
+<th>文档编号</th>
+<th>标题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TR 22.891</strong> V14.2.0</td>
+<td>Feasibility Study on New Services and Markets Technology Enablers</td>
+<td>eMBB&#x2F;URLLC&#x2F;mMTC 用例起源（70+ 用例）</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 22.861</strong> V14.1.0</td>
+<td>Feasibility Study on New Services and Markets Technology Enablers - eMBB</td>
+<td>eMBB 深化研究</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 22.862</strong> V14.1.0</td>
+<td>Feasibility Study on New Services and Markets Technology Enablers - CriC</td>
+<td>URLLC&#x2F;关键通信深化研究</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 22.863</strong> V14.1.0</td>
+<td>Feasibility Study on New Services and Markets Technology Enablers - mMTC</td>
+<td>mMTC 深化研究</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 22.261</strong></td>
+<td>Service requirements for the 5G system</td>
+<td>5G 系统服务需求规范（含 KPI 表格）</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 22.804</strong></td>
+<td>Study on Communication for Automation in Vertical Domains</td>
+<td>URLLC 垂直行业需求</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 38.913</strong></td>
+<td>Study on Scenarios and Requirements for Next Generation Access Technologies</td>
+<td>NR 场景需求（IMT-2020 自评估基础）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.211</strong></td>
+<td>NR; Physical channels and modulation</td>
+<td>帧结构、Numerology 定义</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.300</strong></td>
+<td>NR; NR and NG-RAN Overall Description; Stage 2</td>
+<td>NG-RAN 架构、SA Option 2</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 37.340</strong></td>
+<td>E-UTRA and NR; Multi-connectivity; Stage 2</td>
+<td>NSA MR-DC，Option 3x 定义</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.401</strong></td>
+<td>NG-RAN; Architecture description</td>
+<td>gNB CU&#x2F;DU 分离，F1&#x2F;E1 接口</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.214</strong></td>
+<td>NR; Physical layer procedures for data</td>
+<td>MIMO、BWP、波束管理</td>
+</tr>
+<tr>
+<td><strong>ITU-R M.2083</strong> (2015)</td>
+<td>IMT Vision – Framework and overall objectives of the future development of IMT for 2020 and beyond</td>
+<td>IMT-2020 三大场景及八大 KPI 来源</td>
+</tr>
+<tr>
+<td><strong>GSMA</strong></td>
+<td>5G Implementation Guidelines: NSA Option 3</td>
+<td>NSA 实施指南</td>
+</tr>
+</tbody></table>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-5G-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AF%EF%BC%9AeMBB-URLLC-mMTC-%E7%9A%84%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90"><span class="toc-number">2.</span> <span class="toc-text">1. 5G 三大场景：eMBB &#x2F; URLLC &#x2F; mMTC 的需求来源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%83%8C%E6%99%AF%EF%BC%9AITU-IMT-2020-%E4%B8%8E-3GPP-%E7%9A%84%E5%9C%BA%E6%99%AF%E5%AE%9A%E4%B9%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 背景：ITU IMT-2020 与 3GPP 的场景定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-eMBB%EF%BC%88%E5%A2%9E%E5%BC%BA%E7%A7%BB%E5%8A%A8%E5%AE%BD%E5%B8%A6%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 eMBB（增强移动宽带）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-1%EF%BC%89"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7.1）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">典型应用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-URLLC%EF%BC%88%E8%B6%85%E5%8F%AF%E9%9D%A0%E4%BD%8E%E6%97%B6%E5%BB%B6%E9%80%9A%E4%BF%A1%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 URLLC（超可靠低时延通信）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90-1"><span class="toc-number">2.0.3.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-2%EF%BC%89"><span class="toc-number">2.0.3.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7.2）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%8C%91%E6%88%98"><span class="toc-number">2.0.3.3.</span> <span class="toc-text">技术挑战</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-mMTC%EF%BC%88%E6%B5%B7%E9%87%8F%E6%9C%BA%E5%99%A8%E7%B1%BB%E9%80%9A%E4%BF%A1%EF%BC%89"><span class="toc-number">2.0.4.</span> <span class="toc-text">1.4 mMTC（海量机器类通信）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E6%9D%A5%E6%BA%90-2"><span class="toc-number">2.0.4.1.</span> <span class="toc-text">需求来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-KPI%EF%BC%88%E6%9D%A5%E8%87%AA-TS-22-261-%C2%A77-TR-22-863%EF%BC%89"><span class="toc-number">2.0.4.2.</span> <span class="toc-text">关键 KPI（来自 TS 22.261 §7 &amp; TR 22.863）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E4%B8%89%E5%A4%A7%E5%9C%BA%E6%99%AF-KPI-%E5%AF%B9%E6%AF%94"><span class="toc-number">2.0.5.</span> <span class="toc-text">1.5 三大场景 KPI 对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%9C%BA%E6%99%AF%E9%97%B4%E7%9A%84%E8%AE%BE%E8%AE%A1%E5%BC%A0%E5%8A%9B"><span class="toc-number">2.0.6.</span> <span class="toc-text">1.6 场景间的设计张力</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NSA%EF%BC%88Option-3x%EF%BC%89vs-SA%EF%BC%88Option-2%EF%BC%89%E7%BB%84%E7%BD%91%E7%AD%96%E7%95%A5%E4%B8%8E%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6"><span class="toc-number">3.</span> <span class="toc-text">2. NSA（Option 3x）vs SA（Option 2）组网策略与部署现状</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-3GPP-%E5%AE%9A%E4%B9%89%E7%9A%84-8-%E7%A7%8D%E9%83%A8%E7%BD%B2%E9%80%89%E9%A1%B9%E5%85%A8%E8%A7%88"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 3GPP 定义的 8 种部署选项全览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NSA-Option-3-3a-3x-%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NSA Option 3 &#x2F; 3a &#x2F; 3x 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Option-3-3a-3x-%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%88%E4%BB%85%E7%94%A8%E6%88%B7%E9%9D%A2%E8%B7%AF%E5%BE%84%E4%B8%8D%E5%90%8C%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Option 3 &#x2F; 3a &#x2F; 3x 的区别（仅用户面路径不同）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NSA-%E7%9A%84%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%B1%80%E9%99%90"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">NSA 的优势与局限</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-SA-Option-2-%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 SA Option 2 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%9E%B6%E6%9E%84-1"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">基本架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SA-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">SA 的核心能力</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-NSA-vs-SA-%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 NSA vs SA 深度对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%85%B6%E4%BB%96-Option%EF%BC%884-5-7%EF%BC%89%E7%AE%80%E4%BB%8B"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 其他 Option（4 &#x2F; 5 &#x2F; 7）简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%85%A8%E7%90%83%E9%83%A8%E7%BD%B2%E7%8E%B0%E7%8A%B6%E4%B8%8E%E6%BC%94%E8%BF%9B%E8%B7%AF%E5%BE%84"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 全球部署现状与演进路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-5G-NR-%E7%9B%B8%E5%AF%B9-LTE-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%94%B9%E8%BF%9B%E7%82%B9"><span class="toc-number">4.</span> <span class="toc-text">3. 5G NR 相对 LTE 的核心改进点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B8%A7%E7%BB%93%E6%9E%84%E4%B8%8E-Numerology-%E7%9A%84%E9%9D%A9%E5%91%BD%E6%80%A7%E5%8F%98%E5%8C%96"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 帧结构与 Numerology 的革命性变化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E5%B1%80%E9%99%90%EF%BC%9A%E5%9B%BA%E5%AE%9A%E7%9A%84-Numerology"><span class="toc-number">4.0.1.1.</span> <span class="toc-text">LTE 的局限：固定的 Numerology</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E7%81%B5%E6%B4%BB-Numerology"><span class="toc-number">4.0.1.2.</span> <span class="toc-text">5G NR 的解决方案：灵活 Numerology</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Mini-Slot%EF%BC%88%E5%BE%AE%E6%97%B6%E9%9A%99%EF%BC%89"><span class="toc-number">4.0.1.3.</span> <span class="toc-text">Mini-Slot（微时隙）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TDD-%E7%81%B5%E6%B4%BB%E5%B8%A7%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.4.</span> <span class="toc-text">TDD 灵活帧结构</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BF%A1%E9%81%93%E7%BC%96%E7%A0%81%EF%BC%9A%E4%BB%8E-Turbo-%E5%88%B0-LDPC-Polar"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 信道编码：从 Turbo 到 LDPC + Polar</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%9ATurbo-%E7%A0%81%E4%B8%80%E7%BB%9F%E5%A4%A9%E4%B8%8B"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">LTE 的方案：Turbo 码一统天下</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84%E6%96%B9%E6%A1%88%EF%BC%9ALDPC-Polar-%E5%8F%8C%E5%BC%95%E6%93%8E"><span class="toc-number">4.0.2.2.</span> <span class="toc-text">5G NR 的方案：LDPC + Polar 双引擎</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AF%EF%BC%9AMassive-MIMO-%E4%B8%8E%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 多天线技术：Massive MIMO 与波束管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#LTE-%E7%9A%84%E5%A4%A9%E7%BA%BF%E8%83%BD%E5%8A%9B"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">LTE 的天线能力</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5G-NR-%E7%9A%84-Massive-MIMO"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">5G NR 的 Massive MIMO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%EF%BC%88Beam-Management%EF%BC%8CBM%EF%BC%89"><span class="toc-number">4.0.3.3.</span> <span class="toc-text">波束管理（Beam Management，BM）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FR1-vs-FR2-%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.3.4.</span> <span class="toc-text">FR1 vs FR2 对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%B3%A2%E5%BD%A2%E4%B8%8E%E4%B8%8A%E8%A1%8C%E5%A2%9E%E5%BC%BA"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 波形与上行增强</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM%EF%BC%88%E4%B8%8E-LTE-%E4%B8%80%E8%87%B4%EF%BC%89"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">下行波形：CP-OFDM（与 LTE 一致）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E6%B3%A2%E5%BD%A2%EF%BC%9ACP-OFDM-DFT-s-OFDM%EF%BC%88%E6%96%B0%E5%A2%9E%EF%BC%89"><span class="toc-number">4.0.4.2.</span> <span class="toc-text">上行波形：CP-OFDM + DFT-s-OFDM（新增）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E8%A1%A5%E5%85%85%E4%BF%A1%E9%81%93%EF%BC%9ASUL%EF%BC%88%E8%A1%A5%E5%85%85%E4%B8%8A%E8%A1%8C%EF%BC%89"><span class="toc-number">4.0.4.3.</span> <span class="toc-text">上行补充信道：SUL（补充上行）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%9E%B6%E6%9E%84%E6%94%B9%E8%BF%9B%EF%BC%9ACU-DU-%E5%88%86%E7%A6%BB%E4%B8%8E%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%A0%B8%E5%BF%83%E7%BD%91"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 架构改进：CU&#x2F;DU 分离与服务化核心网</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NG-RAN%EF%BC%9ACU-DU-RU-%E5%8A%9F%E8%83%BD%E6%8B%86%E5%88%86"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">NG-RAN：CU&#x2F;DU&#x2F;RU 功能拆分</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GC%EF%BC%9A%E6%9C%8D%E5%8A%A1%E5%8C%96%E6%9E%B6%E6%9E%84%EF%BC%88SBA%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">5GC：服务化架构（SBA）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E5%85%B6%E4%BB%96%E5%85%B3%E9%94%AE%E6%94%B9%E8%BF%9B"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 其他关键改进</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%A6%E5%AE%BD%E9%83%A8%E5%88%86%EF%BC%88BWP%EF%BC%8CBandwidth-Part%EF%BC%89"><span class="toc-number">4.0.6.1.</span> <span class="toc-text">带宽部分（BWP，Bandwidth Part）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%8D%E8%B0%83%E5%BA%A6%E4%B8%8A%E8%A1%8C%EF%BC%88Configured-Grant-Type-1-2%EF%BC%89"><span class="toc-number">4.0.6.2.</span> <span class="toc-text">免调度上行（Configured Grant &#x2F; Type 1 &amp; 2）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HARQ-%E5%A2%9E%E5%BC%BA"><span class="toc-number">4.0.6.3.</span> <span class="toc-text">HARQ 增强</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E9%87%8D%E6%9E%84"><span class="toc-number">4.0.6.4.</span> <span class="toc-text">参考信号重构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E6%8E%A5%E5%85%A5%EF%BC%9ASSB-%E6%9B%BF%E4%BB%A3-CRS-PSS-SSS"><span class="toc-number">4.0.6.5.</span> <span class="toc-text">初始接入：SSB 替代 CRS + PSS&#x2F;SSS</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-NR-vs-LTE-%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 NR vs LTE 核心参数对比表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">4.1.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">4.2.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&text=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&is_video=false&description=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=5G NR 三大场景、组网策略与核心技术改进&body=Check out this article: http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&title=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&name=5G NR 三大场景、组网策略与核心技术改进&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/&t=5G NR 三大场景、组网策略与核心技术改进"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

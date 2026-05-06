@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="一、背景与历史1.1 从 On2 到 Google：一场改变 Web 视频格局的收购VP8 最初由 On2 Technologies 开发，于 2008 年 9 月 13 日以 On2 TrueMotion VP8 的名称发布，定位为其前代产品 VP7 的专有继任者。On2 是一家成立于 1992 年、专注视频编解码技术的美国公司，其 VP 系列编解码器（VP3 至 VP8）具有深厚的工程积累。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VP8 — Google 主导的开源视频编码，WebRTC 早期默认">
+<meta property="og:url" content="http://example.com/2023/01/15/webrtc/25-VP8/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="一、背景与历史1.1 从 On2 到 Google：一场改变 Web 视频格局的收购VP8 最初由 On2 Technologies 开发，于 2008 年 9 月 13 日以 On2 TrueMotion VP8 的名称发布，定位为其前代产品 VP7 的专有继任者。On2 是一家成立于 1992 年、专注视频编解码技术的美国公司，其 VP 系列编解码器（VP3 至 VP8）具有深厚的工程积累。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-01-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-30T22:23:06.983Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>VP8 — Google 主导的开源视频编码，WebRTC 早期默认</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/01/30/webrtc/26-vp9/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/12/25/webrtc/24-h265-hevc/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/15/webrtc/25-VP8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/15/webrtc/25-VP8/&text=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/15/webrtc/25-VP8/&is_video=false&description=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=VP8 — Google 主导的开源视频编码，WebRTC 早期默认&body=Check out this article: http://example.com/2023/01/15/webrtc/25-VP8/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/15/webrtc/25-VP8/&name=VP8 — Google 主导的开源视频编码，WebRTC 早期默认&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/15/webrtc/25-VP8/&t=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">1.</span> <span class="toc-text">一、背景与历史</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E-On2-%E5%88%B0-Google%EF%BC%9A%E4%B8%80%E5%9C%BA%E6%94%B9%E5%8F%98-Web-%E8%A7%86%E9%A2%91%E6%A0%BC%E5%B1%80%E7%9A%84%E6%94%B6%E8%B4%AD"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 从 On2 到 Google：一场改变 Web 视频格局的收购</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 标准化进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%93%E5%88%A9%E4%BA%89%E8%AE%AE%E7%9A%84%E8%A7%A3%E5%86%B3"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 专利争议的解决</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">二、技术架构概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%83%8F%E7%B4%A0%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 像素格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8F%E5%9D%97%E7%BB%93%E6%9E%84"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 宏块结构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%B8%A7%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8F%82%E8%80%83%E5%B8%A7%E6%9C%BA%E5%88%B6"><span class="toc-number">3.</span> <span class="toc-text">三、帧类型与参考帧机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B8%A7%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 帧类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%88%B7%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 刷新机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B%EF%BC%88Intra-Prediction%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">四、帧内预测（Intra Prediction）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BA%AE%E5%BA%A6%E5%AE%8F%E5%9D%97%E7%BA%A7%E6%A8%A1%E5%BC%8F%EF%BC%8816%C3%9716-Y%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 亮度宏块级模式（16×16 Y）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BA%AE%E5%BA%A6%E5%AD%90%E5%9D%97%E7%BA%A7%E6%A8%A1%E5%BC%8F%EF%BC%884%C3%974-B-PRED%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 亮度子块级模式（4×4 B_PRED）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%89%B2%E5%BA%A6%E6%A8%A1%E5%BC%8F%EF%BC%888%C3%978-UV%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 色度模式（8×8 UV）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%EF%BC%88Inter-Prediction%EF%BC%89%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">5.</span> <span class="toc-text">五、帧间预测（Inter Prediction）与运动补偿</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%8F%E5%9D%97%E9%A2%84%E6%B5%8B%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.1.</span> <span class="toc-text">5.1 宏块预测模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-SPLITMV-%E5%88%86%E5%89%B2%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">5.2 SPLITMV 分割模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%8F%82%E8%80%83%E5%B8%A7%E9%80%89%E6%8B%A9"><span class="toc-number">5.0.3.</span> <span class="toc-text">5.3 参考帧选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E4%BA%9A%E5%83%8F%E7%B4%A0%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF%EF%BC%88Sub-Pixel-Interpolation%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">5.4 亚像素运动补偿（Sub-Pixel Interpolation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%8F%98%E6%8D%A2%E7%BC%96%E7%A0%81"><span class="toc-number">6.</span> <span class="toc-text">六、变换编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-DCT%EF%BC%88%E7%A6%BB%E6%95%A3%E4%BD%99%E5%BC%A6%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 DCT（离散余弦变换）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-WHT%EF%BC%88Walsh-Hadamard-%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 WHT（Walsh-Hadamard 变换）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%87%8F%E5%8C%96"><span class="toc-number">6.0.3.</span> <span class="toc-text">6.3 量化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%88%86%E6%AE%B5%E7%89%B9%E5%BE%81%EF%BC%88Segmentation%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">七、分段特征（Segmentation）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Loop-Filter%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">八、环路滤波器（Loop Filter）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%B8%A4%E7%A7%8D%E6%BB%A4%E6%B3%A2%E5%99%A8"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 两种滤波器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%E5%BC%BA%E5%BA%A6"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 自适应滤波强度</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%86%B5%E7%BC%96%E7%A0%81%EF%BC%88Entropy-Coding%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">九、熵编码（Entropy Coding）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%B8%83%E5%B0%94%E7%AE%97%E6%9C%AF%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Boolean-Arithmetic-Coder%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">9.1 布尔算术编码器（Boolean Arithmetic Coder）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E4%B8%8A%E4%B8%8B%E6%96%87%E8%87%AA%E9%80%82%E5%BA%94%E6%A6%82%E7%8E%87%EF%BC%88Context-Adaptive-Probability%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">9.2 上下文自适应概率（Context-Adaptive Probability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E6%95%B0%E6%8D%AE%E5%88%86%E5%8C%BA%EF%BC%88Partition%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">9.3 数据分区（Partition）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81VP8-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">10.</span> <span class="toc-text">十、VP8 在 WebRTC 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%BC%BA%E5%88%B6%E5%AE%9E%E7%8E%B0%E8%A6%81%E6%B1%82"><span class="toc-number">10.0.1.</span> <span class="toc-text">10.1 强制实现要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-VP8-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%83%8F%E7%B4%A0%E9%95%BF%E5%AE%BD%E6%AF%94%E8%A6%81%E6%B1%82"><span class="toc-number">10.0.2.</span> <span class="toc-text">10.2 VP8 在 WebRTC 中的像素长宽比要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-VP8-%E7%9A%84-RTP-%E5%B0%81%E8%A3%85"><span class="toc-number">10.0.3.</span> <span class="toc-text">10.3 VP8 的 RTP 封装</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#VP8-RTP-Payload-Descriptor%EF%BC%88%E8%B4%9F%E8%BD%BD%E6%8F%8F%E8%BF%B0%E7%AC%A6%EF%BC%89"><span class="toc-number">10.0.3.1.</span> <span class="toc-text">VP8 RTP Payload Descriptor（负载描述符）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VP8-Payload-Header%EF%BC%88%E8%B4%9F%E8%BD%BD%E5%A4%B4%EF%BC%89"><span class="toc-number">10.0.3.2.</span> <span class="toc-text">VP8 Payload Header（负载头）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E4%B8%A2%E5%8C%85%E9%B2%81%E6%A3%92%E6%80%A7%E8%AE%BE%E8%AE%A1"><span class="toc-number">10.0.4.</span> <span class="toc-text">10.4 丢包鲁棒性设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">10.0.5.</span> <span class="toc-text">10.5 时间可伸缩性（Temporal Scalability）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">11.</span> <span class="toc-text">十一、SDP 协商</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81libvpx%EF%BC%9AVP8-%E7%9A%84%E5%8F%82%E8%80%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">12.</span> <span class="toc-text">十二、libvpx：VP8 的参考实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E4%B8%BB%E8%A6%81%E7%BB%84%E4%BB%B6"><span class="toc-number">12.0.1.</span> <span class="toc-text">12.1 主要组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%9B%86%E6%88%90%E7%94%9F%E6%80%81"><span class="toc-number">12.0.2.</span> <span class="toc-text">12.2 集成生态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">12.0.3.</span> <span class="toc-text">12.3 硬件加速</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81VP8-%E4%B8%8E-H-264-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">13.</span> <span class="toc-text">十三、VP8 与 H.264 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81VP8-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E5%8E%86%E5%8F%B2%E5%AE%9A%E4%BD%8D"><span class="toc-number">14.</span> <span class="toc-text">十四、VP8 的局限性与历史定位</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E6%8A%80%E6%9C%AF%E5%B1%80%E9%99%90"><span class="toc-number">14.0.1.</span> <span class="toc-text">14.1 技术局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-VP8-%E7%9A%84%E5%8E%86%E5%8F%B2%E6%84%8F%E4%B9%89"><span class="toc-number">14.0.2.</span> <span class="toc-text">14.2 VP8 的历史意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E7%8E%B0%E7%8A%B6"><span class="toc-number">14.0.3.</span> <span class="toc-text">14.3 现状</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">十五、小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">16.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        VP8 — Google 主导的开源视频编码，WebRTC 早期默认
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-01-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-01-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="一、背景与历史"><a href="#一、背景与历史" class="headerlink" title="一、背景与历史"></a>一、背景与历史</h1><h3 id="1-1-从-On2-到-Google：一场改变-Web-视频格局的收购"><a href="#1-1-从-On2-到-Google：一场改变-Web-视频格局的收购" class="headerlink" title="1.1 从 On2 到 Google：一场改变 Web 视频格局的收购"></a>1.1 从 On2 到 Google：一场改变 Web 视频格局的收购</h3><p>VP8 最初由 On2 Technologies 开发，于 2008 年 9 月 13 日以 <strong>On2 TrueMotion VP8</strong> 的名称发布，定位为其前代产品 VP7 的专有继任者。On2 是一家成立于 1992 年、专注视频编解码技术的美国公司，其 VP 系列编解码器（VP3 至 VP8）具有深厚的工程积累。</p>
+<p>2009 年 8 月，Google 宣布以约 <strong>1.065 亿美元</strong>的股票交易收购 On2 Technologies。这笔交易于 2010 年 2 月 19 日完成，最终成交价约为 <strong>1.246 亿美元</strong>。Google 收购的战略意图十分清晰：获得一个可以免费开放给所有人使用的高质量视频编解码器，从而在 H.264 专利生态之外构建开放的 Web 视频标准。</p>
+<p><strong>2010 年 5 月 19 日</strong>，Google 在 Google I&#x2F;O 大会上宣布了两件大事：</p>
+<ol>
+<li>将 VP8 编解码器软件以 <strong>BSD 许可证</strong>开源发布；</li>
+<li>对其持有的 VP8 实现专利作出<strong>不可撤销的免专利许可承诺</strong>（irrevocable patent promise），允许任何人免费实现 VP8。</li>
+</ol>
+<p>同日，<strong>WebM 项目</strong>正式启动。WebM 将 VP8 视频与 Vorbis（后续扩展至 Opus）音频打包进基于 Matroska 的容器格式，构成一个完全开放、免版税的 Web 多媒体解决方案。Mozilla、Opera、Google 以及四十余家出版商、软硬件厂商参与了这一项目。</p>
+<h3 id="1-2-标准化进程"><a href="#1-2-标准化进程" class="headerlink" title="1.2 标准化进程"></a>1.2 标准化进程</h3><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2008-09</td>
+<td>On2 发布 VP8，作为专有编解码器商业销售</td>
+</tr>
+<tr>
+<td>2010-02</td>
+<td>Google 完成对 On2 的收购</td>
+</tr>
+<tr>
+<td>2010-05</td>
+<td>Google 以 BSD 许可证开源 VP8 及 libvpx；WebM 项目启动</td>
+</tr>
+<tr>
+<td>2010-07</td>
+<td>FFmpeg 团队发布 ffvp8 解码器，性能超越 libvpx</td>
+</tr>
+<tr>
+<td>2011-02</td>
+<td>MPEG LA 发起 VP8 专利池征集</td>
+</tr>
+<tr>
+<td>2011-11</td>
+<td>IETF 发布 <strong>RFC 6386</strong>（VP8 Data Format and Decoding Guide，信息性 RFC）</td>
+</tr>
+<tr>
+<td>2013-01</td>
+<td>Google 将 VP8 提交至 MPEG 委员会，探索标准化</td>
+</tr>
+<tr>
+<td>2013-03</td>
+<td>MPEG LA 终止 VP8 专利池计划，与 Google 达成专利许可协议</td>
+</tr>
+<tr>
+<td>2016-03</td>
+<td>IETF 发布 <strong>RFC 7741</strong>（RTP Payload Format for VP8，标准轨道）和 <strong>RFC 7742</strong>（WebRTC 视频编解码强制要求）</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-专利争议的解决"><a href="#1-3-专利争议的解决" class="headerlink" title="1.3 专利争议的解决"></a>1.3 专利争议的解决</h3><p>VP8 的开放历程并非一帆风顺。2011 年 7 月，MPEG LA 宣称已有 12 家专利持有者响应其专利池征集，这给 VP8 的推广带来了法律阴影。2013 年 3 月，MPEG LA 宣布放弃组建 VP8 专利池，与 Google 达成协议，Google 获得对可能覆盖 VP8 实现的相关专利的授权，并有权将这些专利<strong>再许可给 VP8 和 VP9 的所有第三方用户</strong>。这一协议基本清除了 VP8 的专利障碍。</p>
+<hr>
+<h1 id="二、技术架构概述"><a href="#二、技术架构概述" class="headerlink" title="二、技术架构概述"></a>二、技术架构概述</h1><p>VP8 采用经典的<strong>块预测 + 变换编码 + 熵编码</strong>混合编码范式，在设计上与 H.264 有诸多相似之处，但在实现细节上有其独特之处。</p>
+<h3 id="2-1-像素格式"><a href="#2-1-像素格式" class="headerlink" title="2.1 像素格式"></a>2.1 像素格式</h3><p>根据 RFC 6386 第 2 节，<strong>VP8 仅使用 8-bit YUV 4:2:0 图像格式</strong>。在该格式中：</p>
+<ul>
+<li><strong>Y 平面</strong>（亮度）：完整分辨率，每像素 8 位；</li>
+<li><strong>U、V 平面</strong>（色度）：水平和垂直方向均为 Y 平面的一半分辨率，每像素 8 位；</li>
+<li>每个色度像素对应一个 2×2 的亮度像素块，色度像素坐标恰好是对应亮度块左上角坐标的一半。</li>
+</ul>
+<p>VP8 规范还为第二种 YUV 色彩格式预留了保留位，但实际上所有主流实现均使用 4:2:0 格式。</p>
+<h3 id="2-2-宏块结构"><a href="#2-2-宏块结构" class="headerlink" title="2.2 宏块结构"></a>2.2 宏块结构</h3><p>VP8 将帧分解为 <strong>宏块（Macroblock）</strong> 的阵列，这是编解码处理的基本单元（RFC 6386 第 2 节）：</p>
+<ul>
+<li><strong>Y 维度</strong>：16×16 像素；</li>
+<li><strong>U、V 维度</strong>：各 8×8 像素；</li>
+<li>每个宏块进一步细分为 <strong>4×4 子块（Subblock）</strong>：<ul>
+<li>Y 分量：16 个 4×4 子块；</li>
+<li>U 分量：4 个 4×4 子块；</li>
+<li>V 分量：4 个 4×4 子块。</li>
+</ul>
+</li>
+</ul>
+<p>宏块按从左到右、从上到下的<strong>光栅扫描顺序</strong>处理，子块在宏块内同样按光栅顺序处理。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────┐</span><br><span class="line">│   Y 平面 (16×16)          │</span><br><span class="line">│  ┌────┬────┬────┬────┐   │</span><br><span class="line">│  │4×4 │4×4 │4×4 │4×4 │   │</span><br><span class="line">│  ├────┼────┼────┼────┤   │</span><br><span class="line">│  │4×4 │4×4 │4×4 │4×4 │   │</span><br><span class="line">│  ├────┼────┼────┼────┤   │</span><br><span class="line">│  │4×4 │4×4 │4×4 │4×4 │   │</span><br><span class="line">│  ├────┼────┼────┼────┤   │</span><br><span class="line">│  │4×4 │4×4 │4×4 │4×4 │   │</span><br><span class="line">│  └────┴────┴────┴────┘   │</span><br><span class="line">│   U (8×8)   V (8×8)      │</span><br><span class="line">└──────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="三、帧类型与参考帧机制"><a href="#三、帧类型与参考帧机制" class="headerlink" title="三、帧类型与参考帧机制"></a>三、帧类型与参考帧机制</h1><h3 id="3-1-帧类型"><a href="#3-1-帧类型" class="headerlink" title="3.1 帧类型"></a>3.1 帧类型</h3><p>RFC 6386 第 3 节定义了两种基本帧类型：</p>
+<p><strong>关键帧（Key Frame &#x2F; Intraframe &#x2F; I-Frame）</strong>：无需参考任何其他帧即可独立解码。每个关键帧自动成为 Golden Frame 和 Altref Frame。</p>
+<p><strong>帧间帧（Interframe &#x2F; P-Frame）</strong>：参照先前帧进行编码，具体可引用以下三种参考帧缓冲区中的一种或多种：</p>
+<table>
+<thead>
+<tr>
+<th>参考帧</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Last Frame（前一帧）</strong></td>
+<td>时间上最近的已解码帧，最常用</td>
+</tr>
+<tr>
+<td><strong>Golden Frame</strong></td>
+<td>解码器保存的一个特殊参考帧，可由编码器在任意帧间帧上刷新</td>
+</tr>
+<tr>
+<td><strong>Altref Frame</strong></td>
+<td>另一个备用参考帧，可用于提升丢帧容忍度和时间可伸缩性</td>
+</tr>
+</tbody></table>
+<p>将参考帧体系限制在三个缓冲区内，是 VP8 设计中有意为之的工程取舍：在保持较低内存占用的前提下，仍能实现有效的去相关性。</p>
+<h3 id="3-2-刷新机制"><a href="#3-2-刷新机制" class="headerlink" title="3.2 刷新机制"></a>3.2 刷新机制</h3><p>任意帧间帧均可选择性地替换 Golden Frame 或 Altref Frame 的内容（RFC 6386 第 9.7 节），这为以下应用场景提供了基础：</p>
+<ul>
+<li><strong>丢帧容忍</strong>：接收方在丢包后可使用 Golden&#x2F;Altref Frame 作为恢复基准；</li>
+<li><strong>时间可伸缩性（Temporal Scalability）</strong>：通过精心设计参考层次结构，VP8 最多可支持 <strong>5 个时间层</strong>（Temporal Layer）。</li>
+</ul>
+<hr>
+<h1 id="四、帧内预测（Intra-Prediction）"><a href="#四、帧内预测（Intra-Prediction）" class="headerlink" title="四、帧内预测（Intra Prediction）"></a>四、帧内预测（Intra Prediction）</h1><p>帧内预测利用当前帧内已编码的相邻像素来预测待编码块，减少空间冗余。</p>
+<h3 id="4-1-亮度宏块级模式（16×16-Y）"><a href="#4-1-亮度宏块级模式（16×16-Y）" class="headerlink" title="4.1 亮度宏块级模式（16×16 Y）"></a>4.1 亮度宏块级模式（16×16 Y）</h3><p>VP8 为亮度宏块提供 4 种 16×16 预测模式（RFC 6386 第 11、12 节）：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DC_PRED</strong></td>
+<td>用上方行和左侧列像素的均值填充整个宏块</td>
+</tr>
+<tr>
+<td><strong>V_PRED</strong></td>
+<td>将上方行像素垂直复制到宏块各行</td>
+</tr>
+<tr>
+<td><strong>H_PRED</strong></td>
+<td>将左侧列像素水平复制到宏块各列</td>
+</tr>
+<tr>
+<td><strong>TM_PRED</strong></td>
+<td>VP8 独有的 TrueMotion 模式（见下文详解）</td>
+</tr>
+<tr>
+<td><strong>B_PRED</strong></td>
+<td>对每个 4×4 子块单独选择预测模式</td>
+</tr>
+</tbody></table>
+<p><strong>TM_PRED（TrueMotion 预测）</strong> 是 VP8 区别于 H.264 的特色模式，其预测公式为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X[i][j] = Clip(Left[i] + Above[j] - AboveLeft)</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>Left[i]</code> 为左侧列像素，<code>Above[j]</code> 为上方行像素，<code>AboveLeft</code> 为左上角角点像素。这一模式能很好地捕捉平滑渐变和纹理方向性，在实际编码中被频繁选用。</p>
+<h3 id="4-2-亮度子块级模式（4×4-B-PRED）"><a href="#4-2-亮度子块级模式（4×4-B-PRED）" class="headerlink" title="4.2 亮度子块级模式（4×4 B_PRED）"></a>4.2 亮度子块级模式（4×4 B_PRED）</h3><p>当宏块选择 B_PRED 模式时，每个 4×4 子块可独立选择以下 10 种模式之一：</p>
+<p><code>DC_PRED</code>、<code>TM_PRED</code>、<code>V_PRED</code>、<code>H_PRED</code>、<code>LD_PRED</code>（左下）、<code>RD_PRED</code>（右下）、<code>VR_PRED</code>（垂直右）、<code>VL_PRED</code>（垂直左）、<code>HD_PRED</code>（水平下）、<code>HU_PRED</code>（水平上）</p>
+<p>方向性预测模式（LD、RD、VR、VL、HD、HU）对于捕捉纹理细节和边缘方向至关重要。</p>
+<h3 id="4-3-色度模式（8×8-UV）"><a href="#4-3-色度模式（8×8-UV）" class="headerlink" title="4.3 色度模式（8×8 UV）"></a>4.3 色度模式（8×8 UV）</h3><p>色度分量的预测较为简单，提供 4 种模式：<code>DC_PRED</code>、<code>V_PRED</code>、<code>H_PRED</code>、<code>TM_PRED</code>。色度预测模式与亮度的关系具有一定相关性，但可独立编码。</p>
+<hr>
+<h1 id="五、帧间预测（Inter-Prediction）与运动补偿"><a href="#五、帧间预测（Inter-Prediction）与运动补偿" class="headerlink" title="五、帧间预测（Inter Prediction）与运动补偿"></a>五、帧间预测（Inter Prediction）与运动补偿</h1><p>帧间预测通过运动向量引用参考帧中的相似区域来消除时间冗余，是 VP8 压缩效率的核心来源。</p>
+<h3 id="5-1-宏块预测模式"><a href="#5-1-宏块预测模式" class="headerlink" title="5.1 宏块预测模式"></a>5.1 宏块预测模式</h3><p>帧间帧中的每个宏块可选择以下预测模式（RFC 6386 第 16 节）：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>运动向量数量</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ZEROMV</strong></td>
+<td>0</td>
+<td>零运动向量，直接使用参考帧对应位置</td>
+</tr>
+<tr>
+<td><strong>NEARESTMV</strong></td>
+<td>1</td>
+<td>使用与当前宏块空间相邻的已编码宏块中最常见的运动向量</td>
+</tr>
+<tr>
+<td><strong>NEARMV</strong></td>
+<td>1</td>
+<td>使用第二常见的运动向量</td>
+</tr>
+<tr>
+<td><strong>NEWMV</strong></td>
+<td>1</td>
+<td>编码一个新的运动向量</td>
+</tr>
+<tr>
+<td><strong>SPLITMV</strong></td>
+<td>多个</td>
+<td>将宏块分割为更小的分区，每个分区有独立的运动向量</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-SPLITMV-分割模式"><a href="#5-2-SPLITMV-分割模式" class="headerlink" title="5.2 SPLITMV 分割模式"></a>5.2 SPLITMV 分割模式</h3><p>SPLITMV 是 VP8 区别于许多其他编解码器的一大特色，它允许单个宏块被划分为不同的子分区，每个分区使用不同的运动向量。支持的分割方式包括：</p>
+<ul>
+<li><strong>16×8</strong>：上下两块；</li>
+<li><strong>8×16</strong>：左右两块；</li>
+<li><strong>8×8</strong>：四块；</li>
+<li><strong>4×4</strong>：16 个子块，每块可有独立的运动向量。</li>
+</ul>
+<p>对于包含复杂运动（如前景与背景速度不一致、旋转物体等）的区域，SPLITMV 能显著提升预测精度，降低残差能量。</p>
+<h3 id="5-3-参考帧选择"><a href="#5-3-参考帧选择" class="headerlink" title="5.3 参考帧选择"></a>5.3 参考帧选择</h3><p>每个帧间宏块可独立选择引用 Last Frame、Golden Frame 或 Altref Frame，且可跨宏块混合使用不同参考帧。</p>
+<h3 id="5-4-亚像素运动补偿（Sub-Pixel-Interpolation）"><a href="#5-4-亚像素运动补偿（Sub-Pixel-Interpolation）" class="headerlink" title="5.4 亚像素运动补偿（Sub-Pixel Interpolation）"></a>5.4 亚像素运动补偿（Sub-Pixel Interpolation）</h3><p>VP8 支持 <strong>1&#x2F;4 像素精度</strong>的运动向量（RFC 6386 第 18 节）。插值分两步进行：</p>
+<ol>
+<li><strong>半像素（1&#x2F;2-pixel）插值</strong>：使用 6 抽头双线性滤波器（bilinear filter）；</li>
+<li><strong>四分之一像素（1&#x2F;4-pixel）插值</strong>：在半像素插值结果的基础上再次使用双线性滤波器。</li>
+</ol>
+<p>具体的滤波系数在规范中精确规定，确保不同实现间的逐位一致性（bit-exact）。VP8 规范与 H.264 类似，同样<strong>精确规定了重建像素的值</strong>，不允许实现间出现因截断引起的漂移（drift），所有算法均使用固定精度整数运算实现（RFC 6386 第 1 节）。</p>
+<hr>
+<h1 id="六、变换编码"><a href="#六、变换编码" class="headerlink" title="六、变换编码"></a>六、变换编码</h1><h3 id="6-1-DCT（离散余弦变换）"><a href="#6-1-DCT（离散余弦变换）" class="headerlink" title="6.1 DCT（离散余弦变换）"></a>6.1 DCT（离散余弦变换）</h3><p>对于大多数宏块，VP8 对 4×4 的残差块执行 <strong>4×4 整数 DCT</strong> 变换。与 H.264 的乘法无关整数变换相比，VP8 的 DCT 在具备 SIMD 能力的现代处理器上可非常高效地实现，且提供略优的能量集中性（energy compaction）。</p>
+<h3 id="6-2-WHT（Walsh-Hadamard-变换）"><a href="#6-2-WHT（Walsh-Hadamard-变换）" class="headerlink" title="6.2 WHT（Walsh-Hadamard 变换）"></a>6.2 WHT（Walsh-Hadamard 变换）</h3><p>VP8 在一种特殊情况下使用 <strong>4×4 WHT</strong> 代替 DCT（RFC 6386 第 14 节）：当亮度分量使用非 B_PRED 模式（即整块 16×16 预测模式）时，所有 16 个 4×4 DCT 块的 <strong>DC 系数</strong>会被收集起来，组成一个 4×4 的 Y2 块，对这个 Y2 块执行 WHT 变换后再统一编码。WHT 是一种不需要乘法的正交变换，计算复杂度极低。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">帧内/帧间宏块（非B_PRED/非SPLITMV）：</span><br><span class="line">  ├─ 16个4×4 Y残差块 → DCT → 取DC系数 → 组成Y2块 → WHT</span><br><span class="line">  ├─ 4个4×4 U残差块 → DCT</span><br><span class="line">  └─ 4个4×4 V残差块 → DCT</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-量化"><a href="#6-3-量化" class="headerlink" title="6.3 量化"></a>6.3 量化</h3><p>VP8 使用一个可调节的量化表（Dequantization Table），支持对不同频率系数（DC vs. AC）分别设置量化步长。量化参数可以：</p>
+<ul>
+<li>在<strong>帧级别</strong>全局设定；</li>
+<li>通过<strong>分段调整（Segment-Based Adjustments）</strong> 对不同区域差异化设置，实现区域自适应量化。</li>
+</ul>
+<hr>
+<h1 id="七、分段特征（Segmentation）"><a href="#七、分段特征（Segmentation）" class="headerlink" title="七、分段特征（Segmentation）"></a>七、分段特征（Segmentation）</h1><p>VP8 支持将帧内的宏块划分为最多 <strong>4 个分段（Segment）</strong>，每个分段可独立配置：</p>
+<ul>
+<li><strong>量化步长（Quantization delta）</strong>；</li>
+<li><strong>环路滤波强度（Loop filter strength delta）</strong>。</li>
+</ul>
+<p>分段 ID 通过独立的概率表编码，编码器可以根据内容特征（如运动量、纹理复杂度）动态调整分段归属，实现细粒度的码率控制（RFC 6386 第 9.3、10 节）。</p>
+<hr>
+<h1 id="八、环路滤波器（Loop-Filter）"><a href="#八、环路滤波器（Loop-Filter）" class="headerlink" title="八、环路滤波器（Loop Filter）"></a>八、环路滤波器（Loop Filter）</h1><p>环路滤波是在帧重建之后、将该帧用作后续帧参考之前执行的一种<strong>失真抑制</strong>技术，主要目标是消除块边界处的块效应（Blocking Artifacts）。</p>
+<h3 id="8-1-两种滤波器"><a href="#8-1-两种滤波器" class="headerlink" title="8.1 两种滤波器"></a>8.1 两种滤波器</h3><p>VP8 提供两种环路滤波器（RFC 6386 第 15 节）：</p>
+<p><strong>Simple Filter（简单滤波器）</strong>：计算复杂度低，适用于低延迟、低功耗场景。仅对相邻块的边界像素做简单的限幅（clamp）操作。</p>
+<p><strong>Normal Filter（法线滤波器）</strong>：更精细的滤波，对边界两侧共 4 个像素做有条件的平滑处理，同时保留真实的图像边缘不被过度模糊。法线滤波器依据”边缘检测”逻辑区分块边界和真实图像边缘：若相邻像素差异较大且被认为是真实边缘，则不施加滤波。</p>
+<h3 id="8-2-自适应滤波强度"><a href="#8-2-自适应滤波强度" class="headerlink" title="8.2 自适应滤波强度"></a>8.2 自适应滤波强度</h3><p>滤波器强度的选择在帧间是完全可调的，编码器可以根据内容逐帧调整策略。结合分段机制，VP8 还可以对不同内容区域使用不同的滤波强度，例如对高运动区域施加更强的滤波，对细节丰富的静态区域施加更弱的滤波（RFC 6386 第 15.4 节）。</p>
+<hr>
+<h1 id="九、熵编码（Entropy-Coding）"><a href="#九、熵编码（Entropy-Coding）" class="headerlink" title="九、熵编码（Entropy Coding）"></a>九、熵编码（Entropy Coding）</h1><h3 id="9-1-布尔算术编码器（Boolean-Arithmetic-Coder）"><a href="#9-1-布尔算术编码器（Boolean-Arithmetic-Coder）" class="headerlink" title="9.1 布尔算术编码器（Boolean Arithmetic Coder）"></a>9.1 布尔算术编码器（Boolean Arithmetic Coder）</h3><p>VP8 采用<strong>布尔算术编码器（Boolean Arithmetic Coder，BAC）</strong>对几乎所有压缩数据进行熵编码（RFC 6386 第 7 节）。BAC 每次编码一个布尔值（0 或 1），并利用该符号的先验概率进行算术区间的精确细分，从而实现接近信息熵下限的压缩效率。</p>
+<p>布尔编码器的工作原理：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Range: [0, 1)</span><br><span class="line">对于每个要编码的布尔值 b，给定概率 p(b=0)：</span><br><span class="line">  - 若 b=0：Range 变为 [low, low + range * p)</span><br><span class="line">  - 若 b=1：Range 变为 [low + range * p, low + range)</span><br><span class="line">输出足够多的位以唯一确定当前区间</span><br></pre></td></tr></table></figure>
+
+<p>VP8 的实现使用 <strong>8-bit 精度的概率值</strong>（0~255，对应概率 0&#x2F;256 到 255&#x2F;256），以纯整数运算实现，无需浮点。</p>
+<h3 id="9-2-上下文自适应概率（Context-Adaptive-Probability）"><a href="#9-2-上下文自适应概率（Context-Adaptive-Probability）" class="headerlink" title="9.2 上下文自适应概率（Context-Adaptive Probability）"></a>9.2 上下文自适应概率（Context-Adaptive Probability）</h3><p>VP8 使用条件概率分布对编码上下文进行建模，用于熵编码的信息包括（RFC 6386 第 13 节）：</p>
+<ul>
+<li><strong>宏块编码模式</strong>：帧内&#x2F;帧间模式及子模式；</li>
+<li><strong>运动向量分量</strong>：通过多级 Tree 编码；</li>
+<li><strong>量化变换系数（DCT&#x2F;WHT Token）</strong>：使用基于相邻块统计特征的多维概率表。</li>
+</ul>
+<p><strong>Token 概率的更新机制</strong>：概率表在每帧帧头中携带<strong>增量更新（DCT Coefficient Probability Update）</strong>，使编码器能根据当前帧内容动态调整解码概率，从而提升编码效率（RFC 6386 第 9.9、13.4 节）。</p>
+<h3 id="9-3-数据分区（Partition）"><a href="#9-3-数据分区（Partition）" class="headerlink" title="9.3 数据分区（Partition）"></a>9.3 数据分区（Partition）</h3><p>VP8 将一帧的压缩数据划分为<strong>多个独立分区</strong>（RFC 6386 第 9.5 节），并为多分区模式提供支持：</p>
+<ul>
+<li><strong>第一分区（Prediction Partition）</strong>：包含所有宏块的预测模式参数和运动向量，是帧间依赖关系的核心；</li>
+<li><strong>后续分区（Coefficient Partitions）</strong>：包含量化后的 DCT&#x2F;WHT 系数，数量可为 1、2、4 或 8 个（由编码器配置决定）。</li>
+</ul>
+<p>在四分区模式（FOUR_TOKEN_PARTITION）中，宏块行按 4 取模分配到不同系数分区：第 0、4、8… 行进入第一个系数分区，第 1、5、9… 行进入第二个，以此类推。<strong>第一分区可以在不依赖系数分区的情况下独立解码</strong>，这为差错掩盖提供了基础。</p>
+<hr>
+<h1 id="十、VP8-在-WebRTC-中的角色"><a href="#十、VP8-在-WebRTC-中的角色" class="headerlink" title="十、VP8 在 WebRTC 中的角色"></a>十、VP8 在 WebRTC 中的角色</h1><h3 id="10-1-强制实现要求"><a href="#10-1-强制实现要求" class="headerlink" title="10.1 强制实现要求"></a>10.1 强制实现要求</h3><p>RFC 7742 第 5 节（WebRTC Video Processing and Codec Requirements）明确规定：</p>
+<blockquote>
+<p><strong>WebRTC 浏览器 MUST 实现 VP8 视频编解码器</strong>（依据 RFC 6386）以及 H.264 Constrained Baseline。<br><strong>WebRTC 非浏览器终端</strong>若支持视频收发，同样 MUST 实现 VP8 和 H.264 Constrained Baseline。</p>
+</blockquote>
+<p>这意味着 VP8 是 WebRTC 生态中<strong>互操作性保障的最低公约数</strong>，无论两端使用何种平台或浏览器，只要声称支持 WebRTC 视频，VP8 就一定能协商成功。</p>
+<h3 id="10-2-VP8-在-WebRTC-中的像素长宽比要求"><a href="#10-2-VP8-在-WebRTC-中的像素长宽比要求" class="headerlink" title="10.2 VP8 在 WebRTC 中的像素长宽比要求"></a>10.2 VP8 在 WebRTC 中的像素长宽比要求</h3><p>RFC 7742 第 6.1 节进一步规定：</p>
+<blockquote>
+<p>除非通过 SDP 另行信令，使用 VP8 的实现 <strong>MUST</strong> 以 <strong>1:1（正方形）的像素宽高比</strong>进行编解码。</p>
+</blockquote>
+<h3 id="10-3-VP8-的-RTP-封装"><a href="#10-3-VP8-的-RTP-封装" class="headerlink" title="10.3 VP8 的 RTP 封装"></a>10.3 VP8 的 RTP 封装</h3><p>VP8 通过 RTP 传输时遵循 RFC 7741 规范，该规范为 VP8 的 RTP 负载格式设计了多项能力：</p>
+<h4 id="VP8-RTP-Payload-Descriptor（负载描述符）"><a href="#VP8-RTP-Payload-Descriptor（负载描述符）" class="headerlink" title="VP8 RTP Payload Descriptor（负载描述符）"></a>VP8 RTP Payload Descriptor（负载描述符）</h4><p>每个 VP8 RTP 包的负载起始处携带一个<strong>Payload Descriptor</strong>，包含以下关键字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|X|R|N|S|R| PID| (REQUIRED)</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">X:  |I|L|T|K| RSV| (OPTIONAL)</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">I:  |M| PictureID| (OPTIONAL, 8 or 16 bits)</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">L:  |  TL0PICIDX | (OPTIONAL)</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">T/K:|TID|Y| KEYIDX| (OPTIONAL)</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键字段说明</strong>（RFC 7741 第 4.2 节）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>X</strong></td>
+<td>扩展位，指示后续可选字段存在</td>
+</tr>
+<tr>
+<td><strong>N</strong></td>
+<td>非参考帧标志，为 1 表示该帧不作为任何其他帧的参考，可在 SFU&#x2F;MNE 中安全丢弃</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>分区起始标志，为 1 表示该 RTP 包携带新分区的起始字节</td>
+</tr>
+<tr>
+<td><strong>PID</strong></td>
+<td>分区索引（Partition Index），标识当前 RTP 包属于哪个 VP8 分区</td>
+</tr>
+<tr>
+<td><strong>PictureID</strong></td>
+<td>图片 ID（8 或 16 位），用于唯一标识一帧，支持 NACK、SLI、RPSI</td>
+</tr>
+<tr>
+<td><strong>TL0PICIDX</strong></td>
+<td>时间层 0 的图片索引，用于时间可伸缩性</td>
+</tr>
+<tr>
+<td><strong>TID</strong></td>
+<td>时间层 ID（Temporal Layer ID），标识该帧所属时间层（0~3）</td>
+</tr>
+<tr>
+<td><strong>Y</strong></td>
+<td>层间同步标志，结合 TID 用于时间层切换点标识</td>
+</tr>
+<tr>
+<td><strong>KEYIDX</strong></td>
+<td>关键帧索引，用于标识参考帧状态</td>
+</tr>
+</tbody></table>
+<h4 id="VP8-Payload-Header（负载头）"><a href="#VP8-Payload-Header（负载头）" class="headerlink" title="VP8 Payload Header（负载头）"></a>VP8 Payload Header（负载头）</h4><p>紧随 Payload Descriptor 之后，每个分区的起始包还携带 VP8 Payload Header（RFC 7741 第 4.3 节）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|Size0|H|VER|P|  &lt;- 帧标签（对应 RFC 6386 的非压缩数据块）</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|     Size1     |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|     Size2     |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>其中 P&#x3D;0 表示关键帧，P&#x3D;1 表示帧间帧；VER 为版本号；H&#x3D;0 表示正常重建，H&#x3D;1 表示错误帧。</p>
+<h3 id="10-4-丢包鲁棒性设计"><a href="#10-4-丢包鲁棒性设计" class="headerlink" title="10.4 丢包鲁棒性设计"></a>10.4 丢包鲁棒性设计</h3><p>RFC 7741 为 VP8 的 RTP 封装提供了多种丢包恢复机制：</p>
+<p><strong>分区感知的打包策略</strong>：推荐（RECOMMENDED）将每个 VP8 数据分区单独封装到独立的 RTP 包或包组中（RFC 7741 第 3 节）。由于第一分区（模式和运动向量）可独立解码，即便系数分区丢失，解码器仍可执行部分解码或差错掩盖。</p>
+<p><strong>非参考帧标记（N 位）</strong>：标记为非参考帧的包在 SFU 或媒体感知网络元素（MNE）中可以安全丢弃，无需转发至所有接收端，从而节省带宽。</p>
+<p><strong>RPSI（Reference Picture Selection Indication）与 SLI（Slice Loss Indication）</strong>：通过 RTCP AVPF 反馈（RFC 7741 第 5 节），接收端可以向编码器报告：</p>
+<ul>
+<li><strong>RPSI</strong>：通知编码器某个特定图片 ID 的帧已被正确解码，编码器可将其作为参考帧基准；</li>
+<li><strong>SLI</strong>：通知编码器检测到一个或多个宏块的丢失或损坏。</li>
+</ul>
+<p>这两种反馈机制结合 VP8 的三参考帧体系，使编码器能更灵活地进行错误恢复，而无需强制插入代价高昂的关键帧。</p>
+<h3 id="10-5-时间可伸缩性（Temporal-Scalability）"><a href="#10-5-时间可伸缩性（Temporal-Scalability）" class="headerlink" title="10.5 时间可伸缩性（Temporal Scalability）"></a>10.5 时间可伸缩性（Temporal Scalability）</h3><p>VP8 的 RTP 封装对时间可伸缩性提供了原生支持（RFC 7741 第 3 节）。通过合理设计参考帧层次：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">时间层结构示例（3层）：</span><br><span class="line">T0:  K---K---K---K---K  (基础层，最低帧率，可独立解码)</span><br><span class="line">T1:  --P---P---P---P--  (增强层1，依赖T0)</span><br><span class="line">T2:  -P-P-P-P-P-P-P-P  (增强层2，依赖T0和T1)</span><br></pre></td></tr></table></figure>
+
+<p>在 SFU 场景中，服务端可以根据下行链路带宽，选择性地只转发 T0 层（最低帧率），或转发 T0+T1，或全量转发，从而实现<strong>无需转码的动态帧率适配</strong>。</p>
+<hr>
+<h1 id="十一、SDP-协商"><a href="#十一、SDP-协商" class="headerlink" title="十一、SDP 协商"></a>十一、SDP 协商</h1><p>在 WebRTC 的 Offer&#x2F;Answer 协商中，VP8 通过 SDP 进行能力声明。典型的 VP8 SDP 片段如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键字段说明</strong>：</p>
+<ul>
+<li><code>VP8/90000</code>：VP8 编解码器，时钟频率 90000 Hz（视频标准时钟）；</li>
+<li><code>goog-remb</code>：Google 接收端码率估计反馈（REMB），辅助发送端进行带宽适配；</li>
+<li><code>transport-cc</code>：Transport-CC 拥塞控制扩展；</li>
+<li><code>ccm fir</code>：Full Intra Request，请求编码器立即发送关键帧；</li>
+<li><code>nack</code>：通用 NACK 重传反馈；</li>
+<li><code>nack pli</code>：Picture Loss Indication，通知编码器图像丢失、需要关键帧。</li>
+</ul>
+<p>RFC 7741 第 6.1 节定义了 VP8 的媒体类型为 <code>video/VP8</code>，SDP 参数中可通过 <code>max-fr</code>（最大帧率）和 <code>max-fs</code>（最大帧尺寸，单位为宏块数）进行能力约束。</p>
+<hr>
+<h1 id="十二、libvpx：VP8-的参考实现"><a href="#十二、libvpx：VP8-的参考实现" class="headerlink" title="十二、libvpx：VP8 的参考实现"></a>十二、libvpx：VP8 的参考实现</h1><p><strong>libvpx</strong> 是 VP8（及 VP9）的官方参考软件实现，由 Google 于 2010 年 5 月 19 日以 <strong>修订版 BSD 许可证</strong>开源发布。</p>
+<h3 id="12-1-主要组件"><a href="#12-1-主要组件" class="headerlink" title="12.1 主要组件"></a>12.1 主要组件</h3><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>vpxenc</code></td>
+<td>命令行编码工具</td>
+</tr>
+<tr>
+<td><code>vpxdec</code></td>
+<td>命令行解码工具，支持多核帧级并行解码</td>
+</tr>
+<tr>
+<td>libvpx 核心库</td>
+<td>供应用集成的 C API</td>
+</tr>
+</tbody></table>
+<h3 id="12-2-集成生态"><a href="#12-2-集成生态" class="headerlink" title="12.2 集成生态"></a>12.2 集成生态</h3><ul>
+<li><strong>FFmpeg</strong>：自 0.6 版本（2010）起集成 libvpx，支持 VP8 编解码；</li>
+<li><strong>GStreamer</strong>：通过 <code>gst-plugins-good</code> 中的 <code>vp8enc</code>&#x2F;<code>vp8dec</code> 元素提供支持；</li>
+<li><strong>Chrome&#x2F;Chromium</strong>：原生集成 libvpx，作为 WebRTC VP8 的底层实现；</li>
+<li><strong>Firefox</strong>：同样使用 libvpx；</li>
+<li><strong>WebRTC 原生库（libwebrtc）</strong>：内部直接使用 libvpx 进行 VP8 编解码。</li>
+</ul>
+<h3 id="12-3-硬件加速"><a href="#12-3-硬件加速" class="headerlink" title="12.3 硬件加速"></a>12.3 硬件加速</h3><p>多个平台提供了 VP8 的硬件加速解码支持：</p>
+<ul>
+<li><strong>Intel Bay Trail &#x2F; Broadwell</strong>：内置硬件 VP8 解码；</li>
+<li><strong>ARM Cortex-A 系列</strong>：Marvell ARMADA 1500-mini（用于 Chromecast 等设备）；</li>
+<li><strong>WebM 项目硬件团队</strong>：发布了可供半导体厂商零成本获取的 VP8 RTL 硬件解码器。</li>
+</ul>
+<hr>
+<h1 id="十三、VP8-与-H-264-的对比"><a href="#十三、VP8-与-H-264-的对比" class="headerlink" title="十三、VP8 与 H.264 的对比"></a>十三、VP8 与 H.264 的对比</h1><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>VP8</th>
+<th>H.264（Constrained Baseline）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>许可协议</strong></td>
+<td>完全免版税，开源</td>
+<td>专利授权，商业使用需支付费用</td>
+</tr>
+<tr>
+<td><strong>压缩效率</strong></td>
+<td>略低于 H.264 Main Profile</td>
+<td>较高（尤其 High Profile）</td>
+</tr>
+<tr>
+<td><strong>编码复杂度</strong></td>
+<td>相对较低</td>
+<td>可配置，CBP 较低，High Profile 较高</td>
+</tr>
+<tr>
+<td><strong>变换</strong></td>
+<td>4×4 DCT + 4×4 WHT（DC 系数）</td>
+<td>4×4 DCT + 可选 8×8 DCT（High Profile）</td>
+</tr>
+<tr>
+<td><strong>熵编码</strong></td>
+<td>布尔算术编码（BAC）</td>
+<td>CABAC（High）&#x2F; CAVLC（Baseline）</td>
+</tr>
+<tr>
+<td><strong>参考帧数</strong></td>
+<td>3（Last&#x2F;Golden&#x2F;Altref）</td>
+<td>可达 16</td>
+</tr>
+<tr>
+<td><strong>分段&#x2F;片</strong></td>
+<td>最多 4 个 Segment</td>
+<td>灵活的 Slice 结构</td>
+</tr>
+<tr>
+<td><strong>环路滤波</strong></td>
+<td>内置，两档可选</td>
+<td>去块滤波（Deblocking Filter）</td>
+</tr>
+<tr>
+<td><strong>硬件支持</strong></td>
+<td>良好，但不及 H.264 广泛</td>
+<td>极为广泛，几乎所有设备均有硬件加速</td>
+</tr>
+<tr>
+<td><strong>浏览器支持</strong></td>
+<td>Chrome、Firefox、Opera 原生；Safari 需插件</td>
+<td>全平台广泛支持</td>
+</tr>
+</tbody></table>
+<p><strong>为何 WebRTC 将两者并列为强制实现？</strong></p>
+<p>这一决策背后存在 Google 阵营（倾向 VP8）与苹果&#x2F;微软阵营（倾向 H.264）的长期博弈。IETF RTCWEB 工作组最终在 RFC 7742 中采取了折中方案：<strong>两者并列为 Mandatory-to-Implement</strong>，各浏览器可在 SDP Offer&#x2F;Answer 阶段优先协商自身偏好的编解码器，只要双方都必须支持这两种，互操作性即可得到保障。</p>
+<hr>
+<h1 id="十四、VP8-的局限性与历史定位"><a href="#十四、VP8-的局限性与历史定位" class="headerlink" title="十四、VP8 的局限性与历史定位"></a>十四、VP8 的局限性与历史定位</h1><h3 id="14-1-技术局限"><a href="#14-1-技术局限" class="headerlink" title="14.1 技术局限"></a>14.1 技术局限</h3><ul>
+<li><strong>压缩效率</strong>：相比 H.264 Main&#x2F;High Profile 及后续的 VP9、H.265、AV1，VP8 的压缩效率处于劣势，在高分辨率（4K+）场景下差距尤为明显；</li>
+<li><strong>参考帧限制</strong>：仅 3 个参考帧缓冲区，相比 H.264 最多 16 个，在长距离预测和复杂运动场景的表现有所受限；</li>
+<li><strong>无 8×8 变换</strong>：缺少 H.264 High Profile 的 8×8 DCT 选项，对大面积平坦区域和渐变区域的编码效率略低；</li>
+<li><strong>并行解码能力有限</strong>：分区机制提供了一定的并行化基础，但不如后续编解码器设计的并行化程度高。</li>
+</ul>
+<h3 id="14-2-VP8-的历史意义"><a href="#14-2-VP8-的历史意义" class="headerlink" title="14.2 VP8 的历史意义"></a>14.2 VP8 的历史意义</h3><p>尽管存在上述局限，VP8 在 Web 视频生态中具有不可忽视的历史意义：</p>
+<ul>
+<li>它是<strong>第一个在 Web 规模上被广泛采用的开放、免版税视频编解码器</strong>；</li>
+<li>它推动了 WebM 项目的建立，为后续 VP9 和 AV1 的开放生态奠定了基础；</li>
+<li>它的开源和专利免费策略，迫使整个行业在专利授权问题上不得不认真对待开放替代方案；</li>
+<li>在 WebRTC 早期（2012~2017 年），VP8 几乎是 Web 实时视频通信的<strong>唯一实用选择</strong>，直到 VP9 和 H.265 逐渐在浏览器中获得支持。</li>
+</ul>
+<h3 id="14-3-现状"><a href="#14-3-现状" class="headerlink" title="14.3 现状"></a>14.3 现状</h3><p>截至 2020 年代，VP8 在 WebRTC 应用中正逐渐被 <strong>VP9</strong> 和 <strong>AV1</strong> 取代，但由于以下原因仍被广泛使用：</p>
+<ul>
+<li>RFC 7742 的 Mandatory-to-Implement 要求保证了它的互操作性基础地位；</li>
+<li>老旧设备和嵌入式平台对 VP8 的支持成熟稳定；</li>
+<li>低分辨率（360p 及以下）场景下，VP8 的编码开销与压缩效率的权衡仍然合理；</li>
+<li>GIF 替代场景（短循环动画）中 VP8 依旧活跃。</li>
+</ul>
+<hr>
+<h1 id="十五、小结"><a href="#十五、小结" class="headerlink" title="十五、小结"></a>十五、小结</h1><p>VP8 是 WebRTC 视频编解码体系中<strong>奠基性</strong>的一环。从技术角度看，它采用标准的混合编码架构——YUV 4:2:0 像素格式、宏块划分、帧内（含特色的 TM_PRED）和帧间（含 SPLITMV）预测、4×4 DCT&#x2F;WHT 变换、布尔算术编码——以工程上的简洁换取了可移植性和低复杂度。</p>
+<p>在 WebRTC 生态中，RFC 7742 将 VP8 列为强制实现，RFC 7741 为其定义了支持分区感知、时间可伸缩性和丢包鲁棒性的 RTP 封装格式，使 VP8 成为 WebRTC 互操作性的压舱石。</p>
+<p>在历史层面，VP8 开创了 Web 开放视频编解码的先河，其背后的专利免费承诺和开源策略，是推动整个行业走向更开放的视频生态的重要力量，并直接催生了更先进的 VP9 和 AV1。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><table>
+<thead>
+<tr>
+<th>RFC &#x2F; 文档</th>
+<th>标题</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc6386/">RFC 6386</a></td>
+<td>VP8 Data Format and Decoding Guide</td>
+<td>Informational（2011.11）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7741/">RFC 7741</a></td>
+<td>RTP Payload Format for VP8 Video</td>
+<td>Proposed Standard（2016.03）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7742/">RFC 7742</a></td>
+<td>WebRTC Video Processing and Codec Requirements</td>
+<td>Standards Track（2016.03）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-alvestrand-rtcweb-vp8-02">draft-alvestrand-rtcweb-vp8</a></td>
+<td>VP8 as RTCWEB Mandatory to Implement</td>
+<td>Informational Draft（2013）</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.webmproject.org/">WebM 项目</a></td>
+<td>WebM Container Specification</td>
+<td>—</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://chromium.googlesource.com/webm/libvpx">libvpx</a></td>
+<td>VP8&#x2F;VP9 Reference Implementation</td>
+<td>BSD License</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">1.</span> <span class="toc-text">一、背景与历史</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E-On2-%E5%88%B0-Google%EF%BC%9A%E4%B8%80%E5%9C%BA%E6%94%B9%E5%8F%98-Web-%E8%A7%86%E9%A2%91%E6%A0%BC%E5%B1%80%E7%9A%84%E6%94%B6%E8%B4%AD"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 从 On2 到 Google：一场改变 Web 视频格局的收购</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 标准化进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%93%E5%88%A9%E4%BA%89%E8%AE%AE%E7%9A%84%E8%A7%A3%E5%86%B3"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 专利争议的解决</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">二、技术架构概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%83%8F%E7%B4%A0%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 像素格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8F%E5%9D%97%E7%BB%93%E6%9E%84"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 宏块结构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%B8%A7%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8F%82%E8%80%83%E5%B8%A7%E6%9C%BA%E5%88%B6"><span class="toc-number">3.</span> <span class="toc-text">三、帧类型与参考帧机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B8%A7%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 帧类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%88%B7%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 刷新机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B%EF%BC%88Intra-Prediction%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">四、帧内预测（Intra Prediction）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BA%AE%E5%BA%A6%E5%AE%8F%E5%9D%97%E7%BA%A7%E6%A8%A1%E5%BC%8F%EF%BC%8816%C3%9716-Y%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 亮度宏块级模式（16×16 Y）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BA%AE%E5%BA%A6%E5%AD%90%E5%9D%97%E7%BA%A7%E6%A8%A1%E5%BC%8F%EF%BC%884%C3%974-B-PRED%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 亮度子块级模式（4×4 B_PRED）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%89%B2%E5%BA%A6%E6%A8%A1%E5%BC%8F%EF%BC%888%C3%978-UV%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 色度模式（8×8 UV）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%EF%BC%88Inter-Prediction%EF%BC%89%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">5.</span> <span class="toc-text">五、帧间预测（Inter Prediction）与运动补偿</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%AE%8F%E5%9D%97%E9%A2%84%E6%B5%8B%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.1.</span> <span class="toc-text">5.1 宏块预测模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-SPLITMV-%E5%88%86%E5%89%B2%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">5.2 SPLITMV 分割模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%8F%82%E8%80%83%E5%B8%A7%E9%80%89%E6%8B%A9"><span class="toc-number">5.0.3.</span> <span class="toc-text">5.3 参考帧选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E4%BA%9A%E5%83%8F%E7%B4%A0%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF%EF%BC%88Sub-Pixel-Interpolation%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">5.4 亚像素运动补偿（Sub-Pixel Interpolation）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%8F%98%E6%8D%A2%E7%BC%96%E7%A0%81"><span class="toc-number">6.</span> <span class="toc-text">六、变换编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-DCT%EF%BC%88%E7%A6%BB%E6%95%A3%E4%BD%99%E5%BC%A6%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 DCT（离散余弦变换）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-WHT%EF%BC%88Walsh-Hadamard-%E5%8F%98%E6%8D%A2%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 WHT（Walsh-Hadamard 变换）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%87%8F%E5%8C%96"><span class="toc-number">6.0.3.</span> <span class="toc-text">6.3 量化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%88%86%E6%AE%B5%E7%89%B9%E5%BE%81%EF%BC%88Segmentation%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">七、分段特征（Segmentation）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%88Loop-Filter%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">八、环路滤波器（Loop Filter）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%B8%A4%E7%A7%8D%E6%BB%A4%E6%B3%A2%E5%99%A8"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 两种滤波器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%87%AA%E9%80%82%E5%BA%94%E6%BB%A4%E6%B3%A2%E5%BC%BA%E5%BA%A6"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 自适应滤波强度</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%86%B5%E7%BC%96%E7%A0%81%EF%BC%88Entropy-Coding%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">九、熵编码（Entropy Coding）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%B8%83%E5%B0%94%E7%AE%97%E6%9C%AF%E7%BC%96%E7%A0%81%E5%99%A8%EF%BC%88Boolean-Arithmetic-Coder%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">9.1 布尔算术编码器（Boolean Arithmetic Coder）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E4%B8%8A%E4%B8%8B%E6%96%87%E8%87%AA%E9%80%82%E5%BA%94%E6%A6%82%E7%8E%87%EF%BC%88Context-Adaptive-Probability%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">9.2 上下文自适应概率（Context-Adaptive Probability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E6%95%B0%E6%8D%AE%E5%88%86%E5%8C%BA%EF%BC%88Partition%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">9.3 数据分区（Partition）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81VP8-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">10.</span> <span class="toc-text">十、VP8 在 WebRTC 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%BC%BA%E5%88%B6%E5%AE%9E%E7%8E%B0%E8%A6%81%E6%B1%82"><span class="toc-number">10.0.1.</span> <span class="toc-text">10.1 强制实现要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-VP8-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%83%8F%E7%B4%A0%E9%95%BF%E5%AE%BD%E6%AF%94%E8%A6%81%E6%B1%82"><span class="toc-number">10.0.2.</span> <span class="toc-text">10.2 VP8 在 WebRTC 中的像素长宽比要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-VP8-%E7%9A%84-RTP-%E5%B0%81%E8%A3%85"><span class="toc-number">10.0.3.</span> <span class="toc-text">10.3 VP8 的 RTP 封装</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#VP8-RTP-Payload-Descriptor%EF%BC%88%E8%B4%9F%E8%BD%BD%E6%8F%8F%E8%BF%B0%E7%AC%A6%EF%BC%89"><span class="toc-number">10.0.3.1.</span> <span class="toc-text">VP8 RTP Payload Descriptor（负载描述符）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VP8-Payload-Header%EF%BC%88%E8%B4%9F%E8%BD%BD%E5%A4%B4%EF%BC%89"><span class="toc-number">10.0.3.2.</span> <span class="toc-text">VP8 Payload Header（负载头）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E4%B8%A2%E5%8C%85%E9%B2%81%E6%A3%92%E6%80%A7%E8%AE%BE%E8%AE%A1"><span class="toc-number">10.0.4.</span> <span class="toc-text">10.4 丢包鲁棒性设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">10.0.5.</span> <span class="toc-text">10.5 时间可伸缩性（Temporal Scalability）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">11.</span> <span class="toc-text">十一、SDP 协商</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81libvpx%EF%BC%9AVP8-%E7%9A%84%E5%8F%82%E8%80%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">12.</span> <span class="toc-text">十二、libvpx：VP8 的参考实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E4%B8%BB%E8%A6%81%E7%BB%84%E4%BB%B6"><span class="toc-number">12.0.1.</span> <span class="toc-text">12.1 主要组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%9B%86%E6%88%90%E7%94%9F%E6%80%81"><span class="toc-number">12.0.2.</span> <span class="toc-text">12.2 集成生态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">12.0.3.</span> <span class="toc-text">12.3 硬件加速</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81VP8-%E4%B8%8E-H-264-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">13.</span> <span class="toc-text">十三、VP8 与 H.264 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81VP8-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E5%8E%86%E5%8F%B2%E5%AE%9A%E4%BD%8D"><span class="toc-number">14.</span> <span class="toc-text">十四、VP8 的局限性与历史定位</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-%E6%8A%80%E6%9C%AF%E5%B1%80%E9%99%90"><span class="toc-number">14.0.1.</span> <span class="toc-text">14.1 技术局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-VP8-%E7%9A%84%E5%8E%86%E5%8F%B2%E6%84%8F%E4%B9%89"><span class="toc-number">14.0.2.</span> <span class="toc-text">14.2 VP8 的历史意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-3-%E7%8E%B0%E7%8A%B6"><span class="toc-number">14.0.3.</span> <span class="toc-text">14.3 现状</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">十五、小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">16.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/15/webrtc/25-VP8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/15/webrtc/25-VP8/&text=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/15/webrtc/25-VP8/&is_video=false&description=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=VP8 — Google 主导的开源视频编码，WebRTC 早期默认&body=Check out this article: http://example.com/2023/01/15/webrtc/25-VP8/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/15/webrtc/25-VP8/&title=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/15/webrtc/25-VP8/&name=VP8 — Google 主导的开源视频编码，WebRTC 早期默认&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/15/webrtc/25-VP8/&t=VP8 — Google 主导的开源视频编码，WebRTC 早期默认"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

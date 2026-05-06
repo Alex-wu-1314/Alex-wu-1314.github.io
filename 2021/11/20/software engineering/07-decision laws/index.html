@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言 当站在技术选型的十字路口，直觉往往会欺骗你。真正的决策者，不是那个最自信的人，而是最清楚自己不知道什么的人。  技术决策就像走迷宫，“聪明”的选择，到最后往往成了翻不过去的墙。决策篇从认知科学、数学规律和历史经验中提炼出验证过的法则，帮我们避开那些经验丰富者踩过的坑，做出经得起时间考验的选择。 Dunning-Kruger Effect — 知道得越少，越自信Overview达克效应指出了自">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之决策篇：做技术选型时的清醒思维">
+<meta property="og:url" content="http://example.com/2021/11/20/software%20engineering/07-decision%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言 当站在技术选型的十字路口，直觉往往会欺骗你。真正的决策者，不是那个最自信的人，而是最清楚自己不知道什么的人。  技术决策就像走迷宫，“聪明”的选择，到最后往往成了翻不过去的墙。决策篇从认知科学、数学规律和历史经验中提炼出验证过的法则，帮我们避开那些经验丰富者踩过的坑，做出经得起时间考验的选择。 Dunning-Kruger Effect — 知道得越少，越自信Overview达克效应指出了自">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-11-20T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:03:01.587Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之决策篇：做技术选型时的清醒思维</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/02/07/webrtc/01-webrtc-framework/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/11/04/software%20engineering/06-design%20laws/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&text=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&is_video=false&description=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之决策篇：做技术选型时的清醒思维&body=Check out this article: http://example.com/2021/11/20/software%20engineering/07-decision%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&name=软件工程之决策篇：做技术选型时的清醒思维&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&t=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dunning-Kruger-Effect-%E2%80%94-%E7%9F%A5%E9%81%93%E5%BE%97%E8%B6%8A%E5%B0%91%EF%BC%8C%E8%B6%8A%E8%87%AA%E4%BF%A1"><span class="toc-number">2.</span> <span class="toc-text">Dunning-Kruger Effect — 知道得越少，越自信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Hanlon%E2%80%98s-Razor-%E2%80%94-%E8%83%BD%E7%94%A8%E6%84%9A%E8%A0%A2%E8%A7%A3%E9%87%8A%E7%9A%84%EF%BC%8C%E5%B0%B1%E5%88%AB%E5%BD%92%E5%92%8E%E4%BA%8E%E6%81%B6%E6%84%8F"><span class="toc-number">3.</span> <span class="toc-text">Hanlon‘s Razor — 能用愚蠢解释的，就别归咎于恶意</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Occam%E2%80%99s-Razor-%E2%80%94-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E8%A7%A3%E9%87%8A%E5%BE%80%E5%BE%80%E6%9C%80%E5%87%86%E7%A1%AE"><span class="toc-number">4.</span> <span class="toc-text">Occam’s Razor — 最简单的解释往往最准确</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Sunk-Cost-Fallacy-%E2%80%94-%E4%B8%8D%E8%A6%81%E5%9B%A0%E4%B8%BA%E5%B7%B2%E7%BB%8F%E6%8A%95%E5%85%A5%E5%B0%B1%E7%BB%A7%E7%BB%AD%E9%94%99%E8%AF%AF%E7%9A%84%E5%86%B3%E5%AE%9A"><span class="toc-number">5.</span> <span class="toc-text">Sunk Cost Fallacy — 不要因为已经投入就继续错误的决定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Map-Is-Not-the-Territory-%E2%80%94-%E6%A8%A1%E5%9E%8B%E4%B8%8D%E6%98%AF%E7%8E%B0%E5%AE%9E%E6%9C%AC%E8%BA%AB"><span class="toc-number">6.</span> <span class="toc-text">The Map Is Not the Territory — 模型不是现实本身</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Confirmation-Bias-%E2%80%94-%E6%88%91%E4%BB%AC%E5%80%BE%E5%90%91%E4%BA%8E%E5%AF%BB%E6%89%BE%E6%94%AF%E6%8C%81%E8%87%AA%E5%B7%B1%E8%A7%82%E7%82%B9%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">7.</span> <span class="toc-text">Confirmation Bias — 我们倾向于寻找支持自己观点的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Hype-Cycle-Amara%E2%80%98s-Law-%E2%80%94-%E7%9F%AD%E6%9C%9F%E9%AB%98%E4%BC%B0%EF%BC%8C%E9%95%BF%E6%9C%9F%E4%BD%8E%E4%BC%B0"><span class="toc-number">8.</span> <span class="toc-text">The Hype Cycle &amp; Amara‘s Law — 短期高估，长期低估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Lindy-Effect-%E2%80%94-%E7%94%A8%E5%BE%97%E8%B6%8A%E4%B9%85%EF%BC%8C%E8%B6%8A%E5%8F%AF%E8%83%BD%E7%BB%A7%E7%BB%AD%E8%A2%AB%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">The Lindy Effect — 用得越久，越可能继续被用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#First-Principles-Thinking-%E2%80%94-%E4%BB%8E%E6%9C%80%E5%9F%BA%E6%9C%AC%E7%9A%84%E4%BA%8B%E5%AE%9E%E5%87%BA%E5%8F%91%E9%87%8D%E6%96%B0%E6%8E%A8%E5%AF%BC"><span class="toc-number">10.</span> <span class="toc-text">First Principles Thinking — 从最基本的事实出发重新推导</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Inversion-%E2%80%94-%E5%8F%8D%E5%90%91%E6%80%9D%E8%80%83%EF%BC%8C%E4%BB%8E%E7%BB%93%E6%9E%9C%E5%BE%80%E5%9B%9E%E6%8E%A8"><span class="toc-number">11.</span> <span class="toc-text">Inversion — 反向思考，从结果往回推</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-9"><span class="toc-number">11.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-9"><span class="toc-number">11.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-9"><span class="toc-number">11.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pareto-Principle-80-20-Rule-%E2%80%94-20-%E7%9A%84%E5%8E%9F%E5%9B%A0%E9%80%A0%E6%88%90-80-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">12.</span> <span class="toc-text">Pareto Principle (80&#x2F;20 Rule) — 20% 的原因造成 80% 的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-10"><span class="toc-number">12.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-10"><span class="toc-number">12.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-10"><span class="toc-number">12.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Cunningham%E2%80%99s-Law-%E2%80%94-%E6%83%B3%E8%A6%81%E6%AD%A3%E7%A1%AE%E7%AD%94%E6%A1%88%EF%BC%9F%E5%85%88%E5%8E%BB%E5%8F%91%E4%B8%80%E4%B8%AA%E9%94%99%E7%9A%84"><span class="toc-number">13.</span> <span class="toc-text">Cunningham’s Law — 想要正确答案？先去发一个错的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-11"><span class="toc-number">13.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-11"><span class="toc-number">13.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-11"><span class="toc-number">13.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之决策篇：做技术选型时的清醒思维
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-11-20T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-11-20</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><blockquote>
+<p>当站在技术选型的十字路口，直觉往往会欺骗你。真正的决策者，不是那个最自信的人，而是最清楚自己不知道什么的人。</p>
+</blockquote>
+<p>技术决策就像走迷宫，“聪明”的选择，到最后往往成了翻不过去的墙。<strong>决策篇</strong>从认知科学、数学规律和历史经验中提炼出验证过的法则，帮我们避开那些经验丰富者踩过的坑，做出经得起时间考验的选择。</p>
+<h1 id="Dunning-Kruger-Effect-—-知道得越少，越自信"><a href="#Dunning-Kruger-Effect-—-知道得越少，越自信" class="headerlink" title="Dunning-Kruger Effect — 知道得越少，越自信"></a>Dunning-Kruger Effect — 知道得越少，越自信</h1><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>达克效应指出了自信和能力之间存在的鸿沟。当一个开发者对某个领域了解甚少时，他们恰恰缺乏评估自己能力所必需的元认知。结果就是，他们<strong>系统性高估</strong>自己对问题的理解程度。随着学习的深入，人们发现该领域的深度和复杂性，对未知的认知增长速度超过了能力的增长速度，导致信心急剧下降（即谷底）。只有经过充分的实践积累，信心才会在真正的理解基础上重新回升。</p>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p>新手开发者常常给出自信且精确的工期预估，而有经验的开发者给出的是一个范围，经典的“it depends”答案。新手并非故意说错，他们只是还不知道自己不知道什么。还有一个值得注意的现象：冒名顶替综合症（Impostor Syndrome）恰好是反方向的校准偏差，高技能者因为深刻理解复杂性和边界情况，反而低估了自己的能力。</p>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>没有上下文的自信不可靠。过早的信心往往意味着认知盲区，不是精通。</li>
+<li>认知的增长快于技能的增长。学习初期会降低自信，之后才会慢慢重建。</li>
+<li>真正的专家说话时带的是范围、权衡和概率，而不是对每个话题都信心满满。</li>
+</ul>
+<h1 id="Hanlon‘s-Razor-—-能用愚蠢解释的，就别归咎于恶意"><a href="#Hanlon‘s-Razor-—-能用愚蠢解释的，就别归咎于恶意" class="headerlink" title="Hanlon‘s Razor — 能用愚蠢解释的，就别归咎于恶意"></a>Hanlon‘s Razor — 能用愚蠢解释的，就别归咎于恶意</h1><h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><p>汉隆剃刀建议：当一个后果可以用人为错误或无知来解释时，不要轻易假定存在恶意。如果一次提交引入了一个安全漏洞，这大概率是一次失误，而不是蓄意破坏。因此正确的反应应该是提供帮助和修复，而不是指责。当然，这不意味着完全排除恶意的可能，安全领域确实需要考虑恶意行为者。但在日常开发和运维中，汉隆剃刀帮你保持理性：构建失败很可能是配置失误，而不是有人使坏。</p>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p>客户报告说“你的软件删除了我所有的数据！”，人很容易恐慌，怀疑是某个不满的员工植入了逻辑炸弹。但汉隆剃刀建议先检查是不是一个普通的bug，比如某个删除函数在边界条件下清空了全表。你最终会发现，当某个边缘条件触发时，清理脚本确实删光了所有记录。没有恶意，只是一个bug。</p>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>出问题时，大概率不是有人使坏，而是错误或误解。</li>
+<li>别急着下结论“系统被入侵了”或“有人故意的”。先从更简单的解释开始（配置文件被漏掉了、打错字了）。</li>
+<li>如果同事的代码有问题，大概率不是恶意。可能只是时间紧或信息不对称。用提问的方式沟通，而不是指控。</li>
+</ul>
+<h1 id="Occam’s-Razor-—-最简单的解释往往最准确"><a href="#Occam’s-Razor-—-最简单的解释往往最准确" class="headerlink" title="Occam’s Razor — 最简单的解释往往最准确"></a>Occam’s Razor — 最简单的解释往往最准确</h1><h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><p>奥卡姆剃刀是一种解决问题的原则：面对多种可能的解法时，越简单的那种越好。在软件领域，这个原则支持 KISS（Keep It Simple, Stupid）方法。如果一个软件架构可以用一个单体应用加一个数据库实现目标，就没必要拆成五个微服务和两个数据库。多余的组件只会引入复杂性和潜在的集成问题，却不会带来额外收益。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p>经典的例子是构建失败。复杂思维的人会怀疑是编译器有隐藏的回归问题，或者某个依赖坏了。而奥卡姆思维的人会从更简单的解释开始：一个错别字、漏了分号、或者配置错了。</p>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>简单代码更容易理解、维护和调试，而复杂代码有更多的潜在失败点。移出或避免架构中不必要的部分。</li>
+<li>调试时，从最简单的解释开始，再考虑复杂化。</li>
+<li>添加更多功能只会让产品更复杂，但不一定会增加价值。奥卡姆剃刀提醒我们：更少往往意味着更多。</li>
+</ul>
+<h1 id="Sunk-Cost-Fallacy-—-不要因为已经投入就继续错误的决定"><a href="#Sunk-Cost-Fallacy-—-不要因为已经投入就继续错误的决定" class="headerlink" title="Sunk Cost Fallacy — 不要因为已经投入就继续错误的决定"></a>Sunk Cost Fallacy — 不要因为已经投入就继续错误的决定</h1><h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><p>沉没成本谬误是一种认知偏差。人类会不合理地看重自己已经投入的东西，无论是金钱、时间还是精力，即使这些投入已经不可能收回了。在软件开发中，团队常常由于“我们已经走了这么远了”而继续做某个功能或产品，即使根本没有进展。理解这个谬误后，工程师和管理者就可以做出更理性的选择：过去的成本应该被忽略，只考虑当前的事实和未来的收益。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><p>一家公司花了两年时间用内部开发的 CMS，却发现它 Bug 很多、团队生产力低下。客观分析表明，采购现成的 CMS 更划算。但工程管理层犹豫了：“我们已经投入两年了，放弃意味着两年浪费掉了！”如果他们只因为这一条理由就坚持下去，那就陷入了沉没成本谬误。反例是 Google，它经常停掉表现不佳的产品，这套机制帮助公司不必因为过去的投入而继续做错误的决定。</p>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>别因为过去的投入而陷在里面。“我们已经做了一年”这个事实不能作为继续做下去的借口。</li>
+<li>健康的工程组织会及时调整方向或者彻底停掉不合逻辑的项目。仅仅因为沉没成本而继续一个错误的路，只会带来更大的损失。</li>
+<li>用清晰的评估标准做阶段性决策：“如果季度末还达不到目标 X，我们就重新评估或叫停。”</li>
+<li>团队应该敢于承认项目走不通，而且不担心被指责。</li>
+</ul>
+<h1 id="The-Map-Is-Not-the-Territory-—-模型不是现实本身"><a href="#The-Map-Is-Not-the-Territory-—-模型不是现实本身" class="headerlink" title="The Map Is Not the Territory — 模型不是现实本身"></a>The Map Is Not the Territory — 模型不是现实本身</h1><h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><p>在软件工程中，我们不断创建“地图”：需求文档映射用户需求，架构图映射组件间的交互方式，我们对代码库的理解也是一个“地图”。这些地图是有用的，没有它们，我们无法规划和推理复杂系统。但问题出在我们忘记了地图的限度。一个典型的例子是过度自信于初始设计：团队在纸上设计了一个系统，但一跑起来就发现模块之间因为延迟问题无法通信，这些并没有被包含在初始假设中。正如统计学家 George Box 所说：“所有模型都是错的，但有些是有用的。”</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><p>微服务设计时，你画了 Service A 通过 Kafka 与 B、C 通信的架构图。图上假设了“网络可靠”和“延迟可忽略”，但在真实的云基础设施中，这些假设很快会碰上实际问题。</p>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>设计文档、UML 图、架构图都是抽象。不要混淆蓝图和真正跑起来的东西。</li>
+<li>实现系统时，准备好应对不断浮现的新问题，那些初始设计并未捕捉到的“地形”。</li>
+<li>模型和设计对指导开发很有价值，但当真实系统的证据和它们矛盾时，需要敢于质疑。</li>
+</ul>
+<h1 id="Confirmation-Bias-—-我们倾向于寻找支持自己观点的信息"><a href="#Confirmation-Bias-—-我们倾向于寻找支持自己观点的信息" class="headerlink" title="Confirmation Bias — 我们倾向于寻找支持自己观点的信息"></a>Confirmation Bias — 我们倾向于寻找支持自己观点的信息</h1><h3 id="Overview-5"><a href="#Overview-5" class="headerlink" title="Overview"></a>Overview</h3><p>确认偏误是指我们下意识地筛选信息，只注意到支持自己看法的部分，而忽略那些相反的。在软件工程中，一个典型场景是调试。如果开发者坚信是模块 A 导致生产问题，他会死磕模块 A 的代码。即使模块 B也在报错，他可能根本不去看，结果错过真正的原因。意识到这个偏差之后，我们应该问自己“我忽略了什么？还有没有其他解释？”，提倡在团队中建设性质疑的环境。</p>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><p>代码审查也一样。一个信任同事水平的评审者可能只看个大概就觉得没问题；相反，如果评审者预期一个初级程序员会写出糟糕的代码，可能就会找出一些根本不重要的“问题”。测试上也如此：开发者可能只写正常路径的断言（happy path），而不去测那些能暴露出问题的边界情况。团队通过“新鲜视角”的代码审查、专门针对自己代码的破坏性测试、以及复盘时问“错了什么以及我们为什么没看到”来对抗这些偏误。</p>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>做代码审查或调试时，注意自己是不是只找支持初始假设的证据。</li>
+<li>试着针对问题反问自己：“如果我是错的，我会看到什么？”以此来对抗确认偏误。</li>
+<li>团队做技术决策时（比如技术栈或设计选择），要主动寻求不同意见的人参与进来。如果整个团队都觉得技术 X 是更好的选择，那就专门派一个人去研究反对 X 的论据。</li>
+<li>把决策建立在客观标准上（事实而非观点）。自动化测试、性能指标和 A&#x2F;B 实验能帮你绕过人自身的认知偏差。</li>
+</ul>
+<h1 id="The-Hype-Cycle-Amara‘s-Law-—-短期高估，长期低估"><a href="#The-Hype-Cycle-Amara‘s-Law-—-短期高估，长期低估" class="headerlink" title="The Hype Cycle &amp; Amara‘s Law — 短期高估，长期低估"></a>The Hype Cycle &amp; Amara‘s Law — 短期高估，长期低估</h1><h3 id="Overview-6"><a href="#Overview-6" class="headerlink" title="Overview"></a>Overview</h3><p>Gartner 技术成熟度曲线描述了一个熟悉的炒作周期：新技术触发过高的期望，在现实达不到承诺时跌入低谷，然后经过逐步爬升慢慢走向成熟的生产使用。在软件工程中，许多被吹上天的技术一开始被当作“变革者”，却因为在预期时间内达不到效果而被遗弃。然而低谷过后，有些技术会默默成熟并找到真正的价值。教训是：在炒作期保持健康的怀疑，但对长期应用持开放态度。</p>
+<h3 id="Examples-6"><a href="#Examples-6" class="headerlink" title="Examples"></a>Examples</h3><p>AI 在 1960–70 年代经历了第一波大炒作，人们以为通用人工智能马上就到了。承诺没有实现后，随之而来的是“AI 寒冬”，许多人彻底放弃了 AI。但几十年的稳步进步之后，AI 正在从医疗保健到生成式 AI 多个领域重塑行业。微服务也是如此：曾被奉为万能解药，不少团队在遭遇管理数百个服务的复杂性后跌入低谷。而现在，微服务在合适场景下正发挥出真正的价值。</p>
+<h3 id="Takeaways-6"><a href="#Takeaways-6" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>初期人们总是高估新技术短期的效果，导致不现实的预期。</li>
+<li>长期来看，这些技术真正的潜力才会出来，往往比最初想象的更大。Amara’s Law 提醒我们：往往低估重要创新的长期影响。</li>
+<li>别被炒作冲昏头脑。用实际的价值，而不是热度，来评估一个新工具。</li>
+<li>把创新预算当作有限的资源。大部分场景用稳定、久经考验的技术，只在真正解决问题时才采用炒作中的新技术。</li>
+</ul>
+<h1 id="The-Lindy-Effect-—-用得越久，越可能继续被用"><a href="#The-Lindy-Effect-—-用得越久，越可能继续被用" class="headerlink" title="The Lindy Effect — 用得越久，越可能继续被用"></a>The Lindy Effect — 用得越久，越可能继续被用</h1><h3 id="Overview-7"><a href="#Overview-7" class="headerlink" title="Overview"></a>Overview</h3><p>林迪效应颠覆了我们关于老化的常见直觉。对于生物，年龄越大意味着剩余寿命越短。但在技术领域，情况往往相反：某样东西被使用得越久，就越有可能被持续使用。时间是一个过滤器，任何无关的、有缺陷的或脆弱的东西都会消失，而经过多年保留下来的一般是高质量、有价值的。这个原则是“闪闪发光的新事物综合症”的对冲方案。多数所谓的“创新”实际上与当前想法关联不大，却只是在重新发明过去的东西。软件开发中真正根本性的思想（算法、数据结构、协议、范式）变化非常缓慢。</p>
+<h3 id="Examples-7"><a href="#Examples-7" class="headerlink" title="Examples"></a>Examples</h3><p>COBOL 诞生于 1959 年，至今已有超过 60 年的历史，但仍然支持着全球大量金融和政府基础设施，据估算，70–80% 的全球金融交易仍依赖 COBOL 代码。过去十年，AngularJS、Ember.js 等许多 JavaScript 框架冒出来又迅速被遗忘，而底层语言和浏览器 API 已经存在了 25 年以上且会继续存在。如果你要在学一个前沿框架和学 SQL 之间选，Lindian 的做法是选 SQL（诞生于 1970 年代），它今天依然高度相关，未来也会如此。</p>
+<h3 id="Takeaways-7"><a href="#Takeaways-7" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>林迪效应：某样东西（一项技术、工具、概念）如果已经存在了很久，它很可能会继续存在更久。</li>
+<li>对开发者来说，这是一个提醒：投资于那些经得起时间考验的技能和基础（算法、核心语言、设计原则），而不是追逐三五年就被淘汰的热门框架。</li>
+<li>用 Lindy Effect 做技术评估：存在时间越久的东西，未来还会存在更久。“选用无聊的技术”。</li>
+</ul>
+<h1 id="First-Principles-Thinking-—-从最基本的事实出发重新推导"><a href="#First-Principles-Thinking-—-从最基本的事实出发重新推导" class="headerlink" title="First Principles Thinking — 从最基本的事实出发重新推导"></a>First Principles Thinking — 从最基本的事实出发重新推导</h1><h3 id="Overview-8"><a href="#Overview-8" class="headerlink" title="Overview"></a>Overview</h3><p>第一性原理思维通过质疑现有的解决方案而不是盲目照搬来解决问题。你不是说“我们做 X 因为那些项目也做了 X”，而是问：“我们真正要达成的目标是什么？哪些是真实约束，哪些只是假设？”这种方法适合渐进式改进，对颠覆性的变革尤其关键。在软件设计中，第一性原理会挑战当前系统的工作方式，“如果我们从零开始，今天应该怎么构建？”这种思维方式促成了微服务（质疑单体架构）和 serverless 计算（质疑服务器管理）的出现。缺点是思考强度大，不是所有场景都需要，很多问题用已知模式已经解决得很好了。</p>
+<h3 id="Examples-8"><a href="#Examples-8" class="headerlink" title="Examples"></a>Examples</h3><p>SpaceX 之前火箭发射成本高昂，因为行业惯例使用昂贵的材料且火箭用过一次就丢。Elon Musk 用第一性原理思维拆解：火箭是由什么构成的？主要是铝、钛、铜和碳纤维。原材料的成本只是成品火箭价格的一小部分。基于这个洞见，SpaceX 决定自己从头造火箭并实现复用。软件世界也有这样的例子：一家公司为某专有数据分析平台支付许可费，有工程师质疑并拆解，这个平台实际上做的事情就是采集数据、运行统计计算、生成报告。这些用开源软件加定制编程也能实现，最终用 Python 跑出来的 PoC 证明：成本少一个数量级却能完成 90% 的功能。</p>
+<h3 id="Takeaways-8"><a href="#Takeaways-8" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>别把问题当成给定的。把它拆解成基本组成部分，然后质疑每一层假设，它们到底是真实的还是只是公认的套路？一旦你理解清楚了本质需求，可能就能设计出全新的方案。</li>
+<li>“大家都用 Y 框架来做这件事”不等于你也必须这么做。第一性原理思维会促使你去问：为什么大家这么做？</li>
+<li>与其说“这个功能要 3 个月，因为之前类似功能用了那么久”，不如把它层层拆解。从基础开始估算，有时你会发现之前那个例子里的额外复杂性你根本不需要。</li>
+</ul>
+<h1 id="Inversion-—-反向思考，从结果往回推"><a href="#Inversion-—-反向思考，从结果往回推" class="headerlink" title="Inversion — 反向思考，从结果往回推"></a>Inversion — 反向思考，从结果往回推</h1><h3 id="Overview-9"><a href="#Overview-9" class="headerlink" title="Overview"></a>Overview</h3><p>Inversion（反向）的核心是：从相反的角度看问题时，某个特别的洞察会变得清晰。在软件工程中，不是只针对最佳情况去设计，而是刻意地去设想最坏的情况，比如“如果数据库宕机了怎么办？如果延迟飙升呢？”通过思考事情可能如何失败，你会增加像断路器、重试机制、故障转移等能力。Inversion 与第一性原理思维搭配得很好，属于防御性设计的一种：通过提前避免可能的问题来保证系统健壮性。</p>
+<h3 id="Examples-9"><a href="#Examples-9" class="headerlink" title="Examples"></a>Examples</h3><p>Netflix 的 Chaos Monkey 是最典型的例子：大多数工程师的工作是让系统保持运行，而它反其道而行，随机在生产环境里关掉一台服务器来测试系统的韧性。结果 Netflix 构建了能扛住主机故障的健壮服务。测试驱动开发（TDD）也在用 Inversion：先写一个失败的测试，定义好失败后再写代码让它通过，迫使我们先设想代码可能怎么失败，再去实现它。</p>
+<h3 id="Takeaways-9"><a href="#Takeaways-9" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>针对任何目标，也要追问反向问题。如果目标是“按时交付项目”，也可以想想“什么会导致我们错过交付时间？”列出这些因素（需求膨胀、低估工时等），然后逆向规避。</li>
+<li>用预下单（pre-mortem）法：假设项目已经失败，然后反推可能的原因。这种批判性思考能暴露乐观规划下看不到的风险。</li>
+<li>在设计和测试中，多考虑边缘情况。比如问“恶意用户怎么破坏这个 API？”，然后反向推导出验证、限流等解决方案。</li>
+</ul>
+<h1 id="Pareto-Principle-80-20-Rule-—-20-的原因造成-80-的问题"><a href="#Pareto-Principle-80-20-Rule-—-20-的原因造成-80-的问题" class="headerlink" title="Pareto Principle (80&#x2F;20 Rule) — 20% 的原因造成 80% 的问题"></a>Pareto Principle (80&#x2F;20 Rule) — 20% 的原因造成 80% 的问题</h1><h3 id="Overview-10"><a href="#Overview-10" class="headerlink" title="Overview"></a>Overview</h3><p>帕累托原理更像一个观察结果而非严格意义上的定律，但 80&#x2F;20 模式（或者类似于 90&#x2F;10 的比例）在软件工程中频繁出现。比如“程序 80% 的时间花在 20% 的代码上”。这对优化来说意义重大：不是微小地优化所有东西，而是通过性能分析找出那 20% 的“热区”，重点优化它。这个原则也影响产品开发，小部分核心功能覆盖大部分用户的需求。在规划 MVP 的时候，团队会集中做那部分核心能力，而不是试图做成包罗万象的庞然大物。它也是一种对抗“平等优先级”的必要纠正：所有事情并不是同等重要的。</p>
+<h3 id="Examples-10"><a href="#Examples-10" class="headerlink" title="Examples"></a>Examples</h3><p>微软发现 Windows 和 Office 大约 20% 的 Bug 导致了 80% 的崩溃，而 1% 的 Bug 引起约 50% 的错误。通过集中精力处理那 1-20% 的 Bug，它们大幅提升了产品的稳定性。这就是教科书级别的帕累托：集中解决那少数但影响最致命的问题，最快让大多数用户感到改善。代码热点同样遵循帕累托模式，一小部分代码占据了大部分的缺陷、性能瓶颈和“谁都不敢动”的问题。跟踪提交和事故来定位它们，然后在那几个收益最大的地方还技术债：加测试、简化路径、降低耦合、收紧接口。</p>
+<h3 id="Takeaways-10"><a href="#Takeaways-10" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>找出那 20% 的关键因素，它们通常贡献了 80% 的结果。比如 20% 的功能占据了 80% 的使用量，或者 20% 的 Bug 引起了 80% 的崩溃。把时间和资源集中在高杠杆的关键少数上。</li>
+<li>别对所有事情平均用力。如果一块代码很少被运行到，那么它大概率不需要和热点代码同等级的优化关注度。</li>
+<li>比例不一定是准确的 80&#x2F;20，但意思是一样的。用 profiling、分析工具和数据采集来识别这些不均衡点。</li>
+<li>在个人层面，作为工程师或管理者，找出为你创造最大价值的任务。可能是写核心代码，也可能是辅导团队成员。</li>
+</ul>
+<h1 id="Cunningham’s-Law-—-想要正确答案？先去发一个错的"><a href="#Cunningham’s-Law-—-想要正确答案？先去发一个错的" class="headerlink" title="Cunningham’s Law — 想要正确答案？先去发一个错的"></a>Cunningham’s Law — 想要正确答案？先去发一个错的</h1><h3 id="Overview-11"><a href="#Overview-11" class="headerlink" title="Overview"></a>Overview</h3><p>Cunningham‘s Law 起源于在线社区（特别是 Wiki 和论坛）。背后的观察是：断言比提问更能激发互动。在维基百科上，如果有人贴了错误信息，其他编辑者会立刻跑来纠正。在软件工程领域，你在 Stack Overflow 和邮件列表上也能看到这种模式：用户提一个问题几乎没回应，但如果有个人发了一个稍微有点错的答案，马上就会有一堆人出来纠正。通过先把某个东西放出来，你就把被动的冷提问变成了主动的热讨论。</p>
+<h3 id="Examples-11"><a href="#Examples-11" class="headerlink" title="Examples"></a>Examples</h3><p>一个开发者被卡在某个开源库的配置上，发帖提问没有回复。然后他祭出 Cunningham’s Law 方法，发帖说：“给还在折腾的各位，解决方案是把 ConfigMode 设为 False。”如果是错的，就会有人，可能是库的维护者，很快来纠正：“不对，ConfigMode 要保持 True，你要改的是另一个设置。”同样，一个初级开发者不确定怎么做某个功能时，与其模糊地抽象地提问，不如先提一个 PR（尽管可能不完全对），然后资深工程师会来 review 并指出改进方向。抛出一个“建议的答案”，就能调动团队集体智慧。</p>
+<h3 id="Takeaways-11"><a href="#Takeaways-11" class="headerlink" title="Takeaways"></a>Takeaways</h3><ul>
+<li>人们喜欢纠错。如果你被卡住了，试着给出一个解法（即使是错的），可能比等正确答案来得更快。</li>
+<li>直接提问可能只有静默，而抛出某个结论（即使不准确）往往更容易引起反应。</li>
+<li>与其反复问“我们应该怎么实现 X？”，不如先给出一个草稿或原型。即使不完全正确，有一个具体的起点比抽象的问题更容易得到反馈。</li>
+</ul>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Dunning-Kruger-Effect-%E2%80%94-%E7%9F%A5%E9%81%93%E5%BE%97%E8%B6%8A%E5%B0%91%EF%BC%8C%E8%B6%8A%E8%87%AA%E4%BF%A1"><span class="toc-number">2.</span> <span class="toc-text">Dunning-Kruger Effect — 知道得越少，越自信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Hanlon%E2%80%98s-Razor-%E2%80%94-%E8%83%BD%E7%94%A8%E6%84%9A%E8%A0%A2%E8%A7%A3%E9%87%8A%E7%9A%84%EF%BC%8C%E5%B0%B1%E5%88%AB%E5%BD%92%E5%92%8E%E4%BA%8E%E6%81%B6%E6%84%8F"><span class="toc-number">3.</span> <span class="toc-text">Hanlon‘s Razor — 能用愚蠢解释的，就别归咎于恶意</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Occam%E2%80%99s-Razor-%E2%80%94-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E8%A7%A3%E9%87%8A%E5%BE%80%E5%BE%80%E6%9C%80%E5%87%86%E7%A1%AE"><span class="toc-number">4.</span> <span class="toc-text">Occam’s Razor — 最简单的解释往往最准确</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Sunk-Cost-Fallacy-%E2%80%94-%E4%B8%8D%E8%A6%81%E5%9B%A0%E4%B8%BA%E5%B7%B2%E7%BB%8F%E6%8A%95%E5%85%A5%E5%B0%B1%E7%BB%A7%E7%BB%AD%E9%94%99%E8%AF%AF%E7%9A%84%E5%86%B3%E5%AE%9A"><span class="toc-number">5.</span> <span class="toc-text">Sunk Cost Fallacy — 不要因为已经投入就继续错误的决定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Map-Is-Not-the-Territory-%E2%80%94-%E6%A8%A1%E5%9E%8B%E4%B8%8D%E6%98%AF%E7%8E%B0%E5%AE%9E%E6%9C%AC%E8%BA%AB"><span class="toc-number">6.</span> <span class="toc-text">The Map Is Not the Territory — 模型不是现实本身</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Confirmation-Bias-%E2%80%94-%E6%88%91%E4%BB%AC%E5%80%BE%E5%90%91%E4%BA%8E%E5%AF%BB%E6%89%BE%E6%94%AF%E6%8C%81%E8%87%AA%E5%B7%B1%E8%A7%82%E7%82%B9%E7%9A%84%E4%BF%A1%E6%81%AF"><span class="toc-number">7.</span> <span class="toc-text">Confirmation Bias — 我们倾向于寻找支持自己观点的信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Hype-Cycle-Amara%E2%80%98s-Law-%E2%80%94-%E7%9F%AD%E6%9C%9F%E9%AB%98%E4%BC%B0%EF%BC%8C%E9%95%BF%E6%9C%9F%E4%BD%8E%E4%BC%B0"><span class="toc-number">8.</span> <span class="toc-text">The Hype Cycle &amp; Amara‘s Law — 短期高估，长期低估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-6"><span class="toc-number">8.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-6"><span class="toc-number">8.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-6"><span class="toc-number">8.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Lindy-Effect-%E2%80%94-%E7%94%A8%E5%BE%97%E8%B6%8A%E4%B9%85%EF%BC%8C%E8%B6%8A%E5%8F%AF%E8%83%BD%E7%BB%A7%E7%BB%AD%E8%A2%AB%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">The Lindy Effect — 用得越久，越可能继续被用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-7"><span class="toc-number">9.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-7"><span class="toc-number">9.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-7"><span class="toc-number">9.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#First-Principles-Thinking-%E2%80%94-%E4%BB%8E%E6%9C%80%E5%9F%BA%E6%9C%AC%E7%9A%84%E4%BA%8B%E5%AE%9E%E5%87%BA%E5%8F%91%E9%87%8D%E6%96%B0%E6%8E%A8%E5%AF%BC"><span class="toc-number">10.</span> <span class="toc-text">First Principles Thinking — 从最基本的事实出发重新推导</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-8"><span class="toc-number">10.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-8"><span class="toc-number">10.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-8"><span class="toc-number">10.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Inversion-%E2%80%94-%E5%8F%8D%E5%90%91%E6%80%9D%E8%80%83%EF%BC%8C%E4%BB%8E%E7%BB%93%E6%9E%9C%E5%BE%80%E5%9B%9E%E6%8E%A8"><span class="toc-number">11.</span> <span class="toc-text">Inversion — 反向思考，从结果往回推</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-9"><span class="toc-number">11.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-9"><span class="toc-number">11.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-9"><span class="toc-number">11.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pareto-Principle-80-20-Rule-%E2%80%94-20-%E7%9A%84%E5%8E%9F%E5%9B%A0%E9%80%A0%E6%88%90-80-%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">12.</span> <span class="toc-text">Pareto Principle (80&#x2F;20 Rule) — 20% 的原因造成 80% 的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-10"><span class="toc-number">12.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-10"><span class="toc-number">12.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-10"><span class="toc-number">12.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Cunningham%E2%80%99s-Law-%E2%80%94-%E6%83%B3%E8%A6%81%E6%AD%A3%E7%A1%AE%E7%AD%94%E6%A1%88%EF%BC%9F%E5%85%88%E5%8E%BB%E5%8F%91%E4%B8%80%E4%B8%AA%E9%94%99%E7%9A%84"><span class="toc-number">13.</span> <span class="toc-text">Cunningham’s Law — 想要正确答案？先去发一个错的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-11"><span class="toc-number">13.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-11"><span class="toc-number">13.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-11"><span class="toc-number">13.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&text=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&is_video=false&description=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之决策篇：做技术选型时的清醒思维&body=Check out this article: http://example.com/2021/11/20/software%20engineering/07-decision%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&title=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&name=软件工程之决策篇：做技术选型时的清醒思维&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/20/software%20engineering/07-decision%20laws/&t=软件工程之决策篇：做技术选型时的清醒思维"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

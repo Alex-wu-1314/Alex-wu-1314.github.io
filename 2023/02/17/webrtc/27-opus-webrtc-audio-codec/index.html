@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="相关规范  RFC 6716 — Definition of the Opus Audio Codec（2012） RFC 7587 — RTP Payload Format for the Opus Speech and Audio Codec（2015） RFC 7874 — WebRTC Audio Codec and Processing Requirements（2016） RFC 8">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Opus —— WebRTC 音频的事实标准编码">
+<meta property="og:url" content="http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="相关规范  RFC 6716 — Definition of the Opus Audio Codec（2012） RFC 7587 — RTP Payload Format for the Opus Speech and Audio Codec（2015） RFC 7874 — WebRTC Audio Codec and Processing Requirements（2016） RFC 8">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-02-17T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T08:54:40.197Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Opus —— WebRTC 音频的事实标准编码</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/02/26/webrtc/28.aac/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/01/30/webrtc/26-vp9/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&text=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&is_video=false&description=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Opus —— WebRTC 音频的事实标准编码&body=Check out this article: http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&name=Opus —— WebRTC 音频的事实标准编码&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&t=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-Opus-%E8%83%BD%E8%84%B1%E9%A2%96%E8%80%8C%E5%87%BA%EF%BC%9F"><span class="toc-number">1.0.1.</span> <span class="toc-text">为什么 Opus 能脱颖而出？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8E%86%E5%8F%B2%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">2. 历史与标准化进程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">3.</span> <span class="toc-text">3. 核心特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%B6%85%E5%AE%BD%E7%A0%81%E7%8E%87%E8%8C%83%E5%9B%B4"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 超宽码率范围</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%9E%81%E4%BD%8E%E7%AE%97%E6%B3%95%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 极低算法延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%94%AF%E6%8C%81%E5%A4%9A%E7%A7%8D%E9%87%87%E6%A0%B7%E7%8E%87%E5%92%8C%E5%A3%B0%E9%81%93"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 支持多种采样率和声道</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%AE%8C%E5%85%A8%E5%BC%80%E6%94%BE%E4%B8%8E%E5%85%8D%E7%89%88%E7%A8%8E"><span class="toc-number">3.0.4.</span> <span class="toc-text">3.4 完全开放与免版税</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%86%85%E9%83%A8%E6%9E%B6%E6%9E%84%EF%BC%9ASILK%E3%80%81CELT-%E4%B8%8E%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">4. 内部架构：SILK、CELT 与混合模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-SILK-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%AF%AD%E9%9F%B3%E4%BC%98%E5%8C%96%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 SILK 模式（语音优化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-CELT-%E6%A8%A1%E5%BC%8F%EF%BC%88%E9%9F%B3%E4%B9%90%E4%B8%8E%E9%AB%98%E8%B4%A8%E9%87%8F%E9%9F%B3%E9%A2%91%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 CELT 模式（音乐与高质量音频）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%EF%BC%88Hybrid-Mode%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 混合模式（Hybrid Mode）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%A8%A1%E5%BC%8F%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91"><span class="toc-number">4.0.4.</span> <span class="toc-text">4.4 模式选择逻辑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%A0%81%E6%B5%81%E6%A0%BC%E5%BC%8F%EF%BC%88Bitstream-Format%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">5. 码流格式（Bitstream Format）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TOC%EF%BC%88Table-of-Contents%EF%BC%89%E5%AD%97%E8%8A%82"><span class="toc-number">5.0.1.</span> <span class="toc-text">5.1 TOC（Table of Contents）字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%85%8D%E7%BD%AE%E7%B4%A2%E5%BC%95%EF%BC%88Config%EF%BC%89%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F%E6%98%A0%E5%B0%84"><span class="toc-number">5.0.2.</span> <span class="toc-text">5.2 配置索引（Config）与工作模式映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A4%9A%E5%B8%A7%E6%89%93%E5%8C%85"><span class="toc-number">5.0.3.</span> <span class="toc-text">5.3 多帧打包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84-RTP-%E5%B0%81%E8%A3%85%EF%BC%88RFC-7587%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 在 WebRTC 中的 RTP 封装（RFC 7587）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RTP-%E5%A4%B4%E9%83%A8%E4%BD%BF%E7%94%A8%E8%A7%84%E5%88%99"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 RTP 头部使用规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTP-Payload-%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 RTP Payload 结构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SDP-%E5%8D%8F%E5%95%86%EF%BC%88RFC-7587-%C2%A7-7%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">7. SDP 协商（RFC 7587 § 7）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-rtpmap-%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.1.</span> <span class="toc-text">7.1 rtpmap 格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-fmtp-%E5%8F%82%E6%95%B0"><span class="toc-number">7.0.2.</span> <span class="toc-text">7.2 fmtp 参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-SDP-%E7%A4%BA%E4%BE%8B%EF%BC%88RFC-7587%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">7.3 SDP 示例（RFC 7587）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-ptime-%E4%B8%8E-maxptime"><span class="toc-number">7.0.4.</span> <span class="toc-text">7.4 ptime 与 maxptime</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%97%E4%B8%A2%E5%8C%85%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">8. 抗丢包机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%86%85%E5%B5%8C-FEC%EF%BC%9ALBRR%EF%BC%88Low-Bitrate-Redundancy%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 内嵌 FEC：LBRR（Low Bitrate Redundancy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%B7%B1%E5%BA%A6%E5%86%97%E4%BD%99%EF%BC%9ADRED%EF%BC%88Deep-Redundancy%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 深度冗余：DRED（Deep Redundancy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%86%85%E7%BD%AE-PLC%EF%BC%88Packet-Loss-Concealment%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">8.3 内置 PLC（Packet Loss Concealment）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-DTX%EF%BC%88Discontinuous-Transmission%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">8.4 DTX（Discontinuous Transmission）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%8F%98%E7%A0%81%E7%8E%87%EF%BC%88VBR%EF%BC%89%E4%B8%8E%E5%9B%BA%E5%AE%9A%E7%A0%81%E7%8E%87%EF%BC%88CBR%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">9. 变码率（VBR）与固定码率（CBR）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">10.</span> <span class="toc-text">10. 在 WebRTC 中的完整流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-libopus-API-%E4%BD%BF%E7%94%A8%E8%A6%81%E7%82%B9"><span class="toc-number">11.</span> <span class="toc-text">11. libopus API 使用要点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%BC%96%E7%A0%81%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%85%B3%E9%94%AE%E6%8E%A7%E5%88%B6%E5%8F%82%E6%95%B0"><span class="toc-number">11.0.1.</span> <span class="toc-text">11.1 编码器初始化与关键控制参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E7%BC%96%E7%A0%81%E4%B8%8E%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.2.</span> <span class="toc-text">11.2 编码与解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%8A%A8%E6%80%81%E7%A0%81%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%88%E4%B8%8E-WebRTC-BWE-%E8%81%94%E5%8A%A8%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">11.3 动态码率控制（与 WebRTC BWE 联动）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">12.</span> <span class="toc-text">12. 与其他编解码器的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%8F%82%E6%95%B0%E9%80%89%E6%8B%A9"><span class="toc-number">13.</span> <span class="toc-text">13. 实际应用场景与参数选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-WebRTC-%E9%9F%B3%E8%A7%86%E9%A2%91%E9%80%9A%E8%AF%9D%EF%BC%88%E4%B8%BB%E6%B5%81%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">13.1 WebRTC 音视频通话（主流场景）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E6%B8%B8%E6%88%8F%E8%AF%AD%E9%9F%B3%E9%80%9A%E8%AF%9D%EF%BC%88%E6%9E%81%E4%BD%8E%E5%BB%B6%E8%BF%9F%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">13.2 游戏语音通话（极低延迟）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E9%9F%B3%E4%B9%90%E4%BC%A0%E8%BE%93%EF%BC%88%E9%AB%98%E8%B4%A8%E9%87%8F%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">13.3 音乐传输（高质量）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-SFU-MCU-%E5%AA%92%E4%BD%93%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">13.0.4.</span> <span class="toc-text">13.4 SFU&#x2F;MCU 媒体服务器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5"><span class="toc-number">14.</span> <span class="toc-text">14. 相关 RFC 速查</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">15. 小结</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Opus —— WebRTC 音频的事实标准编码
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-02-17T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-02-17</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <blockquote>
+<p><strong>相关规范</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc6716">RFC 6716</a> — Definition of the Opus Audio Codec（2012）</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7587">RFC 7587</a> — RTP Payload Format for the Opus Speech and Audio Codec（2015）</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7874">RFC 7874</a> — WebRTC Audio Codec and Processing Requirements（2016）</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8251">RFC 8251</a> — Updates to the Opus Audio Codec（2017）</li>
+</ul>
+</blockquote>
+<hr>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>Opus 是由 IETF（Internet Engineering Task Force）于 2012 年正式标准化的开放、免版税的音频编解码器，规范编号 <strong>RFC 6716</strong>。它由 Mozilla Corporation 与 Skype Technologies（现 Microsoft）合作开发，融合了 Skype 的 <strong>SILK</strong> 语音编码技术与 Xiph.Org 的 <strong>CELT</strong> 音频编码技术，是第一个被主流标准组织批准的、完全开源的高质量音频编解码器。</p>
+<p>在 WebRTC 的世界里，Opus 的地位不可撼动。<strong>RFC 7874</strong>（WebRTC Audio Codec and Processing Requirements）明确规定：</p>
+<blockquote>
+<p><em>WebRTC endpoints are <strong>REQUIRED</strong> to implement the following audio codecs: Opus [RFC6716] with the payload format specified in [RFC7587].</em></p>
+</blockquote>
+<p>即所有合规的 WebRTC 实现（浏览器、原生客户端、媒体服务器）必须支持 Opus。这一强制要求使 Opus 成为 WebRTC 音频互操作的基础，也是其被称为”事实标准”的法理依据。</p>
+<h3 id="为什么-Opus-能脱颖而出？"><a href="#为什么-Opus-能脱颖而出？" class="headerlink" title="为什么 Opus 能脱颖而出？"></a>为什么 Opus 能脱颖而出？</h3><p>在 Opus 之前，音频编码领域高度碎片化：</p>
+<ul>
+<li>语音场景用 SILK（Skype）、Speex、AMR-NB&#x2F;WB；</li>
+<li>音乐&#x2F;通用场景用 Vorbis、AAC、MP3；</li>
+<li>实时通信场景用 G.711、G.722。</li>
+</ul>
+<p>没有任何一个编解码器能同时覆盖从低码率语音到高质量音乐的全部场景，且大多数都受专利约束。Opus 通过将 SILK 与 CELT 深度整合，第一次让一个编解码器覆盖了几乎所有的网络音频应用场景，且完全免费开源。</p>
+<hr>
+<h1 id="2-历史与标准化进程"><a href="#2-历史与标准化进程" class="headerlink" title="2. 历史与标准化进程"></a>2. 历史与标准化进程</h1><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2007 年</td>
+<td>Xiph.Org 开始开发 CELT（Constrained Energy Lapped Transform）</td>
+</tr>
+<tr>
+<td>2009 年</td>
+<td>Skype 开发 SILK 编解码器，用于 Skype VoIP 通话</td>
+</tr>
+<tr>
+<td>2010 年</td>
+<td>IETF CODEC 工作组成立，开始制定统一的互联网音频编解码器标准</td>
+</tr>
+<tr>
+<td>2011 年 11 月</td>
+<td>IETF 工作组发布最后一次码流格式征集意见（Last Call）</td>
+</tr>
+<tr>
+<td>2012 年 1 月 8 日</td>
+<td>码流格式冻结，不再接受变更</td>
+</tr>
+<tr>
+<td>2012 年 7 月 2 日</td>
+<td>Opus 被 IETF 批准标准化</td>
+</tr>
+<tr>
+<td><strong>2012 年 9 月 10 日</strong></td>
+<td><strong>RFC 6716 正式发布，libopus 1.0 同日发布</strong></td>
+</tr>
+<tr>
+<td>2015 年 6 月</td>
+<td>RFC 7587 发布，规范 Opus 在 RTP 上的封装格式</td>
+</tr>
+<tr>
+<td>2016 年 5 月</td>
+<td>RFC 7874 发布，将 Opus 列为 WebRTC 必须实现的音频编解码器</td>
+</tr>
+<tr>
+<td>2017 年</td>
+<td>RFC 8251 发布，对 RFC 6716 进行若干勘误和更新</td>
+</tr>
+<tr>
+<td>2024 年</td>
+<td>libopus 1.5 发布，引入基于深度学习的 DRED（Deep Redundancy）机制</td>
+</tr>
+</tbody></table>
+<p>参与 Opus 开发的主要机构包括：Broadcom、Google、Microsoft（通过 Skype）、Mozilla、Octasic、Xiph.Org 以及 IETF 本身。</p>
+<hr>
+<h1 id="3-核心特性"><a href="#3-核心特性" class="headerlink" title="3. 核心特性"></a>3. 核心特性</h1><p>RFC 6716 在摘要中精炼地描述了 Opus 的主要特性：</p>
+<blockquote>
+<p><em>Opus is designed to handle a wide range of interactive audio applications, including Voice over IP, videoconferencing, in-game chat, and even live, distributed music performances. It scales from low bitrate narrowband speech at 6 kbit&#x2F;s to very high quality stereo music at 510 kbit&#x2F;s.</em></p>
+</blockquote>
+<p>具体而言：</p>
+<h3 id="3-1-超宽码率范围"><a href="#3-1-超宽码率范围" class="headerlink" title="3.1 超宽码率范围"></a>3.1 超宽码率范围</h3><ul>
+<li><strong>最低码率</strong>：6 kbit&#x2F;s（窄带语音，NB）</li>
+<li><strong>最高码率</strong>：510 kbit&#x2F;s（全频带立体声音乐，FB Stereo）</li>
+<li>码率可在运行时<strong>动态调整</strong>，无需重新协商信令</li>
+</ul>
+<p>根据 RFC 6716，不同场景的推荐码率（20 ms 帧大小）：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>带宽类型</th>
+<th>推荐码率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>窄带语音（NB Speech）</td>
+<td>0–4 kHz</td>
+<td>8–12 kbit&#x2F;s</td>
+</tr>
+<tr>
+<td>宽带语音（WB Speech）</td>
+<td>0–8 kHz</td>
+<td>16–20 kbit&#x2F;s</td>
+</tr>
+<tr>
+<td>全频带语音（FB Speech）</td>
+<td>0–20 kHz</td>
+<td>28–40 kbit&#x2F;s</td>
+</tr>
+<tr>
+<td>全频带单声道音乐</td>
+<td>0–20 kHz</td>
+<td>48–64 kbit&#x2F;s</td>
+</tr>
+<tr>
+<td>全频带立体声音乐</td>
+<td>0–20 kHz</td>
+<td>64–128 kbit&#x2F;s</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-极低算法延迟"><a href="#3-2-极低算法延迟" class="headerlink" title="3.2 极低算法延迟"></a>3.2 极低算法延迟</h3><p>Opus 支持 <strong>2.5 ms 到 60 ms</strong> 的帧大小，算法延迟（不含网络延迟）最低约 <strong>5 ms</strong>（CELT 模式 2.5 ms 帧 + 2.5 ms look-ahead）。这比 AAC-ELD（15 ms）更低，是对延迟要求极高场景（如网络音乐合奏）的理想选择。</p>
+<h3 id="3-3-支持多种采样率和声道"><a href="#3-3-支持多种采样率和声道" class="headerlink" title="3.3 支持多种采样率和声道"></a>3.3 支持多种采样率和声道</h3><table>
+<thead>
+<tr>
+<th>带宽缩写</th>
+<th>全称</th>
+<th>音频带宽</th>
+<th>采样率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NB</td>
+<td>Narrowband</td>
+<td>0–4 kHz</td>
+<td>8 kHz</td>
+</tr>
+<tr>
+<td>MB</td>
+<td>Mediumband</td>
+<td>0–6 kHz</td>
+<td>12 kHz</td>
+</tr>
+<tr>
+<td>WB</td>
+<td>Wideband</td>
+<td>0–8 kHz</td>
+<td>16 kHz</td>
+</tr>
+<tr>
+<td>SWB</td>
+<td>Super-wideband</td>
+<td>0–12 kHz</td>
+<td>24 kHz</td>
+</tr>
+<tr>
+<td>FB</td>
+<td>Fullband</td>
+<td>0–20 kHz</td>
+<td>48 kHz</td>
+</tr>
+</tbody></table>
+<p>声道支持：单声道、立体声，以及多声道扩展（通过 <code>multiopus</code> 格式）。</p>
+<h3 id="3-4-完全开放与免版税"><a href="#3-4-完全开放与免版税" class="headerlink" title="3.4 完全开放与免版税"></a>3.4 完全开放与免版税</h3><p>Opus 以新 BSD 许可证发布，任何人可以免费使用，没有专利授权费，没有 RAND 条件，是迄今为止唯一被主流标准机构认可的完全免版税宽带音频编解码器。</p>
+<hr>
+<h1 id="4-内部架构：SILK、CELT-与混合模式"><a href="#4-内部架构：SILK、CELT-与混合模式" class="headerlink" title="4. 内部架构：SILK、CELT 与混合模式"></a>4. 内部架构：SILK、CELT 与混合模式</h1><p>Opus 在架构上并非简单地在两个编解码器之间切换，而是对 SILK 和 CELT 进行了深度修改和整合。RFC 6716 将其描述为一个统一的编解码器，内部包含三种工作模式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">                ┌─────────────────────────────────────────┐</span><br><span class="line">                │              Opus Encoder               │</span><br><span class="line">PCM Input ─────►│                                         ├────► Opus Bitstream</span><br><span class="line">                │  ┌──────────┐   ┌──────────────────────┐│</span><br><span class="line">                │  │  Signal  │──►│   Mode Selection     ││</span><br><span class="line">                │  │ Analysis │   │(SILK / Hybrid / CELT)││</span><br><span class="line">                │  └──────────┘   └──────────┬───────────┘│</span><br><span class="line">                │                            │            │</span><br><span class="line">                │         ┌──────────────────┤            │</span><br><span class="line">                │         ▼                  ▼            │</span><br><span class="line">                │  ┌────────────┐    ┌──────────────┐     │</span><br><span class="line">                │  │    SILK    │    │    CELT      │     │</span><br><span class="line">                │  │  (LP/LPC)  │    │   (MDCT)     │     │</span><br><span class="line">                │  │ 8–16 kHz   │    │    48 kHz    │     │</span><br><span class="line">                │  └─────┬──────┘    └──────┬───────┘     │</span><br><span class="line">                │        └────────┬─────────┘             │</span><br><span class="line">                │                 ▼                       │</span><br><span class="line">                │        ┌────────────────┐               │</span><br><span class="line">                │        │ Bitstream Pack │               │</span><br><span class="line">                │        └────────────────┘               │</span><br><span class="line">                └─────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-1-SILK-模式（语音优化）"><a href="#4-1-SILK-模式（语音优化）" class="headerlink" title="4.1 SILK 模式（语音优化）"></a>4.1 SILK 模式（语音优化）</h3><p>SILK 是基于<strong>线性预测编码（LPC, Linear Predictive Coding）</strong>的语音编解码器，最初由 Koen Vos 在 Skype 开发。它针对人类语音的声学特性进行优化：</p>
+<ul>
+<li>使用<strong>CELP（Code-Excited Linear Prediction）</strong>结构，适合建模语音共振峰特性</li>
+<li>支持采样率：8 kHz、12 kHz、16 kHz（对应 NB、MB、WB）</li>
+<li>帧大小支持：10 ms、20 ms、40 ms、60 ms（SILK 支持将多个 20 ms 帧打包以降低开销）</li>
+<li>包含<strong>长期预测滤波器（Long-term Prediction Filter）</strong>，利用语音的周期性（基音）进行预测</li>
+<li>支持 <strong>LBRR（Low Bitrate Redundancy）</strong>帧，即内嵌 FEC（见第 8 节）</li>
+<li>内建 VAD（Voice Activity Detection）和 DTX（Discontinuous Transmission）支持</li>
+</ul>
+<p>SILK 在低码率（6–20 kbit&#x2F;s）语音场景中表现优异，其 LPC 模型对语音频谱有极高的压缩效率。</p>
+<h3 id="4-2-CELT-模式（音乐与高质量音频）"><a href="#4-2-CELT-模式（音乐与高质量音频）" class="headerlink" title="4.2 CELT 模式（音乐与高质量音频）"></a>4.2 CELT 模式（音乐与高质量音频）</h3><p>CELT（Constrained Energy Lapped Transform）是基于 <strong>MDCT（Modified Discrete Cosine Transform）</strong>的变换域编解码器，由 Xiph.Org 的 Jean-Marc Valin 等人开发：</p>
+<ul>
+<li>始终工作在 <strong>48 kHz</strong> 采样率，覆盖全频带（0–20 kHz）</li>
+<li>帧大小支持：<strong>2.5 ms、5 ms、10 ms、20 ms</strong>（比 SILK 支持更短帧，延迟更低）</li>
+<li>基于心理声学模型进行频带分配，类似 AAC 的感知编码</li>
+<li>包含<strong>谱复制（Spectral Replication）</strong>和<strong>噪声生成（Noise Generation）</strong>，类似 AAC 的 SBR 和 PNS</li>
+<li>利用 Range Encoder（算术编码变体）进行熵编码</li>
+<li>适用于音乐、宽频带语音、以及所有对音质有高要求的场景</li>
+</ul>
+<h3 id="4-3-混合模式（Hybrid-Mode）"><a href="#4-3-混合模式（Hybrid-Mode）" class="headerlink" title="4.3 混合模式（Hybrid Mode）"></a>4.3 混合模式（Hybrid Mode）</h3><p>混合模式是 Opus 的独特创新。如 Xiph.Org FAQ 所述：</p>
+<blockquote>
+<p><em>In addition to a Linear Prediction SILK mode and an MDCT CELT mode it has a hybrid mode, where speech frequencies up to 8 kHz are encoded with LP while those between 8 and 20 kHz are encoded with MDCT.</em></p>
+</blockquote>
+<p>具体地说：</p>
+<ul>
+<li><strong>0–8 kHz</strong> 频率范围：由 SILK（LPC）编码，利用语音共振峰预测</li>
+<li><strong>8–20 kHz</strong> 频率范围：由 CELT（MDCT）编码，补充高频细节</li>
+<li>两个编码器的输出<strong>共同打包</strong>进同一个 Opus 数据包</li>
+</ul>
+<p>这种设计允许 Opus 在约 <strong>32 kbit&#x2F;s</strong> 的码率下实现极高的超宽带（SWB）和全频带（FB）语音质量——在此码率下，单独使用 SILK 或 CELT 都无法达到同等效果。</p>
+<h3 id="4-4-模式选择逻辑"><a href="#4-4-模式选择逻辑" class="headerlink" title="4.4 模式选择逻辑"></a>4.4 模式选择逻辑</h3><p>编码器根据以下因素动态选择工作模式：</p>
+<ul>
+<li>输入信号类型（语音 vs 音乐），通过<strong>音乐检测器</strong>识别</li>
+<li>目标码率：低码率倾向 SILK，高码率倾向 CELT</li>
+<li>目标带宽：SWB 及以上倾向混合模式或纯 CELT</li>
+<li>目标延迟：极低延迟场景强制使用 CELT</li>
+</ul>
+<p>模式切换是<strong>无感知的（seamless）</strong>，无需任何带外信令，解码端可以从 Opus 包头中自动识别当前模式。</p>
+<hr>
+<h1 id="5-码流格式（Bitstream-Format）"><a href="#5-码流格式（Bitstream-Format）" class="headerlink" title="5. 码流格式（Bitstream Format）"></a>5. 码流格式（Bitstream Format）</h1><p>RFC 6716 定义了 Opus 码流的精确格式。每个 Opus <strong>数据包（Packet）</strong>由一个或多个<strong>帧（Frame）</strong>组成。</p>
+<h3 id="5-1-TOC（Table-of-Contents）字节"><a href="#5-1-TOC（Table-of-Contents）字节" class="headerlink" title="5.1 TOC（Table of Contents）字节"></a>5.1 TOC（Table of Contents）字节</h3><p>每个 Opus 数据包以一个 <strong>TOC 字节</strong>开头，用于描述包内帧的配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|config |s|  c  |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>config</code>（5 bits）：编码配置索引（0–31），决定了工作模式、带宽和帧大小</li>
+<li><code>s</code>（1 bit）：立体声标志（0 &#x3D; 单声道，1 &#x3D; 立体声）</li>
+<li><code>c</code>（2 bits）：帧打包代码<ul>
+<li><code>00</code>：包内包含 1 帧</li>
+<li><code>01</code>：包内包含 2 帧，每帧等长</li>
+<li><code>10</code>：包内包含 2 帧，帧长不等</li>
+<li><code>11</code>：包内包含任意数量的帧（由后续 Frame Count Byte 指定）</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-2-配置索引（Config）与工作模式映射"><a href="#5-2-配置索引（Config）与工作模式映射" class="headerlink" title="5.2 配置索引（Config）与工作模式映射"></a>5.2 配置索引（Config）与工作模式映射</h3><p>RFC 6716 定义了 32 种配置，核心映射关系如下：</p>
+<table>
+<thead>
+<tr>
+<th>Config 索引</th>
+<th>模式</th>
+<th>带宽</th>
+<th>帧大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0–3</td>
+<td>SILK</td>
+<td>NB</td>
+<td>10&#x2F;20&#x2F;40&#x2F;60 ms</td>
+</tr>
+<tr>
+<td>4–7</td>
+<td>SILK</td>
+<td>MB</td>
+<td>10&#x2F;20&#x2F;40&#x2F;60 ms</td>
+</tr>
+<tr>
+<td>8–11</td>
+<td>SILK</td>
+<td>WB</td>
+<td>10&#x2F;20&#x2F;40&#x2F;60 ms</td>
+</tr>
+<tr>
+<td>12–13</td>
+<td>Hybrid</td>
+<td>SWB</td>
+<td>10&#x2F;20 ms</td>
+</tr>
+<tr>
+<td>14–15</td>
+<td>Hybrid</td>
+<td>FB</td>
+<td>10&#x2F;20 ms</td>
+</tr>
+<tr>
+<td>16–19</td>
+<td>CELT</td>
+<td>NB</td>
+<td>2.5&#x2F;5&#x2F;10&#x2F;20 ms</td>
+</tr>
+<tr>
+<td>20–23</td>
+<td>CELT</td>
+<td>WB</td>
+<td>2.5&#x2F;5&#x2F;10&#x2F;20 ms</td>
+</tr>
+<tr>
+<td>24–27</td>
+<td>CELT</td>
+<td>SWB</td>
+<td>2.5&#x2F;5&#x2F;10&#x2F;20 ms</td>
+</tr>
+<tr>
+<td>28–31</td>
+<td>CELT</td>
+<td>FB</td>
+<td>2.5&#x2F;5&#x2F;10&#x2F;20 ms</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-多帧打包"><a href="#5-3-多帧打包" class="headerlink" title="5.3 多帧打包"></a>5.3 多帧打包</h3><p>当 <code>c = 11</code> 时，TOC 字节后跟一个 <strong>Frame Count Byte（FCB）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|v|p|    M      |</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>v</code>（1 bit）：VBR 标志（1 &#x3D; 可变码率）</li>
+<li><code>p</code>（1 bit）：是否包含 Opus Padding</li>
+<li><code>M</code>（6 bits）：帧数量（1–63）</li>
+</ul>
+<p>单个 Opus 数据包最多可以包含多个帧，总时长不超过 <strong>120 ms</strong>。在实时通信中，默认通常使用 <strong>20 ms</strong> 单帧，每秒发送 50 个 RTP 包，这是 IP&#x2F;UDP&#x2F;RTP 头部开销与延迟之间的最佳平衡点。</p>
+<hr>
+<h1 id="6-在-WebRTC-中的-RTP-封装（RFC-7587）"><a href="#6-在-WebRTC-中的-RTP-封装（RFC-7587）" class="headerlink" title="6. 在 WebRTC 中的 RTP 封装（RFC 7587）"></a>6. 在 WebRTC 中的 RTP 封装（RFC 7587）</h1><p>RFC 7587 定义了 Opus 在 RTP 上的封装格式，是 Opus 与 WebRTC 媒体传输层对接的关键规范。</p>
+<h3 id="6-1-RTP-头部使用规则"><a href="#6-1-RTP-头部使用规则" class="headerlink" title="6.1 RTP 头部使用规则"></a>6.1 RTP 头部使用规则</h3><ul>
+<li><strong>Payload Type</strong>：动态分配（96–127 范围），在 SDP 中通过 <code>rtpmap</code> 协商</li>
+<li><strong>Timestamp</strong>：以 <strong>48000 Hz</strong> 为时钟频率递增（不论实际采样率如何，RTP 时钟固定为 48000 Hz）<ul>
+<li>例如，一个 20 ms 的帧包含 960 个采样（48000 × 0.02），时间戳每包增加 960</li>
+</ul>
+</li>
+<li><strong>Marker bit（M bit）</strong>：Opus 通常不使用 Marker bit，但若接收端需标记说话人轮换或 DTX 结束，可以置位</li>
+<li><strong>SSRC</strong>：标准 RTP SSRC，每路 Opus 流使用唯一值</li>
+<li><strong>序列号</strong>：标准 16 位 RTP 序列号，用于检测丢包（Opus FEC&#x2F;PLC 依赖此序列号）</li>
+</ul>
+<h3 id="6-2-RTP-Payload-结构"><a href="#6-2-RTP-Payload-结构" class="headerlink" title="6.2 RTP Payload 结构"></a>6.2 RTP Payload 结构</h3><p>Opus RTP 包的 payload 就是 <strong>原始 Opus 包</strong>，无需额外包装：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                        RTP Header                             |</span><br><span class="line">+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</span><br><span class="line">|                         TOC byte                              |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                    Opus encoded frames...                     |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="7-SDP-协商（RFC-7587-§-7）"><a href="#7-SDP-协商（RFC-7587-§-7）" class="headerlink" title="7. SDP 协商（RFC 7587 § 7）"></a>7. SDP 协商（RFC 7587 § 7）</h1><p>在 WebRTC 的 Offer&#x2F;Answer 流程中，Opus 通过 SDP 进行能力协商。RFC 7587 规定了 Opus 的 SDP 媒体类型注册和参数语义。</p>
+<h3 id="7-1-rtpmap-格式"><a href="#7-1-rtpmap-格式" class="headerlink" title="7.1 rtpmap 格式"></a>7.1 rtpmap 格式</h3><p>无论实际通话采样率如何，Opus 的 SDP <code>rtpmap</code> 中<strong>时钟频率固定为 48000，声道数固定为 2</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rtpmap:111 opus/48000/2</span><br></pre></td></tr></table></figure>
+
+<p>这是 RFC 7587 的强制规定，原因是 Opus 可在运行时动态改变采样率，<code>rtpmap</code> 中的值仅用于 RTP 时钟同步，与实际编码无关。</p>
+<h3 id="7-2-fmtp-参数"><a href="#7-2-fmtp-参数" class="headerlink" title="7.2 fmtp 参数"></a>7.2 fmtp 参数</h3><p>通过 <code>a=fmtp</code> 行传递 Opus 的可选参数，格式为分号分隔的键值对：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>方向</th>
+<th>含义</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>maxplaybackrate</code></td>
+<td>解码端→编码端</td>
+<td>接收端建议的最大播放采样率（Hz）</td>
+<td>48000</td>
+</tr>
+<tr>
+<td><code>sprop-maxcapturerate</code></td>
+<td>编码端→解码端</td>
+<td>发送端最大采集采样率（Hz）</td>
+<td>48000</td>
+</tr>
+<tr>
+<td><code>maxaveragebitrate</code></td>
+<td>解码端→编码端</td>
+<td>接收端建议的最大平均码率（bps）</td>
+<td>无限制</td>
+</tr>
+<tr>
+<td><code>stereo</code></td>
+<td>解码端→编码端</td>
+<td>接收端是否希望接收立体声（1&#x2F;0）</td>
+<td>0（单声道）</td>
+</tr>
+<tr>
+<td><code>sprop-stereo</code></td>
+<td>编码端→解码端</td>
+<td>发送端是否会发送立体声（1&#x2F;0）</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>useinbandfec</code></td>
+<td>解码端→编码端</td>
+<td>接收端是否支持 Opus 内嵌 FEC（1&#x2F;0）</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>usedtx</code></td>
+<td>解码端→编码端</td>
+<td>是否使用 DTX（1&#x2F;0）</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>cbr</code></td>
+<td>解码端→编码端</td>
+<td>是否使用 CBR（1&#x2F;0）</td>
+<td>0（VBR）</td>
+</tr>
+</tbody></table>
+<p><strong>注意</strong>：<code>useinbandfec</code> 和 <code>usedtx</code> 是<strong>单向接收参数（unidirectional receive-only）</strong>，即它们描述的是本端解码能力对发送端编码行为的期望，而非对自身发送行为的约束。</p>
+<h3 id="7-3-SDP-示例（RFC-7587）"><a href="#7-3-SDP-示例（RFC-7587）" class="headerlink" title="7.3 SDP 示例（RFC 7587）"></a>7.3 SDP 示例（RFC 7587）</h3><p><strong>示例 1：标准单声道会话（最简）</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">m=audio 54312 RTP/AVP 111</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 2：8 kHz 播放，限制码率 20 kbps，启用 FEC，关闭 DTX</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">m=audio 54312 RTP/AVP 111</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=fmtp:111 maxplaybackrate=16000; sprop-maxcapturerate=16000; maxaveragebitrate=20000; stereo=1; useinbandfec=1; usedtx=0</span><br><span class="line">a=ptime:40</span><br><span class="line">a=maxptime:40</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 3：双向全频带立体声</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">m=audio 54312 RTP/AVP 111</span><br><span class="line">a=rtpmap:111 opus/48000/2</span><br><span class="line">a=fmtp:111 stereo=1; sprop-stereo=1</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-ptime-与-maxptime"><a href="#7-4-ptime-与-maxptime" class="headerlink" title="7.4 ptime 与 maxptime"></a>7.4 ptime 与 maxptime</h3><p><code>a=ptime</code> 指定建议的打包时长（毫秒）。WebRTC 默认使用 <code>ptime=20</code>（20 ms，最常见配置）。RFC 7587 规定：</p>
+<ul>
+<li>若对端 <code>ptime</code> 与本端不一致，编码端应尽量配合，但无需强制遵守</li>
+<li><code>maxptime</code> 限制接收端能接受的最大帧长（超过此值解码端可能无法处理）</li>
+</ul>
+<hr>
+<h1 id="8-抗丢包机制"><a href="#8-抗丢包机制" class="headerlink" title="8. 抗丢包机制"></a>8. 抗丢包机制</h1><p>Opus 提供了多层次的丢包应对策略，这对 WebRTC 在不稳定网络中的音质保障至关重要。</p>
+<h3 id="8-1-内嵌-FEC：LBRR（Low-Bitrate-Redundancy）"><a href="#8-1-内嵌-FEC：LBRR（Low-Bitrate-Redundancy）" class="headerlink" title="8.1 内嵌 FEC：LBRR（Low Bitrate Redundancy）"></a>8.1 内嵌 FEC：LBRR（Low Bitrate Redundancy）</h3><p>LBRR 是 Opus SILK 模式特有的<strong>带内前向纠错机制</strong>。其原理是：</p>
+<blockquote>
+<p>编码端在发送当前帧（帧 N）时，同时在码流中附加一份<strong>前一帧（帧 N-1）的低码率冗余编码</strong>。</p>
+</blockquote>
+<p>当帧 N-1 丢失时，接收端可以从帧 N 中提取 LBRR 数据恢复帧 N-1 的音频，而无需重传（zero additional round-trip delay）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">发送端 TX:</span><br><span class="line">Pkt #3 = [Frame 3 (normal)] + [LBRR of Frame 2]</span><br><span class="line">Pkt #4 = [Frame 4 (normal)] + [LBRR of Frame 3]</span><br><span class="line">Pkt #5 = [Frame 5 (normal)] + [LBRR of Frame 4]</span><br><span class="line"></span><br><span class="line">Pkt #3 丢失时：</span><br><span class="line">接收端从 Pkt #4 中解码出 LBRR of Frame 3，还原 Frame 3 音频。</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键约束</strong>：</p>
+<ul>
+<li>LBRR 仅在 <strong>SILK 模式和混合模式</strong>下可用，纯 CELT 模式不支持</li>
+<li>需要编码端通过 <code>OPUS_SET_INBAND_FEC(1)</code> 启用，并通过 <code>OPUS_SET_PACKET_LOSS_PERC</code> 告知预期丢包率</li>
+<li>接收端需在 SDP 中声明 <code>useinbandfec=1</code> 以告知对端自己能处理 LBRR 数据</li>
+<li>每个 Opus 包只包含前一帧的冗余，因此 LBRR 只能恢复<strong>非连续单帧丢失</strong>；连续丢包仍需 PLC</li>
+</ul>
+<h3 id="8-2-深度冗余：DRED（Deep-Redundancy）"><a href="#8-2-深度冗余：DRED（Deep-Redundancy）" class="headerlink" title="8.2 深度冗余：DRED（Deep Redundancy）"></a>8.2 深度冗余：DRED（Deep Redundancy）</h3><p>DRED 是 Amazon Web Services（Jean-Marc Valin 团队）开发的<strong>基于神经网络的深度冗余机制</strong>，于 2024 年在 libopus 1.5 中正式发布。</p>
+<p>与 LBRR 的区别：</p>
+<ul>
+<li>LBRR 仅包含前 1 帧冗余，且冗余码率约为正常包的 2&#x2F;3</li>
+<li>DRED 最多可包含 <strong>1 秒或更长时间</strong>的音频特征冗余，但冗余码率仅约为正常包的 <strong>1&#x2F;50</strong></li>
+<li>DRED 使用神经编码器提取声学特征，解码端利用这些特征通过神经声码器合成丢失的语音</li>
+</ul>
+<p>DRED 扩展已通过 IETF 草案标准化流程，并在 WebRTC 实现中逐步引入。</p>
+<h3 id="8-3-内置-PLC（Packet-Loss-Concealment）"><a href="#8-3-内置-PLC（Packet-Loss-Concealment）" class="headerlink" title="8.3 内置 PLC（Packet Loss Concealment）"></a>8.3 内置 PLC（Packet Loss Concealment）</h3><p>Opus 解码器内置 PLC 能力，当检测到 RTP 序列号不连续时，调用 <code>opus_decode(NULL, 0, ...)</code> 触发 PLC：</p>
+<ul>
+<li><strong>CELT 模式 PLC</strong>：基于频谱外推，对音乐内容处理较好</li>
+<li><strong>SILK 模式 PLC</strong>：基于语音合成模型，对语音内容处理较好</li>
+</ul>
+<p>libopus 从 1.3 版本开始引入了神经网络辅助的 PLC 算法（NNLPC），在 1.5 版本中进一步完善。</p>
+<h3 id="8-4-DTX（Discontinuous-Transmission）"><a href="#8-4-DTX（Discontinuous-Transmission）" class="headerlink" title="8.4 DTX（Discontinuous Transmission）"></a>8.4 DTX（Discontinuous Transmission）</h3><p>DTX 是在静音期间停止发送 RTP 包以节省带宽的机制。Opus 内建 VAD，当检测到静音时，编码器可以大幅降低发送频率。</p>
+<ul>
+<li>通过 SDP <code>usedtx=1</code> 协商启用</li>
+<li>DTX 在 WebRTC 中仅在 <strong>SILK&#x2F;Hybrid 模式</strong>下工作（纯 CELT 流通常不开启 DTX）</li>
+<li>静音期间，Opus 生成低码率的<strong>舒适噪声（Comfort Noise）</strong>，避免接收端感知到突然静音</li>
+</ul>
+<p>RFC 7874 明确指出：<code>Since Opus provides its own CN mechanism, the use of [RFC 3389] CN with Opus is NOT RECOMMENDED.</code></p>
+<hr>
+<h1 id="9-变码率（VBR）与固定码率（CBR）"><a href="#9-变码率（VBR）与固定码率（CBR）" class="headerlink" title="9. 变码率（VBR）与固定码率（CBR）"></a>9. 变码率（VBR）与固定码率（CBR）</h1><p>Opus 默认使用 <strong>VBR（Variable Bitrate）</strong>，根据信号复杂度动态分配码率：</p>
+<ul>
+<li>静音或简单音频：降低码率，减少带宽消耗</li>
+<li>复杂音频：增加码率，保证音质</li>
+</ul>
+<p>WebRTC 场景中，某些安全性要求高的应用（如端对端加密语音通话）可能使用 CBR 以防止通过码率变化泄露语音内容信息（防流量分析攻击）。RFC 6562（Guidelines for the Use of Variable Bit Rate Audio with Secure RTP）对此有详细讨论。通过 SDP <code>cbr=1</code> 可以请求对端使用 CBR。</p>
+<hr>
+<h1 id="10-在-WebRTC-中的完整流程"><a href="#10-在-WebRTC-中的完整流程" class="headerlink" title="10. 在 WebRTC 中的完整流程"></a>10. 在 WebRTC 中的完整流程</h1><p>下面以一个 WebRTC 音频通话为例，梳理 Opus 从采集到播放的完整链路：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">麦克风采集 (PCM, 48kHz, 单声道)</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  音频预处理</span><br><span class="line">  (AEC 回声消除 / NS 降噪 / AGC 自动增益)</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  Opus 编码器 (libopus)</span><br><span class="line">  ├─ 模式选择：SILK / Hybrid / CELT</span><br><span class="line">  ├─ 码率控制（来自 BWE 反馈）</span><br><span class="line">  ├─ 帧大小：通常 20ms</span><br><span class="line">  ├─ 可选：LBRR FEC 附加</span><br><span class="line">  └─ 输出：Opus 帧（~40–80 bytes @ 16–32 kbps）</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  RTP 封装 (RFC 7587)</span><br><span class="line">  ├─ PT: 111 (动态)</span><br><span class="line">  ├─ Timestamp += 960 (48kHz × 20ms)</span><br><span class="line">  └─ Payload: 原始 Opus 包</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  SRTP 加密 (DTLS-SRTP)</span><br><span class="line">       │</span><br><span class="line">     UDP/IP</span><br><span class="line">       │ （网络传输，可能丢包、乱序、抖动）</span><br><span class="line">       ▼</span><br><span class="line">  Jitter Buffer（接收端抖动缓冲）</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  SRTP 解密</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  Opus 解码器 (libopus)</span><br><span class="line">  ├─ 正常解码：opus_decode()</span><br><span class="line">  ├─ FEC 解码（包丢失时）：opus_decode(..., fec=1)</span><br><span class="line">  └─ PLC（FEC 不可用时）：opus_decode(NULL, 0, ...)</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  音频后处理</span><br><span class="line">  (音量归一化 / 混音)</span><br><span class="line">       │</span><br><span class="line">       ▼</span><br><span class="line">  扬声器播放</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-libopus-API-使用要点"><a href="#11-libopus-API-使用要点" class="headerlink" title="11. libopus API 使用要点"></a>11. libopus API 使用要点</h1><p>参考实现 <code>libopus</code> 以 C 语言编写，通过 <code>opus_encoder_create()</code> 和 <code>opus_decoder_create()</code> 创建编解码器状态机。</p>
+<h3 id="11-1-编码器初始化与关键控制参数"><a href="#11-1-编码器初始化与关键控制参数" class="headerlink" title="11.1 编码器初始化与关键控制参数"></a>11.1 编码器初始化与关键控制参数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;opus.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> error;</span><br><span class="line">OpusEncoder *encoder = opus_encoder_create(</span><br><span class="line">    <span class="number">48000</span>,          <span class="comment">// 采样率（必须是 8000/12000/16000/24000/48000）</span></span><br><span class="line">    <span class="number">1</span>,              <span class="comment">// 声道数（1 = 单声道）</span></span><br><span class="line">    OPUS_APPLICATION_VOIP,  <span class="comment">// 应用类型</span></span><br><span class="line">    &amp;error</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 应用类型枚举：</span></span><br><span class="line"><span class="comment">// OPUS_APPLICATION_VOIP       - 语音通话（优化清晰度，内置语音增强）</span></span><br><span class="line"><span class="comment">// OPUS_APPLICATION_AUDIO      - 通用音频（优化音质，适合音乐）</span></span><br><span class="line"><span class="comment">// OPUS_APPLICATION_RESTRICTED_LOWDELAY - 极低延迟（禁用 SILK 预测，强制 CELT）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置码率（bps）</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_BITRATE(<span class="number">16000</span>));  <span class="comment">// 16 kbps</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 启用内嵌 FEC</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 告知编码器预期丢包率（0–100%），触发 LBRR</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(<span class="number">10</span>)); <span class="comment">// 10% 丢包</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置复杂度（0–10，越高音质越好但 CPU 消耗更大，默认 9）</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(<span class="number">9</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 启用 DTX</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_DTX(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置带宽限制</span></span><br><span class="line">opus_encoder_ctl(encoder, OPUS_SET_MAX_BANDWIDTH(OPUS_BANDWIDTH_FULLBAND));</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-编码与解码"><a href="#11-2-编码与解码" class="headerlink" title="11.2 编码与解码"></a>11.2 编码与解码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 编码：每帧 20ms @ 48kHz = 960 个采样</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> FRAME_SIZE 960</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_PACKET_SIZE 4096</span></span><br><span class="line"></span><br><span class="line">opus_int16 pcm_buf[FRAME_SIZE];</span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> packet_buf[MAX_PACKET_SIZE];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回值：编码后的字节数，负值为错误码</span></span><br><span class="line"><span class="type">int</span> packet_len = opus_encode(encoder, pcm_buf, FRAME_SIZE,</span><br><span class="line">                              packet_buf, MAX_PACKET_SIZE);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解码（正常）</span></span><br><span class="line">OpusDecoder *decoder = opus_decoder_create(<span class="number">48000</span>, <span class="number">1</span>, &amp;error);</span><br><span class="line">opus_int16 out_buf[FRAME_SIZE];</span><br><span class="line"><span class="type">int</span> samples = opus_decode(decoder, packet_buf, packet_len,</span><br><span class="line">                           out_buf, FRAME_SIZE, <span class="number">0</span>); <span class="comment">// 最后一个参数 0 = 不启用 FEC</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 解码（FEC 模式，packet 是丢失帧的下一帧）</span></span><br><span class="line"><span class="type">int</span> samples_fec = opus_decode(decoder, next_packet_buf, next_packet_len,</span><br><span class="line">                               out_buf, FRAME_SIZE, <span class="number">1</span>); <span class="comment">// 1 = 从下一帧中提取 FEC</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// PLC（当前帧丢失且无 FEC 可用时）</span></span><br><span class="line"><span class="type">int</span> samples_plc = opus_decode(decoder, <span class="literal">NULL</span>, <span class="number">0</span>, out_buf, FRAME_SIZE, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-3-动态码率控制（与-WebRTC-BWE-联动）"><a href="#11-3-动态码率控制（与-WebRTC-BWE-联动）" class="headerlink" title="11.3 动态码率控制（与 WebRTC BWE 联动）"></a>11.3 动态码率控制（与 WebRTC BWE 联动）</h3><p>在 WebRTC 中，GCC&#x2F;Transport-CC 模块会持续估算可用带宽并通过 RTCP 反馈给发送端。发送端接收到带宽估计后，应动态调整 Opus 编码器码率：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 收到 BWE 反馈后更新码率</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">on_bandwidth_estimate_update</span><span class="params">(OpusEncoder *encoder, <span class="type">int</span> estimated_bps)</span> &#123;</span><br><span class="line">    <span class="comment">// 为视频等其他流预留带宽后，计算分配给音频的码率</span></span><br><span class="line">    <span class="type">int</span> audio_bps = calculate_audio_bitrate(estimated_bps);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 限制在 Opus 支持范围内</span></span><br><span class="line">    audio_bps = OPUS_MAX(<span class="number">6000</span>, OPUS_MIN(<span class="number">510000</span>, audio_bps));</span><br><span class="line">    </span><br><span class="line">    opus_encoder_ctl(encoder, OPUS_SET_BITRATE(audio_bps));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="12-与其他编解码器的对比"><a href="#12-与其他编解码器的对比" class="headerlink" title="12. 与其他编解码器的对比"></a>12. 与其他编解码器的对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Opus</th>
+<th>AAC-LC</th>
+<th>AAC-ELD</th>
+<th>G.711</th>
+<th>Speex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准化</td>
+<td>IETF RFC 6716</td>
+<td>ISO&#x2F;IEC 13818-7</td>
+<td>ISO&#x2F;IEC 14496-3</td>
+<td>ITU-T G.711</td>
+<td>—</td>
+</tr>
+<tr>
+<td>版税</td>
+<td><strong>免费</strong></td>
+<td>有专利费</td>
+<td>有专利费</td>
+<td>免费</td>
+<td>免费</td>
+</tr>
+<tr>
+<td>码率范围</td>
+<td>6–510 kbps</td>
+<td>8–320 kbps</td>
+<td>16–128 kbps</td>
+<td>固定 64 kbps</td>
+<td>2.15–44 kbps</td>
+</tr>
+<tr>
+<td>算法延迟</td>
+<td><strong>5 ms</strong></td>
+<td>~100 ms</td>
+<td>~15 ms</td>
+<td>~0.125 ms</td>
+<td>~30 ms</td>
+</tr>
+<tr>
+<td>语音质量</td>
+<td>极好</td>
+<td>好</td>
+<td>好</td>
+<td>一般</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>音乐质量</td>
+<td>极好</td>
+<td>极好</td>
+<td>好</td>
+<td>差</td>
+<td>差</td>
+</tr>
+<tr>
+<td>内嵌 FEC</td>
+<td>✅（LBRR）</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>内置 PLC</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>WebRTC 强制</td>
+<td><strong>是（RFC 7874）</strong></td>
+<td>否</td>
+<td>否</td>
+<td>是（G.711）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>自适应码率</td>
+<td>✅</td>
+<td>部分</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="13-实际应用场景与参数选择"><a href="#13-实际应用场景与参数选择" class="headerlink" title="13. 实际应用场景与参数选择"></a>13. 实际应用场景与参数选择</h1><h3 id="13-1-WebRTC-音视频通话（主流场景）"><a href="#13-1-WebRTC-音视频通话（主流场景）" class="headerlink" title="13.1 WebRTC 音视频通话（主流场景）"></a>13.1 WebRTC 音视频通话（主流场景）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">应用类型: OPUS_APPLICATION_VOIP</span><br><span class="line">采样率: 48 kHz（WebRTC 内部统一使用 48 kHz）</span><br><span class="line">帧大小: 20 ms（960 samples）</span><br><span class="line">码率: 16–32 kbps（单声道语音）</span><br><span class="line">SDP: useinbandfec=1; usedtx=1</span><br></pre></td></tr></table></figure>
+
+<h3 id="13-2-游戏语音通话（极低延迟）"><a href="#13-2-游戏语音通话（极低延迟）" class="headerlink" title="13.2 游戏语音通话（极低延迟）"></a>13.2 游戏语音通话（极低延迟）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">应用类型: OPUS_APPLICATION_RESTRICTED_LOWDELAY</span><br><span class="line">帧大小: 2.5 ms 或 5 ms（CELT 模式）</span><br><span class="line">码率: 20–40 kbps</span><br><span class="line">SDP: useinbandfec=0（低延迟优先，FEC 会引入额外帧延迟）</span><br></pre></td></tr></table></figure>
+
+<h3 id="13-3-音乐传输（高质量）"><a href="#13-3-音乐传输（高质量）" class="headerlink" title="13.3 音乐传输（高质量）"></a>13.3 音乐传输（高质量）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">应用类型: OPUS_APPLICATION_AUDIO</span><br><span class="line">采样率: 48 kHz</span><br><span class="line">码率: 64–128 kbps（单声道），128–256 kbps（立体声）</span><br><span class="line">SDP: stereo=1; sprop-stereo=1</span><br></pre></td></tr></table></figure>
+
+<h3 id="13-4-SFU-MCU-媒体服务器"><a href="#13-4-SFU-MCU-媒体服务器" class="headerlink" title="13.4 SFU&#x2F;MCU 媒体服务器"></a>13.4 SFU&#x2F;MCU 媒体服务器</h3><p>SFU 通常透传 Opus 包，不需要解码再编码。需要注意：</p>
+<ul>
+<li>级联 SFU 场景下，转发的 Opus 包需保持原始 SSRC 或更新 SSRC</li>
+<li>若需要混音（MCU），需要解码→混音→重新编码，会有一次额外的编解码质量损失</li>
+</ul>
+<hr>
+<h1 id="14-相关-RFC-速查"><a href="#14-相关-RFC-速查" class="headerlink" title="14. 相关 RFC 速查"></a>14. 相关 RFC 速查</h1><table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>与 Opus 的关系</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RFC 6716</td>
+<td>Definition of the Opus Audio Codec</td>
+<td>Opus 核心规范</td>
+</tr>
+<tr>
+<td>RFC 7587</td>
+<td>RTP Payload Format for the Opus Speech and Audio Codec</td>
+<td>Opus over RTP</td>
+</tr>
+<tr>
+<td>RFC 7874</td>
+<td>WebRTC Audio Codec and Processing Requirements</td>
+<td>WebRTC 强制要求 Opus</td>
+</tr>
+<tr>
+<td>RFC 8251</td>
+<td>Updates to the Opus Audio Codec</td>
+<td>RFC 6716 勘误与更新</td>
+</tr>
+<tr>
+<td>RFC 7845</td>
+<td>Ogg Encapsulation for the Opus Audio Codec</td>
+<td>Opus 在 Ogg 容器中的封装</td>
+</tr>
+<tr>
+<td>RFC 6562</td>
+<td>Guidelines for the Use of VBR Audio with Secure RTP</td>
+<td>VBR Opus 的安全使用建议</td>
+</tr>
+<tr>
+<td>RFC 3264</td>
+<td>An Offer&#x2F;Answer Model with SDP</td>
+<td>Opus SDP 协商的基础模型</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="15-小结"><a href="#15-小结" class="headerlink" title="15. 小结"></a>15. 小结</h1><p>Opus 不是一个普通的音频编解码器，它是互联网实时音频通信的基础设施：</p>
+<ul>
+<li><strong>标准强制</strong>：RFC 7874 将其列为 WebRTC 必须实现的编解码器，所有浏览器原生支持</li>
+<li><strong>技术先进</strong>：SILK + CELT 混合架构，覆盖 6–510 kbps 全码率范围，算法延迟最低 5 ms</li>
+<li><strong>网络友好</strong>：内置 LBRR FEC、PLC、DTX，专为不可靠网络设计</li>
+<li><strong>完全开放</strong>：免版税、开源（BSD 许可），无专利风险</li>
+<li><strong>持续演进</strong>：从 libopus 1.0 到 1.5，不断引入神经网络 PLC（NNLPC）和深度冗余（DRED）等前沿技术</li>
+</ul>
+<p>理解 Opus 的内部机制，是深入掌握 WebRTC 音频栈的必要前提。在后续章节中，AEC 回声消除（第 22 章）、FEC 前向纠错（第 20 章）和 PLC 丢包隐藏（第 21 章）都与 Opus 的工作原理密切相关。</p>
+<hr>
+<p><em>参考资料</em></p>
+<ol>
+<li>Valin, J.-M., Vos, K., Terriberry, T. (2012). <em>RFC 6716: Definition of the Opus Audio Codec</em>. IETF. <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc6716">https://datatracker.ietf.org/doc/html/rfc6716</a></li>
+<li>Spittka, J., Vos, K., Valin, J.-M. (2015). <em>RFC 7587: RTP Payload Format for the Opus Speech and Audio Codec</em>. IETF. <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7587">https://datatracker.ietf.org/doc/html/rfc7587</a></li>
+<li>Valin, J.-M., Bran, C. (2016). <em>RFC 7874: WebRTC Audio Codec and Processing Requirements</em>. IETF. <a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7874">https://datatracker.ietf.org/doc/html/rfc7874</a></li>
+<li>Valin, J.-M., et al. (2016). <em>The Opus Codec</em>. arXiv:1602.04845. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1602.04845">https://arxiv.org/abs/1602.04845</a></li>
+<li>Xiph.Org. <em>Opus Codec Official Website</em>. <a target="_blank" rel="noopener" href="https://opus-codec.org/">https://opus-codec.org/</a></li>
+<li>Xiph.Org. <em>OpusFAQ</em>. <a target="_blank" rel="noopener" href="https://wiki.xiph.org/OpusFAQ">https://wiki.xiph.org/OpusFAQ</a></li>
+<li>Mozilla Developer Network. <em>Codecs used by WebRTC</em>. <a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/WebRTC_codecs">https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/WebRTC_codecs</a></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">1. 概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-Opus-%E8%83%BD%E8%84%B1%E9%A2%96%E8%80%8C%E5%87%BA%EF%BC%9F"><span class="toc-number">1.0.1.</span> <span class="toc-text">为什么 Opus 能脱颖而出？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8E%86%E5%8F%B2%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">2. 历史与标准化进程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E7%89%B9%E6%80%A7"><span class="toc-number">3.</span> <span class="toc-text">3. 核心特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%B6%85%E5%AE%BD%E7%A0%81%E7%8E%87%E8%8C%83%E5%9B%B4"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 超宽码率范围</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%9E%81%E4%BD%8E%E7%AE%97%E6%B3%95%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 极低算法延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%94%AF%E6%8C%81%E5%A4%9A%E7%A7%8D%E9%87%87%E6%A0%B7%E7%8E%87%E5%92%8C%E5%A3%B0%E9%81%93"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 支持多种采样率和声道</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%AE%8C%E5%85%A8%E5%BC%80%E6%94%BE%E4%B8%8E%E5%85%8D%E7%89%88%E7%A8%8E"><span class="toc-number">3.0.4.</span> <span class="toc-text">3.4 完全开放与免版税</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%86%85%E9%83%A8%E6%9E%B6%E6%9E%84%EF%BC%9ASILK%E3%80%81CELT-%E4%B8%8E%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">4. 内部架构：SILK、CELT 与混合模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-SILK-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%AF%AD%E9%9F%B3%E4%BC%98%E5%8C%96%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 SILK 模式（语音优化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-CELT-%E6%A8%A1%E5%BC%8F%EF%BC%88%E9%9F%B3%E4%B9%90%E4%B8%8E%E9%AB%98%E8%B4%A8%E9%87%8F%E9%9F%B3%E9%A2%91%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 CELT 模式（音乐与高质量音频）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%B7%B7%E5%90%88%E6%A8%A1%E5%BC%8F%EF%BC%88Hybrid-Mode%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">4.3 混合模式（Hybrid Mode）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%A8%A1%E5%BC%8F%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91"><span class="toc-number">4.0.4.</span> <span class="toc-text">4.4 模式选择逻辑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%A0%81%E6%B5%81%E6%A0%BC%E5%BC%8F%EF%BC%88Bitstream-Format%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">5. 码流格式（Bitstream Format）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TOC%EF%BC%88Table-of-Contents%EF%BC%89%E5%AD%97%E8%8A%82"><span class="toc-number">5.0.1.</span> <span class="toc-text">5.1 TOC（Table of Contents）字节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%85%8D%E7%BD%AE%E7%B4%A2%E5%BC%95%EF%BC%88Config%EF%BC%89%E4%B8%8E%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F%E6%98%A0%E5%B0%84"><span class="toc-number">5.0.2.</span> <span class="toc-text">5.2 配置索引（Config）与工作模式映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A4%9A%E5%B8%A7%E6%89%93%E5%8C%85"><span class="toc-number">5.0.3.</span> <span class="toc-text">5.3 多帧打包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84-RTP-%E5%B0%81%E8%A3%85%EF%BC%88RFC-7587%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">6. 在 WebRTC 中的 RTP 封装（RFC 7587）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RTP-%E5%A4%B4%E9%83%A8%E4%BD%BF%E7%94%A8%E8%A7%84%E5%88%99"><span class="toc-number">6.0.1.</span> <span class="toc-text">6.1 RTP 头部使用规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTP-Payload-%E7%BB%93%E6%9E%84"><span class="toc-number">6.0.2.</span> <span class="toc-text">6.2 RTP Payload 结构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SDP-%E5%8D%8F%E5%95%86%EF%BC%88RFC-7587-%C2%A7-7%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">7. SDP 协商（RFC 7587 § 7）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-rtpmap-%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.1.</span> <span class="toc-text">7.1 rtpmap 格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-fmtp-%E5%8F%82%E6%95%B0"><span class="toc-number">7.0.2.</span> <span class="toc-text">7.2 fmtp 参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-SDP-%E7%A4%BA%E4%BE%8B%EF%BC%88RFC-7587%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">7.3 SDP 示例（RFC 7587）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-ptime-%E4%B8%8E-maxptime"><span class="toc-number">7.0.4.</span> <span class="toc-text">7.4 ptime 与 maxptime</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%8A%97%E4%B8%A2%E5%8C%85%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">8. 抗丢包机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%86%85%E5%B5%8C-FEC%EF%BC%9ALBRR%EF%BC%88Low-Bitrate-Redundancy%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">8.1 内嵌 FEC：LBRR（Low Bitrate Redundancy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E6%B7%B1%E5%BA%A6%E5%86%97%E4%BD%99%EF%BC%9ADRED%EF%BC%88Deep-Redundancy%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">8.2 深度冗余：DRED（Deep Redundancy）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%86%85%E7%BD%AE-PLC%EF%BC%88Packet-Loss-Concealment%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">8.3 内置 PLC（Packet Loss Concealment）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-DTX%EF%BC%88Discontinuous-Transmission%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">8.4 DTX（Discontinuous Transmission）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%8F%98%E7%A0%81%E7%8E%87%EF%BC%88VBR%EF%BC%89%E4%B8%8E%E5%9B%BA%E5%AE%9A%E7%A0%81%E7%8E%87%EF%BC%88CBR%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">9. 变码率（VBR）与固定码率（CBR）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">10.</span> <span class="toc-text">10. 在 WebRTC 中的完整流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-libopus-API-%E4%BD%BF%E7%94%A8%E8%A6%81%E7%82%B9"><span class="toc-number">11.</span> <span class="toc-text">11. libopus API 使用要点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%BC%96%E7%A0%81%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%8E%E5%85%B3%E9%94%AE%E6%8E%A7%E5%88%B6%E5%8F%82%E6%95%B0"><span class="toc-number">11.0.1.</span> <span class="toc-text">11.1 编码器初始化与关键控制参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E7%BC%96%E7%A0%81%E4%B8%8E%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.2.</span> <span class="toc-text">11.2 编码与解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%8A%A8%E6%80%81%E7%A0%81%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%88%E4%B8%8E-WebRTC-BWE-%E8%81%94%E5%8A%A8%EF%BC%89"><span class="toc-number">11.0.3.</span> <span class="toc-text">11.3 动态码率控制（与 WebRTC BWE 联动）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">12.</span> <span class="toc-text">12. 与其他编解码器的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%8F%82%E6%95%B0%E9%80%89%E6%8B%A9"><span class="toc-number">13.</span> <span class="toc-text">13. 实际应用场景与参数选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-1-WebRTC-%E9%9F%B3%E8%A7%86%E9%A2%91%E9%80%9A%E8%AF%9D%EF%BC%88%E4%B8%BB%E6%B5%81%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">13.0.1.</span> <span class="toc-text">13.1 WebRTC 音视频通话（主流场景）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-%E6%B8%B8%E6%88%8F%E8%AF%AD%E9%9F%B3%E9%80%9A%E8%AF%9D%EF%BC%88%E6%9E%81%E4%BD%8E%E5%BB%B6%E8%BF%9F%EF%BC%89"><span class="toc-number">13.0.2.</span> <span class="toc-text">13.2 游戏语音通话（极低延迟）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-%E9%9F%B3%E4%B9%90%E4%BC%A0%E8%BE%93%EF%BC%88%E9%AB%98%E8%B4%A8%E9%87%8F%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">13.3 音乐传输（高质量）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-4-SFU-MCU-%E5%AA%92%E4%BD%93%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">13.0.4.</span> <span class="toc-text">13.4 SFU&#x2F;MCU 媒体服务器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E7%9B%B8%E5%85%B3-RFC-%E9%80%9F%E6%9F%A5"><span class="toc-number">14.</span> <span class="toc-text">14. 相关 RFC 速查</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#15-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">15. 小结</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&text=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&is_video=false&description=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Opus —— WebRTC 音频的事实标准编码&body=Check out this article: http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&title=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&name=Opus —— WebRTC 音频的事实标准编码&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/17/webrtc/27-opus-webrtc-audio-codec/&t=Opus —— WebRTC 音频的事实标准编码"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

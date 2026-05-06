@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言为什么我们明明预留了缓冲时间，项目却依然延期？为什么一个看似快完成的项目，最后总是陷入漫长的收尾阶段？为什么一旦制定了 KPI，团队的行为就会开始变得诡异？ 这一切的背后，其实都藏着客观规律。下面六条规律是关于“规划、时间与目标”的经典软件工程定律，理解它们，将不再对失控的项目进度感到困惑，并学会如何在不确定性的博弈中找到平衡。  1. Premature Optimization (Knut">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之规划篇：关于进度、时间与目标的博弈">
+<meta property="og:url" content="http://example.com/2021/09/27/software%20engineering/03-planning%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言为什么我们明明预留了缓冲时间，项目却依然延期？为什么一个看似快完成的项目，最后总是陷入漫长的收尾阶段？为什么一旦制定了 KPI，团队的行为就会开始变得诡异？ 这一切的背后，其实都藏着客观规律。下面六条规律是关于“规划、时间与目标”的经典软件工程定律，理解它们，将不再对失控的项目进度感到困惑，并学会如何在不确定性的博弈中找到平衡。  1. Premature Optimization (Knut">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-09-27T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:02:38.383Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之规划篇：关于进度、时间与目标的博弈</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/14/software%20engineering/04-quality%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/16/software%20engineering/02-teams%20laws/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&text=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&is_video=false&description=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之规划篇：关于进度、时间与目标的博弈&body=Check out this article: http://example.com/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&name=软件工程之规划篇：关于进度、时间与目标的博弈&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&t=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Premature-Optimization-Knuth%E2%80%99s-Principle-%E2%80%94%E2%80%94-%E8%BF%87%E6%97%A9%E4%BC%98%E5%8C%96%E6%98%AF%E4%B8%87%E6%81%B6%E4%B9%8B%E6%BA%90"><span class="toc-number">2.</span> <span class="toc-text">1. Premature Optimization (Knuth’s Principle) —— 过早优化是万恶之源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Parkinson%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%B7%A5%E4%BD%9C%E4%BC%9A%E8%86%A8%E8%83%80%E4%BB%A5%E5%A1%AB%E6%BB%A1%E6%89%80%E6%9C%89%E5%8F%AF%E7%94%A8%E6%97%B6%E9%97%B4"><span class="toc-number">3.</span> <span class="toc-text">2. Parkinson’s Law —— 工作会膨胀以填满所有可用时间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-The-Ninety-Ninety-Rule-%E2%80%94%E2%80%94-%E5%89%8D-90-%E7%9A%84%E4%BB%A3%E7%A0%81%E7%94%A8-90-%E7%9A%84%E6%97%B6%E9%97%B4%EF%BC%8C%E5%90%8E-10-%E4%B9%9F%E7%94%A8-90"><span class="toc-number">4.</span> <span class="toc-text">3. The Ninety-Ninety Rule —— 前 90% 的代码用 90% 的时间，后 10% 也用 90%</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Hofstadter%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%B0%B8%E8%BF%9C%E6%AF%94%E4%BD%A0%E9%A2%84%E6%9C%9F%E7%9A%84%E6%97%B6%E9%97%B4%E9%95%BF%EF%BC%8C%E5%8D%B3%E4%BD%BF%E8%80%83%E8%99%91%E4%BA%86%E8%BF%99%E6%9D%A1%E5%AE%9A%E5%BE%8B%E6%9C%AC%E8%BA%AB"><span class="toc-number">5.</span> <span class="toc-text">4. Hofstadter’s Law —— 永远比你预期的时间长，即使考虑了这条定律本身</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Goodhart%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%BD%93%E4%B8%80%E4%B8%AA%E6%8C%87%E6%A0%87%E5%8F%98%E6%88%90%E7%9B%AE%E6%A0%87%EF%BC%8C%E5%AE%83%E5%B0%B1%E4%B8%8D%E5%86%8D%E6%98%AF%E5%A5%BD%E6%8C%87%E6%A0%87"><span class="toc-number">6.</span> <span class="toc-text">5. Goodhart’s Law —— 当一个指标变成目标，它就不再是好指标</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Gilb%E2%80%99s-Law-%E2%80%94%E2%80%94-%E4%BB%BB%E4%BD%95%E9%9C%80%E8%A6%81%E9%87%8F%E5%8C%96%E7%9A%84%E4%B8%9C%E8%A5%BF%E9%83%BD%E8%83%BD%E8%A2%AB%E6%B5%8B%E9%87%8F"><span class="toc-number">7.</span> <span class="toc-text">6. Gilb’s Law —— 任何需要量化的东西都能被测量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD"><span class="toc-number">8.</span> <span class="toc-text">结语</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之规划篇：关于进度、时间与目标的博弈
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-27T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-09-27</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>为什么我们明明预留了缓冲时间，项目却依然延期？为什么一个看似快完成的项目，最后总是陷入漫长的收尾阶段？为什么一旦制定了 KPI，团队的行为就会开始变得诡异？</p>
+<p>这一切的背后，其实都藏着客观规律。下面六条规律是关于“规划、时间与目标”的经典软件工程定律，理解它们，将不再对失控的项目进度感到困惑，并学会如何在不确定性的博弈中找到平衡。</p>
+<hr>
+<h1 id="1-Premature-Optimization-Knuth’s-Principle-——-过早优化是万恶之源"><a href="#1-Premature-Optimization-Knuth’s-Principle-——-过早优化是万恶之源" class="headerlink" title="1. Premature Optimization (Knuth’s Principle) —— 过早优化是万恶之源"></a>1. Premature Optimization (Knuth’s Principle) —— 过早优化是万恶之源</h1><h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>Premature optimization is the root of all evil.</p>
+<p>— Donald Knuth</p>
+</blockquote>
+<p>Donald Knuth 的这句名言可能是软件开发领域被引用最多、也被误用最多的一句话。它的核心含义是：<strong>在尚未明确性能瓶颈之前，就为了追求效率而牺牲代码的清晰性和正确性，是极其危险的。</strong> 根据 Knuth 的原意，开发者应该“忘记”约 97% 场景下的微小效率问题，将精力聚焦于清晰的设计和正确的功能实现。</p>
+<p>过早优化的代价并非仅仅是浪费了优化本身的时间，更糟的是它会显著增加代码的复杂度与可读性负担。正如原作者指出的，<strong>优化过的代码通常更复杂、更难读，如果这些优化发生在一个最终被证明不是性能热点的模块上，你就是在为一个根本不需要的成本买单</strong>。</p>
+<blockquote>
+<p>扩展阅读：类似关于保持简单与克制的理念，我们在后续的 <strong>《设计篇》</strong> 中还会探讨 <strong>KISS</strong> 原则和 <strong>YAGNI</strong> 原则，它们与 Knuth 的观点一脉相承。</p>
+</blockquote>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p>一位开发者花了整整两天时间，用底层 C 语言编写了一个充满精巧位操作的高性能例程。最终性能分析显示，这个函数在整个程序生命周期中<strong>只被调用了一次</strong>（启动时），消耗了总运行时间的 0.001%。两天的时间被白白浪费，而代码库中却多了一段难以理解的复杂逻辑。</p>
+<p>另一个典型案例是，开发者在数据量极小的场景下，为了理论上的 O(log N) 查找效率而使用了自定义树结构，然而实际数据规模可能只需要一次简单的线性遍历就足够快。正确的做法是：<strong>先用最简单的方式实现，通过性能剖析找到真正的热点（比如那个消耗 80% 时间的循环），然后集中精力优化那个部分，而不是凭直觉四处“预优化”</strong>。</p>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>关注真正的瓶颈</strong>：绝大多数代码并不在性能关键路径上，执着于全局微优化浪费时间并增加维护成本。</li>
+<li><strong>97% 法则</strong>：Knuth 建议，应忘记约 97% 场景下的微小效率问题，专注于清晰的设计和正确的功能。</li>
+<li><strong>复杂度账单</strong>：优化后的代码通常更复杂或更难读。如果过早优化，即使最终这些优化并非必要，复杂度成本也已经付出。</li>
+<li><strong>正确的顺序</strong>：先让代码正确运行（Make it work），再让它变快（Make it fast），最后才是让它变漂亮（Make it pretty）。</li>
+</ol>
+<hr>
+<h1 id="2-Parkinson’s-Law-——-工作会膨胀以填满所有可用时间"><a href="#2-Parkinson’s-Law-——-工作会膨胀以填满所有可用时间" class="headerlink" title="2. Parkinson’s Law —— 工作会膨胀以填满所有可用时间"></a>2. Parkinson’s Law —— 工作会膨胀以填满所有可用时间</h1><h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>Work expands to fill the time available for its completion.</p>
+<p>— Cyril Northcote Parkinson</p>
+</blockquote>
+<p>这是一条跨越管理学的经典定律。对于软件开发者而言，这意味着：<strong>如果你给一个开发者两周时间去做一个两天就能完成的任务，这个任务往往会不紧不慢地拖到两周才结束。</strong> 多余的时间并不会被用来进行更深层次的思考，而是被用于“镀金”，过度打磨一些无关紧要的细节、反复修改实现方案、或者单纯地拖延到截止日期前才开始动手。</p>
+<p>需要注意的是，Parkinson’s Law在实际中常与Hofstadter’s Law形成一种微妙的张力：如果你将时间压缩得太紧，会触发Hofstadter’s Law的延迟诅咒；但如果放得太松，Parkinson’s Law就会让团队效率低迷。</p>
+<blockquote>
+<p>延伸思考：与Parkinson’s Law密切相关的，是我们在 <strong>《团队篇》</strong> 中会讲到的 <strong>Ringelmann 效应</strong>（社会惰化），即随着团队规模扩大，个人产出反而下降。过松的时间线正是加剧这种惰化的温床。</p>
+</blockquote>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p>当一个开发者被通知“这个模块不急，大概一两个月做完就行”，他大概率不会提前完成，而是会不自觉地放慢节奏，甚至花大量时间去尝试多种实现方式、或者在命名和代码格式化等非核心事项上反复斟酌。但如果同样的任务被设定了一个明确且紧张的一周截止日（配合敏捷 Sprint 的时间盒机制），开发者往往刚好能在一周内交付。</p>
+<p>另一个生动的场景：一场会议如果预定了全天的时间，它往往会真的占满一整天；但如果同样的议程被限制在两个小时，参与者反而能集中注意力高效完成讨论。</p>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>时间膨胀效应</strong>：如果任务被给予过长的时间线，人们倾向于将所有时间消耗殆尽（或拖延到最后一刻）。</li>
+<li><strong>警惕“镀金”</strong>：多余的时间往往被用于过度打磨，添加并非严格必要的“锦上添花”式改进。</li>
+<li><strong>用“紧迫感”反制</strong>：适当收紧但符合现实的截止日期，通过“截止日期驱动开发”（Deadline-Driven Development）来抵消时间膨胀。</li>
+</ol>
+<hr>
+<h1 id="3-The-Ninety-Ninety-Rule-——-前-90-的代码用-90-的时间，后-10-也用-90"><a href="#3-The-Ninety-Ninety-Rule-——-前-90-的代码用-90-的时间，后-10-也用-90" class="headerlink" title="3. The Ninety-Ninety Rule —— 前 90% 的代码用 90% 的时间，后 10% 也用 90%"></a>3. The Ninety-Ninety Rule —— 前 90% 的代码用 90% 的时间，后 10% 也用 90%</h1><h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>The first 90% of the code accounts for the first 90% of development time. The remaining 10% accounts for the other 90%.</p>
+<p>— Tom Cargill, Bell Labs</p>
+</blockquote>
+<p>这是一条带有黑色幽默却直击灵魂的定律。它指出了软件开发中一种普遍存在的“乐观偏差”：<strong>当核心功能跑通时，所有人都以为项目即将收尾；但实际上，那些剩余的集成联调、边界情况处理、性能调优和 Bug 修复，往往会消耗与前期开发同样多，甚至更多的时间。</strong> 原作者特意强调，“基本完成”只是时间意义上的真正过半，离交付还差得远。</p>
+<p>令人惊讶的是，这条定律与中国古话“行百里者半于九十”在哲理上高度一致，一百里的路程，即使走完了九十里，也只能算作才走了一半。软件工程中，最后 10% 的工作（真正的打磨与稳定）往往最消磨士气。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p>一个典型场景：团队花了三个月完成了新 App 的所有核心功能，所有人都认为“已经完成了 90%”，乐观地预估一个月后就能发布。然而，集成测试阶段暴露了大量模块间通讯问题、特定边界输入导致崩溃、内存占用过高等。最终，这个“最后的 10%”又花了整整三个月。</p>
+<p>在 Web 开发中同样如此：基本页面和登录功能可能两天就能搭好，但跨浏览器兼容性修复、响应式设计适配、无障碍访问改进以及性能优化，这些看起来“顺便就能搞定”的收尾工作，往往会再消耗与主体开发等量甚至更长的时间。</p>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>最后一步远超预期</strong>：项目的最后部分（打磨、边界情况、集成、Bug 修复）所花精力往往远超预期，可能与前期开发总量相当。</li>
+<li><strong>“基本完成”是错觉</strong>：表面上的收尾工作，包含大量棘手问题和未知因素。</li>
+<li><strong>“快做完了”≈ 才做了一半</strong>：达到“基本完成”的状态容易滋生乐观情绪，但这条法则警告我们，宣称 90% 完成度在时间上往往只意味着真正过半。</li>
+</ol>
+<hr>
+<h1 id="4-Hofstadter’s-Law-——-永远比你预期的时间长，即使考虑了这条定律本身"><a href="#4-Hofstadter’s-Law-——-永远比你预期的时间长，即使考虑了这条定律本身" class="headerlink" title="4. Hofstadter’s Law —— 永远比你预期的时间长，即使考虑了这条定律本身"></a>4. Hofstadter’s Law —— 永远比你预期的时间长，即使考虑了这条定律本身</h1><h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>It always takes longer than you expect, even when you take into account Hofstadter’s Law.</p>
+<p>— Douglas Hofstadter</p>
+</blockquote>
+<p>这是一条带有递归幽默的定律，出自侯世达 1979 年的著作《哥德尔、埃舍尔、巴赫：集异璧之大成》。它所揭示的真相是：<strong>人类在估算复杂创造性工作时天生不擅长，而软件开发的复杂度恰恰在于，实施过程中永远存在预先不可见的“未知之未知”。</strong> 即使你已经意识到自己是个糟糕的估算者，并且为计划预留了缓冲时间，现实往往还是会超出这个缓冲。</p>
+<p>原网站特别指出，这条定律与Parkinson’s Law构成了一对危险的互补关系，如果时间线太紧，Hofstadter’s Law会惩罚你；如果时间线太松，Parkinson’s Law会消磨你。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><p>一个团队为新功能计划了一个月的工期，因为有经验的项目经理特意将预估改为六周以“考虑意外”。结果三个月过去了，功能仍然没有上线。原因是什么？第三方 API 的集成比想象中困难得多，核心开发者在关键时刻生病请假，而且最初的技术方案被证明行不通，必须推倒重来。</p>
+<p>原作者给出的经验法则是：如果一个任务号称 2 分钟完成，那就当即动手；如果需要几分钟，按 1 小时来预估；如果需要几小时，按 1 天来预估。</p>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>人类天生不擅长估算</strong>：即便已经意识到自己不擅长估算，我们仍然会系统性低估任务耗时。</li>
+<li><strong>未知之未知</strong>：实施过程中总会出现事先无法预见的复杂性和未知因素，不断拉长时间线。</li>
+<li><strong>缓冲也会被耗尽</strong>：尽管应该在日程中加入应急缓冲，但即便是缓冲时间也常常不够用。</li>
+<li><strong>不要过度乐观</strong>：承认延迟必然发生，并将其纳入项目时间线与期望管理之中。</li>
+</ol>
+<hr>
+<h1 id="5-Goodhart’s-Law-——-当一个指标变成目标，它就不再是好指标"><a href="#5-Goodhart’s-Law-——-当一个指标变成目标，它就不再是好指标" class="headerlink" title="5. Goodhart’s Law —— 当一个指标变成目标，它就不再是好指标"></a>5. Goodhart’s Law —— 当一个指标变成目标，它就不再是好指标</h1><h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>When a measure becomes a target, it ceases to be a good measure.</p>
+<p>— Charles Goodhart</p>
+</blockquote>
+<p>这条出自经济学家查尔斯·古德哈特的定律，在软件工程领域同样振聋发聩。它的本质含义是：<strong>一旦你将某个度量指标设为团队追求的目标，人们就会找到各种办法去“优化”这个指标本身，而不是去优化指标本应反映的真实价值。其结果是，指标与真实价值之间的关联被彻底切断</strong>。</p>
+<p>在软件开发管理中，这是一个极其常见的陷阱。管理者渴望“数据驱动”，于是设置了代码行数、故事点数、Bug 关闭量、代码覆盖率等指标作为考核目标。然而，<strong>度量指标只是你真正关心的事物的代理变量</strong>，一旦把它当成目标，团队就会开始以牺牲真实目标为代价来追求这个代理变量。</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><p>一个经典的案例是：管理层将“代码行数”作为绩效衡量标准，结果开发者开始大量编写冗长的啰嗦代码，甚至将同一段代码复制粘贴到多个文件中，以便让数据更好看。最终，代码库变得臃肿不堪，而度量指标却一片大好。</p>
+<p>另一场景：QA 团队以“执行的测试用例数量”为考核目标，于是测试人员倾向于执行大量简单但价值不高的测试，而真正需要深入验证的核心场景反而被跳过了。同样，当代码覆盖率成为硬性指标后，开发者编写了大量不包含实质性断言的“空壳”单元测试，以满足覆盖率门槛。</p>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>指标是代理变量</strong>：度量指标只是你真正关心的事物（生产力、质量等）的代理变量，而非事物本身。</li>
+<li><strong>指标一旦成为目标就会被操纵</strong>：一旦将特定指标设为考核目标，人们便会设法在该指标上取得好成绩，哪怕损害原初目的。</li>
+<li><strong>度量是洞察工具，不是目标本身</strong>：指标应用于洞察和趋势分析，必须结合上下文与定性判断综合使用。</li>
+<li><strong>组合使用多维度指标</strong>：多个指标的组合可以避免因单一焦点而被操纵。</li>
+</ol>
+<hr>
+<h1 id="6-Gilb’s-Law-——-任何需要量化的东西都能被测量"><a href="#6-Gilb’s-Law-——-任何需要量化的东西都能被测量" class="headerlink" title="6. Gilb’s Law —— 任何需要量化的东西都能被测量"></a>6. Gilb’s Law —— 任何需要量化的东西都能被测量</h1><h3 id="Overview-5"><a href="#Overview-5" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>Anything you need to quantify can be measured in some way better than not measuring it.</p>
+<p>— Tom Gilb</p>
+</blockquote>
+<p>Goodhart’s Law可能会让人产生一种错觉：既然度量指标会被操纵，那我们干脆别度量了。Gilb’s Law正是对这类“度量虚无主义”的有力回击。这条定律的核心思想是：<strong>即使是一个粗略的、间接的度量，也比完全没有任何数据反馈要好，只要你清楚意识到这个度量的局限性</strong>。</p>
+<p>原作者强调，<strong>哪怕是对一个模糊的概念，比如“代码质量”，你仍然可以找到一系列间接指标（圈复杂度、Lint 警告数、缺陷率等）作为部分反映它的晴雨表。</strong> 这些度量数据单独拿出来确实不完美，但组合在一起就能描绘出一个大致的图景，为改进提供起点。</p>
+<blockquote>
+<p>与 <strong>《质量篇》</strong> 的呼应：<strong>技术债务</strong>如果没有被量化追踪，就只是模糊的抱怨而已。当你开始统计圈复杂度上升趋势或缺陷率变化，债务才有了可见度，这正是后续 <strong>Technical Debt</strong> 一节的核心观点，也与 <strong>Gilb 定律</strong>中“先测量再改进”的哲学高度一致。</p>
+</blockquote>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><p>“开发者生产力”向来被视为最难度量的指标之一（代码行数不准确，故事点数也存在主观不一致）。但你可以使用部署频率和变更前置时间这些来自 DORA（DevOps 研究与评估）体系的代理指标。它们固然无法全面反映生产力，但当部署频率突然下降时，你至少能意识到流水线可能出了问题，这比一无所知要好得多。</p>
+<p>类似地，追踪技术债务也没有完美的度量方法，但将代码复杂度分数、线上事故率、开发者满意度调查等指标放在一起追踪，就能提供你单凭直觉无法获得的客观可见性。正如彼得·德鲁克所言：<strong>“我们无法改进我们没有度量的东西。”</strong> </p>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><ol>
+<li><strong>有数据优于没数据</strong>：对某个现象拥有一定的数据或度量指标，总比完全盲目要好，前提是你能理解该指标的局限性。</li>
+<li><strong>不要因为不完美而放弃度量</strong>：与Goodhart’s Law形成互补——古德哈特警告指标的<strong>滥用</strong>，吉尔布则提醒不应<strong>因噎废食</strong>。</li>
+<li><strong>先起步，再迭代</strong>：从一个基础度量开始，在使用过程中持续完善。度量的行为本身就能帮助团队聚焦和识别趋势。</li>
+<li><strong>近似测量好过零测量</strong>：即便是近似的或间接的测量，也比完全不测量要好。</li>
+</ol>
+<hr>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>这六条定律并非孤立存在，而是构成了一张互相制衡的网络，理解它们之间的动态关系，才能真正做好软件项目规划：</p>
+<table>
+<thead>
+<tr>
+<th align="left">张力关系</th>
+<th align="left">定律 A</th>
+<th align="left">定律 B</th>
+<th align="left">核心矛盾</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>时间估算的“松紧悖论”</strong></td>
+<td align="left">Parkinson’s Law</td>
+<td align="left">Hofstadter’s Law</td>
+<td align="left">时间太松则膨胀浪费，太紧则必然延期的递归困境</td>
+</tr>
+<tr>
+<td align="left"><strong>度量的“进退两难”</strong></td>
+<td align="left">Goodhart’s Law</td>
+<td align="left">Gilb’s Law</td>
+<td align="left">度量会被操纵，但不度量等于盲目飞行</td>
+</tr>
+<tr>
+<td align="left"><strong>效率投入的“优先级陷阱”</strong></td>
+<td align="left">过早优化</td>
+<td align="left">九十-九十法则</td>
+<td align="left">前期在非瓶颈上过度优化，后期真正的瓶颈却得不到资源</td>
+</tr>
+</tbody></table>
+<p><strong>核心启示</strong>：</p>
+<ol>
+<li><strong>接受不确定性，但不要放弃规划。</strong> Hofstadter’s Law和Parkinson’s Law告诉我们，完美预测是不可能的，但合理的约束（如敏捷中的时间盒）可以显著减少无效的时间膨胀。</li>
+<li><strong>度量是手段，不是目的。</strong> 遵循Gilb’s Law去建立数据意识，同时用Goodhart’s Law时刻审视你的指标是否已经“异化”。永远用多维度指标和定性判断来补充定量数据。</li>
+<li><strong>先做对，再做快，最后才做美。</strong> Knuth 和九十-九十法则共同指向了一个结论，软件工程的最大敌人往往是“过早的完美主义”和“对收尾难度的低估”。把有限的精力留给剖析后发现的真正瓶颈，而不是凭直觉四处救火。</li>
+</ol>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Premature-Optimization-Knuth%E2%80%99s-Principle-%E2%80%94%E2%80%94-%E8%BF%87%E6%97%A9%E4%BC%98%E5%8C%96%E6%98%AF%E4%B8%87%E6%81%B6%E4%B9%8B%E6%BA%90"><span class="toc-number">2.</span> <span class="toc-text">1. Premature Optimization (Knuth’s Principle) —— 过早优化是万恶之源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Parkinson%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%B7%A5%E4%BD%9C%E4%BC%9A%E8%86%A8%E8%83%80%E4%BB%A5%E5%A1%AB%E6%BB%A1%E6%89%80%E6%9C%89%E5%8F%AF%E7%94%A8%E6%97%B6%E9%97%B4"><span class="toc-number">3.</span> <span class="toc-text">2. Parkinson’s Law —— 工作会膨胀以填满所有可用时间</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-The-Ninety-Ninety-Rule-%E2%80%94%E2%80%94-%E5%89%8D-90-%E7%9A%84%E4%BB%A3%E7%A0%81%E7%94%A8-90-%E7%9A%84%E6%97%B6%E9%97%B4%EF%BC%8C%E5%90%8E-10-%E4%B9%9F%E7%94%A8-90"><span class="toc-number">4.</span> <span class="toc-text">3. The Ninety-Ninety Rule —— 前 90% 的代码用 90% 的时间，后 10% 也用 90%</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Hofstadter%E2%80%99s-Law-%E2%80%94%E2%80%94-%E6%B0%B8%E8%BF%9C%E6%AF%94%E4%BD%A0%E9%A2%84%E6%9C%9F%E7%9A%84%E6%97%B6%E9%97%B4%E9%95%BF%EF%BC%8C%E5%8D%B3%E4%BD%BF%E8%80%83%E8%99%91%E4%BA%86%E8%BF%99%E6%9D%A1%E5%AE%9A%E5%BE%8B%E6%9C%AC%E8%BA%AB"><span class="toc-number">5.</span> <span class="toc-text">4. Hofstadter’s Law —— 永远比你预期的时间长，即使考虑了这条定律本身</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Goodhart%E2%80%99s-Law-%E2%80%94%E2%80%94-%E5%BD%93%E4%B8%80%E4%B8%AA%E6%8C%87%E6%A0%87%E5%8F%98%E6%88%90%E7%9B%AE%E6%A0%87%EF%BC%8C%E5%AE%83%E5%B0%B1%E4%B8%8D%E5%86%8D%E6%98%AF%E5%A5%BD%E6%8C%87%E6%A0%87"><span class="toc-number">6.</span> <span class="toc-text">5. Goodhart’s Law —— 当一个指标变成目标，它就不再是好指标</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Gilb%E2%80%99s-Law-%E2%80%94%E2%80%94-%E4%BB%BB%E4%BD%95%E9%9C%80%E8%A6%81%E9%87%8F%E5%8C%96%E7%9A%84%E4%B8%9C%E8%A5%BF%E9%83%BD%E8%83%BD%E8%A2%AB%E6%B5%8B%E9%87%8F"><span class="toc-number">7.</span> <span class="toc-text">6. Gilb’s Law —— 任何需要量化的东西都能被测量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-5"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD"><span class="toc-number">8.</span> <span class="toc-text">结语</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&text=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&is_video=false&description=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之规划篇：关于进度、时间与目标的博弈&body=Check out this article: http://example.com/2021/09/27/software%20engineering/03-planning%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&title=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&name=软件工程之规划篇：关于进度、时间与目标的博弈&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/27/software%20engineering/03-planning%20laws/&t=软件工程之规划篇：关于进度、时间与目标的博弈"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

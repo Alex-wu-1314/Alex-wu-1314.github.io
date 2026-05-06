@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 前言：为什么需要 PLC 丢包的成因与影响 WebRTC 中的丢包应对体系 PLC 的基本原理 经典 PLC 算法详解 静音替换（Silence Substitution） 波形替换（Waveform Substitution） 基于音调的重复（Pitch-based Repetition） ITU-T G.711 Appendix I 算法 WSOLA 时域算法 基于模型的 PLC（Mod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障">
+<meta property="og:url" content="http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 前言：为什么需要 PLC 丢包的成因与影响 WebRTC 中的丢包应对体系 PLC 的基本原理 经典 PLC 算法详解 静音替换（Silence Substitution） 波形替换（Waveform Substitution） 基于音调的重复（Pitch-based Repetition） ITU-T G.711 Appendix I 算法 WSOLA 时域算法 基于模型的 PLC（Mod">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-11-07T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-29T12:30:01.891Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/20/webrtc/22.aec/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/30/webrtc/20-fec/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&text=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&is_video=false&description=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障&body=Check out this article: http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&name=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&t=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PLC"><span class="toc-number">2.</span> <span class="toc-text">前言：为什么需要 PLC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E7%9A%84%E6%88%90%E5%9B%A0%E4%B8%8E%E5%BD%B1%E5%93%8D"><span class="toc-number">3.</span> <span class="toc-text">丢包的成因与影响</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebRTC-%E4%B8%AD%E7%9A%84%E4%B8%A2%E5%8C%85%E5%BA%94%E5%AF%B9%E4%BD%93%E7%B3%BB"><span class="toc-number">4.</span> <span class="toc-text">WebRTC 中的丢包应对体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">PLC 的基本原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E5%85%B8-PLC-%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">经典 PLC 算法详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%99%E9%9F%B3%E6%9B%BF%E6%8D%A2%EF%BC%88Silence-Substitution%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">静音替换（Silence Substitution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A2%E5%BD%A2%E6%9B%BF%E6%8D%A2%EF%BC%88Waveform-Substitution%EF%BC%89"><span class="toc-number">6.2.</span> <span class="toc-text">波形替换（Waveform Substitution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E9%9F%B3%E8%B0%83%E7%9A%84%E9%87%8D%E5%A4%8D%EF%BC%88Pitch-based-Repetition%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">基于音调的重复（Pitch-based Repetition）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ITU-T-G-711-Appendix-I-%E7%AE%97%E6%B3%95"><span class="toc-number">6.4.</span> <span class="toc-text">ITU-T G.711 Appendix I 算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WSOLA-%E6%97%B6%E5%9F%9F%E7%AE%97%E6%B3%95"><span class="toc-number">6.5.</span> <span class="toc-text">WSOLA 时域算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E6%A8%A1%E5%9E%8B%E7%9A%84-PLC%EF%BC%88Model-based-PLC%EF%BC%89"><span class="toc-number">6.6.</span> <span class="toc-text">基于模型的 PLC（Model-based PLC）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Opus-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-PLC"><span class="toc-number">7.</span> <span class="toc-text">Opus 编解码器内置 PLC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebRTC-NetEQ%EF%BC%9APLC-%E7%9A%84%E5%AE%BF%E4%B8%BB%E5%BC%95%E6%93%8E"><span class="toc-number">8.</span> <span class="toc-text">WebRTC NetEQ：PLC 的宿主引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#NetEQ-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">8.1.</span> <span class="toc-text">NetEQ 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NetEQ-%E7%9A%84%E5%86%B3%E7%AD%96%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">8.2.</span> <span class="toc-text">NetEQ 的决策状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PLC-%E8%A7%A6%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="toc-number">8.3.</span> <span class="toc-text">PLC 触发流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E9%A9%B1%E5%8A%A8%E7%9A%84-PLC%EF%BC%9AWaveNetEQ"><span class="toc-number">9.</span> <span class="toc-text">机器学习驱动的 PLC：WaveNetEQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9ANetEQ-%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">9.1.</span> <span class="toc-text">背景：NetEQ 的局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WaveNetEQ-%E6%9E%B6%E6%9E%84"><span class="toc-number">9.2.</span> <span class="toc-text">WaveNetEQ 架构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%8A%97%E4%B8%A2%E5%8C%85%E6%9C%BA%E5%88%B6%E7%9A%84%E5%8D%8F%E5%90%8C"><span class="toc-number">10.</span> <span class="toc-text">PLC 与其他抗丢包机制的协同</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-FEC-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.1.</span> <span class="toc-text">与 FEC 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-NACK-RTX-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.2.</span> <span class="toc-text">与 NACK &#x2F; RTX 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-RED-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.3.</span> <span class="toc-text">与 RED 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-DRED-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.4.</span> <span class="toc-text">与 DRED 的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E8%B4%A8%E9%87%8F%E8%A1%A1%E9%87%8F"><span class="toc-number">11.</span> <span class="toc-text">PLC 的局限性与质量衡量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">11.1.</span> <span class="toc-text">局限性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B4%A8%E9%87%8F%E8%AF%84%E4%BC%B0%E6%96%B9%E6%B3%95"><span class="toc-number">11.2.</span> <span class="toc-text">质量评估方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E8%80%85%E8%A7%86%E8%A7%92%EF%BC%9A%E5%A6%82%E4%BD%95%E8%A7%82%E6%B5%8B%E4%B8%8E%E8%B0%83%E4%BC%98-PLC"><span class="toc-number">12.</span> <span class="toc-text">开发者视角：如何观测与调优 PLC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E8%A7%82%E6%B5%8B-PLC-%E6%8C%87%E6%A0%87"><span class="toc-number">12.1.</span> <span class="toc-text">在浏览器中观测 PLC 指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E6%B5%8B%E8%AF%95"><span class="toc-number">12.2.</span> <span class="toc-text">网络仿真测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Opus-%E7%BC%96%E7%A0%81%E7%AB%AF%E8%B0%83%E4%BC%98"><span class="toc-number">12.3.</span> <span class="toc-text">Opus 编码端调优</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-07T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-11-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#%E5%89%8D%E8%A8%80%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-plc">前言：为什么需要 PLC</a></li>
+<li><a href="#%E4%B8%A2%E5%8C%85%E7%9A%84%E6%88%90%E5%9B%A0%E4%B8%8E%E5%BD%B1%E5%93%8D">丢包的成因与影响</a></li>
+<li><a href="#webrtc-%E4%B8%AD%E7%9A%84%E4%B8%A2%E5%8C%85%E5%BA%94%E5%AF%B9%E4%BD%93%E7%B3%BB">WebRTC 中的丢包应对体系</a></li>
+<li><a href="#plc-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">PLC 的基本原理</a></li>
+<li><a href="#%E7%BB%8F%E5%85%B8-plc-%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3">经典 PLC 算法详解</a><ul>
+<li><a href="#%E9%9D%99%E9%9F%B3%E6%9B%BF%E6%8D%A2silence-substitution">静音替换（Silence Substitution）</a></li>
+<li><a href="#%E6%B3%A2%E5%BD%A2%E6%9B%BF%E6%8D%A2waveform-substitution">波形替换（Waveform Substitution）</a></li>
+<li><a href="#%E5%9F%BA%E4%BA%8E%E9%9F%B3%E8%B0%83%E7%9A%84%E9%87%8D%E5%A4%8Dpitch-based-repetition">基于音调的重复（Pitch-based Repetition）</a></li>
+<li><a href="#itu-t-g711-appendix-i-%E7%AE%97%E6%B3%95">ITU-T G.711 Appendix I 算法</a></li>
+<li><a href="#wsola-%E6%97%B6%E5%9F%9F%E7%AE%97%E6%B3%95">WSOLA 时域算法</a></li>
+<li><a href="#%E5%9F%BA%E4%BA%8E%E6%A8%A1%E5%9E%8B%E7%9A%84-plcmodel-based-plc">基于模型的 PLC（Model-based PLC）</a></li>
+</ul>
+</li>
+<li><a href="#opus-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-plc">Opus 编解码器内置 PLC</a></li>
+<li><a href="#webrtc-neteqplc-%E7%9A%84%E5%AE%BF%E4%B8%BB%E5%BC%95%E6%93%8E">WebRTC NetEQ：PLC 的宿主引擎</a><ul>
+<li><a href="#neteq-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">NetEQ 整体架构</a></li>
+<li><a href="#neteq-%E7%9A%84%E5%86%B3%E7%AD%96%E7%8A%B6%E6%80%81%E6%9C%BA">NetEQ 的决策状态机</a></li>
+<li><a href="#plc-%E8%A7%A6%E5%8F%91%E6%B5%81%E7%A8%8B">PLC 触发流程</a></li>
+</ul>
+</li>
+<li><a href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E9%A9%B1%E5%8A%A8%E7%9A%84-plcwaveneteq">机器学习驱动的 PLC：WaveNetEQ</a></li>
+<li><a href="#plc-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%8A%97%E4%B8%A2%E5%8C%85%E6%9C%BA%E5%88%B6%E7%9A%84%E5%8D%8F%E5%90%8C">PLC 与其他抗丢包机制的协同</a><ul>
+<li><a href="#%E4%B8%8E-fec-%E7%9A%84%E5%85%B3%E7%B3%BB">与 FEC 的关系</a></li>
+<li><a href="#%E4%B8%8E-nack--rtx-%E7%9A%84%E5%85%B3%E7%B3%BB">与 NACK &#x2F; RTX 的关系</a></li>
+<li><a href="#%E4%B8%8E-red-%E7%9A%84%E5%85%B3%E7%B3%BB">与 RED 的关系</a></li>
+<li><a href="#%E4%B8%8E-dred-%E7%9A%84%E5%85%B3%E7%B3%BB">与 DRED 的关系</a></li>
+</ul>
+</li>
+<li><a href="#plc-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E8%B4%A8%E9%87%8F%E8%A1%A1%E9%87%8F">PLC 的局限性与质量衡量</a></li>
+<li><a href="#%E5%BC%80%E5%8F%91%E8%80%85%E8%A7%86%E8%A7%92%E5%A6%82%E4%BD%95%E8%A7%82%E6%B5%8B%E4%B8%8E%E8%B0%83%E4%BC%98-plc">开发者视角：如何观测与调优 PLC</a></li>
+<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ol>
+<hr>
+<h2 id="前言：为什么需要-PLC"><a href="#前言：为什么需要-PLC" class="headerlink" title="前言：为什么需要 PLC"></a>前言：为什么需要 PLC</h2><p>互联网是一个”尽力而为”的网络，IP 协议从来没有承诺每一个数据包都能按时、完整地送达目的地。对于文件下载、网页浏览这类应用来说，TCP 的重传机制可以透明地补偿丢包，用户大不了等几毫秒而已。但对于实时音频通信，哪怕一帧 20ms 的数据延迟超过 150ms，就已经无法通过重传来挽救了。</p>
+<p>这就是 <strong>PLC（Packet Loss Concealment，丢包隐藏）</strong> 存在的理由。</p>
+<p>PLC 是一种纯粹的<strong>接收端</strong>技术。当某个音频包在网络中丢失，解码器不会输出刺耳的爆破音或一段难堪的静默，而是根据已收到的历史音频合成一段”听起来合理”的替代波形，从而维持声音的连续性。这段合成的音频并不能完全还原丢失的内容，但它能让通话双方感知到的音质损伤降到最低。</p>
+<hr>
+<h2 id="丢包的成因与影响"><a href="#丢包的成因与影响" class="headerlink" title="丢包的成因与影响"></a>丢包的成因与影响</h2><p>在讨论 PLC 之前，我们需要理解丢包是如何发生的。</p>
+<p><strong>主要成因：</strong></p>
+<ul>
+<li><strong>网络拥塞（Congestion）</strong>：路由器或交换机在数据包积压时会主动丢弃报文。</li>
+<li><strong>无线链路干扰（Wireless Interference）</strong>：Wi-Fi 与蜂窝网络中的信号衰落、同频干扰都可能导致帧误码，进而造成 IP 包丢失。</li>
+<li><strong>缓冲区溢出（Buffer Overflow）</strong>：接收端抖动缓冲区（Jitter Buffer）满载时，迟到的包会被主动丢弃。这类丢包在 WebRTC 中称为”延迟丢包”（late loss），本质上和网络丢包对 PLC 的挑战是一样的。</li>
+<li><strong>路由切换（Route Change）</strong>：网络路径变化导致短暂的包序混乱或丢失。</li>
+</ul>
+<p><strong>对音频质量的影响：</strong></p>
+<p>丢包率（Packet Loss Rate）对主观音质的影响是非线性的。根据 ITU-T E-Model（G.107）的研究：</p>
+<ul>
+<li>**0%–1%**：用户几乎察觉不到质量下降。</li>
+<li>**1%–5%**：偶尔听到”断音”，但不影响理解。</li>
+<li>**5%–10%**：通话质量明显下降，理解困难度上升。</li>
+<li>**&gt;10%**：音质严重劣化，通话体验极差。</li>
+</ul>
+<p>而丢包发生的<strong>模式</strong>同样关键：随机散点丢包比突发性连续丢包（Burst Loss）容易隐藏得多。连续丢失 5 个包（约 100ms 的音频）对任何 PLC 算法都是严峻考验。</p>
+<hr>
+<h2 id="WebRTC-中的丢包应对体系"><a href="#WebRTC-中的丢包应对体系" class="headerlink" title="WebRTC 中的丢包应对体系"></a>WebRTC 中的丢包应对体系</h2><p>WebRTC 并不依赖单一技术来对抗丢包，而是构建了一套<strong>分层防御体系</strong>，PLC 是其中的最后一道防线：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>技术</th>
+<th>机制</th>
+<th>额外延迟</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发送前</td>
+<td>FEC（前向纠错）</td>
+<td>发送端附带冗余数据</td>
+<td>略有增加</td>
+</tr>
+<tr>
+<td>发送前</td>
+<td>RED（冗余音频数据）</td>
+<td>每包携带前帧副本</td>
+<td>略有增加</td>
+</tr>
+<tr>
+<td>发送前</td>
+<td>DRED（深度冗余）</td>
+<td>神经网络编码历史帧特征</td>
+<td>约 1s 覆盖</td>
+</tr>
+<tr>
+<td>传输中</td>
+<td>NACK &#x2F; RTX（重传）</td>
+<td>检测丢包后请求重发</td>
+<td>至少 1 个 RTT</td>
+</tr>
+<tr>
+<td>接收后</td>
+<td><strong>PLC（丢包隐藏）</strong></td>
+<td>接收端合成替代音频</td>
+<td><strong>零额外延迟</strong></td>
+</tr>
+</tbody></table>
+<p>PLC 的核心优势在于<strong>零额外延迟</strong>：无论丢包多么频繁，PLC 都不需要等待重传，可以立即生成输出。这使它成为实时通信中不可替代的最终保障。</p>
+<hr>
+<h2 id="PLC-的基本原理"><a href="#PLC-的基本原理" class="headerlink" title="PLC 的基本原理"></a>PLC 的基本原理</h2><p>PLC 的工作机制可以用一个简单的流程描述：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">接收端解码流程：</span><br><span class="line"></span><br><span class="line">       ┌─────────────────────────────────────────┐</span><br><span class="line">       │            RTP 包到达                    │</span><br><span class="line">       └────────────────┬────────────────────────┘</span><br><span class="line">                        │</span><br><span class="line">              ┌─────────▼─────────┐</span><br><span class="line">              │ Jitter Buffer 检查 │</span><br><span class="line">              └─────────┬─────────┘</span><br><span class="line">                        │</span><br><span class="line">            ┌───────────┴───────────┐</span><br><span class="line">       包存在│                       │包丢失/过期</span><br><span class="line">            ▼                       ▼</span><br><span class="line">     ┌─────────────┐        ┌──────────────────┐</span><br><span class="line">     │  正常解码播放 │        │  PLC 生成替代帧    │</span><br><span class="line">     └──────┬──────┘        └────────┬─────────┘</span><br><span class="line">            │                        │</span><br><span class="line">            └───────────┬────────────┘</span><br><span class="line">                        ▼</span><br><span class="line">                ┌───────────────┐</span><br><span class="line">                │   OLA 平滑拼接 │  ← Overlap-Add，消除接缝噪声</span><br><span class="line">                └───────────────┘</span><br><span class="line">                        │</span><br><span class="line">                        ▼</span><br><span class="line">                   音频播放输出</span><br></pre></td></tr></table></figure>
+
+<p>PLC 的核心假设来自<strong>语音信号的短时平稳性（Short-time Stationarity）</strong>：在几十毫秒的窗口内，语音的音调、共振峰、能量包络变化缓慢。这意味着用刚刚接收到的历史帧来预测或外推下一帧，在短时间内是相当合理的。</p>
+<p>一个完整的 PLC 系统通常需要处理三个阶段：</p>
+<ol>
+<li><strong>丢包检测</strong>：通过 RTP 序列号缺失判断哪一帧丢失了。</li>
+<li><strong>合成生成</strong>：根据历史音频生成替代波形。</li>
+<li><strong>平滑过渡</strong>：当后续包重新到来时，通过 Overlap-Add（OLA）技术将合成音频与真实解码音频无缝拼接，避免相位跳变产生的”咔哒”声。</li>
+</ol>
+<hr>
+<h2 id="经典-PLC-算法详解"><a href="#经典-PLC-算法详解" class="headerlink" title="经典 PLC 算法详解"></a>经典 PLC 算法详解</h2><h3 id="静音替换（Silence-Substitution）"><a href="#静音替换（Silence-Substitution）" class="headerlink" title="静音替换（Silence Substitution）"></a>静音替换（Silence Substitution）</h3><p>最简单也是最差的策略，用静音填充丢失帧。在低丢包率下，偶尔出现的短暂静音虽然不自然，但不影响理解。但稍高的丢包率下，这种”打嗝”效果会严重破坏听感。现代系统中，静音替换仅用于<strong>连续长时间丢包</strong>后的”淡出”阶段，而非首选策略。</p>
+<h3 id="波形替换（Waveform-Substitution）"><a href="#波形替换（Waveform-Substitution）" class="headerlink" title="波形替换（Waveform Substitution）"></a>波形替换（Waveform Substitution）</h3><p>最早被实用化的 PLC 技术，原理是直接<strong>复制最近一个收到的帧</strong>来填补空缺。</p>
+<p>对于非周期性噪声信号，单纯重复上一帧会产生明显的机器音。但对于短时平稳的语音信号，1–2 帧的重复在人耳听感上往往可以接受。</p>
+<p>改进版本会使用<strong>时域交叠相加（OLA, Overlap-Add）</strong> 来避免帧边界处的波形不连续：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">历史缓冲区: [..., frame_N-2, frame_N-1, frame_N]</span><br><span class="line">                                              ↑</span><br><span class="line">                                         最后已知帧</span><br><span class="line"></span><br><span class="line">丢失帧: frame_N+1  →  复制 frame_N，施加渐强窗后拼接</span><br><span class="line">复帧到来: frame_N+2  →  OLA(合成帧尾部, 真实帧头部)</span><br></pre></td></tr></table></figure>
+
+<h3 id="基于音调的重复（Pitch-based-Repetition）"><a href="#基于音调的重复（Pitch-based-Repetition）" class="headerlink" title="基于音调的重复（Pitch-based Repetition）"></a>基于音调的重复（Pitch-based Repetition）</h3><p>对于有声语音（voiced speech），信号具有明显的<strong>基频周期（Pitch Period）</strong>，通常在 5ms 到 20ms 之间（对应 50Hz–200Hz 的基频）。</p>
+<p>基于音调的 PLC 首先从历史帧中<strong>估计基频</strong>，然后以基频周期为单位循环复制波形，而不是复制整帧。这样生成的替代音频音调更连贯，听感更自然。</p>
+<p>与此同时，为了模拟真实语音随时间衰减的特性，合成波形的<strong>能量会随着丢包时长线性或指数衰减</strong>，并最终淡出为背景噪声或静音。</p>
+<h3 id="ITU-T-G-711-Appendix-I-算法"><a href="#ITU-T-G-711-Appendix-I-算法" class="headerlink" title="ITU-T G.711 Appendix I 算法"></a>ITU-T G.711 Appendix I 算法</h3><p>这是 ITU-T 于 1999 年在 <a target="_blank" rel="noopener" href="https://www.itu.int/rec/T-REC-G.711-199909-I!AppI/en">G.711 Appendix I</a> 中正式标准化的高质量低复杂度 PLC 算法，也是历史上最具影响力的 PLC 规范之一。</p>
+<p><strong>设计目标：</strong></p>
+<ul>
+<li>针对 G.711（PCM，64kbps，8kHz 采样）设计</li>
+<li>10ms 帧长（80 个样本）</li>
+<li>在 30% 丢包率下保持语音可懂度</li>
+</ul>
+<p><strong>算法核心流程（基于 ITU-T STL 文档描述）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1. 正常帧到达时：</span><br><span class="line">   - 将解码后的 PCM 数据存入历史缓冲区（约 48ms 长度）</span><br><span class="line">   - 执行 OLA：若之前有丢包，将合成音频与真实帧头部平滑拼接</span><br><span class="line">   - 同时对输出施加小量延迟（3.75ms），用于后续 OLA 预留</span><br><span class="line"></span><br><span class="line">2. 丢包发生时（dofe 函数）：</span><br><span class="line">   a. 音调检测：在历史缓冲区中通过自相关函数寻找基频周期 T₀</span><br><span class="line">      - 搜索范围：5ms 到 15ms（即 T₀ ∈ [40, 120] samples @ 8kHz）</span><br><span class="line">   b. 基音外推：以 T₀ 为步长向前复制历史波形</span><br><span class="line">   c. 能量衰减：</span><br><span class="line">      - 丢包时长 ≤ 10ms：无额外衰减</span><br><span class="line">      - 10ms &lt; 丢包时长 ≤ 60ms：每帧额外衰减 20%（线性）</span><br><span class="line">      - 丢包时长 &gt; 60ms：输出置为静音</span><br><span class="line">   d. OLA 过渡：对合成帧首尾施加 Hanning 窗进行平滑混合</span><br></pre></td></tr></table></figure>
+
+<p>这套算法的关键在于<strong>自相关基频检测</strong>。记历史缓冲区为 <code>h[n]</code>（n &#x3D; 0..N-1），则基频周期 T₀ 的估计为：</p>
+<p>$$T_0 &#x3D; \arg\max_{T_{min} \le T \le T_{max}} \sum_{n&#x3D;0}^{M-1} h[n] \cdot h[n+T]$$</p>
+<p>其中 M 为相关窗长度（通常约 20ms）。找到 T₀ 后，生成合成帧 <code>s[n]</code> &#x3D; <code>h[n - T₀]</code>，并与历史帧末尾进行 OLA 混合以消除接缝。</p>
+<h3 id="WSOLA-时域算法"><a href="#WSOLA-时域算法" class="headerlink" title="WSOLA 时域算法"></a>WSOLA 时域算法</h3><p>WSOLA（Waveform Similarity Overlap-Add）是一种更精确的时域信号外推方法，广泛用于时间拉伸（Time-Scale Modification）场景，也被引入 PLC。</p>
+<p>与简单的基于音调重复不同，WSOLA 在每次外推时会在一定的<strong>搜索容差（tolerance）</strong> 范围内寻找与当前输出帧末尾<strong>波形相似度最高</strong>的历史片段，然后通过 OLA 拼接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">搜索窗口: history_buffer[n - δ - Δ : n - δ + Δ]</span><br><span class="line">           ↑ δ ≈ T₀（名义上的基频周期）</span><br><span class="line">           ↑ Δ = 搜索容差（通常 ±T₀/2）</span><br><span class="line"></span><br><span class="line">相似度度量: normalized_cross_correlation(合成帧尾部, 候选片段)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法对<strong>非整数基频、混合语音、过渡段</strong>的处理效果优于简单的基于音调重复，生成的合成音频听感更平滑。WebRTC 的 NetEQ 内部在 expand 模式下使用的就是这类基于相关性的波形外推方法。</p>
+<h3 id="基于模型的-PLC（Model-based-PLC）"><a href="#基于模型的-PLC（Model-based-PLC）" class="headerlink" title="基于模型的 PLC（Model-based PLC）"></a>基于模型的 PLC（Model-based PLC）</h3><p>语音编解码器（如 G.729、G.723.1）中的 CELP（Code-Excited Linear Prediction）模型本身包含声道滤波器状态。当发生丢包时，解码器可以利用上一帧已解码的<strong>LP（Linear Prediction）滤波器系数</strong>和<strong>激励信号</strong>来外推下一帧，无需额外的 PLC 模块。</p>
+<p>这类”内置 PLC”的优势在于：</p>
+<ul>
+<li>充分利用了编解码模型的内部状态，合成音频与原始声道模型高度吻合</li>
+<li>常见于 ITU-T 标准化的 CELP 编解码器（G.729、G.728 等）</li>
+</ul>
+<hr>
+<h2 id="Opus-编解码器内置-PLC"><a href="#Opus-编解码器内置-PLC" class="headerlink" title="Opus 编解码器内置 PLC"></a>Opus 编解码器内置 PLC</h2><p>Opus（<a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc6716">RFC 6716</a>）是 WebRTC 的标准音频编解码器，由 IETF 于 2012 年正式标准化，融合了 Skype 的 SILK（语音层）与 Xiph.Org 的 CELT（音乐层）。</p>
+<p>Opus 在<strong>所有模式下都原生支持 PLC</strong>，这是其设计目标之一（RFC 6716 §1）。不同模式下的 PLC 策略有所差异：</p>
+<p><strong>SILK 层（语音模式）PLC：</strong></p>
+<p>SILK 是基于 LP（线性预测）的语音编码层。当发生丢包时，解码器会：</p>
+<ol>
+<li>保持上一帧解码的 LPC（Linear Predictive Coding）滤波器系数</li>
+<li>用噪声激励替代丢失的激励信号，同时渐进缩小激励幅度</li>
+<li>对 LTP（Long-Term Prediction，即基频）参数进行适度衰减</li>
+<li>通过平滑的能量衰减曲线逐渐将合成信号引向背景噪声</li>
+</ol>
+<p><strong>CELT 层（音频&#x2F;音乐模式）PLC：</strong></p>
+<p>CELT 基于 MDCT（Modified Discrete Cosine Transform）变换域编码。PLC 时：</p>
+<ol>
+<li>在频域对上一帧的 MDCT 系数施加随机相位扰动（噪声化）</li>
+<li>对整体能量进行指数衰减</li>
+<li>结合时域 OLA 实现平滑过渡</li>
+</ol>
+<p><strong>Opus 的 in-band FEC（带内前向纠错）：</strong></p>
+<p>值得特别提及的是，Opus SILK 模式还支持带内 FEC。当应用程序通过 <code>OPUS_SET_PACKET_LOSS_PERC</code> 接口向编码器传入预期丢包率时，编码器会将<strong>前一帧的低码率副本</strong>（称为 LBRR，Low Bit Rate Redundancy）嵌入当前包中。接收端收到后续包时可以从中提取前一帧的冗余数据，实现近乎完美的恢复——这在本质上是一种”一跳延迟的 RED”。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Opus LBRR 工作流程：</span><br><span class="line"></span><br><span class="line">Packet N:   [正常音频帧 N] + [帧 N-1 的低码率冗余]</span><br><span class="line">                                       ↑</span><br><span class="line">                              若 Packet N-1 丢失，此处可恢复</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="WebRTC-NetEQ：PLC-的宿主引擎"><a href="#WebRTC-NetEQ：PLC-的宿主引擎" class="headerlink" title="WebRTC NetEQ：PLC 的宿主引擎"></a>WebRTC NetEQ：PLC 的宿主引擎</h2><p>在 WebRTC 的 libwebrtc 实现中，PLC 并不是孤立运作的，它深度集成在 <strong>NetEQ</strong>（Network Equalizer）这个自适应抖动缓冲器中。NetEQ 是 WebRTC 音频通路的核心组件，同时承担抖动吸收、时序控制与丢包隐藏三大职责。</p>
+<h3 id="NetEQ-整体架构"><a href="#NetEQ-整体架构" class="headerlink" title="NetEQ 整体架构"></a>NetEQ 整体架构</h3><p>根据 <a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/+/master/modules/audio_coding/neteq/g3doc/index.md">Chromium 源码文档</a>，NetEQ 对外暴露两个核心接口：</p>
+<ul>
+<li>**<code>InsertPacket(rtp_packet)</code>**：网络层每收到一个 RTP 包时调用，将包存入 PacketBuffer</li>
+<li>**<code>GetAudio()</code>**：音频播放层每 10ms 调用一次，拉取一帧用于播放的 PCM 数据</li>
+</ul>
+<p>NetEQ 的内部结构大致如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"> 网络层 ──────────────────────────────────────────────────────────</span><br><span class="line">    │ InsertPacket()</span><br><span class="line">    ▼</span><br><span class="line">┌─────────────────┐</span><br><span class="line">│  PacketBuffer   │  ← 存储待解码的 RTP 包（默认容量 200 个包）</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">┌────────────────────────────────┐</span><br><span class="line">│      DecisionLogic（决策状态机） │  ← 核心控制器</span><br><span class="line">│  Normal / Expand / Accelerate  │</span><br><span class="line">│  / Preemptive Expand / Merge   │</span><br><span class="line">└────────┬───────────────────────┘</span><br><span class="line">         │</span><br><span class="line">    ┌────┴─────┐</span><br><span class="line">    │          │</span><br><span class="line">    ▼          ▼</span><br><span class="line">┌────────┐  ┌─────────────┐</span><br><span class="line">│ Decoder│  │  PLC Module │  ← 丢包时激活</span><br><span class="line">└────┬───┘  └──────┬──────┘</span><br><span class="line">     │             │</span><br><span class="line">     └──────┬──────┘</span><br><span class="line">            ▼</span><br><span class="line">     ┌─────────────┐</span><br><span class="line">     │  SyncBuffer │  ← 解码输出的时域音频缓冲区</span><br><span class="line">     └──────┬──────┘</span><br><span class="line">            │ GetAudio()（每 10ms）</span><br><span class="line">            ▼</span><br><span class="line">         播放层</span><br></pre></td></tr></table></figure>
+
+<h3 id="NetEQ-的决策状态机"><a href="#NetEQ-的决策状态机" class="headerlink" title="NetEQ 的决策状态机"></a>NetEQ 的决策状态机</h3><p>NetEQ 的核心是一个<strong>决策控制器（DecisionLogic）</strong>，它根据当前缓冲区水位（Buffer Level）与目标延迟（Target Delay）的差值，决定每次 <code>GetAudio()</code> 应执行哪种操作：</p>
+<table>
+<thead>
+<tr>
+<th>操作模式</th>
+<th>触发条件</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Normal</strong>（正常解码）</td>
+<td>缓冲水位 ≈ 目标延迟</td>
+<td>正常解码下一个可用包</td>
+</tr>
+<tr>
+<td><strong>Expand</strong>（扩展&#x2F;PLC）</td>
+<td>缓冲区无可用包（丢包&#x2F;迟到）</td>
+<td>触发 PLC，生成合成帧</td>
+</tr>
+<tr>
+<td><strong>Accelerate</strong>（加速）</td>
+<td>缓冲水位 &gt; 目标延迟（缓冲堆积）</td>
+<td>缩短当前帧（时间压缩），加速消耗</td>
+</tr>
+<tr>
+<td><strong>Preemptive Expand</strong>（预防性扩展）</td>
+<td>缓冲水位 &lt; 目标延迟（将要不足）</td>
+<td>拉伸当前帧（时间扩展），避免未来丢帧</td>
+</tr>
+<tr>
+<td><strong>Merge</strong>（合并过渡）</td>
+<td>丢包后第一个真实包到来</td>
+<td>将 PLC 合成尾部与真实包头部 OLA 融合</td>
+</tr>
+<tr>
+<td><strong>CNG</strong>（舒适噪声）</td>
+<td>收到 DTX 标记帧（说话停止）</td>
+<td>生成舒适噪声，模拟背景环境</td>
+</tr>
+</tbody></table>
+<h3 id="PLC-触发流程"><a href="#PLC-触发流程" class="headerlink" title="PLC 触发流程"></a>PLC 触发流程</h3><p>当 DecisionLogic 决定进入 <strong>Expand 模式</strong>时，具体流程如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1. SyncBuffer 中已无可用样本</span><br><span class="line">2. PacketBuffer 中无下一个预期序号的包</span><br><span class="line">3. DecisionLogic → 选择 Expand 模式</span><br><span class="line">4. Expand 模块：</span><br><span class="line">   a. 分析 SyncBuffer 中的最近历史音频</span><br><span class="line">   b. 估计当前音调（Pitch）和能量包络</span><br><span class="line">   c. 基于 WSOLA 类算法外推 10ms 合成音频</span><br><span class="line">   d. 施加能量衰减（连续丢包时逐渐淡出）</span><br><span class="line">   e. 将合成帧写入 SyncBuffer 并输出</span><br><span class="line">5. 当真实包恢复到来：</span><br><span class="line">   → 进入 Merge 模式</span><br><span class="line">   → OLA 混合合成帧尾部与真实解码帧头部</span><br><span class="line">   → 恢复 Normal 模式</span><br></pre></td></tr></table></figure>
+
+<p><strong>NetEQ PLC 相关统计指标</strong>（通过 <code>GetLifetimeStatistics()</code> 可获取）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>concealed_samples</code></td>
+<td>通过 PLC 生成的总样本数</td>
+</tr>
+<tr>
+<td><code>concealment_events</code></td>
+<td>PLC 触发的次数</td>
+</tr>
+<tr>
+<td><code>silent_concealed_samples</code></td>
+<td>其中静音替换的样本数</td>
+</tr>
+<tr>
+<td><code>inserted_samples_for_deceleration</code></td>
+<td>Preemptive Expand 插入的样本数</td>
+</tr>
+<tr>
+<td><code>removed_samples_for_acceleration</code></td>
+<td>Accelerate 移除的样本数</td>
+</tr>
+</tbody></table>
+<p>这些指标可通过 WebRTC 的 <code>RTCInboundRtpStreamStats</code> 接口在浏览器中访问，是诊断音质问题的重要依据。</p>
+<hr>
+<h2 id="机器学习驱动的-PLC：WaveNetEQ"><a href="#机器学习驱动的-PLC：WaveNetEQ" class="headerlink" title="机器学习驱动的 PLC：WaveNetEQ"></a>机器学习驱动的 PLC：WaveNetEQ</h2><p>传统 PLC 算法基于信号处理假设（短时平稳、基频周期性），对<strong>连续多帧丢包</strong>的效果有限。2020 年，Google 发布了 <strong>WaveNetEQ</strong>，将深度学习引入 PLC 领域。</p>
+<h3 id="背景：NetEQ-的局限"><a href="#背景：NetEQ-的局限" class="headerlink" title="背景：NetEQ 的局限"></a>背景：NetEQ 的局限</h3><p>传统 NetEQ 的 PLC 在以下场景会产生明显的合成失真：</p>
+<ul>
+<li>连续丢包超过 3–4 帧（60–80ms）</li>
+<li>语音与静音的过渡段（onset&#x2F;offset）</li>
+<li>音调复杂的音乐内容</li>
+</ul>
+<h3 id="WaveNetEQ-架构"><a href="#WaveNetEQ-架构" class="headerlink" title="WaveNetEQ 架构"></a>WaveNetEQ 架构</h3><p>WaveNetEQ 基于 Google DeepMind 的 <strong>WaveRNN</strong> 语音合成架构，由两个子网络组成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│                   WaveNetEQ                         │</span><br><span class="line">│                                                     │</span><br><span class="line">│  历史音频帧                                           │</span><br><span class="line">│      │                                              │</span><br><span class="line">│      ▼                                              │</span><br><span class="line">│  ┌──────────────────┐                               │</span><br><span class="line">│  │ Conditioning Net  │  ← 提取 log-Mel 频谱特征       │</span><br><span class="line">│  │ (ConvNet)         │    捕获音调、共振峰、韵律        │</span><br><span class="line">│  └────────┬─────────┘                               │</span><br><span class="line">│           │ 条件向量                                  │</span><br><span class="line">│           ▼                                         │</span><br><span class="line">│  ┌──────────────────┐                               │</span><br><span class="line">│  │ Autoregressive   │  ← 逐样本自回归生成              │</span><br><span class="line">│  │ WaveRNN Decoder  │    输出 16kHz PCM 波形         │</span><br><span class="line">│  └──────────────────┘                               │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>技术要点：</strong></p>
+<ul>
+<li><strong>条件化网络（Conditioning Network）</strong>：以过去音频的 log-Mel 频谱为输入，提取慢变特征（音色、基频趋势、韵律节奏），作为条件向量。</li>
+<li><strong>自回归解码器（WaveRNN）</strong>：逐样本生成，每个新样本依赖所有已生成的历史样本，可以捕获精细的波形细节。</li>
+<li><strong>稀疏化优化</strong>：为使模型能在手机端实时运行，Google 对模型进行了激进的权重稀疏化（weight sparsification），在保持音质的前提下大幅降低计算量。</li>
+</ul>
+<p><strong>效果与局限：</strong></p>
+<p>WaveNetEQ 对中长时连续丢包（40ms–200ms）的主观音质提升显著，在 MUSHRA 和 MOS 主观评测中表现优于传统 NetEQ PLC。然而：</p>
+<ul>
+<li>它<strong>不是</strong> WebRTC 开源 libwebrtc 的默认实现，目前仅用于 Google 自有客户端（原 Google Duo，现 Google Meet）的某些版本。</li>
+<li>对于 10–20ms 的短丢包，传统信号处理方法已经足够，深度学习模型的优势并不明显。</li>
+<li>模型推理需要专用的优化和硬件加速，普通第三方应用难以直接移植。</li>
+</ul>
+<hr>
+<h2 id="PLC-与其他抗丢包机制的协同"><a href="#PLC-与其他抗丢包机制的协同" class="headerlink" title="PLC 与其他抗丢包机制的协同"></a>PLC 与其他抗丢包机制的协同</h2><h3 id="与-FEC-的关系"><a href="#与-FEC-的关系" class="headerlink" title="与 FEC 的关系"></a>与 FEC 的关系</h3><p>Opus 的 in-band FEC（LBRR）是 PLC 的”上游补充”：</p>
+<ul>
+<li>若 FEC 数据可用（即下一个包如期到来），则优先用 FEC 数据恢复，质量远优于 PLC 合成。</li>
+<li>若连续多包丢失（burst loss）导致携带冗余数据的包也丢失，则退化为 PLC。</li>
+</ul>
+<p>WebRTC 的 NetEQ 会优先尝试解码 FEC 数据，只有在 FEC 不可用时才触发 PLC。</p>
+<h3 id="与-NACK-RTX-的关系"><a href="#与-NACK-RTX-的关系" class="headerlink" title="与 NACK &#x2F; RTX 的关系"></a>与 NACK &#x2F; RTX 的关系</h3><p>NACK 重传机制与 PLC 在时间尺度上有本质区别：</p>
+<ul>
+<li>NACK 重传最少需要 <strong>1 个 RTT</strong>（典型值 50–200ms）才能收到重传包。</li>
+<li>PLC 生成合成音频是<strong>即时</strong>的（&lt; 1ms）。</li>
+</ul>
+<p>因此，在 WebRTC 音频通路中，<strong>通常不对音频使用 NACK</strong>（视频才大量使用 NACK），而是完全依赖 FEC + PLC 的组合。</p>
+<h3 id="与-RED-的关系"><a href="#与-RED-的关系" class="headerlink" title="与 RED 的关系"></a>与 RED 的关系</h3><p>RED（RTP Header Extension Redundancy，RFC 2198）将前一帧的编码数据完整附在当前包中。收到当前包时，若发现前一帧丢失，可立即用附带的冗余数据恢复，质量等同于正常解码。</p>
+<p>RED 与 PLC 的配合逻辑：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">收到 Packet N（携带 frame_N 和 frame_N-1 的冗余）：</span><br><span class="line">  → 检测到 Packet N-1 丢失</span><br><span class="line">  → 从 Packet N 中提取 frame_N-1 的冗余数据并解码</span><br><span class="line">  → 无需 PLC 介入（完全恢复）</span><br><span class="line"></span><br><span class="line">收到 Packet N+2（但 Packet N+1 和 N 都丢失）：</span><br><span class="line">  → RED 只携带 N+1 的冗余，N 仍然丢失</span><br><span class="line">  → 对 frame_N 触发 PLC</span><br></pre></td></tr></table></figure>
+
+<h3 id="与-DRED-的关系"><a href="#与-DRED-的关系" class="headerlink" title="与 DRED 的关系"></a>与 DRED 的关系</h3><p>DRED（Deep Audio Redundancy，IETF Internet-Draft）是 Opus 的扩展，使用神经网络编码器将<strong>最近约 1 秒</strong>的音频特征以极低码率嵌入每个数据包中。当发生较长时间的突发丢包后，第一个恢复到来的包中携带的 DRED 数据可以驱动解码器进行语音合成，大幅优于纯粹的 PLC。</p>
+<p>从系统层面看，DRED 是 PLC 的强力升级版：PLC 只能基于接收端的本地历史推测，而 DRED 携带了发送端侧的实际音频特征。</p>
+<hr>
+<h2 id="PLC-的局限性与质量衡量"><a href="#PLC-的局限性与质量衡量" class="headerlink" title="PLC 的局限性与质量衡量"></a>PLC 的局限性与质量衡量</h2><h3 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连续丢包 &gt; 60ms</td>
+<td>任何 PLC 算法都难以维持可懂度，必须淡出为静音</td>
+</tr>
+<tr>
+<td>音调突变（爆破音、清辅音）</td>
+<td>基于历史外推的 PLC 会”错过”这些不可预测的瞬态</td>
+</tr>
+<tr>
+<td>音乐内容</td>
+<td>语音模型假设不成立，合成音频失真明显</td>
+</tr>
+<tr>
+<td>高丢包率下的突发</td>
+<td>多帧连续丢失时，每帧的错误会累积放大</td>
+</tr>
+</tbody></table>
+<h3 id="质量评估方法"><a href="#质量评估方法" class="headerlink" title="质量评估方法"></a>质量评估方法</h3><p><strong>客观指标：</strong></p>
+<ul>
+<li><strong>PESQ（Perceptual Evaluation of Speech Quality，ITU-T P.862）</strong>：对比参考语音与失真语音，输出 MOS-LQO 分数（1–4.5）。</li>
+<li><strong>POLQA（Perceptual Objective Listening Quality Analysis，ITU-T P.863）</strong>：PESQ 的继任标准，更好地支持超宽带音频。</li>
+<li><strong>PLCMOS</strong>：专为 PLC 场景设计的神经网络评估模型（Microsoft 提出），可在无参考信号的条件下评估 PLC 后的主观质量。</li>
+</ul>
+<p><strong>主观指标：</strong></p>
+<ul>
+<li><strong>MOS（Mean Opinion Score）</strong>：让真人对听感打分（1–5），是最权威的评估方法，但成本高。</li>
+<li><strong>MUSHRA（Multiple Stimuli with Hidden Reference and Anchor）</strong>：多刺激隐藏参考对比测试，常用于比较多种 PLC 算法的相对优劣。</li>
+</ul>
+<hr>
+<h2 id="开发者视角：如何观测与调优-PLC"><a href="#开发者视角：如何观测与调优-PLC" class="headerlink" title="开发者视角：如何观测与调优 PLC"></a>开发者视角：如何观测与调优 PLC</h2><h3 id="在浏览器中观测-PLC-指标"><a href="#在浏览器中观测-PLC-指标" class="headerlink" title="在浏览器中观测 PLC 指标"></a>在浏览器中观测 PLC 指标</h3><p>WebRTC 的 <code>getStats()</code> API 提供了与 PLC 直接相关的统计数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>();</span><br><span class="line"><span class="comment">// ...建立连接...</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">setInterval</span>(<span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> stats = <span class="keyword">await</span> pc.<span class="title function_">getStats</span>();</span><br><span class="line">  stats.<span class="title function_">forEach</span>(<span class="function"><span class="params">report</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (report.<span class="property">type</span> === <span class="string">&#x27;inbound-rtp&#x27;</span> &amp;&amp; report.<span class="property">kind</span> === <span class="string">&#x27;audio&#x27;</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(&#123;</span><br><span class="line">        <span class="comment">// PLC 核心指标</span></span><br><span class="line">        <span class="attr">concealedSamples</span>:    report.<span class="property">concealedSamples</span>,      <span class="comment">// PLC 生成的总样本数</span></span><br><span class="line">        <span class="attr">concealmentEvents</span>:   report.<span class="property">concealmentEvents</span>,     <span class="comment">// PLC 触发次数</span></span><br><span class="line">        <span class="attr">totalSamplesReceived</span>: report.<span class="property">totalSamplesReceived</span>, <span class="comment">// 总接收样本数</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 时序控制指标</span></span><br><span class="line">        <span class="attr">insertedSamplesForDeceleration</span>: report.<span class="property">insertedSamplesForDeceleration</span>,</span><br><span class="line">        <span class="attr">removedSamplesForAcceleration</span>:  report.<span class="property">removedSamplesForAcceleration</span>,</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 丢包率</span></span><br><span class="line">        <span class="attr">packetsLost</span>:     report.<span class="property">packetsLost</span>,</span><br><span class="line">        <span class="attr">packetsReceived</span>: report.<span class="property">packetsReceived</span>,</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 抖动</span></span><br><span class="line">        <span class="attr">jitter</span>: report.<span class="property">jitter</span>,</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>计算 PLC 隐藏率（Concealment Ratio）：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> concealmentRatio = report.<span class="property">concealedSamples</span> / report.<span class="property">totalSamplesReceived</span>;</span><br><span class="line"><span class="comment">// &gt; 0.02 (2%) 时需要关注网络质量</span></span><br><span class="line"><span class="comment">// &gt; 0.05 (5%) 时用户已经能明显感知音质下降</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="网络仿真测试"><a href="#网络仿真测试" class="headerlink" title="网络仿真测试"></a>网络仿真测试</h3><p>在开发阶段，可以使用以下工具模拟丢包场景来测试 PLC 效果：</p>
+<p><strong>Linux（使用 <code>tc</code> + <code>netem</code>）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 lo 接口上模拟 5% 随机丢包</span></span><br><span class="line"><span class="built_in">sudo</span> tc qdisc add dev lo root netem loss 5%</span><br><span class="line"></span><br><span class="line"><span class="comment"># 模拟 5% 丢包 + 25% 相关突发丢包（Gilbert 模型）</span></span><br><span class="line"><span class="built_in">sudo</span> tc qdisc add dev lo root netem loss gemodel 5% 25%</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清除规则</span></span><br><span class="line"><span class="built_in">sudo</span> tc qdisc del dev lo root</span><br></pre></td></tr></table></figure>
+
+<p><strong>Chrome DevTools：</strong></p>
+<p>在 <code>chrome://webrtc-internals/</code> 中可以实时查看 NetEQ 内部状态，包括缓冲区水位、PLC 事件频率等。</p>
+<h3 id="Opus-编码端调优"><a href="#Opus-编码端调优" class="headerlink" title="Opus 编码端调优"></a>Opus 编码端调优</h3><p>告知 Opus 编码器当前网络的预期丢包率，使其自动开启 in-band FEC，与 PLC 形成互补：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// C API</span></span><br><span class="line"><span class="built_in">opus_encoder_ctl</span>(encoder, <span class="built_in">OPUS_SET_PACKET_LOSS_PERC</span>(<span class="number">5</span>));  <span class="comment">// 5% 丢包率</span></span><br><span class="line"><span class="built_in">opus_encoder_ctl</span>(encoder, <span class="built_in">OPUS_SET_INBAND_FEC</span>(<span class="number">1</span>));         <span class="comment">// 开启带内 FEC</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 也可动态调整（根据 RTCP 反馈的实时丢包率）</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">updateOpusFEC</span><span class="params">(OpusEncoder* enc, <span class="type">int</span> loss_rate_percent)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">opus_encoder_ctl</span>(enc, <span class="built_in">OPUS_SET_PACKET_LOSS_PERC</span>(loss_rate_percent));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>PLC 是 WebRTC 音频质量保障体系中最后也是最重要的一道防线。它的核心价值在于：<strong>零额外延迟、纯接收端实现、对所有丢包场景兜底</strong>。</p>
+<p>从技术演进的脉络来看，PLC 经历了从简单静音填充 → 波形替换 → 基于音调的外推 → 基于语音模型的合成，直到今天基于深度学习的神经网络合成（WaveNetEQ）。每一代技术都在改善”欺骗人耳”的效果，同时保持实时运行的计算约束。</p>
+<p>在系统层面，PLC 并非孤立运作，它与 FEC、RED、DRED、NACK 构成了一个完整的抗丢包防御纵深。理解每种机制的触发时机和覆盖场景，是构建高质量实时通信系统的关键所在。</p>
+<p>对于大多数 WebRTC 应用开发者而言，NetEQ 中的 PLC 是自动运行的透明模块，无需手动干预。但通过 <code>getStats()</code> 监控 <code>concealedSamples</code> 和 <code>concealmentEvents</code>，并结合 Opus FEC 参数的动态调整，可以有效诊断和缓解网络质量问题对音频体验的影响。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><p><strong>ITU-T G.711 Appendix I</strong>：<em>A high quality low-complexity algorithm for packet loss concealment with G.711</em> (1999)<br><a target="_blank" rel="noopener" href="https://www.itu.int/rec/T-REC-G.711-199909-I!AppI/en">https://www.itu.int/rec/T-REC-G.711-199909-I!AppI/en</a></p>
+</li>
+<li><p><strong>RFC 6716</strong>：<em>Definition of the Opus Audio Codec</em>, IETF (2012)<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc6716">https://datatracker.ietf.org/doc/html/rfc6716</a></p>
+</li>
+<li><p><strong>RFC 2198</strong>：<em>RTP Payload for Redundant Audio Data</em>, IETF (1997)<br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc2198">https://datatracker.ietf.org/doc/html/rfc2198</a></p>
+</li>
+<li><p><strong>IETF Internet-Draft</strong>: <em>Deep Audio Redundancy (DRED) Extension for the Opus Codec</em><br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/draft-ietf-mlcodec-opus-dred">https://datatracker.ietf.org/doc/html/draft-ietf-mlcodec-opus-dred</a></p>
+</li>
+<li><p><strong>WebRTC NetEQ 源码文档</strong>：<br><a target="_blank" rel="noopener" href="https://chromium.googlesource.com/external/webrtc/+/master/modules/audio_coding/neteq/g3doc/index.md">https://chromium.googlesource.com/external/webrtc/+/master/modules/audio_coding/neteq/g3doc/index.md</a></p>
+</li>
+<li><p><strong>WaveNetEQ — Packet Loss Concealment with WaveRNN</strong>, ICASSP 2021<br><a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/9443419/">https://ieeexplore.ieee.org/document/9443419/</a></p>
+</li>
+<li><p><strong>Google AI Blog</strong>: <em>Improving Audio Quality in Duo with WaveNetEQ</em> (2020)<br><a target="_blank" rel="noopener" href="https://ai.googleblog.com/2020/04/improving-audio-quality-in-duo-with.html">https://ai.googleblog.com/2020/04/improving-audio-quality-in-duo-with.html</a></p>
+</li>
+<li><p><strong>ITU-T STL (Software Tool Library) User’s Manual</strong>：G.711 Appendix I PLC 算法实现描述<br><a target="_blank" rel="noopener" href="https://metanorma.github.io/mn-samples-itu/documents/STL-manual.html">https://metanorma.github.io/mn-samples-itu/documents/STL-manual.html</a></p>
+</li>
+<li><p><strong>W3C WebRTC Statistics API</strong>：<code>RTCInboundRtpStreamStats</code><br><a target="_blank" rel="noopener" href="https://w3c.github.io/webrtc-stats/#dom-rtcinboundrtpstreamstats">https://w3c.github.io/webrtc-stats/#dom-rtcinboundrtpstreamstats</a></p>
+</li>
+<li><p><strong>Fengdeng Lyu, webrtcHacks</strong>: <em>How WebRTC’s NetEQ Jitter Buffer Provides Smooth Audio</em> (2025)<br><a target="_blank" rel="noopener" href="https://webrtchacks.com/how-webrtcs-neteq-jitter-buffer-provides-smooth-audio/">https://webrtchacks.com/how-webrtcs-neteq-jitter-buffer-provides-smooth-audio/</a></p>
+</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PLC"><span class="toc-number">2.</span> <span class="toc-text">前言：为什么需要 PLC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E7%9A%84%E6%88%90%E5%9B%A0%E4%B8%8E%E5%BD%B1%E5%93%8D"><span class="toc-number">3.</span> <span class="toc-text">丢包的成因与影响</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebRTC-%E4%B8%AD%E7%9A%84%E4%B8%A2%E5%8C%85%E5%BA%94%E5%AF%B9%E4%BD%93%E7%B3%BB"><span class="toc-number">4.</span> <span class="toc-text">WebRTC 中的丢包应对体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">PLC 的基本原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%8F%E5%85%B8-PLC-%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">经典 PLC 算法详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%99%E9%9F%B3%E6%9B%BF%E6%8D%A2%EF%BC%88Silence-Substitution%EF%BC%89"><span class="toc-number">6.1.</span> <span class="toc-text">静音替换（Silence Substitution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A2%E5%BD%A2%E6%9B%BF%E6%8D%A2%EF%BC%88Waveform-Substitution%EF%BC%89"><span class="toc-number">6.2.</span> <span class="toc-text">波形替换（Waveform Substitution）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E9%9F%B3%E8%B0%83%E7%9A%84%E9%87%8D%E5%A4%8D%EF%BC%88Pitch-based-Repetition%EF%BC%89"><span class="toc-number">6.3.</span> <span class="toc-text">基于音调的重复（Pitch-based Repetition）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ITU-T-G-711-Appendix-I-%E7%AE%97%E6%B3%95"><span class="toc-number">6.4.</span> <span class="toc-text">ITU-T G.711 Appendix I 算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WSOLA-%E6%97%B6%E5%9F%9F%E7%AE%97%E6%B3%95"><span class="toc-number">6.5.</span> <span class="toc-text">WSOLA 时域算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E6%A8%A1%E5%9E%8B%E7%9A%84-PLC%EF%BC%88Model-based-PLC%EF%BC%89"><span class="toc-number">6.6.</span> <span class="toc-text">基于模型的 PLC（Model-based PLC）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Opus-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E5%86%85%E7%BD%AE-PLC"><span class="toc-number">7.</span> <span class="toc-text">Opus 编解码器内置 PLC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#WebRTC-NetEQ%EF%BC%9APLC-%E7%9A%84%E5%AE%BF%E4%B8%BB%E5%BC%95%E6%93%8E"><span class="toc-number">8.</span> <span class="toc-text">WebRTC NetEQ：PLC 的宿主引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#NetEQ-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">8.1.</span> <span class="toc-text">NetEQ 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NetEQ-%E7%9A%84%E5%86%B3%E7%AD%96%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">8.2.</span> <span class="toc-text">NetEQ 的决策状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PLC-%E8%A7%A6%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="toc-number">8.3.</span> <span class="toc-text">PLC 触发流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E9%A9%B1%E5%8A%A8%E7%9A%84-PLC%EF%BC%9AWaveNetEQ"><span class="toc-number">9.</span> <span class="toc-text">机器学习驱动的 PLC：WaveNetEQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9ANetEQ-%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">9.1.</span> <span class="toc-text">背景：NetEQ 的局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WaveNetEQ-%E6%9E%B6%E6%9E%84"><span class="toc-number">9.2.</span> <span class="toc-text">WaveNetEQ 架构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E4%B8%8E%E5%85%B6%E4%BB%96%E6%8A%97%E4%B8%A2%E5%8C%85%E6%9C%BA%E5%88%B6%E7%9A%84%E5%8D%8F%E5%90%8C"><span class="toc-number">10.</span> <span class="toc-text">PLC 与其他抗丢包机制的协同</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-FEC-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.1.</span> <span class="toc-text">与 FEC 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-NACK-RTX-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.2.</span> <span class="toc-text">与 NACK &#x2F; RTX 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-RED-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.3.</span> <span class="toc-text">与 RED 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8E-DRED-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">10.4.</span> <span class="toc-text">与 DRED 的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PLC-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E8%B4%A8%E9%87%8F%E8%A1%A1%E9%87%8F"><span class="toc-number">11.</span> <span class="toc-text">PLC 的局限性与质量衡量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">11.1.</span> <span class="toc-text">局限性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B4%A8%E9%87%8F%E8%AF%84%E4%BC%B0%E6%96%B9%E6%B3%95"><span class="toc-number">11.2.</span> <span class="toc-text">质量评估方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E8%80%85%E8%A7%86%E8%A7%92%EF%BC%9A%E5%A6%82%E4%BD%95%E8%A7%82%E6%B5%8B%E4%B8%8E%E8%B0%83%E4%BC%98-PLC"><span class="toc-number">12.</span> <span class="toc-text">开发者视角：如何观测与调优 PLC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E8%A7%82%E6%B5%8B-PLC-%E6%8C%87%E6%A0%87"><span class="toc-number">12.1.</span> <span class="toc-text">在浏览器中观测 PLC 指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E6%B5%8B%E8%AF%95"><span class="toc-number">12.2.</span> <span class="toc-text">网络仿真测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Opus-%E7%BC%96%E7%A0%81%E7%AB%AF%E8%B0%83%E4%BC%98"><span class="toc-number">12.3.</span> <span class="toc-text">Opus 编码端调优</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&text=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&is_video=false&description=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障&body=Check out this article: http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&title=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&name=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/07/webrtc/21-plc-packet-loss-concealment/&t=PLC（Packet Loss Concealment）— 丢包隐藏，音频连续性保障"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

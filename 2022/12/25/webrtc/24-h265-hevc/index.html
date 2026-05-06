@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 1. 概述与标准化历程 2. 核心编码技术 2.1 编码单元结构：CTU 与四叉树划分 2.2 帧内预测 2.3 帧间预测与运动补偿 2.4 变换与量化 2.5 熵编码：CABAC 2.6 环路滤波：去块滤波 + SAO 2.7 并行处理支持   3. 系统与传输接口（NAL 层） 3.1 NAL 单元头部结构 3.2 参数集：VPS &#x2F; SPS &#x2F; PPS 3.3 切片">
+<meta property="og:type" content="article">
+<meta property="og:title" content="H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂">
+<meta property="og:url" content="http://example.com/2022/12/25/webrtc/24-h265-hevc/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 1. 概述与标准化历程 2. 核心编码技术 2.1 编码单元结构：CTU 与四叉树划分 2.2 帧内预测 2.3 帧间预测与运动补偿 2.4 变换与量化 2.5 熵编码：CABAC 2.6 环路滤波：去块滤波 + SAO 2.7 并行处理支持   3. 系统与传输接口（NAL 层） 3.1 NAL 单元头部结构 3.2 参数集：VPS &#x2F; SPS &#x2F; PPS 3.3 切片">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-12-25T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-29T22:22:01.425Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/01/15/webrtc/25-VP8/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/12/10/webrtc/23-h264/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/25/webrtc/24-h265-hevc/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&text=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&is_video=false&description=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂&body=Check out this article: http://example.com/2022/12/25/webrtc/24-h265-hevc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&name=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/25/webrtc/24-h265-hevc/&t=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与标准化历程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E5%8C%96%E7%89%88%E6%9C%AC%E5%8E%86%E7%A8%8B"><span class="toc-number">2.0.1.</span> <span class="toc-text">标准化版本历程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A0%81%E6%8A%80%E6%9C%AF"><span class="toc-number">3.</span> <span class="toc-text">2. 核心编码技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E7%BB%93%E6%9E%84%EF%BC%9ACTU-%E4%B8%8E%E5%9B%9B%E5%8F%89%E6%A0%91%E5%88%92%E5%88%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 编码单元结构：CTU 与四叉树划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 帧内预测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 帧间预测与运动补偿</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 变换与量化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E7%86%B5%E7%BC%96%E7%A0%81%EF%BC%9ACABAC"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 熵编码：CABAC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2%EF%BC%9A%E5%8E%BB%E5%9D%97%E6%BB%A4%E6%B3%A2-SAO"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 环路滤波：去块滤波 + SAO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-%E5%B9%B6%E8%A1%8C%E5%A4%84%E7%90%86%E6%94%AF%E6%8C%81"><span class="toc-number">3.0.7.</span> <span class="toc-text">2.7 并行处理支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%B3%BB%E7%BB%9F%E4%B8%8E%E4%BC%A0%E8%BE%93%E6%8E%A5%E5%8F%A3%EF%BC%88NAL-%E5%B1%82%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. 系统与传输接口（NAL 层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-NAL-%E5%8D%95%E5%85%83%E5%A4%B4%E9%83%A8%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 NAL 单元头部结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%82%E6%95%B0%E9%9B%86%EF%BC%9AVPS-SPS-PPS"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 参数集：VPS &#x2F; SPS &#x2F; PPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%87%E7%89%87%E7%B1%BB%E5%9E%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 切片类型</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Profile%E3%80%81Tier-%E4%B8%8E-Level"><span class="toc-number">5.</span> <span class="toc-text">4. Profile、Tier 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Profile%EF%BC%88%E6%A1%A3%E6%AC%A1%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Profile（档次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Tier%EF%BC%88%E5%B1%82%E7%BA%A7%EF%BC%89%E4%B8%8E-Level%EF%BC%88%E7%AD%89%E7%BA%A7%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 Tier（层级）与 Level（等级）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-RTP-%E5%B0%81%E8%A3%85%EF%BC%9ARFC-7798"><span class="toc-number">6.</span> <span class="toc-text">5. RTP 封装：RFC 7798</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-RTP-Payload-Header"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 RTP Payload Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%B0%81%E5%8C%85%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 封包模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-1-Single-NAL-Unit-Packet%EF%BC%88%E5%8D%95-NAL-%E5%8D%95%E5%85%83%E5%8C%85%EF%BC%89"><span class="toc-number">6.0.2.1.</span> <span class="toc-text">5.2.1 Single NAL Unit Packet（单 NAL 单元包）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-2-Aggregation-Packet%EF%BC%88%E8%81%9A%E5%90%88%E5%8C%85%EF%BC%8CAP%EF%BC%89"><span class="toc-number">6.0.2.2.</span> <span class="toc-text">5.2.2 Aggregation Packet（聚合包，AP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-3-Fragmentation-Unit%EF%BC%88%E5%88%86%E7%89%87%E5%8D%95%E5%85%83%EF%BC%8CFU%EF%BC%89"><span class="toc-number">6.0.2.3.</span> <span class="toc-text">5.2.3 Fragmentation Unit（分片单元，FU）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-4-PACI-Packet%EF%BC%88Payload-Content-Information%EF%BC%8C%E8%BD%BD%E8%8D%B7%E5%86%85%E5%AE%B9%E4%BF%A1%E6%81%AF%E5%8C%85%EF%BC%89"><span class="toc-number">6.0.2.4.</span> <span class="toc-text">5.2.4 PACI Packet（Payload Content Information，载荷内容信息包）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 传输模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86%E5%8F%82%E6%95%B0"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-H-265-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E7%8E%B0%E7%8A%B6"><span class="toc-number">7.</span> <span class="toc-text">6. H.265 在 WebRTC 中的现状</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-IETF-%E8%8D%89%E6%A1%88%EF%BC%9Adraft-ietf-avtcore-hevc-webrtc"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 IETF 草案：draft-ietf-avtcore-hevc-webrtc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 浏览器支持情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E4%BC%98%E5%8A%BF"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 硬件加速优势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%EF%BC%9A%E5%A4%8D%E6%9D%82%E7%9A%84%E8%AE%B8%E5%8F%AF%E6%A0%BC%E5%B1%80"><span class="toc-number">8.</span> <span class="toc-text">7. 专利问题：复杂的许可格局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%89%E5%A4%A7%E4%B8%93%E5%88%A9%E6%B1%A0"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 三大专利池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%E5%AF%B9-WebRTC-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 专利问题对 WebRTC 的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-H-265-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">9.</span> <span class="toc-text">8. H.265 与其他编码的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">11.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E6%96%87%E6%A1%A3"><span class="toc-number">11.0.1.</span> <span class="toc-text">标准文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IETF-RFC-%E4%B8%8E%E8%8D%89%E6%A1%88"><span class="toc-number">11.0.2.</span> <span class="toc-text">IETF RFC 与草案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8F%82%E8%80%83"><span class="toc-number">11.0.3.</span> <span class="toc-text">浏览器与实现参考</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">11.0.4.</span> <span class="toc-text">专利与许可</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="toc-number">11.0.5.</span> <span class="toc-text">扩展阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-12-25T02:44:19.000Z" class="dt-published" itemprop="datePublished">2022-12-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B">1. 概述与标准化历程</a></li>
+<li><a href="#2-%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A0%81%E6%8A%80%E6%9C%AF">2. 核心编码技术</a><ul>
+<li><a href="#21-%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E7%BB%93%E6%9E%84ctu-%E4%B8%8E%E5%9B%9B%E5%8F%89%E6%A0%91%E5%88%92%E5%88%86">2.1 编码单元结构：CTU 与四叉树划分</a></li>
+<li><a href="#22-%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B">2.2 帧内预测</a></li>
+<li><a href="#23-%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF">2.3 帧间预测与运动补偿</a></li>
+<li><a href="#24-%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96">2.4 变换与量化</a></li>
+<li><a href="#25-%E7%86%B5%E7%BC%96%E7%A0%81cabac">2.5 熵编码：CABAC</a></li>
+<li><a href="#26-%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2%E5%8E%BB%E5%9D%97%E6%BB%A4%E6%B3%A2--sao">2.6 环路滤波：去块滤波 + SAO</a></li>
+<li><a href="#27-%E5%B9%B6%E8%A1%8C%E5%A4%84%E7%90%86%E6%94%AF%E6%8C%81">2.7 并行处理支持</a></li>
+</ul>
+</li>
+<li><a href="#3-%E7%B3%BB%E7%BB%9F%E4%B8%8E%E4%BC%A0%E8%BE%93%E6%8E%A5%E5%8F%A3nal-%E5%B1%82">3. 系统与传输接口（NAL 层）</a><ul>
+<li><a href="#31-nal-%E5%8D%95%E5%85%83%E5%A4%B4%E9%83%A8%E7%BB%93%E6%9E%84">3.1 NAL 单元头部结构</a></li>
+<li><a href="#32-%E5%8F%82%E6%95%B0%E9%9B%86vps--sps--pps">3.2 参数集：VPS &#x2F; SPS &#x2F; PPS</a></li>
+<li><a href="#33-%E5%88%87%E7%89%87%E7%B1%BB%E5%9E%8B">3.3 切片类型</a></li>
+</ul>
+</li>
+<li><a href="#4-profiletier-%E4%B8%8E-level">4. Profile、Tier 与 Level</a><ul>
+<li><a href="#41-profile%E6%A1%A3%E6%AC%A1">4.1 Profile（档次）</a></li>
+<li><a href="#42-tier%E5%B1%82%E7%BA%A7%E4%B8%8E-level%E7%AD%89%E7%BA%A7">4.2 Tier（层级）与 Level（等级）</a></li>
+</ul>
+</li>
+<li><a href="#5-rtp-%E5%B0%81%E8%A3%85rfc-7798">5. RTP 封装：RFC 7798</a><ul>
+<li><a href="#51-rtp-payload-header">5.1 RTP Payload Header</a></li>
+<li><a href="#52-%E5%B0%81%E5%8C%85%E6%A8%A1%E5%BC%8F">5.2 封包模式</a></li>
+<li><a href="#53-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F">5.3 传输模式</a></li>
+<li><a href="#54-sdp-%E5%8D%8F%E5%95%86%E5%8F%82%E6%95%B0">5.4 SDP 协商参数</a></li>
+</ul>
+</li>
+<li><a href="#6-h265-%E5%9C%A8-webrtc-%E4%B8%AD%E7%9A%84%E7%8E%B0%E7%8A%B6">6. H.265 在 WebRTC 中的现状</a><ul>
+<li><a href="#61-ietf-%E8%8D%89%E6%A1%88draft-ietf-avtcore-hevc-webrtc">6.1 IETF 草案：draft-ietf-avtcore-hevc-webrtc</a></li>
+<li><a href="#62-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5">6.2 浏览器支持情况</a></li>
+<li><a href="#63-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E4%BC%98%E5%8A%BF">6.3 硬件加速优势</a></li>
+</ul>
+</li>
+<li><a href="#7-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%E5%A4%8D%E6%9D%82%E7%9A%84%E8%AE%B8%E5%8F%AF%E6%A0%BC%E5%B1%80">7. 专利问题：复杂的许可格局</a><ul>
+<li><a href="#71-%E4%B8%89%E5%A4%A7%E4%B8%93%E5%88%A9%E6%B1%A0">7.1 三大专利池</a></li>
+<li><a href="#72-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%E5%AF%B9-webrtc-%E7%9A%84%E5%BD%B1%E5%93%8D">7.2 专利问题对 WebRTC 的影响</a></li>
+</ul>
+</li>
+<li><a href="#8-h265-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E5%AF%B9%E6%AF%94">8. H.265 与其他编码的对比</a></li>
+<li><a href="#9-%E6%80%BB%E7%BB%93">9. 总结</a></li>
+</ul>
+<hr>
+<h1 id="1-概述与标准化历程"><a href="#1-概述与标准化历程" class="headerlink" title="1. 概述与标准化历程"></a>1. 概述与标准化历程</h1><p>H.265，正式名称为 <strong>High Efficiency Video Coding（HEVC）</strong>，同时也被 ISO&#x2F;IEC 命名为 <strong>MPEG-H Part 2</strong>（ISO&#x2F;IEC 23008-2），是由 <strong>JCT-VC</strong>（Joint Collaborative Team on Video Coding，视频编码联合协作团队）制定的视频压缩标准。JCT-VC 由 ITU-T 第 16 研究组（VCEG）与 ISO&#x2F;IEC MPEG 联合组成。</p>
+<p>H.265 的核心目标是：<strong>在相同视觉质量下，比 H.264&#x2F;AVC 节省约 40%～50% 的码率；或在相同码率下，提供显著更好的画质</strong>。它最高支持 <strong>8192×4320（8K UHD）</strong> 分辨率。</p>
+<h3 id="标准化版本历程"><a href="#标准化版本历程" class="headerlink" title="标准化版本历程"></a>标准化版本历程</h3><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>批准时间</th>
+<th>主要内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Version 1</td>
+<td>2013 年 4 月</td>
+<td>首版，定义 Main、Main 10、Main Still Picture Profile</td>
+</tr>
+<tr>
+<td>Version 2</td>
+<td>2014 年 10 月</td>
+<td>增加 Range Extensions（RExt）、多视角扩展（MV-HEVC）、可伸缩扩展（SHVC）</td>
+</tr>
+<tr>
+<td>Version 3</td>
+<td>2015 年 4 月</td>
+<td>增加 3D-HEVC 扩展</td>
+</tr>
+<tr>
+<td>Version 4</td>
+<td>2016 年 12 月</td>
+<td>增加屏幕内容编码扩展（SCC）、高通量扩展（HT）</td>
+</tr>
+<tr>
+<td>Version 5</td>
+<td>2018 年 2 月</td>
+<td>增加全向视频 SEI、Monochrome 10 Profile 等</td>
+</tr>
+<tr>
+<td>Version 10</td>
+<td>2024 年 7 月</td>
+<td>增加多视角扩展（Multiview Extended 等）六个新 Profile</td>
+</tr>
+</tbody></table>
+<p>2017 年，H.265 荣获 <strong>Primetime Emmy 工程奖</strong>，表彰其对电视技术的重大影响。</p>
+<hr>
+<h1 id="2-核心编码技术"><a href="#2-核心编码技术" class="headerlink" title="2. 核心编码技术"></a>2. 核心编码技术</h1><p>H.265 与 H.264 同属<strong>混合视频编码（Hybrid Video Coding）</strong>范式：先通过帧内或帧间预测生成预测信号，再对残差（原始信号与预测信号之差）进行变换编码。H.265 在几乎所有模块上都对 H.264 进行了重新设计和改进，下面逐一介绍。</p>
+<h3 id="2-1-编码单元结构：CTU-与四叉树划分"><a href="#2-1-编码单元结构：CTU-与四叉树划分" class="headerlink" title="2.1 编码单元结构：CTU 与四叉树划分"></a>2.1 编码单元结构：CTU 与四叉树划分</h3><p>H.264 中使用固定大小的 <strong>宏块（Macroblock，MB）</strong>，尺寸为 16×16 像素。H.265 引入了更灵活的层次化结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CTU（Coding Tree Unit，编码树单元）</span><br><span class="line">├── 最大尺寸：64×64（也可配置为 32×32 或 16×16）</span><br><span class="line">└── 通过四叉树（Quad-Tree）递归划分为 CU（Coding Unit）</span><br><span class="line">    ├── CU 最小尺寸：8×8</span><br><span class="line">    └── 每个 CU 可进一步划分为 PU（Prediction Unit）和 TU（Transform Unit）</span><br></pre></td></tr></table></figure>
+
+<p>这种灵活的块结构使编码器可以针对不同区域选择最合适的大小：</p>
+<ul>
+<li><strong>平坦区域</strong>：使用大块（64×64），减少编码开销</li>
+<li><strong>细节&#x2F;边缘区域</strong>：使用小块（8×8 或更小），保留细节</li>
+</ul>
+<p>大块和大变换的使用，尤其在高分辨率内容（4K、8K）下，是 H.265 相比 H.264 获得显著压缩增益的关键原因之一。</p>
+<p>RFC 7798 Section 1.1.1 中明确指出：</p>
+<blockquote>
+<p><em>“One of the major tools that contributes significantly to the coding efficiency of HEVC is the use of flexible coding blocks and transforms, which are defined in a hierarchical quad-tree manner.”</em></p>
+</blockquote>
+<h3 id="2-2-帧内预测"><a href="#2-2-帧内预测" class="headerlink" title="2.2 帧内预测"></a>2.2 帧内预测</h3><p>H.264 支持 8 种帧内预测方向，H.265 将其扩展至 <strong>35 种</strong>：</p>
+<ul>
+<li><strong>Planar 模式</strong>：用于平滑、缓变区域</li>
+<li><strong>DC 模式</strong>：用于均匀色块</li>
+<li><strong>33 种角度预测方向</strong>：覆盖从 0° 到 180° 的精细方向，更好地预测纹理边缘</li>
+</ul>
+<p>此外，H.265 还引入了：</p>
+<ul>
+<li><strong>参考像素自适应平滑</strong>：根据预测方向，对参考样本进行滤波，减少振铃伪影</li>
+<li><strong>4×4 块的 DST（离散正弦变换）</strong>：用于帧内变换，在小块帧内编码时提升效率</li>
+</ul>
+<h3 id="2-3-帧间预测与运动补偿"><a href="#2-3-帧间预测与运动补偿" class="headerlink" title="2.3 帧间预测与运动补偿"></a>2.3 帧间预测与运动补偿</h3><p>H.265 在运动预测方面的改进包括：</p>
+<p><strong>1. 运动合并（Motion Merge）与高级运动向量预测（AMVP）</strong></p>
+<p>当前块的运动信息可以从空间或时间上相邻的块推断，类似 H.264 中的 DIRECT 模式，但融入了四叉树结构和并行友好设计。运动向量预测子（AMVP）可被显式信令标记，进一步提升效率。</p>
+<p><strong>2. 高精度插值滤波</strong></p>
+<p>插值滤波器长度从 H.264 的 <strong>6-tap</strong> 提升至 <strong>8-tap</strong>，提升运动补偿精度，同时中间插值步骤不做截断取整，保持更高的数值精度。</p>
+<p><strong>3. 多参考帧</strong></p>
+<p>与 H.264 类似，H.265 支持多参考帧，但参考帧管理（RPS，Reference Picture Set）机制得到了改进，使得时间可伸缩（Temporal Scalability）的信令更加高效。</p>
+<h3 id="2-4-变换与量化"><a href="#2-4-变换与量化" class="headerlink" title="2.4 变换与量化"></a>2.4 变换与量化</h3><p>H.265 支持多种尺寸的整数 DCT 变换（4×4、8×8、16×16、32×32），以及针对 4×4 帧内块的 <strong>DST（离散正弦变换）</strong>。相比 H.264 仅支持 4×4 和 8×8 两种尺寸，更大的变换块（16×16、32×32）在高分辨率内容中能显著减少码率。</p>
+<p>量化过程与 H.264 类似，通过量化参数（QP，Quantization Parameter）控制压缩率与质量的权衡，QP 取值范围 0～51。</p>
+<h3 id="2-5-熵编码：CABAC"><a href="#2-5-熵编码：CABAC" class="headerlink" title="2.5 熵编码：CABAC"></a>2.5 熵编码：CABAC</h3><p>H.264 支持两种熵编码引擎：CAVLC 和 CABAC。H.265 统一使用 <strong>CABAC（Context Adaptive Binary Arithmetic Coding，上下文自适应二进制算术编码）</strong>，放弃了 CAVLC。</p>
+<p>H.265 的 CABAC 在 H.264 版本基础上做了多项改进：</p>
+<ul>
+<li>提升编码效率</li>
+<li>降低实现复杂度，尤其对并行架构更友好</li>
+<li>减少上下文模型数量，降低初始化开销</li>
+</ul>
+<h3 id="2-6-环路滤波：去块滤波-SAO"><a href="#2-6-环路滤波：去块滤波-SAO" class="headerlink" title="2.6 环路滤波：去块滤波 + SAO"></a>2.6 环路滤波：去块滤波 + SAO</h3><p>H.265 的环路滤波由两级组成：</p>
+<p><strong>第一级：去块滤波（Deblocking Filter）</strong></p>
+<p>与 H.264 中类似，但复杂度有所降低。在重建图像的变换边界处平滑块效应，改善画质并提升压缩效率。</p>
+<p><strong>第二级：样本自适应偏移（SAO，Sample Adaptive Offset）</strong></p>
+<p>这是 H.265 引入的全新滤波机制。SAO 在像素级别以自适应方式添加偏移值，主要起<strong>去振铃（De-ringing）</strong>效果。对于尖锐边缘周围的振铃伪影改善效果明显，对整体视觉质量的提升做出了相当贡献。</p>
+<h3 id="2-7-并行处理支持"><a href="#2-7-并行处理支持" class="headerlink" title="2.7 并行处理支持"></a>2.7 并行处理支持</h3><p>H.265 在设计上充分考虑了现代多核处理器和 GPU 的并行实现需求，引入了多种并行处理工具：</p>
+<ul>
+<li><strong>瓦片（Tiles）</strong>：将图像划分为矩形区域，各区域可独立编解码，无跨边界依赖</li>
+<li><strong>波前并行处理（WPP，Wavefront Parallel Processing）</strong>：以 CTU 行为单位，允许流水线式并行处理</li>
+<li><strong>片（Slices）</strong>：与 H.264 类似，但配合 Tiles 可以提供更灵活的并行分组</li>
+</ul>
+<p>RFC 7798 Section 1.1.3 专门讨论了这些并行处理支持机制对 RTP 封装的影响。</p>
+<hr>
+<h1 id="3-系统与传输接口（NAL-层）"><a href="#3-系统与传输接口（NAL-层）" class="headerlink" title="3. 系统与传输接口（NAL 层）"></a>3. 系统与传输接口（NAL 层）</h1><p>H.265 继承了 H.264 的 <strong>NAL（Network Abstraction Layer，网络抽象层）</strong> 设计哲学，但做了若干重要调整。</p>
+<h3 id="3-1-NAL-单元头部结构"><a href="#3-1-NAL-单元头部结构" class="headerlink" title="3.1 NAL 单元头部结构"></a>3.1 NAL 单元头部结构</h3><p>H.264 的 NAL 单元头部为 <strong>1 字节</strong>，H.265 扩展为 <strong>2 字节（16 bit）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|F|   Type    |  LayerId  | TID |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>各字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位宽</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F（forbidden_zero_bit）</td>
+<td>1 bit</td>
+<td>必须为 0，用于错误检测</td>
+</tr>
+<tr>
+<td>Type（nal_unit_type）</td>
+<td>6 bit</td>
+<td>NAL 单元类型，取值 0～63</td>
+</tr>
+<tr>
+<td>LayerId（nuh_layer_id）</td>
+<td>6 bit</td>
+<td>层 ID，用于可伸缩&#x2F;多视角扩展；基础层为 0</td>
+</tr>
+<tr>
+<td>TID（nuh_temporal_id_plus1）</td>
+<td>3 bit</td>
+<td>时间层 ID + 1；用于时间可伸缩性，不得为 0</td>
+</tr>
+</tbody></table>
+<p>H.265 定义了多达 64 种 NAL 单元类型，主要分类如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">VCL NAL 单元（含视频编码数据）：</span><br><span class="line">  - TRAIL_N / TRAIL_R    （0, 1）  — 普通 P/B 帧</span><br><span class="line">  - IDR_W_RADL / IDR_N_LP（19, 20）— IDR 帧（关键帧）</span><br><span class="line">  - CRA_NUT              （21）    — Clean Random Access</span><br><span class="line"></span><br><span class="line">非 VCL NAL 单元（参数集、SEI 等）：</span><br><span class="line">  - VPS_NUT              （32）    — Video Parameter Set</span><br><span class="line">  - SPS_NUT              （33）    — Sequence Parameter Set</span><br><span class="line">  - PPS_NUT              （34）    — Picture Parameter Set</span><br><span class="line">  - PREFIX_SEI_NUT       （39）    — 前缀 SEI</span><br><span class="line">  - SUFFIX_SEI_NUT       （40）    — 后缀 SEI</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-参数集：VPS-SPS-PPS"><a href="#3-2-参数集：VPS-SPS-PPS" class="headerlink" title="3.2 参数集：VPS &#x2F; SPS &#x2F; PPS"></a>3.2 参数集：VPS &#x2F; SPS &#x2F; PPS</h3><p>相比 H.264 的两级参数集（SPS + PPS），H.265 引入了三级结构：</p>
+<p><strong>VPS（Video Parameter Set，视频参数集）</strong></p>
+<p>这是 H.265 新增的参数集类型。VPS 提供整个码流的”宏观视图”，包括：</p>
+<ul>
+<li>操作点的类型（Profile、Tier、Level）</li>
+<li>时间层数量和结构</li>
+<li>用于会话协商和内容选择的高层属性</li>
+</ul>
+<p>对于将来的扩展（3D、可伸缩），VPS 将包含解码过程所必需的信息（如增强层的参考图像集构建信息）。</p>
+<p><strong>SPS（Sequence Parameter Set，序列参数集）</strong></p>
+<p>序列级参数，包含图像尺寸、Profile&#x2F;Tier&#x2F;Level、位深度、色度格式、参考图像管理等信息。</p>
+<p><strong>PPS（Picture Parameter Set，图像参数集）</strong></p>
+<p>图像级参数，包含熵编码方式、量化参数、去块滤波开关等。</p>
+<h3 id="3-3-切片类型"><a href="#3-3-切片类型" class="headerlink" title="3.3 切片类型"></a>3.3 切片类型</h3><p>H.265 定义了以下切片类型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I Slice</td>
+<td>所有 CU 采用帧内预测</td>
+</tr>
+<tr>
+<td>P Slice</td>
+<td>CU 可采用帧内预测或单向帧间预测</td>
+</tr>
+<tr>
+<td>B Slice</td>
+<td>CU 可采用帧内预测、单向或双向帧间预测</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="4-Profile、Tier-与-Level"><a href="#4-Profile、Tier-与-Level" class="headerlink" title="4. Profile、Tier 与 Level"></a>4. Profile、Tier 与 Level</h1><p>H.265 通过 Profile、Tier、Level 三个维度定义解码能力约束，确保不同设备间的互操作性。</p>
+<h3 id="4-1-Profile（档次）"><a href="#4-1-Profile（档次）" class="headerlink" title="4.1 Profile（档次）"></a>4.1 Profile（档次）</h3><p>Profile 定义了编码工具的子集。以下是主要 Profile：</p>
+<p><strong>Version 1 基础 Profile：</strong></p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>位深度</th>
+<th>色度格式</th>
+<th>典型应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main</td>
+<td>8-bit</td>
+<td>4:2:0</td>
+<td>消费级视频、广播</td>
+</tr>
+<tr>
+<td>Main 10</td>
+<td>8&#x2F;10-bit</td>
+<td>4:2:0</td>
+<td>HDR、UHD 广播（几乎所有支持硬件都实现了此 Profile）</td>
+</tr>
+<tr>
+<td>Main Still Picture</td>
+<td>8-bit</td>
+<td>4:2:0</td>
+<td>静态图像编码（如 HEIF）</td>
+</tr>
+</tbody></table>
+<p><strong>Version 2 Range Extensions（RExt）Profile（部分）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>位深度</th>
+<th>色度格式</th>
+<th>典型应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main 4:2:2 10</td>
+<td>10-bit</td>
+<td>4:2:2</td>
+<td>专业制作</td>
+</tr>
+<tr>
+<td>Main 4:4:4</td>
+<td>8-bit</td>
+<td>4:4:4</td>
+<td>高质量内容创作</td>
+</tr>
+<tr>
+<td>Main 4:4:4 10</td>
+<td>10-bit</td>
+<td>4:4:4</td>
+<td>专业广播</td>
+</tr>
+<tr>
+<td>Main 4:4:4 16 Intra</td>
+<td>16-bit</td>
+<td>4:4:4</td>
+<td>专业无损&#x2F;高质量帧内编码</td>
+</tr>
+</tbody></table>
+<p><strong>Version 4 Screen Content Coding（SCC）Extensions：</strong></p>
+<p>专为屏幕共享、UI 录制、文字&#x2F;动画等场景优化，增加了 Palette Mode（调色板模式）、Intra Block Copy（帧内块复制）等工具。</p>
+<h3 id="4-2-Tier（层级）与-Level（等级）"><a href="#4-2-Tier（层级）与-Level（等级）" class="headerlink" title="4.2 Tier（层级）与 Level（等级）"></a>4.2 Tier（层级）与 Level（等级）</h3><p><strong>Tier</strong> 分为两级：</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main Tier</td>
+<td>主层，面向消费级应用，码率上限较低</td>
+</tr>
+<tr>
+<td>High Tier</td>
+<td>高层，面向专业&#x2F;高端应用，支持更高码率</td>
+</tr>
+</tbody></table>
+<p><strong>Level</strong> 从 1 到 6.2，定义了分辨率、帧率、码率等的上限，以下列举关键 Level：</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>最大分辨率 @ 帧率</th>
+<th>Main Tier 最大码率</th>
+<th>High Tier 最大码率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3.0</td>
+<td>1080p @ 30fps</td>
+<td>6 Mbps</td>
+<td>—</td>
+</tr>
+<tr>
+<td>3.1</td>
+<td>1080p @ 60fps</td>
+<td>10 Mbps</td>
+<td>—</td>
+</tr>
+<tr>
+<td>4.0</td>
+<td>2160p @ 30fps</td>
+<td>12 Mbps</td>
+<td>30 Mbps</td>
+</tr>
+<tr>
+<td>4.1</td>
+<td>2160p @ 60fps</td>
+<td>20 Mbps</td>
+<td>50 Mbps</td>
+</tr>
+<tr>
+<td>5.0</td>
+<td>4320p @ 30fps</td>
+<td>25 Mbps</td>
+<td>100 Mbps</td>
+</tr>
+<tr>
+<td>5.1</td>
+<td>4320p @ 60fps</td>
+<td>40 Mbps</td>
+<td>160 Mbps</td>
+</tr>
+<tr>
+<td>6.0</td>
+<td>8K @ 30fps</td>
+<td>60 Mbps</td>
+<td>240 Mbps</td>
+</tr>
+<tr>
+<td>6.1</td>
+<td>8K @ 60fps</td>
+<td>120 Mbps</td>
+<td>480 Mbps</td>
+</tr>
+<tr>
+<td>6.2</td>
+<td>8K @ 120fps</td>
+<td>240 Mbps</td>
+<td>800 Mbps</td>
+</tr>
+</tbody></table>
+<p>在 SDP 或容器格式中，Profile&#x2F;Tier&#x2F;Level 通常以如下格式表达（RFC 7798 Section 7）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">profile-id=1; tier-flag=0; level-id=93</span><br></pre></td></tr></table></figure>
+
+<p>或以十六进制字符串（profile-space, tier, profile-idc 等）表示。</p>
+<hr>
+<h1 id="5-RTP-封装：RFC-7798"><a href="#5-RTP-封装：RFC-7798" class="headerlink" title="5. RTP 封装：RFC 7798"></a>5. RTP 封装：RFC 7798</h1><p>H.265 的 RTP 封装格式由 IETF RFC 7798（2016 年 3 月发布，Standards Track）定义，标题为 *”RTP Payload Format for High Efficiency Video Coding (HEVC)”*。该 RFC 由来自 Qualcomm、Fraunhofer HHI、Vidyo 和 Nokia 的工程师联合撰写。</p>
+<h3 id="5-1-RTP-Payload-Header"><a href="#5-1-RTP-Payload-Header" class="headerlink" title="5.1 RTP Payload Header"></a>5.1 RTP Payload Header</h3><p>每个 HEVC RTP 包的 Payload 以 <strong>2 字节的 Payload Header</strong> 开始，其结构与 HEVC NAL 单元头部完全相同：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|F|   Type    |  LayerId  | TID |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>这个 2 字节 Payload Header 的字段与 NAL 单元头部一一对应，使得接收端可以直接从 RTP Payload 首部判断包的类型，而无需额外解析。</p>
+<h3 id="5-2-封包模式"><a href="#5-2-封包模式" class="headerlink" title="5.2 封包模式"></a>5.2 封包模式</h3><p>RFC 7798 定义了四种封包结构：</p>
+<h4 id="5-2-1-Single-NAL-Unit-Packet（单-NAL-单元包）"><a href="#5-2-1-Single-NAL-Unit-Packet（单-NAL-单元包）" class="headerlink" title="5.2.1 Single NAL Unit Packet（单 NAL 单元包）"></a>5.2.1 Single NAL Unit Packet（单 NAL 单元包）</h4><p>最简单的封包方式：一个 RTP 包承载一个完整的 NAL 单元。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">+---------------+</span><br><span class="line">|  RTP Header   |</span><br><span class="line">+---------------+</span><br><span class="line">| HEVC NAL HDR  |  (2 bytes, same as NAL unit header)</span><br><span class="line">+---------------+</span><br><span class="line">|  NAL Unit     |</span><br><span class="line">|   Payload     |</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<p>适用于 NAL 单元大小不超过 MTU 的情况。</p>
+<h4 id="5-2-2-Aggregation-Packet（聚合包，AP）"><a href="#5-2-2-Aggregation-Packet（聚合包，AP）" class="headerlink" title="5.2.2 Aggregation Packet（聚合包，AP）"></a>5.2.2 Aggregation Packet（聚合包，AP）</h4><p>将多个较小的 NAL 单元聚合进一个 RTP 包，减少包头开销：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+---------------+</span><br><span class="line">|  RTP Header   |</span><br><span class="line">+---------------+</span><br><span class="line">| PayloadHdr(AP)|  Type = 48</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 1 Size   |  (2 bytes)</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 1 HDR    |</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 1 Data   |</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 2 Size   |  (2 bytes)</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 2 HDR    |</span><br><span class="line">+---------------+</span><br><span class="line">| NALU 2 Data   |</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<p>NAL 单元类型码 &#x3D; <strong>48</strong>。</p>
+<h4 id="5-2-3-Fragmentation-Unit（分片单元，FU）"><a href="#5-2-3-Fragmentation-Unit（分片单元，FU）" class="headerlink" title="5.2.3 Fragmentation Unit（分片单元，FU）"></a>5.2.3 Fragmentation Unit（分片单元，FU）</h4><p>当单个 NAL 单元超过 MTU 时，将其拆分为多个 RTP 包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">+---------------+</span><br><span class="line">|  RTP Header   |</span><br><span class="line">+---------------+</span><br><span class="line">| PayloadHdr(FU)|  Type = 49</span><br><span class="line">+---------------+</span><br><span class="line">|   FU Header   |  (1 byte)</span><br><span class="line">|  S|E|   Type  |</span><br><span class="line">+---------------+</span><br><span class="line">|  FU Payload   |</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<p>FU Header 各字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位宽</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>S（Start bit）</td>
+<td>1</td>
+<td>1 表示该 FU 是 NAL 单元的第一个分片</td>
+</tr>
+<tr>
+<td>E（End bit）</td>
+<td>1</td>
+<td>1 表示该 FU 是 NAL 单元的最后一个分片</td>
+</tr>
+<tr>
+<td>FuType</td>
+<td>6</td>
+<td>被分片的 NAL 单元类型</td>
+</tr>
+</tbody></table>
+<p>NAL 单元类型码 &#x3D; <strong>49</strong>。</p>
+<h4 id="5-2-4-PACI-Packet（Payload-Content-Information，载荷内容信息包）"><a href="#5-2-4-PACI-Packet（Payload-Content-Information，载荷内容信息包）" class="headerlink" title="5.2.4 PACI Packet（Payload Content Information，载荷内容信息包）"></a>5.2.4 PACI Packet（Payload Content Information，载荷内容信息包）</h4><p>RFC 7798 引入的新型封包结构，用于携带扩展控制信息，支持时间可伸缩性控制信息（TSCI）等。NAL 单元类型码 &#x3D; <strong>50</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+---------------+</span><br><span class="line">|  RTP Header   |</span><br><span class="line">+---------------+</span><br><span class="line">|  PayloadHdr   |  Type = 50</span><br><span class="line">+---------------+</span><br><span class="line">|  PACI Header  |  (4 bytes)</span><br><span class="line">+---------------+</span><br><span class="line">|  PACI Payload |</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-传输模式"><a href="#5-3-传输模式" class="headerlink" title="5.3 传输模式"></a>5.3 传输模式</h3><p>RFC 7798 支持三种传输模式：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>缩写</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Single RTP stream on Single media Transport</td>
+<td>SRST</td>
+<td>最常见，一路 RTP 流通过单个传输通道</td>
+</tr>
+<tr>
+<td>Multiple RTP streams over a Single media Transport</td>
+<td>MRST</td>
+<td>多路 RTP 流共享同一传输通道</td>
+</tr>
+<tr>
+<td>Multiple RTP streams on Multiple media Transports</td>
+<td>MRMT</td>
+<td>多路 RTP 流使用各自独立的传输通道</td>
+</tr>
+</tbody></table>
+<p>MRST 和 MRMT 主要服务于时间可伸缩（Temporal Scalability）或空间可伸缩（SHVC）场景，允许接收端选择性接收不同层的视频流。</p>
+<h3 id="5-4-SDP-协商参数"><a href="#5-4-SDP-协商参数" class="headerlink" title="5.4 SDP 协商参数"></a>5.4 SDP 协商参数</h3><p>RFC 7798 Section 7 定义了 HEVC 在 SDP 中的媒体类型参数，媒体类型为 <code>video/H265</code>，以下是关键 SDP 参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>profile-space</code></td>
+<td>Profile 空间，通常为 0</td>
+</tr>
+<tr>
+<td><code>profile-id</code></td>
+<td>Profile IDC，如 1（Main）、2（Main 10）</td>
+</tr>
+<tr>
+<td><code>tier-flag</code></td>
+<td>0 &#x3D; Main Tier，1 &#x3D; High Tier</td>
+</tr>
+<tr>
+<td><code>level-id</code></td>
+<td>Level × 30，如 Level 3.1 → 93</td>
+</tr>
+<tr>
+<td><code>interop-constraints</code></td>
+<td>6 字节十六进制互操作约束指示</td>
+</tr>
+<tr>
+<td><code>sprop-vps</code></td>
+<td>base64 编码的 VPS NAL 单元（带外传输）</td>
+</tr>
+<tr>
+<td><code>sprop-sps</code></td>
+<td>base64 编码的 SPS NAL 单元（带外传输）</td>
+</tr>
+<tr>
+<td><code>sprop-pps</code></td>
+<td>base64 编码的 PPS NAL 单元（带外传输）</td>
+</tr>
+<tr>
+<td><code>tx-mode</code></td>
+<td>传输模式：SRST &#x2F; MRST &#x2F; MRMT</td>
+</tr>
+</tbody></table>
+<p>典型 SDP 片段示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">m=video 49170 RTP/AVP 98</span><br><span class="line">a=rtpmap:98 H265/90000</span><br><span class="line">a=fmtp:98 profile-id=1;tier-flag=0;level-id=93;</span><br><span class="line">          sprop-vps=QAEMAf//...;</span><br><span class="line">          sprop-sps=QgEBAWAAAAMAsAAAAwAAAwB4oAKAggA=;</span><br><span class="line">          sprop-pps=RAHgdrBqkA==</span><br></pre></td></tr></table></figure>
+
+<p>RFC 7798 Section 8 还规定了与 RTCP 反馈消息的配合使用：</p>
+<ul>
+<li><strong>PLI（Picture Loss Indication）</strong>：请求发送端重新发送关键帧（IDR 帧）</li>
+<li><strong>FIR（Full Intra Request）</strong>：请求发送端发送完整的帧内刷新图像</li>
+<li><strong>SLI（Slice Loss Indication）</strong>：切片级丢失指示</li>
+</ul>
+<hr>
+<h1 id="6-H-265-在-WebRTC-中的现状"><a href="#6-H-265-在-WebRTC-中的现状" class="headerlink" title="6. H.265 在 WebRTC 中的现状"></a>6. H.265 在 WebRTC 中的现状</h1><h3 id="6-1-IETF-草案：draft-ietf-avtcore-hevc-webrtc"><a href="#6-1-IETF-草案：draft-ietf-avtcore-hevc-webrtc" class="headerlink" title="6.1 IETF 草案：draft-ietf-avtcore-hevc-webrtc"></a>6.1 IETF 草案：draft-ietf-avtcore-hevc-webrtc</h3><p>IETF AVTCORE 工作组正在制定专门针对 WebRTC 的 H.265 配置文档：<strong>draft-ietf-avtcore-hevc-webrtc</strong>（截至 2026 年 3 月已更新至第 08 版），由 Bernard Aboba（微软）、Philipp Hancke（微软）、Jianlin Qiu（Intel）共同撰写，目标状态为 Proposed Standard，计划于 2026 年 8 月完成提交。</p>
+<p>该草案的背景是：RFC 7742 定义了 WebRTC 视频处理与编解码器要求，其中为 VP8 和 H.264（强制实现）提供了具体指导。随着 H.265 在 WebRTC 浏览器中的支持逐步落地，需要类似的指导文件，规范浏览器端的 H.265 参数选择、反馈机制和封包行为。</p>
+<h3 id="6-2-浏览器支持情况"><a href="#6-2-浏览器支持情况" class="headerlink" title="6.2 浏览器支持情况"></a>6.2 浏览器支持情况</h3><table>
+<thead>
+<tr>
+<th>浏览器</th>
+<th>支持状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Chrome &#x2F; Edge</strong></td>
+<td>Chrome 136（2025 年 4 月稳定版）起<strong>默认启用</strong>，前提是设备具备硬件解码&#x2F;编码支持</td>
+</tr>
+<tr>
+<td><strong>Safari</strong></td>
+<td>Safari 18.0（2024 年）起支持并<strong>默认启用</strong></td>
+</tr>
+<tr>
+<td><strong>Firefox</strong></td>
+<td><strong>不支持</strong>，且明确表示不计划支持（主要因专利顾虑）</td>
+</tr>
+</tbody></table>
+<p>Chrome 136 之前，可通过命令行参数手动启用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chrome --enable-features=PlatformHEVCEncoderSupport,WebRtcAllowH265Receive,WebRtcAllowH265Send \</span><br><span class="line">       --force-fieldtrials=WebRTC-Video-H26xPacketBuffer/Enabled</span><br></pre></td></tr></table></figure>
+
+<p>Chrome 的 H.265 WebRTC 支持仅在<strong>有硬件加速</strong>时才会在 SDP offer&#x2F;answer 中包含 H.265，这也有意地规避了部分专利许可风险（软件编解码器需要另行获取许可）。</p>
+<h3 id="6-3-硬件加速优势"><a href="#6-3-硬件加速优势" class="headerlink" title="6.3 硬件加速优势"></a>6.3 硬件加速优势</h3><p>来自 Chrome 团队 2025 年 3 月的数据（引自 blink-dev 公开讨论）：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>H.265 硬件加速支持率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Windows</td>
+<td>约 75%</td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>约 99%</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>约 86%</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td>约 90%</td>
+</tr>
+</tbody></table>
+<p>作为对比，AV1 的硬件加速支持率：Windows 约 8%，macOS 约 0%，iOS&#x2F;Android 约 0%（截至 2025 年初数据）。</p>
+<p>H.265 硬件加速的优势在实际使用中非常显著：</p>
+<ul>
+<li>降低 CPU 占用，减少基础通话场景下约 <strong>20%</strong> 的功耗</li>
+<li>当启用视频特效处理时，功耗降低超过 <strong>30%</strong></li>
+<li>对于嵌入式设备（IP 摄像头、IoT 设备）而言，H.265 硬件编码器比 AV1&#x2F;VP9 软件编码更具实用性</li>
+</ul>
+<hr>
+<h1 id="7-专利问题：复杂的许可格局"><a href="#7-专利问题：复杂的许可格局" class="headerlink" title="7. 专利问题：复杂的许可格局"></a>7. 专利问题：复杂的许可格局</h1><p>H.265 的专利问题是其推广中最大的阻碍之一。与 H.264 由 MPEG LA 主导相对统一的专利池不同，H.265 的专利分散在<strong>多个独立专利池</strong>中。</p>
+<h3 id="7-1-三大专利池"><a href="#7-1-三大专利池" class="headerlink" title="7.1 三大专利池"></a>7.1 三大专利池</h3><p><strong>1. MPEG LA（现 Via Licensing Alliance）</strong></p>
+<p>最早成立的 H.265 专利池，成员包括 Apple、Canon、JVC Kenwood、Samsung 等。曾宣布对互联网免费流媒体内容不收取版权费（与 H.264 政策类似）。</p>
+<p>2025 年，Via LA 的 HEVC 项目被 <strong>Access Advance</strong> 收购（2025 年 12 月 15 日），统一管理。2025 年 10 月，微软在面临德国法院诉讼后，正式加入 Via LA 的 H.265 专利池。</p>
+<p><strong>2. HEVC Advance（现 Access Advance）</strong></p>
+<p>由对 MPEG LA 条款不满的专利持有者另立门户，成员包括 Dolby、Mitsubishi 等。曾提出对付费流媒体服务收取收入的 0.5% 作为版权费，引发业界强烈反弹，2018 年撤回了针对互联网流媒体的内容版权费。</p>
+<p><strong>3. Velos Media</strong></p>
+<p>第三个专利池，于 2023 年宣布不再运营，将第三方专利归还各自所有者。</p>
+<h3 id="7-2-专利问题对-WebRTC-的影响"><a href="#7-2-专利问题对-WebRTC-的影响" class="headerlink" title="7.2 专利问题对 WebRTC 的影响"></a>7.2 专利问题对 WebRTC 的影响</h3><p>多个专利池并存、条款不一导致：</p>
+<ul>
+<li><strong>Firefox 明确拒绝支持 H.265</strong>，主要原因正是专利许可的不确定性和成本</li>
+<li><strong>Chrome 仅在有硬件加速时启用 H.265</strong>，部分规避软件实现的专利风险</li>
+<li><strong>WebRTC 强制实现的编解码器</strong>（RFC 7742）选择了 VP8 和 H.264，而非 H.265</li>
+</ul>
+<p>从历史视角看，H.265 面临的局面与其技术质量形成了鲜明反差：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">H.264 专利格局：MPEG LA 主导 → 相对统一 → 广泛普及</span><br><span class="line">H.265 专利格局：三大专利池并立 → 条款混乱 → 推广受阻</span><br><span class="line">AV1  专利格局：Alliance for Open Media 主导 → 免版税承诺 → 快速增长</span><br><span class="line">                （注：AV1 也有 Sisvel、Avanci、Access Advance 等机构的专利主张）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="8-H-265-与其他编码的对比"><a href="#8-H-265-与其他编码的对比" class="headerlink" title="8. H.265 与其他编码的对比"></a>8. H.265 与其他编码的对比</h1><p>下表从 WebRTC 实际应用角度综合对比 H.265 与其他主要编解码器：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>H.264</th>
+<th>H.265</th>
+<th>VP9</th>
+<th>AV1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准组织</td>
+<td>ITU-T &#x2F; ISO</td>
+<td>ITU-T &#x2F; ISO</td>
+<td>Google &#x2F; IETF</td>
+<td>Alliance for Open Media</td>
+</tr>
+<tr>
+<td>发布年份</td>
+<td>2003</td>
+<td>2013</td>
+<td>2012</td>
+<td>2018</td>
+</tr>
+<tr>
+<td>相对压缩效率（同质量）</td>
+<td>基准</td>
+<td>比 H.264 节省 40-50%</td>
+<td>比 H.264 节省 ~40%</td>
+<td>比 H.264 节省 ~50%</td>
+</tr>
+<tr>
+<td>专利</td>
+<td>有（MPEG LA，相对清晰）</td>
+<td>有（多个专利池，复杂）</td>
+<td>有（MPEG LA 已授权给 Google）</td>
+<td>有（仍有争议）</td>
+</tr>
+<tr>
+<td>硬件加速普及率</td>
+<td>接近 100%</td>
+<td>极高（85%+）</td>
+<td>较低</td>
+<td>极低（2025 年初）</td>
+</tr>
+<tr>
+<td>WebRTC 强制实现</td>
+<td>是（RFC 7742）</td>
+<td>否</td>
+<td>是（RFC 7742）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>Chrome 支持</td>
+<td>是</td>
+<td>是（v136+，需 HW）</td>
+<td>是</td>
+<td>是（实验）</td>
+</tr>
+<tr>
+<td>Safari 支持</td>
+<td>是</td>
+<td>是（v18+）</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td>Firefox 支持</td>
+<td>是</td>
+<td><strong>否</strong></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>最高分辨率支持</td>
+<td>4K</td>
+<td><strong>8K</strong></td>
+<td>8K</td>
+<td>8K</td>
+</tr>
+<tr>
+<td>典型应用场景</td>
+<td>通用视频通话、广播</td>
+<td>4K&#x2F;8K 广播、IP 摄像头、Apple 生态</td>
+<td>YouTube 流媒体</td>
+<td>未来趋势、高质量流媒体</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="9-总结"><a href="#9-总结" class="headerlink" title="9. 总结"></a>9. 总结</h1><p>H.265&#x2F;HEVC 是视频编码技术的一座重要里程碑，在技术层面代表了 2013 年前后的最高水准：</p>
+<p><strong>技术贡献：</strong></p>
+<ul>
+<li>灵活的四叉树 CTU 结构，对高分辨率内容有显著压缩优势</li>
+<li>35 种帧内预测方向、8-tap 插值滤波、SAO 环路滤波等一系列改进</li>
+<li>时间可伸缩性原生支持，天然适合 SFU 场景的多层传输</li>
+<li>成熟的硬件生态，覆盖绝大多数现代设备</li>
+</ul>
+<p><strong>WebRTC 现状：</strong></p>
+<ul>
+<li>RTP 封装由 RFC 7798 规范，IETF 正在制定 WebRTC 专用配置文档（draft-ietf-avtcore-hevc-webrtc）</li>
+<li>Chrome 136+ 和 Safari 18+ 已默认支持（仅限硬件加速可用时）</li>
+<li>Firefox 因专利问题明确拒绝支持</li>
+</ul>
+<p><strong>核心矛盾：</strong></p>
+<ul>
+<li>H.265 的专利格局（多个互相竞争的专利池）是其在开放 Web 生态中大规模普及的最大障碍</li>
+<li>AV1 凭借免版税承诺在流媒体领域快速崛起，但硬件加速普及速度远慢于 H.265</li>
+<li>对于嵌入式设备、IP 摄像头、4K&#x2F;8K 实时通话等<strong>依赖硬件加速</strong>的场景，H.265 仍然是最现实的选择</li>
+</ul>
+<p>理解 H.265 的技术优势与专利局限，对于在实时通信系统中做出正确的编解码器选型决策至关重要。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><h3 id="标准文档"><a href="#标准文档" class="headerlink" title="标准文档"></a>标准文档</h3><ul>
+<li><strong>ITU-T H.265</strong>：<a target="_blank" rel="noopener" href="https://www.itu.int/rec/T-REC-H.265">https://www.itu.int/rec/T-REC-H.265</a>（最新版本 v10，2024 年 7 月）</li>
+<li><strong>ISO&#x2F;IEC 23008-2</strong>：High Efficiency Video Coding（MPEG-H Part 2）</li>
+</ul>
+<h3 id="IETF-RFC-与草案"><a href="#IETF-RFC-与草案" class="headerlink" title="IETF RFC 与草案"></a>IETF RFC 与草案</h3><ul>
+<li><p><strong>RFC 7798</strong>（2016）：<em>RTP Payload Format for High Efficiency Video Coding (HEVC)</em><br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7798">https://datatracker.ietf.org/doc/html/rfc7798</a></p>
+</li>
+<li><p><strong>RFC 7742</strong>（2016）：<em>WebRTC Video Processing and Codec Requirements</em><br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc7742">https://datatracker.ietf.org/doc/html/rfc7742</a></p>
+</li>
+<li><p><strong>draft-ietf-avtcore-hevc-webrtc-08</strong>（2026）：<em>H.265 Profile for WebRTC</em><br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/draft-ietf-avtcore-hevc-webrtc/">https://datatracker.ietf.org/doc/draft-ietf-avtcore-hevc-webrtc/</a></p>
+</li>
+<li><p><strong>RFC 3550</strong>（2003）：<em>RTP: A Transport Protocol for Real-Time Applications</em><br><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc3550">https://datatracker.ietf.org/doc/html/rfc3550</a></p>
+</li>
+<li><p><strong>W3C WebCodecs HEVC Registration</strong>：<br><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webcodecs-hevc-codec-registration/">https://www.w3.org/TR/webcodecs-hevc-codec-registration/</a></p>
+</li>
+</ul>
+<h3 id="浏览器与实现参考"><a href="#浏览器与实现参考" class="headerlink" title="浏览器与实现参考"></a>浏览器与实现参考</h3><ul>
+<li><p>Chrome Platform Status - H265 WebRTC：<br><a target="_blank" rel="noopener" href="https://chromestatus.com/feature/5153479456456704">https://chromestatus.com/feature/5153479456456704</a></p>
+</li>
+<li><p>Chrome Blink-dev Intent to Ship（H.265 WebRTC，2025 年 3 月）：<br><a target="_blank" rel="noopener" href="https://groups.google.com/a/chromium.org/g/blink-dev/c/3h8lL8a377c">https://groups.google.com/a/chromium.org/g/blink-dev/c/3h8lL8a377c</a></p>
+</li>
+</ul>
+<h3 id="专利与许可"><a href="#专利与许可" class="headerlink" title="专利与许可"></a>专利与许可</h3><ul>
+<li><p>Access Advance HEVC&#x2F;VVC 专利池：<a target="_blank" rel="noopener" href="https://www.accessadvance.com/">https://www.accessadvance.com</a></p>
+</li>
+<li><p>Via Licensing Alliance HEVC&#x2F;VVC（现由 Access Advance 管理）：<br><a target="_blank" rel="noopener" href="https://www.via-la.com/licensing-programs/hevc-vvc/">https://www.via-la.com/licensing-programs/hevc-vvc/</a></p>
+</li>
+</ul>
+<h3 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h3><ul>
+<li><p>Fraunhofer HHI HEVC Overview：<br><a target="_blank" rel="noopener" href="https://www.hhi.fraunhofer.de/en/departments/vca/technologies-and-solutions/h265-hevc/hevc-overview.html">https://www.hhi.fraunhofer.de/en/departments/vca/technologies-and-solutions/h265-hevc/hevc-overview.html</a></p>
+</li>
+<li><p>High Efficiency Video Coding tiers and levels - Wikipedia：<br><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding_tiers_and_levels">https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding_tiers_and_levels</a></p>
+</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">1. 概述与标准化历程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E5%8C%96%E7%89%88%E6%9C%AC%E5%8E%86%E7%A8%8B"><span class="toc-number">2.0.1.</span> <span class="toc-text">标准化版本历程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A0%81%E6%8A%80%E6%9C%AF"><span class="toc-number">3.</span> <span class="toc-text">2. 核心编码技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E7%BB%93%E6%9E%84%EF%BC%9ACTU-%E4%B8%8E%E5%9B%9B%E5%8F%89%E6%A0%91%E5%88%92%E5%88%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 编码单元结构：CTU 与四叉树划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 帧内预测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 帧间预测与运动补偿</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 变换与量化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E7%86%B5%E7%BC%96%E7%A0%81%EF%BC%9ACABAC"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 熵编码：CABAC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2%EF%BC%9A%E5%8E%BB%E5%9D%97%E6%BB%A4%E6%B3%A2-SAO"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 环路滤波：去块滤波 + SAO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-%E5%B9%B6%E8%A1%8C%E5%A4%84%E7%90%86%E6%94%AF%E6%8C%81"><span class="toc-number">3.0.7.</span> <span class="toc-text">2.7 并行处理支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%B3%BB%E7%BB%9F%E4%B8%8E%E4%BC%A0%E8%BE%93%E6%8E%A5%E5%8F%A3%EF%BC%88NAL-%E5%B1%82%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. 系统与传输接口（NAL 层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-NAL-%E5%8D%95%E5%85%83%E5%A4%B4%E9%83%A8%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 NAL 单元头部结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%82%E6%95%B0%E9%9B%86%EF%BC%9AVPS-SPS-PPS"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 参数集：VPS &#x2F; SPS &#x2F; PPS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%87%E7%89%87%E7%B1%BB%E5%9E%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 切片类型</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-Profile%E3%80%81Tier-%E4%B8%8E-Level"><span class="toc-number">5.</span> <span class="toc-text">4. Profile、Tier 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Profile%EF%BC%88%E6%A1%A3%E6%AC%A1%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Profile（档次）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Tier%EF%BC%88%E5%B1%82%E7%BA%A7%EF%BC%89%E4%B8%8E-Level%EF%BC%88%E7%AD%89%E7%BA%A7%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 Tier（层级）与 Level（等级）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-RTP-%E5%B0%81%E8%A3%85%EF%BC%9ARFC-7798"><span class="toc-number">6.</span> <span class="toc-text">5. RTP 封装：RFC 7798</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-RTP-Payload-Header"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 RTP Payload Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%B0%81%E5%8C%85%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 封包模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-1-Single-NAL-Unit-Packet%EF%BC%88%E5%8D%95-NAL-%E5%8D%95%E5%85%83%E5%8C%85%EF%BC%89"><span class="toc-number">6.0.2.1.</span> <span class="toc-text">5.2.1 Single NAL Unit Packet（单 NAL 单元包）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-2-Aggregation-Packet%EF%BC%88%E8%81%9A%E5%90%88%E5%8C%85%EF%BC%8CAP%EF%BC%89"><span class="toc-number">6.0.2.2.</span> <span class="toc-text">5.2.2 Aggregation Packet（聚合包，AP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-3-Fragmentation-Unit%EF%BC%88%E5%88%86%E7%89%87%E5%8D%95%E5%85%83%EF%BC%8CFU%EF%BC%89"><span class="toc-number">6.0.2.3.</span> <span class="toc-text">5.2.3 Fragmentation Unit（分片单元，FU）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-4-PACI-Packet%EF%BC%88Payload-Content-Information%EF%BC%8C%E8%BD%BD%E8%8D%B7%E5%86%85%E5%AE%B9%E4%BF%A1%E6%81%AF%E5%8C%85%EF%BC%89"><span class="toc-number">6.0.2.4.</span> <span class="toc-text">5.2.4 PACI Packet（Payload Content Information，载荷内容信息包）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 传输模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-SDP-%E5%8D%8F%E5%95%86%E5%8F%82%E6%95%B0"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 SDP 协商参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-H-265-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E7%8E%B0%E7%8A%B6"><span class="toc-number">7.</span> <span class="toc-text">6. H.265 在 WebRTC 中的现状</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-IETF-%E8%8D%89%E6%A1%88%EF%BC%9Adraft-ietf-avtcore-hevc-webrtc"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 IETF 草案：draft-ietf-avtcore-hevc-webrtc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 浏览器支持情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E4%BC%98%E5%8A%BF"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 硬件加速优势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%EF%BC%9A%E5%A4%8D%E6%9D%82%E7%9A%84%E8%AE%B8%E5%8F%AF%E6%A0%BC%E5%B1%80"><span class="toc-number">8.</span> <span class="toc-text">7. 专利问题：复杂的许可格局</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%89%E5%A4%A7%E4%B8%93%E5%88%A9%E6%B1%A0"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 三大专利池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%B8%93%E5%88%A9%E9%97%AE%E9%A2%98%E5%AF%B9-WebRTC-%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 专利问题对 WebRTC 的影响</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-H-265-%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">9.</span> <span class="toc-text">8. H.265 与其他编码的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">11.</span> <span class="toc-text">参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E5%87%86%E6%96%87%E6%A1%A3"><span class="toc-number">11.0.1.</span> <span class="toc-text">标准文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IETF-RFC-%E4%B8%8E%E8%8D%89%E6%A1%88"><span class="toc-number">11.0.2.</span> <span class="toc-text">IETF RFC 与草案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8E%E5%AE%9E%E7%8E%B0%E5%8F%82%E8%80%83"><span class="toc-number">11.0.3.</span> <span class="toc-text">浏览器与实现参考</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">11.0.4.</span> <span class="toc-text">专利与许可</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="toc-number">11.0.5.</span> <span class="toc-text">扩展阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/12/25/webrtc/24-h265-hevc/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&text=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&is_video=false&description=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂&body=Check out this article: http://example.com/2022/12/25/webrtc/24-h265-hevc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&title=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/12/25/webrtc/24-h265-hevc/&name=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/12/25/webrtc/24-h265-hevc/&t=H.265（HEVC）—— H.264 的继任者，压缩率更高但专利复杂"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

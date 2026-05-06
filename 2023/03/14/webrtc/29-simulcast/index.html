@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 什么是 Simulcast 为什么需要 Simulcast 核心标准与规范 RTP 层的 Simulcast 实现 SDP 信令协商 浏览器 API — W3C WebRTC 规范 SFU 在 Simulcast 中的角色 时域分层（Temporal Scalability） Simulcast 与 SVC 的对比 编解码器支持情况 浏览器兼容性 常见问题与注意事项   1. 什么是 Sim">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力">
+<meta property="og:url" content="http://example.com/2023/03/14/webrtc/29-simulcast/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 什么是 Simulcast 为什么需要 Simulcast 核心标准与规范 RTP 层的 Simulcast 实现 SDP 信令协商 浏览器 API — W3C WebRTC 规范 SFU 在 Simulcast 中的角色 时域分层（Temporal Scalability） Simulcast 与 SVC 的对比 编解码器支持情况 浏览器兼容性 常见问题与注意事项   1. 什么是 Sim">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-03-14T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T08:50:50.421Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/03/29/webrtc/30-svc-scalable-video-coding/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/02/26/webrtc/28.aac/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/14/webrtc/29-simulcast/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/14/webrtc/29-simulcast/&text=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/14/webrtc/29-simulcast/&is_video=false&description=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力&body=Check out this article: http://example.com/2023/03/14/webrtc/29-simulcast/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/14/webrtc/29-simulcast/&name=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/14/webrtc/29-simulcast/&t=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-Simulcast"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是 Simulcast</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Simulcast"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要 Simulcast</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%A4%9A%E6%96%B9%E8%A7%86%E9%A2%91%E4%BC%9A%E8%AE%AE%E7%9A%84%E6%A0%B8%E5%BF%83%E7%9F%9B%E7%9B%BE"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 多方视频会议的核心矛盾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E2%80%9C%E6%85%A2%E7%94%A8%E6%88%B7%E2%80%9D%E7%BA%A7%E8%81%94%E9%97%AE%E9%A2%98"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 “慢用户”级联问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-8853-%E5%BD%92%E7%BA%B3%E7%9A%84%E4%B8%BB%E8%A6%81%E7%94%A8%E4%BE%8B"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 8853 归纳的主要用例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E6%A0%87%E5%87%86%E4%B8%8E%E8%A7%84%E8%8C%83"><span class="toc-number">4.</span> <span class="toc-text">3. 核心标准与规范</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RTP-%E5%B1%82%E7%9A%84-Simulcast-%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.</span> <span class="toc-text">4. RTP 层的 Simulcast 实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B5%81%E6%A0%87%E8%AF%86%E6%9C%BA%E5%88%B6%EF%BC%9A%E4%BB%8E-SSRC-%E5%88%B0-RID"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 流标识机制：从 SSRC 到 RID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-BUNDLE-%E4%B8%8B%E7%9A%84-Simulcast-%E8%A7%A3%E5%A4%8D%E7%94%A8"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 BUNDLE 下的 Simulcast 解复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-RTP-%E5%8C%85%E5%BA%8F%E5%88%97%E5%8F%B7%E9%87%8D%E5%86%99"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 RTP 包序列号重写</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SDP-%E4%BF%A1%E4%BB%A4%E5%8D%8F%E5%95%86"><span class="toc-number">6.</span> <span class="toc-text">5. SDP 信令协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A0%B8%E5%BF%83-SDP-%E5%B1%9E%E6%80%A7"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 核心 SDP 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-a-rid-%E5%B1%9E%E6%80%A7%E8%AF%AD%E6%B3%95"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 a&#x3D;rid 属性语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-a-simulcast-%E5%B1%9E%E6%80%A7%E8%AF%AD%E6%B3%95"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 a&#x3D;simulcast 属性语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%AE%8C%E6%95%B4-SDP-%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 完整 SDP 示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%B8%A6%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84-a-rid"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 带格式约束的 a&#x3D;rid</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-RFC-8853-%E4%B8%AD%E7%9A%84%E5%81%8F%E5%A5%BD%E9%A1%BA%E5%BA%8F%E8%A7%84%E5%AE%9A"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 RFC 8853 中的偏好顺序规定</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%B5%8F%E8%A7%88%E5%99%A8-API-%E2%80%94-W3C-WebRTC-%E8%A7%84%E8%8C%83"><span class="toc-number">7.</span> <span class="toc-text">6. 浏览器 API — W3C WebRTC 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-addTransceiver-sendEncodings"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 addTransceiver + sendEncodings</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTCRtpEncodingParameters-%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RTCRtpEncodingParameters 关键字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8A%A8%E6%80%81%E8%B0%83%E6%95%B4%E7%BC%96%E7%A0%81%E5%8F%82%E6%95%B0"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 动态调整编码参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SDP-Munging%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SDP Munging（不推荐）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SFU-%E5%9C%A8-Simulcast-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">8.</span> <span class="toc-text">7. SFU 在 Simulcast 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-SFU-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 SFU 的核心职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-RTCP-%E5%8F%8D%E9%A6%88%E8%B7%AF%E7%94%B1"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 RTCP 反馈路由</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%97%B6%E5%9F%9F%E5%88%86%E5%B1%82%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 时域分层（Temporal Scalability）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%97%B6%E5%9F%9F%E5%B1%82%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 时域层的概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VP8-%E4%B8%8E%E6%97%B6%E5%9F%9F%E5%B1%82"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VP8 与时域层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E7%A9%BA%E9%97%B4%E5%B1%82-%E6%97%B6%E9%97%B4%E5%B1%82%E7%9A%84%E7%BB%84%E5%90%88"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 空间层 + 时间层的组合</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-Simulcast-%E4%B8%8E-SVC-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. Simulcast 与 SVC 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 编解码器支持情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-VP8"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-H-264"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 H.264</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-VP9"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 VP9</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-AV1"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 AV1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-Opus%EF%BC%88%E9%9F%B3%E9%A2%91%EF%BC%89"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 Opus（音频）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%B5%8F%E8%A7%88%E5%99%A8%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 浏览器兼容性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">13.</span> <span class="toc-text">12. 常见问题与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E6%9C%80%E4%BD%8E%E5%88%86%E8%BE%A8%E7%8E%87%E8%A6%81%E6%B1%82"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 最低分辨率要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%85%B3%E9%94%AE%E5%B8%A7%E4%B8%8E%E5%B1%82%E5%88%87%E6%8D%A2%E7%9A%84%E5%BB%B6%E8%BF%9F"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 关键帧与层切换的延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%8F%91%E5%B8%83%E8%80%85%E4%B8%8A%E8%A1%8C%E5%B8%A6%E5%AE%BD%E8%87%AA%E5%8A%A8%E9%99%8D%E7%BA%A7"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 发布者上行带宽自动降级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-SSRC-%E5%8F%98%E5%8C%96%E5%A4%84%E7%90%86"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 SSRC 变化处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E4%B8%8E-RTX%EF%BC%88%E9%87%8D%E4%BC%A0%EF%BC%89%E7%9A%84%E4%BA%A4%E4%BA%92"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 与 RTX（重传）的交互</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E4%B8%8E-BUNDLE-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">13.0.6.</span> <span class="toc-text">12.6 与 BUNDLE 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-SDP-%E5%8D%8F%E5%95%86%E7%9A%84%E5%90%91%E5%90%8E%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">13.0.7.</span> <span class="toc-text">12.7 SDP 协商的向后兼容性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">13. 参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83-IETF-RFC"><span class="toc-number">14.0.1.</span> <span class="toc-text">核心 IETF RFC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#W3C-%E8%A7%84%E8%8C%83"><span class="toc-number">14.0.2.</span> <span class="toc-text">W3C 规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">14.0.3.</span> <span class="toc-text">延伸阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-14T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-03-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-simulcast">什么是 Simulcast</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-simulcast">为什么需要 Simulcast</a></li>
+<li><a href="#3-%E6%A0%B8%E5%BF%83%E6%A0%87%E5%87%86%E4%B8%8E%E8%A7%84%E8%8C%83">核心标准与规范</a></li>
+<li><a href="#4-rtp-%E5%B1%82%E7%9A%84-simulcast-%E5%AE%9E%E7%8E%B0">RTP 层的 Simulcast 实现</a></li>
+<li><a href="#5-sdp-%E4%BF%A1%E4%BB%A4%E5%8D%8F%E5%95%86">SDP 信令协商</a></li>
+<li><a href="#6-%E6%B5%8F%E8%A7%88%E5%99%A8-api--w3c-webrtc-%E8%A7%84%E8%8C%83">浏览器 API — W3C WebRTC 规范</a></li>
+<li><a href="#7-sfu-%E5%9C%A8-simulcast-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2">SFU 在 Simulcast 中的角色</a></li>
+<li><a href="#8-%E6%97%B6%E5%9F%9F%E5%88%86%E5%B1%82temporal-scalability">时域分层（Temporal Scalability）</a></li>
+<li><a href="#9-simulcast-%E4%B8%8E-svc-%E7%9A%84%E5%AF%B9%E6%AF%94">Simulcast 与 SVC 的对比</a></li>
+<li><a href="#10-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5">编解码器支持情况</a></li>
+<li><a href="#11-%E6%B5%8F%E8%A7%88%E5%99%A8%E5%85%BC%E5%AE%B9%E6%80%A7">浏览器兼容性</a></li>
+<li><a href="#12-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">常见问题与注意事项</a></li>
+</ol>
+<hr>
+<h1 id="1-什么是-Simulcast"><a href="#1-什么是-Simulcast" class="headerlink" title="1. 什么是 Simulcast"></a>1. 什么是 Simulcast</h1><p><strong>Simulcast</strong>（联播，源自 “simultaneous broadcast”）是指发送端将<strong>同一个媒体源</strong>同时编码为多路独立的 RTP 流，每路流使用不同的分辨率、帧率或码率，以满足不同接收端的能力需求。</p>
+<p>按照 RFC 8853 的正式定义：</p>
+<blockquote>
+<p><em>Simulcast is defined in this memo as the act of simultaneously sending multiple different encoded streams of the same media source — e.g., the same video source encoded with different video-encoder types or image resolutions.</em></p>
+</blockquote>
+<p>一个典型的 Simulcast 配置如下图所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">摄像头原始流 (1280×720)</span><br><span class="line">        │</span><br><span class="line">        ├──► 编码器 A → RTP 流 &quot;f&quot; (1280×720, ~2.5 Mbps)  ─┐</span><br><span class="line">        ├──► 编码器 B → RTP 流 &quot;h&quot; ( 640×360, ~600 Kbps)  ─┼─► SFU ──► 各个订阅方</span><br><span class="line">        └──► 编码器 C → RTP 流 &quot;q&quot; ( 320×180, ~150 Kbps)  ─┘</span><br></pre></td></tr></table></figure>
+
+<p>与传统的单流发送（Unicast）相比，Simulcast 的核心思想是：<strong>发送端一次性准备好”高中低”多个版本，由 SFU（Selective Forwarding Unit，选择性转发单元）根据每个订阅方的网络状况按需转发</strong>，从而避免服务器对视频进行实时转码（Transcoding）带来的高 CPU 消耗和额外延迟。</p>
+<hr>
+<h1 id="2-为什么需要-Simulcast"><a href="#2-为什么需要-Simulcast" class="headerlink" title="2. 为什么需要 Simulcast"></a>2. 为什么需要 Simulcast</h1><h3 id="2-1-多方视频会议的核心矛盾"><a href="#2-1-多方视频会议的核心矛盾" class="headerlink" title="2.1 多方视频会议的核心矛盾"></a>2.1 多方视频会议的核心矛盾</h3><p>在多方视频会议中，参与者的网络条件、设备性能和屏幕分辨率往往存在巨大差异。假设有如下场景：</p>
+<table>
+<thead>
+<tr>
+<th>参与者</th>
+<th>下行带宽</th>
+<th>屏幕大小</th>
+<th>期望画质</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Alice</td>
+<td>50 Mbps</td>
+<td>4K 显示器</td>
+<td>1080p</td>
+</tr>
+<tr>
+<td>Bob</td>
+<td>2 Mbps</td>
+<td>手机屏幕</td>
+<td>360p</td>
+</tr>
+<tr>
+<td>Carol</td>
+<td>10 Mbps</td>
+<td>笔记本</td>
+<td>720p</td>
+</tr>
+</tbody></table>
+<p>发送端（如 Dave）面临三种选择：</p>
+<ol>
+<li><strong>单流发送</strong>：发送一路固定质量的流。质量高了 Bob 无法接收，质量低了 Alice 体验差。</li>
+<li><strong>服务端转码（MCU&#x2F;Transcoding RTP Mixer）</strong>：服务器接收一路高质量流，再分别转码后分发。服务端 CPU 消耗极高，引入额外的编解码延迟，且需要访问媒体内容（对端到端加密不友好）。</li>
+<li><strong>Simulcast + SFU</strong>：发送端发出多路流，SFU 直接转发最合适的一路。服务端无需解码，CPU 消耗极低，延迟最小。</li>
+</ol>
+<p>Simulcast + SFU 是目前工业界应对异构网络环境的主流方案。</p>
+<h3 id="2-2-“慢用户”级联问题"><a href="#2-2-“慢用户”级联问题" class="headerlink" title="2.2 “慢用户”级联问题"></a>2.2 “慢用户”级联问题</h3><p>在没有 Simulcast 的纯 SFU 架构中，存在一个经典的”慢用户问题”：</p>
+<ol>
+<li>某个带宽受限的订阅方（Bob）因频繁丢包无法正常解码，持续向发送端发送 <strong>PLI（Picture Loss Indication）</strong> 请求关键帧。</li>
+<li>发送端响应 PLI，产生新的关键帧。关键帧体积远大于普通帧，会短暂拉高发送带宽。</li>
+<li>其他订阅方因带宽增加也受到影响，触发更多 PLI，形成<strong>级联恶化效应</strong>。</li>
+</ol>
+<p>引入 Simulcast 后，SFU 可以向 Bob 转发低质量层，彻底解耦慢用户与其他用户之间的相互影响。</p>
+<h3 id="2-3-RFC-8853-归纳的主要用例"><a href="#2-3-RFC-8853-归纳的主要用例" class="headerlink" title="2.3 RFC 8853 归纳的主要用例"></a>2.3 RFC 8853 归纳的主要用例</h3><p>RFC 8853 第 3 节定义了三类核心用例：</p>
+<ul>
+<li><strong>REQ-3.1 适配异构接收端</strong>：同一媒体源需要服务于具有不同带宽、分辨率、编解码能力的接收方。</li>
+<li><strong>REQ-3.2 应用特定的媒体源处理</strong>：例如会议系统将活跃发言人以高分辨率展示，其他参与者以缩略图（thumbnail）展示，需要同时提供高低两路流。</li>
+<li><strong>REQ-3.3 接收方的媒体源偏好</strong>：接收方可能因为布局变化（如从全屏切换到小窗口）而主动请求不同质量层。</li>
+</ul>
+<hr>
+<h1 id="3-核心标准与规范"><a href="#3-核心标准与规范" class="headerlink" title="3. 核心标准与规范"></a>3. 核心标准与规范</h1><p>Simulcast 在 WebRTC 中的标准化工作涉及多个 IETF RFC，它们共同构成完整的协议栈：</p>
+<table>
+<thead>
+<tr>
+<th>RFC</th>
+<th>标题</th>
+<th>核心内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RFC 8853</strong></td>
+<td>Using Simulcast in SDP and RTP Sessions</td>
+<td>Simulcast 的 SDP 信令扩展，定义 <code>a=simulcast</code> 属性，由 Ericsson 和 Cisco 主导，2021 年 1 月成为 Proposed Standard</td>
+</tr>
+<tr>
+<td><strong>RFC 8851</strong></td>
+<td>RTP Payload Format Restrictions</td>
+<td>定义 <code>a=rid</code>（Restriction Identifier）SDP 属性，用于标识和约束各路 RTP 流的格式参数</td>
+</tr>
+<tr>
+<td><strong>RFC 8852</strong></td>
+<td>RTP Stream Identifier Source Description (SDES)</td>
+<td>定义 <code>RtpStreamId</code> 和 <code>RepairedRtpStreamId</code> 两个 RTCP SDES 条目，作为 RTP 头部扩展携带 RID 值</td>
+</tr>
+<tr>
+<td><strong>RFC 8829</strong></td>
+<td>JavaScript Session Establishment Protocol (JSEP)</td>
+<td>定义浏览器端 SDP offer&#x2F;answer 处理逻辑，包含 Simulcast 的 <code>sendEncodings</code> 处理规则</td>
+</tr>
+<tr>
+<td><strong>RFC 8834</strong></td>
+<td>Media Transport and Use of RTP in WebRTC</td>
+<td>描述 WebRTC 中使用多路 RTP 会话实现 Simulcast 的方式</td>
+</tr>
+<tr>
+<td><strong>RFC 8843</strong></td>
+<td>Negotiating Media Multiplexing Using SDP (BUNDLE)</td>
+<td>Simulcast 多路流在 BUNDLE 复用时的处理</td>
+</tr>
+<tr>
+<td><strong>W3C WebRTC</strong></td>
+<td>WebRTC 1.0: Real-Time Communication in Browsers</td>
+<td>浏览器 JavaScript API，定义 <code>addTransceiver</code> + <code>sendEncodings</code> 接口</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关键点</strong>：RFC 8853 是 Simulcast 信令的核心规范。RFC 8851 和 RFC 8852 分别定义了流标识符的 SDP 属性和 RTP 头部扩展机制，三者相互依赖，缺一不可。</p>
+</blockquote>
+<hr>
+<h1 id="4-RTP-层的-Simulcast-实现"><a href="#4-RTP-层的-Simulcast-实现" class="headerlink" title="4. RTP 层的 Simulcast 实现"></a>4. RTP 层的 Simulcast 实现</h1><h3 id="4-1-流标识机制：从-SSRC-到-RID"><a href="#4-1-流标识机制：从-SSRC-到-RID" class="headerlink" title="4.1 流标识机制：从 SSRC 到 RID"></a>4.1 流标识机制：从 SSRC 到 RID</h3><p>在 WebRTC 的早期实现中，Simulcast 的各路流通过不同的 <strong>SSRC（Synchronization Source）</strong> 来区分，并在 SDP 中通过 <code>a=ssrc-group:SIM</code> 分组。但这种方式存在问题：SSRC 在 RTP 会话生命周期内可能因冲突而发生变化（RFC 3550 允许此行为），导致流的追踪不稳定。</p>
+<p>现代 WebRTC 标准化方案采用 <strong>RID（RTP Stream Identifier）</strong> 机制：</p>
+<ul>
+<li><strong>RID</strong> 是一个不超过 255 字节的 ASCII 字符串，作为 RTP 头部扩展（Header Extension）随每个 RTP 包携带。</li>
+<li>RFC 8852 定义了两个 RTCP SDES 条目：<ul>
+<li><code>RtpStreamId</code>：标识当前流（即发送时的 RID 值）。</li>
+<li><code>RepairedRtpStreamId</code>：在 RTX（重传流）中标识被修复的原始流。</li>
+</ul>
+</li>
+<li>RID 值通过 RFC 7941 定义的 SDES Item Header Extension 机制（<code>urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</code>）携带在 RTP 包头中。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RTP 包头扩展示例（One-Byte Header 格式，RFC 8285）：</span><br><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|  0xBE | 0xDE  |  Extension Length = 1                         |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">| ID=4  |  L=0  | &#x27;h&#x27; (RID value: &quot;h&quot; = high layer)             |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-BUNDLE-下的-Simulcast-解复用"><a href="#4-2-BUNDLE-下的-Simulcast-解复用" class="headerlink" title="4.2 BUNDLE 下的 Simulcast 解复用"></a>4.2 BUNDLE 下的 Simulcast 解复用</h3><p>在 WebRTC 中，所有媒体流通常通过单一 UDP 端口对进行传输（BUNDLE，RFC 8843）。接收方在收到 RTP 包时，需要按以下优先级确定该包属于哪个流：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 检查 MID（Media Identification）头部扩展 → 确定属于哪个 m= section</span><br><span class="line">2. 检查 RID 头部扩展 → 确定是哪一路 Simulcast 层</span><br><span class="line">3. 若 RID 不在包中 → 查找已建立的 SSRC → RID 映射关系</span><br></pre></td></tr></table></figure>
+
+<p>RFC 8852 指出，RID 并不需要在每个 RTP 包中都出现，当接收方已经建立了 SSRC 与 RID 的映射关系后，可以仅依赖 SSRC 进行解复用。通常只有在会话建立初期或 SSRC 发生变化时，RID 扩展才需要频繁出现。</p>
+<h3 id="4-3-RTP-包序列号重写"><a href="#4-3-RTP-包序列号重写" class="headerlink" title="4.3 RTP 包序列号重写"></a>4.3 RTP 包序列号重写</h3><p>当 SFU 在不同 Simulcast 层之间切换转发时，会遇到一个重要的技术挑战：<strong>每路 Simulcast 流有独立的 RTP 序列号空间和时间戳空间</strong>。例如，从高质量层切换到中质量层时，序列号可能出现大幅跳变，导致接收端误判为丢包并触发大量 NACK 请求。</p>
+<p>为此，SFU 在切换层时必须执行以下操作：</p>
+<ol>
+<li><strong>序列号连续化</strong>：维护每路流的当前序列号，切换时对新层的序列号进行偏移，保持输出流的序列号单调递增。</li>
+<li><strong>时间戳映射</strong>：对输出流的 RTP 时间戳进行适当调整，确保接收端 Jitter Buffer 正常工作。</li>
+<li><strong>关键帧等待</strong>：在完成层切换的序列号重写后，必须等到新层发来关键帧（IDR 帧）后才能开始转发，否则接收端无法完成解码初始化。必要时通过 RTCP PLI&#x2F;FIR 向发送端请求关键帧。</li>
+</ol>
+<hr>
+<h1 id="5-SDP-信令协商"><a href="#5-SDP-信令协商" class="headerlink" title="5. SDP 信令协商"></a>5. SDP 信令协商</h1><h3 id="5-1-核心-SDP-属性"><a href="#5-1-核心-SDP-属性" class="headerlink" title="5.1 核心 SDP 属性"></a>5.1 核心 SDP 属性</h3><p>Simulcast 协商涉及以下几个关键 SDP 属性（均为 media-level 属性）：</p>
+<table>
+<thead>
+<tr>
+<th>SDP 属性</th>
+<th>定义来源</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>a=rid</code></td>
+<td>RFC 8851</td>
+<td>声明一路 RTP 流的 RID 值及其格式限制（分辨率、码率、帧率等）</td>
+</tr>
+<tr>
+<td><code>a=simulcast</code></td>
+<td>RFC 8853</td>
+<td>将多个 RID 分组，声明发送和&#x2F;或接收的 Simulcast 配置</td>
+</tr>
+<tr>
+<td><code>a=extmap</code></td>
+<td>RFC 8285</td>
+<td>声明 RTP 头部扩展的映射关系，包括 rtp-stream-id 扩展</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-a-rid-属性语法"><a href="#5-2-a-rid-属性语法" class="headerlink" title="5.2 a=rid 属性语法"></a>5.2 <code>a=rid</code> 属性语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=rid:&lt;rid-id&gt; &lt;direction&gt; [pt=&lt;fmt-list&gt;] [;&lt;restriction-list&gt;]</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>rid-id</code>：RID 标识符，一个字母数字字符串（通常用 “f”、”h”、”q” 或 “high”、”medium”、”low”）</li>
+<li><code>direction</code>：<code>send</code> 或 <code>recv</code></li>
+<li><code>pt</code>：可选，限定该流使用的 RTP Payload Type</li>
+<li><code>restriction-list</code>：可选的格式限制，如 <code>max-width</code>、<code>max-height</code>、<code>max-fps</code>、<code>max-mbps</code>、<code>max-br</code>（最大码率，单位 bps&#x2F;1000）等</li>
+</ul>
+<h3 id="5-3-a-simulcast-属性语法"><a href="#5-3-a-simulcast-属性语法" class="headerlink" title="5.3 a=simulcast 属性语法"></a>5.3 <code>a=simulcast</code> 属性语法</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a=simulcast:&lt;sc-dir-list&gt;</span><br><span class="line"></span><br><span class="line">sc-dir-list = sc-dir *(&quot;;&quot; sc-dir)</span><br><span class="line">sc-dir      = (&quot;send&quot; / &quot;recv&quot;) SP sc-id-list</span><br><span class="line">sc-id-list  = sc-alt-type *(&quot;;&quot; sc-alt-type)</span><br><span class="line">sc-alt-type = rid-id *(&quot;,&quot; rid-id)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>分号（<code>;</code>）分隔多个独立的编码流（同时发送的各路）</li>
+<li>逗号（<code>,</code>）分隔同一路流的替代格式（备选）</li>
+</ul>
+<h3 id="5-4-完整-SDP-示例"><a href="#5-4-完整-SDP-示例" class="headerlink" title="5.4 完整 SDP 示例"></a>5.4 完整 SDP 示例</h3><p>以下是一个发送三路 Simulcast 的 Offer SDP 片段（基于 RFC 8853 第 5.6.1 节示例及实际 Chrome 行为）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">c=IN IP4 0.0.0.0</span><br><span class="line">a=rtcp:9 IN IP4 0.0.0.0</span><br><span class="line">a=ice-ufrag:abc123</span><br><span class="line">a=ice-pwd:xyz789def012ghi345jkl678mno</span><br><span class="line">a=fingerprint:sha-256 AA:BB:CC:...</span><br><span class="line">a=setup:actpass</span><br><span class="line">a=mid:video</span><br><span class="line">a=extmap:1 urn:ietf:params:rtp-hdrext:sdes:mid</span><br><span class="line">a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</span><br><span class="line">a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id</span><br><span class="line">a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time</span><br><span class="line">a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01</span><br><span class="line">a=sendrecv</span><br><span class="line">a=msid:stream1 track1</span><br><span class="line">a=rtcp-mux</span><br><span class="line">a=rtcp-rsize</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br><span class="line">a=rid:f send</span><br><span class="line">a=rid:h send</span><br><span class="line">a=rid:q send</span><br><span class="line">a=simulcast:send f;h;q</span><br></pre></td></tr></table></figure>
+
+<p>对应的 Answer SDP（接收端&#x2F;SFU 端）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96 97</span><br><span class="line">...（省略重复的 ICE/DTLS 参数）</span><br><span class="line">a=mid:video</span><br><span class="line">a=extmap:1 urn:ietf:params:rtp-hdrext:sdes:mid</span><br><span class="line">a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id</span><br><span class="line">a=extmap:5 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id</span><br><span class="line">a=recvonly</span><br><span class="line">a=rtpmap:96 VP8/90000</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br><span class="line">a=rtpmap:97 rtx/90000</span><br><span class="line">a=fmtp:97 apt=96</span><br><span class="line">a=rid:f recv</span><br><span class="line">a=rid:h recv</span><br><span class="line">a=rid:q recv</span><br><span class="line">a=simulcast:recv f;h;q</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-带格式约束的-a-rid"><a href="#5-5-带格式约束的-a-rid" class="headerlink" title="5.5 带格式约束的 a=rid"></a>5.5 带格式约束的 <code>a=rid</code></h3><p>RFC 8851 允许在 <code>a=rid</code> 中附加具体的格式约束，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a=rid:f send pt=96;max-width=1280;max-height=720;max-fps=30;max-br=2500</span><br><span class="line">a=rid:h send pt=96;max-width=640;max-height=360;max-fps=30;max-br=600</span><br><span class="line">a=rid:q send pt=96;max-width=320;max-height=180;max-fps=15;max-br=150</span><br><span class="line">a=simulcast:send f;h;q</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-RFC-8853-中的偏好顺序规定"><a href="#5-6-RFC-8853-中的偏好顺序规定" class="headerlink" title="5.6 RFC 8853 中的偏好顺序规定"></a>5.6 RFC 8853 中的偏好顺序规定</h3><p>RFC 8853 第 5.2 节明确指出：</p>
+<blockquote>
+<p><em>The order of RIDs in the <code>a=simulcast</code> line suggests a proposed order of preference.</em></p>
+</blockquote>
+<p>即 <code>a=simulcast:send f;h;q</code> 中，<code>f</code> 优先级最高，<code>q</code> 最低。如果浏览器因上行带宽不足而决定停止某些层的发送，应优先停止列表中靠后的层（即低优先级的层）。W3C WebRTC 规范也明确了这一语义。</p>
+<hr>
+<h1 id="6-浏览器-API-—-W3C-WebRTC-规范"><a href="#6-浏览器-API-—-W3C-WebRTC-规范" class="headerlink" title="6. 浏览器 API — W3C WebRTC 规范"></a>6. 浏览器 API — W3C WebRTC 规范</h1><h3 id="6-1-addTransceiver-sendEncodings"><a href="#6-1-addTransceiver-sendEncodings" class="headerlink" title="6.1 addTransceiver + sendEncodings"></a>6.1 <code>addTransceiver</code> + <code>sendEncodings</code></h3><p>W3C WebRTC 规范定义了通过 <code>RTCPeerConnection.addTransceiver()</code> 方法配置 Simulcast 的标准 API：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>(configuration);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> stream = <span class="keyword">await</span> navigator.<span class="property">mediaDevices</span>.<span class="title function_">getUserMedia</span>(&#123;</span><br><span class="line">  <span class="attr">video</span>: &#123; <span class="attr">width</span>: &#123; <span class="attr">ideal</span>: <span class="number">1280</span> &#125;, <span class="attr">height</span>: &#123; <span class="attr">ideal</span>: <span class="number">720</span> &#125; &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> videoTrack = stream.<span class="title function_">getVideoTracks</span>()[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置三层 Simulcast</span></span><br><span class="line"><span class="keyword">const</span> transceiver = pc.<span class="title function_">addTransceiver</span>(videoTrack, &#123;</span><br><span class="line">  <span class="attr">streams</span>: [stream],</span><br><span class="line">  <span class="attr">sendEncodings</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">rid</span>: <span class="string">&#x27;f&#x27;</span>,                    <span class="comment">// 全质量层（full）</span></span><br><span class="line">      <span class="attr">maxBitrate</span>: <span class="number">2_500_000</span>,       <span class="comment">// 2.5 Mbps</span></span><br><span class="line">      <span class="comment">// scaleResolutionDownBy 默认为 1，即原始分辨率</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">rid</span>: <span class="string">&#x27;h&#x27;</span>,                    <span class="comment">// 半分辨率层（half）</span></span><br><span class="line">      <span class="attr">scaleResolutionDownBy</span>: <span class="number">2</span>,    <span class="comment">// 宽高各缩小一半，面积缩小 4 倍</span></span><br><span class="line">      <span class="attr">maxBitrate</span>: <span class="number">600_000</span>,         <span class="comment">// 600 Kbps</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">rid</span>: <span class="string">&#x27;q&#x27;</span>,                    <span class="comment">// 四分之一分辨率层（quarter）</span></span><br><span class="line">      <span class="attr">scaleResolutionDownBy</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">maxBitrate</span>: <span class="number">150_000</span>,         <span class="comment">// 150 Kbps</span></span><br><span class="line">    &#125;,</span><br><span class="line">  ],</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 触发 SDP 协商</span></span><br><span class="line">pc.<span class="property">onnegotiationneeded</span> = <span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> offer = <span class="keyword">await</span> pc.<span class="title function_">createOffer</span>();</span><br><span class="line">  <span class="keyword">await</span> pc.<span class="title function_">setLocalDescription</span>(offer);</span><br><span class="line">  <span class="comment">// 通过信令通道发送 offer...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>sendEncodings</code> 数组中 rid 的顺序决定了 <code>a=simulcast</code> 属性中 RID 的顺序，从而决定优先级（第一个优先级最高）。Chrome 从 M74 开始支持此规范合规的 API。</p>
+</blockquote>
+<h3 id="6-2-RTCRtpEncodingParameters-关键字段"><a href="#6-2-RTCRtpEncodingParameters-关键字段" class="headerlink" title="6.2 RTCRtpEncodingParameters 关键字段"></a>6.2 <code>RTCRtpEncodingParameters</code> 关键字段</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rid</code></td>
+<td>string</td>
+<td>RID 标识符，在创建后不可更改</td>
+</tr>
+<tr>
+<td><code>active</code></td>
+<td>boolean</td>
+<td>是否激活该编码层，可通过 <code>setParameters()</code> 动态开关</td>
+</tr>
+<tr>
+<td><code>maxBitrate</code></td>
+<td>number (bps)</td>
+<td>该层的最大码率上限</td>
+</tr>
+<tr>
+<td><code>scaleResolutionDownBy</code></td>
+<td>number (≥1.0)</td>
+<td>相对于原始分辨率的缩放比例</td>
+</tr>
+<tr>
+<td><code>maxFramerate</code></td>
+<td>number</td>
+<td>该层的最大帧率</td>
+</tr>
+<tr>
+<td><code>scalabilityMode</code></td>
+<td>string</td>
+<td>SVC 模式，如 <code>&quot;L1T3&quot;</code>（1 空间层 3 时间层），与多 rid Simulcast 互斥</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>string</td>
+<td><code>&quot;very-low&quot;</code> &#x2F; <code>&quot;low&quot;</code> &#x2F; <code>&quot;medium&quot;</code> &#x2F; <code>&quot;high&quot;</code></td>
+</tr>
+</tbody></table>
+<h3 id="6-3-动态调整编码参数"><a href="#6-3-动态调整编码参数" class="headerlink" title="6.3 动态调整编码参数"></a>6.3 动态调整编码参数</h3><p>通过 <code>RTCRtpSender.setParameters()</code> 可以在不重协商的情况下动态调整层的激活状态和码率：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sender = transceiver.<span class="property">sender</span>;</span><br><span class="line"><span class="keyword">const</span> params = sender.<span class="title function_">getParameters</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 禁用最高质量层（例如，发送端上行带宽不足时）</span></span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">0</span>].<span class="property">active</span> = <span class="literal">false</span>;  <span class="comment">// 禁用 &#x27;f&#x27; 层</span></span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">1</span>].<span class="property">active</span> = <span class="literal">true</span>;   <span class="comment">// 保留 &#x27;h&#x27; 层</span></span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">2</span>].<span class="property">active</span> = <span class="literal">true</span>;   <span class="comment">// 保留 &#x27;q&#x27; 层</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> sender.<span class="title function_">setParameters</span>(params);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>重要限制</strong>：<code>setParameters()</code> 不能添加或删除 <code>encodings</code> 数组中的元素，也不能修改 <code>rid</code> 值。添加或移除层需要重新协商（新的 offer&#x2F;answer 周期）。</p>
+</blockquote>
+<h3 id="6-4-SDP-Munging（不推荐）"><a href="#6-4-SDP-Munging（不推荐）" class="headerlink" title="6.4 SDP Munging（不推荐）"></a>6.4 SDP Munging（不推荐）</h3><p>在规范化 API 出现之前，开发者通常通过手动修改 SDP 字符串（即”SDP Munging”）来实现 Simulcast。这种方式已被 W3C 和 IETF 明确不推荐，因为：</p>
+<ul>
+<li>依赖 SDP 内部格式，脆弱且难以维护</li>
+<li>不同浏览器的 SDP 格式存在差异</li>
+<li>违反 JSEP 规范的封装原则</li>
+</ul>
+<p>应始终使用 <code>addTransceiver</code> + <code>sendEncodings</code> 的标准 API。</p>
+<hr>
+<h1 id="7-SFU-在-Simulcast-中的角色"><a href="#7-SFU-在-Simulcast-中的角色" class="headerlink" title="7. SFU 在 Simulcast 中的角色"></a>7. SFU 在 Simulcast 中的角色</h1><h3 id="7-1-整体架构"><a href="#7-1-整体架构" class="headerlink" title="7.1 整体架构"></a>7.1 整体架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">                   ┌──────────────────────────────────────────────────┐</span><br><span class="line">                   │                      SFU                         │</span><br><span class="line">发布者 (Publisher)  │                                                  │</span><br><span class="line">┌───────────┐      │   ┌──────────┐    ┌──────────────────────────┐   │</span><br><span class="line">│  Browser  │─────►│   │ 入流管理  │    │      转发决策引擎          │   │</span><br><span class="line">│           │ f    │   │          │    │                          │   │</span><br><span class="line">│ Simulcast │─────►│   │ RID解析   │───►│ per-subscriber 层选择    │    │</span><br><span class="line">│           │ h    │   │          │    │  + 序列号/时间戳重写       │    │</span><br><span class="line">│           │─────►│   │ SSRC映射  │    │                         │    │</span><br><span class="line">│           │ q    │   └──────────┘    └──────────┬──────────────┘    │</span><br><span class="line">└───────────┘─────►│                              │                   │</span><br><span class="line">                   │                              │                   │</span><br><span class="line">                   └──────────────────────────────┼───────────────────┘</span><br><span class="line">                                                  │</span><br><span class="line">                          ┌───────────────────────┼──────────────────┐</span><br><span class="line">                          ▼                       ▼                  ▼</span><br><span class="line">                    ┌───────────┐          ┌───────────┐      ┌───────────┐</span><br><span class="line">                    │ Alice     │          │   Bob     │      │  Carol    │</span><br><span class="line">                    │ (50Mbps)  │          │ (2Mbps)   │      │ (10Mbps)  │</span><br><span class="line">                    │ 接收 &quot;f&quot;   │          │ 接收 &quot;q&quot;  │      │ 接收 &quot;h&quot;   │</span><br><span class="line">                    └───────────┘          └───────────┘      └───────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-SFU-的核心职责"><a href="#7-2-SFU-的核心职责" class="headerlink" title="7.2 SFU 的核心职责"></a>7.2 SFU 的核心职责</h3><p><strong>层订阅管理（Layer Subscription）</strong>：</p>
+<p>SFU 为每个订阅者维护一个期望层（desired layer）和一个允许层（allowed layer）。最终实际转发层由两者取较小值决定：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">actual_layer = min(desired_layer, bandwidth_allowed_layer)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>desired_layer</code>：由应用层逻辑决定，通常基于订阅者的视频渲染大小。例如，订阅者以 320×180 的小窗口显示，则不必发送高分辨率层。</li>
+<li><code>bandwidth_allowed_layer</code>：由 SFU 的带宽估计（BWE）模块决定。</li>
+</ul>
+<p><strong>层切换时序</strong>：</p>
+<p>SFU 在执行层切换时必须满足以下时序要求：</p>
+<ol>
+<li>确定需要切换到新层（如从 <code>h</code> 升级到 <code>f</code>）</li>
+<li>向发布者发送 RTCP <strong>PLI（Picture Loss Indication）</strong> 或 <strong>FIR（Full Intra Request）</strong>，请求关键帧</li>
+<li>等待新层的关键帧（IDR 帧）到达</li>
+<li>关键帧到达后，执行序列号和时间戳的重写</li>
+<li>开始向该订阅者转发新层的 RTP 数据包</li>
+</ol>
+<p>这一机制确保接收端始终从关键帧开始解码，不会出现花屏。</p>
+<p><strong>发布者带宽受限时的降层处理</strong>：</p>
+<p>当发布者上行带宽不足时，浏览器会自动停止最高分辨率层的发送（SFU 检测到某个 RID 的包停止到达）。SFU 需要：</p>
+<ul>
+<li>检测到层消失后，将正在接收该层的订阅者降级到更低层</li>
+<li>向发布者发送 PLI，确保降级后能立即获得关键帧</li>
+</ul>
+<h3 id="7-3-RTCP-反馈路由"><a href="#7-3-RTCP-反馈路由" class="headerlink" title="7.3 RTCP 反馈路由"></a>7.3 RTCP 反馈路由</h3><p>SFU 还需要处理上下行的 RTCP 反馈消息，并进行适当的聚合与屏蔽：</p>
+<ul>
+<li><strong>REMB &#x2F; Transport-CC</strong>：SFU 汇总来自各订阅者的带宽反馈，向发布者报告的是 SFU → 发布者链路的上行带宽状况，而非任何单一订阅者的下行带宽。</li>
+<li><strong>NACK</strong>：SFU 可以缓存最近发送的 RTP 包，自行响应订阅者的 NACK 请求，无需向发布者请求重传。</li>
+<li><strong>PLI&#x2F;FIR</strong>：SFU 通常对多个订阅者的 PLI&#x2F;FIR 进行防抖（debounce）处理，避免向发布者发送过多关键帧请求。</li>
+</ul>
+<hr>
+<h1 id="8-时域分层（Temporal-Scalability）"><a href="#8-时域分层（Temporal-Scalability）" class="headerlink" title="8. 时域分层（Temporal Scalability）"></a>8. 时域分层（Temporal Scalability）</h1><p>Simulcast 通常与时域分层（Temporal Scalability）结合使用，进一步提升带宽适配的精细度。</p>
+<h3 id="8-1-时域层的概念"><a href="#8-1-时域层的概念" class="headerlink" title="8.1 时域层的概念"></a>8.1 时域层的概念</h3><p>时域层（Temporal Layer）基于帧间依赖关系，将视频流中的帧按时间维度分为不同层级：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">时间轴:  K    1    2    3    4    5    6    7    8  ...（帧编号）</span><br><span class="line">              │    │    │    │    │    │    │    │</span><br><span class="line">TID=0(基础层): K────────────►3────────────►7</span><br><span class="line">TID=1(增强层):      1────►2       4────►5────►6────►8</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>TID&#x3D;0（基础层）</strong>：关键帧和每隔若干帧的参考帧，仅参考基础层中的帧。低带宽订阅者只接收此层，得到较低帧率（如 15fps）。</li>
+<li><strong>TID&#x3D;1（增强层）</strong>：介于基础层帧之间的帧，接收后可获得更高帧率（如 30fps）。</li>
+</ul>
+<p>通过仅丢弃 TID&#x3D;1 的帧，SFU 可以在不等待关键帧的情况下快速将某订阅者的帧率减半，带宽立即降低约 50%。</p>
+<h3 id="8-2-VP8-与时域层"><a href="#8-2-VP8-与时域层" class="headerlink" title="8.2 VP8 与时域层"></a>8.2 VP8 与时域层</h3><p>VP8 在其 RTP Payload Descriptor 中携带 TID（Temporal Layer ID）字段，Chrome 在启用 Simulcast 时会自动为每个空间层增加 2 个时间层（TID&#x3D;0 和 TID&#x3D;1），有时多达 3 层。</p>
+<h3 id="8-3-空间层-时间层的组合"><a href="#8-3-空间层-时间层的组合" class="headerlink" title="8.3 空间层 + 时间层的组合"></a>8.3 空间层 + 时间层的组合</h3><p>在完整的 Simulcast 配置下，每个空间层（由 RID 标识）可以独立配置时间层，形成二维的质量矩阵：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">       TID=0（低帧率）  TID=1（高帧率）</span><br><span class="line">RID=f  ◉              ◉</span><br><span class="line">RID=h  ◉              ◉</span><br><span class="line">RID=q  ◉              ◉</span><br></pre></td></tr></table></figure>
+
+<p>SFU 可以组合选择任意一格进行转发，从而在 6 个点上进行细粒度的带宽适配。</p>
+<hr>
+<h1 id="9-Simulcast-与-SVC-的对比"><a href="#9-Simulcast-与-SVC-的对比" class="headerlink" title="9. Simulcast 与 SVC 的对比"></a>9. Simulcast 与 SVC 的对比</h1><p>Simulcast 和 SVC（Scalable Video Coding，可伸缩视频编码）解决的是同一个问题：如何向带宽各异的接收端分发同一视频源。两者各有优劣：</p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>Simulcast</th>
+<th>SVC（如 VP9&#x2F;AV1 的 SVC 模式）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>发送端带宽</strong></td>
+<td>较高（发送多路独立流）</td>
+<td>较低（单路流但包含所有层）</td>
+</tr>
+<tr>
+<td><strong>发送端 CPU</strong></td>
+<td>较高（多个独立编码器）</td>
+<td>较低（单编码器，增量编码层）</td>
+</tr>
+<tr>
+<td><strong>SFU 复杂度</strong></td>
+<td>较低（仅需转发正确的流）</td>
+<td>较高（需解析帧依赖关系）</td>
+</tr>
+<tr>
+<td><strong>层切换延迟</strong></td>
+<td>较高（需等待新层的关键帧）</td>
+<td>较低（空间层切换需等切换点，时间层可立即切换）</td>
+</tr>
+<tr>
+<td><strong>编解码兼容性</strong></td>
+<td>极好（VP8、H.264 均可）</td>
+<td>有限（VP9、AV1；H.264 的 SVC 支持有限）</td>
+</tr>
+<tr>
+<td><strong>硬件加速</strong></td>
+<td>良好（每路独立流，现有硬件支持）</td>
+<td>有限（SVC 模式的硬件编解码器支持不普遍）</td>
+</tr>
+<tr>
+<td><strong>端到端加密友好度</strong></td>
+<td>一般（SFU 需识别 RID）</td>
+<td>更好（SFU 只需按层过滤，不需解密内容）</td>
+</tr>
+</tbody></table>
+<p><strong>实践结论</strong>：</p>
+<ul>
+<li>对于需要广泛兼容性（特别是移动端 H.264 硬件加速）的场景，<strong>Simulcast 是首选</strong>。</li>
+<li>对于 VP9&#x2F;AV1 场景且 SFU 支持足够复杂的情况下，SVC 可以节省发送端带宽。</li>
+<li>部分现代 SFU（如 LiveKit、mediasoup）同时支持两种模式，并根据发布者能力自动选择。</li>
+</ul>
+<hr>
+<h1 id="10-编解码器支持情况"><a href="#10-编解码器支持情况" class="headerlink" title="10. 编解码器支持情况"></a>10. 编解码器支持情况</h1><h3 id="10-1-VP8"><a href="#10-1-VP8" class="headerlink" title="10.1 VP8"></a>10.1 VP8</h3><p>VP8 是 WebRTC 中最早支持 Simulcast 的编解码器，也是支持最完善的。其 RTP Payload Descriptor（RFC 7741）中包含 <code>TID</code>（Temporal Layer ID）和 <code>KEYIDX</code> 等字段，供 SFU 进行帧级分析。Chrome、Firefox、Safari 对 VP8 Simulcast 均有良好支持。</p>
+<h3 id="10-2-H-264"><a href="#10-2-H-264" class="headerlink" title="10.2 H.264"></a>10.2 H.264</h3><p>H.264 的 Simulcast 支持稍晚于 VP8。由于 H.264 标准中没有原生的时域层元数据，其时域分层能力不如 VP8 灵活，但空间层 Simulcast（多个独立编码流）完全可行。Chrome M79 开始支持 H.264 Simulcast，且利用硬件编码器，CPU 效率优于 VP8 软件编码。</p>
+<h3 id="10-3-VP9"><a href="#10-3-VP9" class="headerlink" title="10.3 VP9"></a>10.3 VP9</h3><p>VP9 原生支持 SVC 模式，但也可以用于多路独立流的 Simulcast。VP9 的 <code>scalabilityMode</code> 参数（W3C SVC 扩展规范）提供了更灵活的空间+时间分层能力（如 <code>L3T3</code>：3 空间层 × 3 时间层）。</p>
+<h3 id="10-4-AV1"><a href="#10-4-AV1" class="headerlink" title="10.4 AV1"></a>10.4 AV1</h3><p>AV1 是新一代开放视频编解码器，原生支持强大的 SVC 功能。W3C SVC 扩展规范已支持 AV1 的多种 <code>scalabilityMode</code>，但因 AV1 的软件编解码 CPU 消耗较高，目前在实时场景的普及还需等待硬件加速的大规模落地。</p>
+<h3 id="10-5-Opus（音频）"><a href="#10-5-Opus（音频）" class="headerlink" title="10.5 Opus（音频）"></a>10.5 Opus（音频）</h3><p>Simulcast 通常只应用于视频流。音频（Opus）一般不使用 Simulcast，而是通过 Opus 自身的 DTX（Discontinuous Transmission）、带宽自适应等机制处理网络变化。RFC 8853 中 REQ-5.3 也提及了与 Comfort Noise 等音频相关机制的兼容性要求。</p>
+<hr>
+<h1 id="11-浏览器兼容性"><a href="#11-浏览器兼容性" class="headerlink" title="11. 浏览器兼容性"></a>11. 浏览器兼容性</h1><table>
+<thead>
+<tr>
+<th>浏览器</th>
+<th>VP8 Simulcast</th>
+<th>H.264 Simulcast</th>
+<th>RID 支持</th>
+<th>基于规范的 API</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chrome ≥ M74</td>
+<td>✅</td>
+<td>✅ (M79+)</td>
+<td>✅ (RID-based)</td>
+<td>✅ <code>addTransceiver</code></td>
+</tr>
+<tr>
+<td>Firefox ≥ 72</td>
+<td>✅</td>
+<td>部分支持</td>
+<td>✅ (RID-based，72+ RFC 合规)</td>
+<td>✅ <code>addTransceiver</code></td>
+</tr>
+<tr>
+<td>Safari ≥ 12.1</td>
+<td>✅</td>
+<td>✅</td>
+<td>部分（早期版本为 SSRC-group based）</td>
+<td>✅（新版）</td>
+</tr>
+<tr>
+<td>Edge (Chromium)</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：早期 Safari 版本（12.x 系列）使用基于 SSRC-Group 的 Simulcast 而非 RID-based，这与标准规范存在差异，在对接 SFU 时需要注意兼容性处理。</p>
+</blockquote>
+<hr>
+<h1 id="12-常见问题与注意事项"><a href="#12-常见问题与注意事项" class="headerlink" title="12. 常见问题与注意事项"></a>12. 常见问题与注意事项</h1><h3 id="12-1-最低分辨率要求"><a href="#12-1-最低分辨率要求" class="headerlink" title="12.1 最低分辨率要求"></a>12.1 最低分辨率要求</h3><p>要启用三层 Simulcast（1:2:4 缩放），源视频的分辨率至少需要满足最低层的分辨率要求。以 4 倍缩放的最低层为例，若最低层要求 320×180，则源分辨率至少需要 1280×720。部分 WebRTC 实现（如 ex_webrtc）明确要求最小起始分辨率为 960×540 才能运行三层 Simulcast。</p>
+<h3 id="12-2-关键帧与层切换的延迟"><a href="#12-2-关键帧与层切换的延迟" class="headerlink" title="12.2 关键帧与层切换的延迟"></a>12.2 关键帧与层切换的延迟</h3><p>层切换并非即时发生。SFU 向发送端发送 PLI，发送端响应并编码关键帧，期间可能有数十到数百毫秒的延迟。在此期间，订阅者可能短暂看到画面冻结。</p>
+<h3 id="12-3-发布者上行带宽自动降级"><a href="#12-3-发布者上行带宽自动降级" class="headerlink" title="12.3 发布者上行带宽自动降级"></a>12.3 发布者上行带宽自动降级</h3><p>当发布者上行带宽不足时，浏览器会自动降低或停止某些 Simulcast 层的发送。这是浏览器内部 BWE（带宽估计）和拥塞控制模块的行为。SFU 需要监测各层 RTP 流是否持续到达，一旦检测到层消失，立即将接收该层的订阅者迁移到更低层。</p>
+<h3 id="12-4-SSRC-变化处理"><a href="#12-4-SSRC-变化处理" class="headerlink" title="12.4 SSRC 变化处理"></a>12.4 SSRC 变化处理</h3><p>虽然 RID-based Simulcast 不再依赖 SSRC 进行流标识，但 SSRC 仍可能在会话中发生变化（如冲突检测触发的 SSRC 重新随机化）。SFU 和接收端实现需要能够处理 SSRC 变化的情况，依赖 RID 扩展重新建立映射关系。</p>
+<h3 id="12-5-与-RTX（重传）的交互"><a href="#12-5-与-RTX（重传）的交互" class="headerlink" title="12.5 与 RTX（重传）的交互"></a>12.5 与 RTX（重传）的交互</h3><p>RFC 8852 定义了 <code>RepairedRtpStreamId</code> SDES 条目（RTP 头部扩展 <code>urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id</code>），用于 RTX 重传流中标识被修复的原始 Simulcast 流。SFU 在处理重传时需要正确解析此扩展，以将重传包与正确的原始流关联。</p>
+<h3 id="12-6-与-BUNDLE-的关系"><a href="#12-6-与-BUNDLE-的关系" class="headerlink" title="12.6 与 BUNDLE 的关系"></a>12.6 与 BUNDLE 的关系</h3><p>WebRTC 通常启用 BUNDLE（将所有媒体复用到单一传输层）。Simulcast 的三路流（RID <code>f</code>、<code>h</code>、<code>q</code>）均在同一个 BUNDLE 传输通道中传输，通过 MID + RID 头部扩展进行解复用。这要求接收端实现正确处理 RTP 头部扩展的优先级顺序。</p>
+<h3 id="12-7-SDP-协商的向后兼容性"><a href="#12-7-SDP-协商的向后兼容性" class="headerlink" title="12.7 SDP 协商的向后兼容性"></a>12.7 SDP 协商的向后兼容性</h3><p>RFC 8853 的设计中包含了对非 Simulcast 传统客户端的兼容性要求（REQ-6.1）。SFU 在向不支持 Simulcast 的遗留客户端转发时，只需选择一路流转发即可，无需对 SDP 进行特殊处理。</p>
+<hr>
+<h1 id="13-参考资料"><a href="#13-参考资料" class="headerlink" title="13. 参考资料"></a>13. 参考资料</h1><h3 id="核心-IETF-RFC"><a href="#核心-IETF-RFC" class="headerlink" title="核心 IETF RFC"></a>核心 IETF RFC</h3><ul>
+<li><strong>[RFC 8853]</strong> Burman, B., Westerlund, M., Nandakumar, S., Zanaty, M. “Using Simulcast in Session Description Protocol (SDP) and RTP Sessions.” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8853">https://www.rfc-editor.org/rfc/rfc8853</a></li>
+<li><strong>[RFC 8852]</strong> Roach, A.B., Nandakumar, S., Thatcher, P. “RTP Stream Identifier Source Description (SDES).” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8852">https://www.rfc-editor.org/rfc/rfc8852</a></li>
+<li><strong>[RFC 8851]</strong> Roach, A.B. “RTP Payload Format Restrictions.” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8851">https://www.rfc-editor.org/rfc/rfc8851</a></li>
+<li><strong>[RFC 8829]</strong> Uberti, J., Jennings, C., Rescorla, E. “JavaScript Session Establishment Protocol (JSEP).” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8829">https://www.rfc-editor.org/rfc/rfc8829</a></li>
+<li><strong>[RFC 8834]</strong> Perkins, C., Westerlund, M., Ott, J. “Media Transport and Use of RTP in WebRTC.” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8834">https://www.rfc-editor.org/rfc/rfc8834</a></li>
+<li><strong>[RFC 8843]</strong> Holmberg, C., Alvestrand, H., Jennings, C. “Negotiating Media Multiplexing Using the Session Description Protocol (SDP).” IETF, January 2021. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8843">https://www.rfc-editor.org/rfc/rfc8843</a></li>
+<li><strong>[RFC 8285]</strong> Singer, D., Desineni, H. “A General Mechanism for RTP Header Extensions for Generic Audio and Video Streams.” IETF, October 2017. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc8285">https://www.rfc-editor.org/rfc/rfc8285</a></li>
+<li><strong>[RFC 7941]</strong> Westerlund, M. et al. “RTP Header Extension for the RTP Control Protocol (RTCP) Source Description Items.” IETF, August 2016. <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7941">https://www.rfc-editor.org/rfc/rfc7941</a></li>
+</ul>
+<h3 id="W3C-规范"><a href="#W3C-规范" class="headerlink" title="W3C 规范"></a>W3C 规范</h3><ul>
+<li><strong>[W3C WebRTC]</strong> “WebRTC 1.0: Real-Time Communication in Browsers.” W3C Recommendation. <a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/">https://www.w3.org/TR/webrtc/</a></li>
+<li><strong>[W3C SVC]</strong> “Scalable Video Coding (SVC) Extension for WebRTC.” W3C. <a target="_blank" rel="noopener" href="https://w3c.github.io/webrtc-svc/">https://w3c.github.io/webrtc-svc/</a></li>
+</ul>
+<h3 id="延伸阅读"><a href="#延伸阅读" class="headerlink" title="延伸阅读"></a>延伸阅读</h3><ul>
+<li>Divorra, O. “Optimizing video quality using Simulcast.” webrtcHacks, 2016. <a target="_blank" rel="noopener" href="https://webrtchacks.com/sfu-simulcast/">https://webrtchacks.com/sfu-simulcast/</a></li>
+<li>LiveKit. “An introduction to WebRTC Simulcast.” <a target="_blank" rel="noopener" href="https://blog.livekit.io/an-introduction-to-webrtc-simulcast-6c5f1f6402eb/">https://blog.livekit.io/an-introduction-to-webrtc-simulcast-6c5f1f6402eb/</a></li>
+<li>Amirante, L. “Simulcast and Janus: what’s new?” Meetecho Blog, 2019. <a target="_blank" rel="noopener" href="https://www.meetecho.com/blog/simulcast-janus-ssrc/">https://www.meetecho.com/blog/simulcast-janus-ssrc/</a></li>
+<li>Google Chrome Team. “PSA: Spec-compliant Simulcast using addTransceiver API.” discuss-webrtc, 2019. <a target="_blank" rel="noopener" href="https://groups.google.com/g/discuss-webrtc/c/32Y1AUzQ9XU">https://groups.google.com/g/discuss-webrtc/c/32Y1AUzQ9XU</a></li>
+<li>MDN Web Docs. “RTCPeerConnection: addTransceiver() method.” <a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addTransceiver">https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addTransceiver</a></li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-Simulcast"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是 Simulcast</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Simulcast"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要 Simulcast</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%A4%9A%E6%96%B9%E8%A7%86%E9%A2%91%E4%BC%9A%E8%AE%AE%E7%9A%84%E6%A0%B8%E5%BF%83%E7%9F%9B%E7%9B%BE"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 多方视频会议的核心矛盾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E2%80%9C%E6%85%A2%E7%94%A8%E6%88%B7%E2%80%9D%E7%BA%A7%E8%81%94%E9%97%AE%E9%A2%98"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 “慢用户”级联问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-8853-%E5%BD%92%E7%BA%B3%E7%9A%84%E4%B8%BB%E8%A6%81%E7%94%A8%E4%BE%8B"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 8853 归纳的主要用例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E6%A0%87%E5%87%86%E4%B8%8E%E8%A7%84%E8%8C%83"><span class="toc-number">4.</span> <span class="toc-text">3. 核心标准与规范</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RTP-%E5%B1%82%E7%9A%84-Simulcast-%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.</span> <span class="toc-text">4. RTP 层的 Simulcast 实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%B5%81%E6%A0%87%E8%AF%86%E6%9C%BA%E5%88%B6%EF%BC%9A%E4%BB%8E-SSRC-%E5%88%B0-RID"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 流标识机制：从 SSRC 到 RID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-BUNDLE-%E4%B8%8B%E7%9A%84-Simulcast-%E8%A7%A3%E5%A4%8D%E7%94%A8"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 BUNDLE 下的 Simulcast 解复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-RTP-%E5%8C%85%E5%BA%8F%E5%88%97%E5%8F%B7%E9%87%8D%E5%86%99"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 RTP 包序列号重写</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SDP-%E4%BF%A1%E4%BB%A4%E5%8D%8F%E5%95%86"><span class="toc-number">6.</span> <span class="toc-text">5. SDP 信令协商</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%A0%B8%E5%BF%83-SDP-%E5%B1%9E%E6%80%A7"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 核心 SDP 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-a-rid-%E5%B1%9E%E6%80%A7%E8%AF%AD%E6%B3%95"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 a&#x3D;rid 属性语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-a-simulcast-%E5%B1%9E%E6%80%A7%E8%AF%AD%E6%B3%95"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 a&#x3D;simulcast 属性语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E5%AE%8C%E6%95%B4-SDP-%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 完整 SDP 示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%B8%A6%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84-a-rid"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 带格式约束的 a&#x3D;rid</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-RFC-8853-%E4%B8%AD%E7%9A%84%E5%81%8F%E5%A5%BD%E9%A1%BA%E5%BA%8F%E8%A7%84%E5%AE%9A"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 RFC 8853 中的偏好顺序规定</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E6%B5%8F%E8%A7%88%E5%99%A8-API-%E2%80%94-W3C-WebRTC-%E8%A7%84%E8%8C%83"><span class="toc-number">7.</span> <span class="toc-text">6. 浏览器 API — W3C WebRTC 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-addTransceiver-sendEncodings"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 addTransceiver + sendEncodings</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-RTCRtpEncodingParameters-%E5%85%B3%E9%94%AE%E5%AD%97%E6%AE%B5"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 RTCRtpEncodingParameters 关键字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8A%A8%E6%80%81%E8%B0%83%E6%95%B4%E7%BC%96%E7%A0%81%E5%8F%82%E6%95%B0"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 动态调整编码参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SDP-Munging%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SDP Munging（不推荐）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SFU-%E5%9C%A8-Simulcast-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">8.</span> <span class="toc-text">7. SFU 在 Simulcast 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-SFU-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 SFU 的核心职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-RTCP-%E5%8F%8D%E9%A6%88%E8%B7%AF%E7%94%B1"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 RTCP 反馈路由</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E6%97%B6%E5%9F%9F%E5%88%86%E5%B1%82%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 时域分层（Temporal Scalability）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%97%B6%E5%9F%9F%E5%B1%82%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 时域层的概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VP8-%E4%B8%8E%E6%97%B6%E5%9F%9F%E5%B1%82"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VP8 与时域层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E7%A9%BA%E9%97%B4%E5%B1%82-%E6%97%B6%E9%97%B4%E5%B1%82%E7%9A%84%E7%BB%84%E5%90%88"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 空间层 + 时间层的组合</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-Simulcast-%E4%B8%8E-SVC-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">10.</span> <span class="toc-text">9. Simulcast 与 SVC 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 编解码器支持情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-VP8"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-H-264"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 H.264</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-VP9"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 VP9</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-AV1"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 AV1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-Opus%EF%BC%88%E9%9F%B3%E9%A2%91%EF%BC%89"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 Opus（音频）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E6%B5%8F%E8%A7%88%E5%99%A8%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. 浏览器兼容性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">13.</span> <span class="toc-text">12. 常见问题与注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E6%9C%80%E4%BD%8E%E5%88%86%E8%BE%A8%E7%8E%87%E8%A6%81%E6%B1%82"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 最低分辨率要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%85%B3%E9%94%AE%E5%B8%A7%E4%B8%8E%E5%B1%82%E5%88%87%E6%8D%A2%E7%9A%84%E5%BB%B6%E8%BF%9F"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 关键帧与层切换的延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%8F%91%E5%B8%83%E8%80%85%E4%B8%8A%E8%A1%8C%E5%B8%A6%E5%AE%BD%E8%87%AA%E5%8A%A8%E9%99%8D%E7%BA%A7"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 发布者上行带宽自动降级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-SSRC-%E5%8F%98%E5%8C%96%E5%A4%84%E7%90%86"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 SSRC 变化处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E4%B8%8E-RTX%EF%BC%88%E9%87%8D%E4%BC%A0%EF%BC%89%E7%9A%84%E4%BA%A4%E4%BA%92"><span class="toc-number">13.0.5.</span> <span class="toc-text">12.5 与 RTX（重传）的交互</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E4%B8%8E-BUNDLE-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">13.0.6.</span> <span class="toc-text">12.6 与 BUNDLE 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-SDP-%E5%8D%8F%E5%95%86%E7%9A%84%E5%90%91%E5%90%8E%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">13.0.7.</span> <span class="toc-text">12.7 SDP 协商的向后兼容性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">13. 参考资料</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83-IETF-RFC"><span class="toc-number">14.0.1.</span> <span class="toc-text">核心 IETF RFC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#W3C-%E8%A7%84%E8%8C%83"><span class="toc-number">14.0.2.</span> <span class="toc-text">W3C 规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="toc-number">14.0.3.</span> <span class="toc-text">延伸阅读</span></a></li></ol></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/14/webrtc/29-simulcast/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/14/webrtc/29-simulcast/&text=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/14/webrtc/29-simulcast/&is_video=false&description=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力&body=Check out this article: http://example.com/2023/03/14/webrtc/29-simulcast/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/14/webrtc/29-simulcast/&title=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/14/webrtc/29-simulcast/&name=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/14/webrtc/29-simulcast/&t=Simulcast — 同时发送多路不同分辨率流，适配不同接收端能力"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

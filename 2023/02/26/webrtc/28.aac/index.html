@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景与标准化历程 AAC 家族一览 编码核心技术原理 3.1 感知音频编码基础 3.2 MDCT 滤波器组 3.3 心理声学模型 3.4 量化与 Huffman 熵编码 3.5 时域噪声整形（TNS） 3.6 联合声道编码（M&#x2F;S Stereo &amp; IS） 3.7 感知噪声替代（PNS） 3.8 长期预测（LTP）   HE-AAC：高效扩展技术 4.1 频谱带复制（SBR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AAC（Advanced Audio Coding）">
+<meta property="og:url" content="http://example.com/2023/02/26/webrtc/28.aac/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景与标准化历程 AAC 家族一览 编码核心技术原理 3.1 感知音频编码基础 3.2 MDCT 滤波器组 3.3 心理声学模型 3.4 量化与 Huffman 熵编码 3.5 时域噪声整形（TNS） 3.6 联合声道编码（M&#x2F;S Stereo &amp; IS） 3.7 感知噪声替代（PNS） 3.8 长期预测（LTP）   HE-AAC：高效扩展技术 4.1 频谱带复制（SBR">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-02-26T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T08:53:14.501Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>AAC（Advanced Audio Coding）</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/03/14/webrtc/29-simulcast/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/26/webrtc/28.aac/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/26/webrtc/28.aac/&text=AAC（Advanced Audio Coding）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/26/webrtc/28.aac/&is_video=false&description=AAC（Advanced Audio Coding）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AAC（Advanced Audio Coding）&body=Check out this article: http://example.com/2023/02/26/webrtc/28.aac/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/26/webrtc/28.aac/&name=AAC（Advanced Audio Coding）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/26/webrtc/28.aac/&t=AAC（Advanced Audio Coding）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与标准化历程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-AAC-%E5%AE%B6%E6%97%8F%E4%B8%80%E8%A7%88"><span class="toc-number">3.</span> <span class="toc-text">2. AAC 家族一览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 编码核心技术原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%84%9F%E7%9F%A5%E9%9F%B3%E9%A2%91%E7%BC%96%E7%A0%81%E5%9F%BA%E7%A1%80"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 感知音频编码基础</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-MDCT-%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%BB%84"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 MDCT 滤波器组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%BF%83%E7%90%86%E5%A3%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 心理声学模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%87%8F%E5%8C%96%E4%B8%8E-Huffman-%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 量化与 Huffman 熵编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%97%B6%E5%9F%9F%E5%99%AA%E5%A3%B0%E6%95%B4%E5%BD%A2%EF%BC%88TNS%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 时域噪声整形（TNS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E8%81%94%E5%90%88%E5%A3%B0%E9%81%93%E7%BC%96%E7%A0%81%EF%BC%88M-S-Stereo-Intensity-Stereo%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 联合声道编码（M&#x2F;S Stereo &amp; Intensity Stereo）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%84%9F%E7%9F%A5%E5%99%AA%E5%A3%B0%E6%9B%BF%E4%BB%A3%EF%BC%88PNS%EF%BC%89"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 感知噪声替代（PNS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E9%95%BF%E6%9C%9F%E9%A2%84%E6%B5%8B%EF%BC%88LTP%EF%BC%89"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 长期预测（LTP）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-HE-AAC%EF%BC%9A%E9%AB%98%E6%95%88%E6%89%A9%E5%B1%95%E6%8A%80%E6%9C%AF"><span class="toc-number">5.</span> <span class="toc-text">4. HE-AAC：高效扩展技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%A2%91%E8%B0%B1%E5%B8%A6%E5%A4%8D%E5%88%B6%EF%BC%88SBR%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 频谱带复制（SBR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%8F%82%E6%95%B0%E5%8C%96%E7%AB%8B%E4%BD%93%E5%A3%B0%EF%BC%88PS%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 参数化立体声（PS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%A0%81%E6%B5%81%E5%B0%81%E8%A3%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">6.</span> <span class="toc-text">5. 码流封装格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-ADIF%EF%BC%88Audio-Data-Interchange-Format%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 ADIF（Audio Data Interchange Format）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-ADTS%EF%BC%88Audio-Data-Transport-Stream%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 ADTS（Audio Data Transport Stream）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-LATM-LOAS"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 LATM &#x2F; LOAS</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-%E4%BC%A0%E8%BE%93%EF%BC%9ARFC-3640-%E8%AF%A6%E8%A7%A3"><span class="toc-number">7.</span> <span class="toc-text">6. RTP 传输：RFC 3640 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RFC-3640-%E8%BD%BD%E8%8D%B7%E7%BB%93%E6%9E%84"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RFC 3640 载荷结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-AAC-lbr-%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BD%8E%E7%A0%81%E7%8E%87-AAC%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 AAC-lbr 模式（低码率 AAC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-AAC-hbr-%E6%A8%A1%E5%BC%8F%EF%BC%88%E9%AB%98%E7%A0%81%E7%8E%87-AAC%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 AAC-hbr 模式（高码率 AAC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SDP-%E5%8D%8F%E5%95%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SDP 协商示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%9C%A8%E7%9B%B4%E6%92%AD%E4%B8%8E%E5%BD%95%E5%88%B6%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">7. 在直播与录制场景中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9B%B4%E6%92%AD%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84-AAC"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 直播协议栈中的 AAC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%BD%95%E5%88%B6%E5%9C%BA%E6%99%AF"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 录制场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%B8%E5%9E%8B%E5%B9%B3%E5%8F%B0%E9%9F%B3%E9%A2%91%E7%AD%96%E7%95%A5"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 典型平台音频策略</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-AAC-%E4%B8%8E-Opus-%E7%9A%84%E8%BE%B9%E7%95%8C%EF%BC%9A%E5%9C%A8-WebRTC-%E7%94%9F%E6%80%81%E4%B8%AD%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="toc-number">9.</span> <span class="toc-text">8. AAC 与 Opus 的边界：在 WebRTC 生态中的定位</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%B8%BA%E4%BB%80%E4%B9%88-WebRTC-%E9%BB%98%E8%AE%A4%E4%BD%BF%E7%94%A8-Opus-%E8%80%8C%E9%9D%9E-AAC%EF%BC%9F"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 为什么 WebRTC 默认使用 Opus 而非 AAC？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-AAC-%E8%BF%9B%E5%85%A5-WebRTC-%E7%94%9F%E6%80%81%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 AAC 进入 WebRTC 生态的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%BB%B6%E8%BF%9F%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 延迟对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%BB%E6%B5%81%E7%BC%96%E8%A7%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.</span> <span class="toc-text">9. 主流编解码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.0.1.</span> <span class="toc-text">开源实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">10.0.2.</span> <span class="toc-text">硬件加速</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FFmpeg-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">10.0.3.</span> <span class="toc-text">FFmpeg 基本用法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%B7%A5%E7%A8%8B%E9%99%B7%E9%98%B1"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与工程陷阱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-ADTS-%E5%A4%B4%E9%83%A8%E9%87%8D%E5%A4%8D%E5%B0%81%E8%A3%85%E9%97%AE%E9%A2%98"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 ADTS 头部重复封装问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-AudioSpecificConfig-%E8%A7%A3%E6%9E%90"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 AudioSpecificConfig 解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-HE-AAC-%E7%9A%84%E5%90%91%E5%90%8E%E5%85%BC%E5%AE%B9%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 HE-AAC 的向后兼容解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-RFC-3640-%E4%B8%AD%E7%9A%84%E6%97%B6%E9%97%B4%E6%88%B3"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 RFC 3640 中的时间戳</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-RTMP-%E4%B8%AD-AAC-%E5%BA%8F%E5%88%97%E5%A4%B4%E7%9A%84%E6%97%B6%E5%BA%8F"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 RTMP 中 AAC 序列头的时序</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        AAC（Advanced Audio Coding）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-02-26T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-02-26</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B">背景与标准化历程</a></li>
+<li><a href="#2-aac-%E5%AE%B6%E6%97%8F%E4%B8%80%E8%A7%88">AAC 家族一览</a></li>
+<li><a href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86">编码核心技术原理</a><ul>
+<li>3.1 感知音频编码基础</li>
+<li>3.2 MDCT 滤波器组</li>
+<li>3.3 心理声学模型</li>
+<li>3.4 量化与 Huffman 熵编码</li>
+<li>3.5 时域噪声整形（TNS）</li>
+<li>3.6 联合声道编码（M&#x2F;S Stereo &amp; IS）</li>
+<li>3.7 感知噪声替代（PNS）</li>
+<li>3.8 长期预测（LTP）</li>
+</ul>
+</li>
+<li><a href="#4-he-aac%E9%AB%98%E6%95%88%E6%89%A9%E5%B1%95%E6%8A%80%E6%9C%AF">HE-AAC：高效扩展技术</a><ul>
+<li>4.1 频谱带复制（SBR）</li>
+<li>4.2 参数化立体声（PS）</li>
+</ul>
+</li>
+<li><a href="#5-%E7%A0%81%E6%B5%81%E5%B0%81%E8%A3%85%E6%A0%BC%E5%BC%8F">码流封装格式</a><ul>
+<li>5.1 ADIF</li>
+<li>5.2 ADTS</li>
+<li>5.3 LATM &#x2F; LOAS</li>
+</ul>
+</li>
+<li><a href="#6-rtp-%E4%BC%A0%E8%BE%93rfc-3640-%E8%AF%A6%E8%A7%A3">RTP 传输：RFC 3640 详解</a><ul>
+<li>6.1 AAC-lbr 模式</li>
+<li>6.2 AAC-hbr 模式</li>
+<li>6.3 SDP 协商示例</li>
+</ul>
+</li>
+<li><a href="#7-%E5%9C%A8%E7%9B%B4%E6%92%AD%E4%B8%8E%E5%BD%95%E5%88%B6%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">在直播与录制场景中的应用</a></li>
+<li><a href="#8-aac-%E4%B8%8E-opus-%E7%9A%84%E8%BE%B9%E7%95%8C%E5%9C%A8-webrtc-%E7%94%9F%E6%80%81%E4%B8%AD%E7%9A%84%E5%AE%9A%E4%BD%8D">AAC 与 Opus 的边界：在 WebRTC 生态中的定位</a></li>
+<li><a href="#9-%E4%B8%BB%E6%B5%81%E7%BC%96%E8%A7%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">主流编解码实现</a></li>
+<li><a href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%B7%A5%E7%A8%8B%E9%99%B7%E9%98%B1">常见问题与工程陷阱</a></li>
+</ol>
+<hr>
+<h1 id="1-背景与标准化历程"><a href="#1-背景与标准化历程" class="headerlink" title="1. 背景与标准化历程"></a>1. 背景与标准化历程</h1><p>AAC（Advanced Audio Coding，高级音频编码）是由 Dolby、AT&amp;T、Fraunhofer、Sony 等多家机构联合研发的有损音频压缩标准，最初作为 MPEG-2 规范的一部分诞生，后在 MPEG-4 框架下进一步完善。</p>
+<p><strong>关键时间节点：</strong></p>
+<table>
+<thead>
+<tr>
+<th>年份</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1997</td>
+<td>AAC 作为 MPEG-2 Part 7 正式发布，标准号 <strong>ISO&#x2F;IEC 13818-7</strong>，也称 MPEG-2 NBC（Non-Backward Compatible）</td>
+</tr>
+<tr>
+<td>1999</td>
+<td>MPEG-4 Audio 第一版发布，AAC 被纳入 <strong>ISO&#x2F;IEC 14496-3</strong>，引入更灵活的 Audio Object 架构</td>
+</tr>
+<tr>
+<td>2003</td>
+<td><strong>HE-AAC v1</strong>（AAC-LC + SBR）标准化，发布于 ISO&#x2F;IEC 14496-3:2001&#x2F;Amd 1:2003</td>
+</tr>
+<tr>
+<td>2006</td>
+<td><strong>HE-AAC v2</strong>（HE-AAC v1 + Parametric Stereo）标准化，发布于 ISO&#x2F;IEC 14496-3:2005&#x2F;Amd 2:2006</td>
+</tr>
+<tr>
+<td>2003</td>
+<td>IETF 发布 <strong>RFC 3640</strong>，定义 MPEG-4 基本流的 RTP 载荷格式，正式规范 AAC-lbr &#x2F; AAC-hbr 的网络传输</td>
+</tr>
+</tbody></table>
+<p>AAC 被设计为 MP3（MPEG-2 Audio Layer III）的继任者。在相同码率下，AAC 通过更先进的心理声学模型和更灵活的滤波器组，能够提供比 MP3 更高的感知音质。今天，AAC 是 Apple 全生态（iTunes、Apple Music、iPhone）、YouTube、Android、DAB+ 数字广播等平台的默认或主流音频格式。</p>
+<hr>
+<h1 id="2-AAC-家族一览"><a href="#2-AAC-家族一览" class="headerlink" title="2. AAC 家族一览"></a>2. AAC 家族一览</h1><p>AAC 并不是单一编解码器，而是一个由多种配置（Profile）和扩展工具组合构成的家族：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">MPEG-2 AAC</span><br><span class="line">  └── AAC-LC（Low Complexity）         ← 最基础、最广泛支持的配置</span><br><span class="line"></span><br><span class="line">MPEG-4 Audio</span><br><span class="line">  ├── AAC-LC                          ← MPEG-4 重新定义，增加 Audio Object 架构</span><br><span class="line">  ├── AAC-Main                        ← 包含反向自适应预测，质量略高，复杂度更大</span><br><span class="line">  ├── AAC-SSR（Scalable Sample Rate） ← 可缩放采样率，较少使用</span><br><span class="line">  ├── AAC-LD（Low Delay）             ← 低延迟配置，延迟约 20ms，用于双向通信</span><br><span class="line">  ├── AAC-ELD（Enhanced Low Delay）   ← LD 的增强版，Apple FaceTime 使用</span><br><span class="line">  ├── HE-AAC v1（AAC-LC + SBR）       ← 高效配置，适合 ≤64kbps 的低码率场景</span><br><span class="line">  ├── HE-AAC v2（HE-AAC v1 + PS）     ← 进一步适合 ≤32kbps 的超低码率立体声</span><br><span class="line">  └── xHE-AAC                        ← 最新扩展，支持 12–300 kbps 全范围</span><br></pre></td></tr></table></figure>
+
+<p>各配置的适用码率参考：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>典型码率（立体声）</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AAC-LC</td>
+<td>128–256 kbps</td>
+<td>音乐流媒体、录制存储</td>
+</tr>
+<tr>
+<td>HE-AAC v1</td>
+<td>48–80 kbps</td>
+<td>互联网广播、低带宽直播</td>
+</tr>
+<tr>
+<td>HE-AAC v2</td>
+<td>16–40 kbps</td>
+<td>超低码率移动流媒体</td>
+</tr>
+<tr>
+<td>AAC-LD &#x2F; ELD</td>
+<td>32–64 kbps</td>
+<td>双向实时通话（Apple FaceTime）</td>
+</tr>
+<tr>
+<td>xHE-AAC</td>
+<td>12–300 kbps</td>
+<td>下一代广播（DRM、DAB+）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-编码核心技术原理"><a href="#3-编码核心技术原理" class="headerlink" title="3. 编码核心技术原理"></a>3. 编码核心技术原理</h1><h3 id="3-1-感知音频编码基础"><a href="#3-1-感知音频编码基础" class="headerlink" title="3.1 感知音频编码基础"></a>3.1 感知音频编码基础</h3><p>AAC 是一种<strong>感知音频编码器（Perceptual Audio Codec）</strong>。其核心思想是：人耳并非对所有声音频率和响度同等敏感——某些声音信息在感知上是”不可见的”，可以被丢弃而不被人耳察觉。</p>
+<p>AAC 通过两条主线减少数据量：</p>
+<ol>
+<li><strong>丢弃感知不相关信息</strong>：依据心理声学模型（Psychoacoustic Model），确定哪些频率成分在当前时刻被其他声音”掩蔽”，可以用更少比特甚至不编码这些成分。</li>
+<li><strong>消除统计冗余</strong>：通过 Huffman 熵编码压缩量化后仍存在的统计冗余。</li>
+</ol>
+<h3 id="3-2-MDCT-滤波器组"><a href="#3-2-MDCT-滤波器组" class="headerlink" title="3.2 MDCT 滤波器组"></a>3.2 MDCT 滤波器组</h3><p>AAC 的时频转换核心是<strong>改进离散余弦变换（MDCT，Modified Discrete Cosine Transform）</strong>。与 MP3 使用 32 子带多相滤波器组不同，AAC 直接使用 MDCT，省去了一级滤波器组，简化了架构并提升了频率分辨率。</p>
+<p>MDCT 的数学定义：</p>
+<p>$$X[k] &#x3D; \sum_{n&#x3D;0}^{N-1} x[n] \cdot \cos\left[\frac{\pi}{N}\left(n + \frac{N&#x2F;2 + 1}{2}\right)\left(k + \frac{1}{2}\right)\right], \quad 0 \le k &lt; N&#x2F;2$$</p>
+<p>其中 $N$ 为窗口长度。</p>
+<p>AAC 支持<strong>自适应窗口切换</strong>：</p>
+<ul>
+<li><strong>长窗口（Long Window）</strong>：$N &#x3D; 2048$ 个样本（约 46.4ms @ 44.1kHz），提供高频率分辨率，适合平稳信号（如持续音调）。</li>
+<li><strong>短窗口（Short Window）</strong>：$N &#x3D; 256$ 个样本，分 8 段处理相同时长，提供高时间分辨率，适合瞬态信号（如鼓声、打击乐），避免<strong>预回声（Pre-echo）</strong>失真。</li>
+<li><strong>Start &#x2F; Stop 窗口</strong>：在长短窗口间平滑切换的过渡窗口。</li>
+</ul>
+<p>MDCT 的关键特性是<strong>时域混叠消除（TDAC，Time Domain Aliasing Cancellation）</strong>：相邻帧 50% 重叠，解码时叠加即可完美重建，消除混叠失真。</p>
+<h3 id="3-3-心理声学模型"><a href="#3-3-心理声学模型" class="headerlink" title="3.3 心理声学模型"></a>3.3 心理声学模型</h3><p>心理声学模型是 AAC 编码器的”大脑”，它分析输入信号并为量化器提供<strong>掩蔽阈值（Masking Threshold）</strong>——即在每个频率上，可以注入多大的量化噪声而不被人耳感知。</p>
+<p>主要利用的心理声学现象：</p>
+<ul>
+<li><strong>同时掩蔽（Simultaneous Masking）</strong>：强音调成分会掩蔽同一时刻相邻频率上的弱信号。</li>
+<li><strong>时间掩蔽（Temporal Masking）</strong>：包括前掩蔽（Pre-masking，约 2–5ms）和后掩蔽（Post-masking，约 100ms），强声音前后的时间窗口内，弱信号难以被感知。</li>
+<li><strong>绝对听觉阈值（Absolute Threshold of Hearing）</strong>：人耳在极低声压级（尤其高频和低频端）无法感知声音，这些频率可以用极少比特编码。</li>
+</ul>
+<p>AAC 的心理声学模型使用 <strong>1&#x2F;3 临界带宽（Critical Bandwidth）</strong> 作为频率分辨率单位，这是复杂度与性能之间的工程折中——精度高于整带宽分析，但计算量低于更细粒度方法。</p>
+<h3 id="3-4-量化与-Huffman-熵编码"><a href="#3-4-量化与-Huffman-熵编码" class="headerlink" title="3.4 量化与 Huffman 熵编码"></a>3.4 量化与 Huffman 熵编码</h3><p>获得掩蔽阈值后，编码器执行<strong>迭代量化-失真检验循环（Rate-Distortion Loop）</strong>：</p>
+<ol>
+<li>将 MDCT 系数划分为若干<strong>尺度因子带（Scalefactor Band）</strong>，每个带共享一个量化步长（Scalefactor）。</li>
+<li>对各带的 MDCT 系数按 $\text{int}(|X[k]|^{3&#x2F;4})$ 的非均匀量化公式量化。</li>
+<li>对量化索引进行 Huffman 编码（AAC 定义了多个码表）。</li>
+<li>检查各带量化噪声是否超过掩蔽阈值，若超过则细化量化步长，迭代直至满足。</li>
+</ol>
+<p>非均匀量化的指数 3&#x2F;4 是特意设计的：它在高幅值系数上提供更细的量化（保留信号细节），在低幅值系数上允许更粗的量化（这些信号通常被掩蔽）。</p>
+<h3 id="3-5-时域噪声整形（TNS）"><a href="#3-5-时域噪声整形（TNS）" class="headerlink" title="3.5 时域噪声整形（TNS）"></a>3.5 时域噪声整形（TNS）</h3><p><strong>时域噪声整形（TNS，Temporal Noise Shaping）</strong> 是 AAC 相比 MP3 的重要创新之一。</p>
+<p>它解决的问题：对于瞬态信号（如人声的辅音爆破），即使使用短窗口，量化噪声也会在时域上均匀分布，在爆破音之前产生可听见的”预回声”。</p>
+<p>TNS 通过在<strong>频域</strong>施加预测滤波，将量化噪声的时域分布整形为跟随信号包络——噪声集中在信号本身所在的时刻，而非扩散到信号前后，从而使噪声在感知上不可见。</p>
+<h3 id="3-6-联合声道编码（M-S-Stereo-Intensity-Stereo）"><a href="#3-6-联合声道编码（M-S-Stereo-Intensity-Stereo）" class="headerlink" title="3.6 联合声道编码（M&#x2F;S Stereo &amp; Intensity Stereo）"></a>3.6 联合声道编码（M&#x2F;S Stereo &amp; Intensity Stereo）</h3><p>AAC 提供两种立体声冗余压缩工具：</p>
+<ul>
+<li><strong>M&#x2F;S 立体声（Mid&#x2F;Side Stereo）</strong>：将左右声道（L, R）转换为和差信号（M &#x3D; (L+R)&#x2F;2，S &#x3D; (L−R)&#x2F;2）。当两声道相关性高时，S 分量能量很小，可用很少比特编码，有效减少总码率。</li>
+<li><strong>强度立体声（Intensity Stereo）</strong>：在高频段（人耳对高频方向感知不灵敏），只编码一个共享的频谱包络，通过比例因子近似重建左右声道，进一步降低高频编码开销。</li>
+</ul>
+<h3 id="3-7-感知噪声替代（PNS）"><a href="#3-7-感知噪声替代（PNS）" class="headerlink" title="3.7 感知噪声替代（PNS）"></a>3.7 感知噪声替代（PNS）</h3><p>对于类似噪声的频谱分量（如混响、环境声），<strong>感知噪声替代（PNS，Perceptual Noise Substitution）</strong> 不传输实际的量化系数，而是传输一个能量参数。解码端用该能量参数生成同等功率的随机噪声填充对应频率，感知效果几乎一致，但节省了大量比特。</p>
+<h3 id="3-8-长期预测（LTP）"><a href="#3-8-长期预测（LTP）" class="headerlink" title="3.8 长期预测（LTP）"></a>3.8 长期预测（LTP）</h3><p><strong>长期预测（LTP，Long-Term Prediction）</strong> 利用音频信号的周期性（尤其是人声基频），用之前已解码的帧来预测当前帧，编码预测残差而非原始信号。这对含有稳定周期结构的音频（语音、弦乐）能有效降低码率。</p>
+<hr>
+<h1 id="4-HE-AAC：高效扩展技术"><a href="#4-HE-AAC：高效扩展技术" class="headerlink" title="4. HE-AAC：高效扩展技术"></a>4. HE-AAC：高效扩展技术</h1><h3 id="4-1-频谱带复制（SBR）"><a href="#4-1-频谱带复制（SBR）" class="headerlink" title="4.1 频谱带复制（SBR）"></a>4.1 频谱带复制（SBR）</h3><p><strong>频谱带复制（SBR，Spectral Band Replication）</strong> 是 HE-AAC v1 的核心扩展，由 Coding Technologies（现已被 Dolby 收购）开发，并于 2003 年由 MPEG 标准化。</p>
+<p><strong>核心思想</strong>：人耳对高频成分（通常 &gt; 6kHz）的感知主要依赖其<strong>频谱包络（Envelope）</strong>形状，而非精确的谐波结构。高频谐波通常是低频谐波的泛音，存在强相关性。</p>
+<p><strong>SBR 工作流程</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">编码端：</span><br><span class="line">  原始音频 (0–20kHz)</span><br><span class="line">       │</span><br><span class="line">       ├──► 核心编码器（AAC-LC）编码低频部分（0~10kHz），以半速运行</span><br><span class="line">       │</span><br><span class="line">       └──► SBR 分析器：提取高频包络、音调/噪声比例等引导参数</span><br><span class="line">                │</span><br><span class="line">                └──► 以极低码率（约 2–3 kbps）写入比特流侧信息</span><br><span class="line"></span><br><span class="line">解码端：</span><br><span class="line">  解码核心 AAC 低频信号</span><br><span class="line">       │</span><br><span class="line">       └──► SBR 解码器：用 QMF 滤波器组将低频谐波转置到高频</span><br><span class="line">            + 根据侧信息调整高频包络，混入适量噪声</span><br><span class="line">            = 重建完整带宽 (0–20kHz) 音频</span><br></pre></td></tr></table></figure>
+
+<p>SBR 的关键效益是<strong>码率减半</strong>：核心编码器只需处理半带宽信号，用原来一半的码率即可达到相近的感知质量。例如 HE-AAC v1 @ 48 kbps 能达到接近 AAC-LC @ 96 kbps 的感知质量。</p>
+<h3 id="4-2-参数化立体声（PS）"><a href="#4-2-参数化立体声（PS）" class="headerlink" title="4.2 参数化立体声（PS）"></a>4.2 参数化立体声（PS）</h3><p><strong>参数化立体声（PS，Parametric Stereo）</strong> 是 HE-AAC v2 在 HE-AAC v1 基础上叠加的扩展，标准化于 ISO&#x2F;IEC 14496-3:2005&#x2F;Amd 2:2006。</p>
+<p><strong>核心思想</strong>：在极低码率下，与其完整传输两条独立声道，不如将立体声信号降混为单声道进行核心编码，同时用极少的参数描述空间感信息，由解码端重建立体声。</p>
+<p><strong>PS 的空间参数包括</strong>：</p>
+<ul>
+<li><strong>IID（Inter-channel Intensity Difference）</strong>：左右声道强度差，描述声像位置。</li>
+<li><strong>ICC（Inter-channel Cross-Correlation）</strong>：声道间互相关，描述空间宽度&#x2F;混响感。</li>
+<li><strong>IPD&#x2F;OPD（Inter-channel Phase Difference &#x2F; Overall Phase Difference）</strong>：相位差，精细调整空间定位。</li>
+</ul>
+<p>整套参数每帧约需 2–3 kbps，结合 HE-AAC v1 的单声道主流，HE-AAC v2 能在 <strong>24 kbps 左右</strong> 提供可接受的立体声质量——是超低码率移动流媒体的理想选择。</p>
+<hr>
+<h1 id="5-码流封装格式"><a href="#5-码流封装格式" class="headerlink" title="5. 码流封装格式"></a>5. 码流封装格式</h1><p>AAC 音频数据本身由一系列音频帧（Audio Frame）构成，但这些帧需要封装格式才能被解复用器正确识别和解析。</p>
+<h3 id="5-1-ADIF（Audio-Data-Interchange-Format）"><a href="#5-1-ADIF（Audio-Data-Interchange-Format）" class="headerlink" title="5.1 ADIF（Audio Data Interchange Format）"></a>5.1 ADIF（Audio Data Interchange Format）</h3><ul>
+<li><strong>特点</strong>：仅有一个文件头，后接连续的 AAC 帧。</li>
+<li><strong>适用场景</strong>：文件存储，不支持随机访问和流式传输。</li>
+<li><strong>现状</strong>：基本已被弃用，MPEG-4 规范将其视为”informative”，不强制要求解码器支持。</li>
+</ul>
+<h3 id="5-2-ADTS（Audio-Data-Transport-Stream）"><a href="#5-2-ADTS（Audio-Data-Transport-Stream）" class="headerlink" title="5.2 ADTS（Audio Data Transport Stream）"></a>5.2 ADTS（Audio Data Transport Stream）</h3><p>ADTS 是流式传输最常见的封装格式，每帧前附加一个 7 字节（无 CRC）或 9 字节（有 CRC）的同步头：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ADTS Frame Header (7 bytes, no CRC):</span><br><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│ Syncword (12 bits) = 0xFFF                                  │</span><br><span class="line">│ ID (1 bit): 0=MPEG-4, 1=MPEG-2                              │</span><br><span class="line">│ Layer (2 bits): 00                                          │</span><br><span class="line">│ Protection absent (1 bit)                                   │</span><br><span class="line">│ Profile ObjectType (2 bits): 00=Main,01=LC,10=SSR,11=rsvd   │</span><br><span class="line">│ Sampling frequency index (4 bits)                           │</span><br><span class="line">│ Private bit (1 bit)                                         │</span><br><span class="line">│ Channel configuration (3 bits)                              │</span><br><span class="line">│ Originality/copy (1 bit)                                    │</span><br><span class="line">│ Home (1 bit)                                                │</span><br><span class="line">│ Copyright ID bit (1 bit)                                    │</span><br><span class="line">│ Copyright ID start (1 bit)                                  │</span><br><span class="line">│ AAC frame length (13 bits): 含 header 的总字节数              │</span><br><span class="line">│ Buffer fullness (11 bits): 0x7FF = VBR                      │</span><br><span class="line">│ Number of AAC frames in ADTS frame - 1 (2 bits)             │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>ADTS 的优势：每帧都有同步字（0xFFF），支持随机接入和断点续接，是 HLS 分片（<code>.aac</code> 文件）和 RTMP 流中最常见的格式。</p>
+<h3 id="5-3-LATM-LOAS"><a href="#5-3-LATM-LOAS" class="headerlink" title="5.3 LATM &#x2F; LOAS"></a>5.3 LATM &#x2F; LOAS</h3><ul>
+<li><strong>LATM（Low-overhead MPEG-4 Audio Transport Multiplex）</strong>：MPEG-4 定义的低开销传输格式，支持多路 AAC 流复用。</li>
+<li><strong>LOAS（Low Overhead Audio Stream）</strong>：LATM 的自同步封装，用于 DVB 传输流（当使用 SBR 或 PS 扩展时）。</li>
+</ul>
+<p>LATM 的头开销比 ADTS 更小（不含 Syncword），但需要带外（out-of-band）的配置信息（<code>AudioSpecificConfig</code>），因此更适合有信令通道的场景，如 RTSP 或 RTP over MPEG-4（见下节）。</p>
+<hr>
+<h1 id="6-RTP-传输：RFC-3640-详解"><a href="#6-RTP-传输：RFC-3640-详解" class="headerlink" title="6. RTP 传输：RFC 3640 详解"></a>6. RTP 传输：RFC 3640 详解</h1><p>在网络传输层面，AAC 通过 RTP 承载，RFC 3640（<em>RTP Payload Format for Transport of MPEG-4 Elementary Streams</em>，2003 年 11 月）是主要规范。对于通过 LATM 封装的 AAC，另有 RFC 3016（及其后续 draft-ietf-payload-rfc3016bis）规定了 <code>MP4A-LATM</code> 载荷类型。</p>
+<h3 id="6-1-RFC-3640-载荷结构"><a href="#6-1-RFC-3640-载荷结构" class="headerlink" title="6.1 RFC 3640 载荷结构"></a>6.1 RFC 3640 载荷结构</h3><p>RFC 3640 将 RTP 载荷划分为三段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RTP Payload:</span><br><span class="line">┌────────────────────────────┐</span><br><span class="line">│   AU Header Section        │  ← AU Headers Length (16-bit) + 各 AU Header</span><br><span class="line">├────────────────────────────┤</span><br><span class="line">│   Auxiliary Section        │  ← 可选，AAC 模式下必须为空</span><br><span class="line">├────────────────────────────┤</span><br><span class="line">│   Access Unit Data Section │  ← 实际 AAC 帧数据（可含多帧或分片）</span><br><span class="line">└────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>Access Unit（AU）</strong> 在 AAC 语境下即一个 AAC 音频帧（通常含 1024 个 PCM 样本）。</p>
+<p><strong>AU Header</strong> 字段（各字段长度由 SDP <code>fmtp</code> 参数指定）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AU-size</code></td>
+<td>本 AU 的字节数（用于多帧拼接时的解析）</td>
+</tr>
+<tr>
+<td><code>AU-Index</code></td>
+<td>第一帧的序列号</td>
+</tr>
+<tr>
+<td><code>AU-Index-delta</code></td>
+<td>后续帧相对于前一帧的序列号增量（用于交错解交错）</td>
+</tr>
+<tr>
+<td><code>CTS-flag</code> &#x2F; <code>CTS-delta</code></td>
+<td>组合时间戳（可选）</td>
+</tr>
+<tr>
+<td><code>DTS-flag</code> &#x2F; <code>DTS-delta</code></td>
+<td>解码时间戳（可选）</td>
+</tr>
+<tr>
+<td><code>RAP-flag</code></td>
+<td>随机访问点标志</td>
+</tr>
+</tbody></table>
+<p>RFC 3640 定义了多个<strong>传输模式（Mode）</strong>，SDP 中用 <code>mode</code> 参数指定；对 AAC 最重要的两个：</p>
+<h3 id="6-2-AAC-lbr-模式（低码率-AAC）"><a href="#6-2-AAC-lbr-模式（低码率-AAC）" class="headerlink" title="6.2 AAC-lbr 模式（低码率 AAC）"></a>6.2 AAC-lbr 模式（低码率 AAC）</h3><p>用于码率 ≤ 64 kbps 的场景（如 HE-AAC）：</p>
+<ul>
+<li><code>sizeLength=6</code>（AU 大小字段 6 bit，最大 63 字节&#x2F;帧）</li>
+<li><code>indexLength=2</code>，<code>indexDeltaLength=2</code></li>
+<li>支持帧交错（Interleaving），增强丢包鲁棒性</li>
+</ul>
+<h3 id="6-3-AAC-hbr-模式（高码率-AAC）"><a href="#6-3-AAC-hbr-模式（高码率-AAC）" class="headerlink" title="6.3 AAC-hbr 模式（高码率 AAC）"></a>6.3 AAC-hbr 模式（高码率 AAC）</h3><p>用于码率 &gt; 64 kbps 的场景（如 AAC-LC 128kbps+）：</p>
+<ul>
+<li><code>sizeLength=13</code>（AU 大小字段 13 bit，最大 8191 字节&#x2F;帧）</li>
+<li><code>indexLength=3</code>，<code>indexDeltaLength=3</code></li>
+<li>支持单帧、多帧拼包（Concatenation）、大帧分片（Fragmentation）</li>
+</ul>
+<p>当 AAC 帧较小时（例如 64 kbps 立体声帧约 200 字节），RFC 3640 允许在单个 RTP 包中<strong>拼装多个 AU</strong>——在以太网 MTU（1500 字节）环境下平均可装约 7 帧，显著提升传输效率。</p>
+<h3 id="6-4-SDP-协商示例"><a href="#6-4-SDP-协商示例" class="headerlink" title="6.4 SDP 协商示例"></a>6.4 SDP 协商示例</h3><p><strong>AAC-hbr（AAC-LC, 44.1kHz, 立体声）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">m=audio 49230 RTP/AVP 96</span><br><span class="line">a=rtpmap:96 mpeg4-generic/44100/2</span><br><span class="line">a=fmtp:96 streamtype=5; profile-level-id=1; mode=AAC-hbr; \</span><br><span class="line">          config=1210; sizeLength=13; indexLength=3; \</span><br><span class="line">          indexDeltaLength=3; constantDuration=1024</span><br></pre></td></tr></table></figure>
+
+<p><code>config</code> 字段的值是 <code>AudioSpecificConfig</code> 的十六进制表示（ISO&#x2F;IEC 14496-3 定义），包含了音频对象类型、采样率索引、声道数等信息，解码器用它初始化解码上下文。</p>
+<p><strong><code>AudioSpecificConfig</code> 二进制结构（简化）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">AudioSpecificConfig():</span><br><span class="line">  audioObjectType       (5 bits)  : 2 = AAC-LC</span><br><span class="line">  samplingFrequencyIndex(4 bits)  : 4 = 44100Hz</span><br><span class="line">  channelConfiguration  (4 bits)  : 2 = 立体声</span><br><span class="line">  [extensionAudioObjectType, sbrPresentFlag, psPresentFlag ...]</span><br></pre></td></tr></table></figure>
+
+<p>以 <code>config=1210</code> 为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0x12 0x10</span><br><span class="line">= 0001 0010 0001 0000</span><br><span class="line">  ├── 00010 → audioObjectType = 2 (AAC-LC)</span><br><span class="line">  ├── 0100  → samplingFrequencyIndex = 4 (44100 Hz)</span><br><span class="line">  ├── 0010  → channelConfiguration = 2 (stereo)</span><br><span class="line">  └── 0000  → GASpecificConfig: window type, etc.</span><br></pre></td></tr></table></figure>
+
+<p><strong>AAC-lbr（HE-AAC v1, 22050Hz, 单声道，低码率）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">m=audio 49230 RTP/AVP 96</span><br><span class="line">a=rtpmap:96 mpeg4-generic/22050/1</span><br><span class="line">a=fmtp:96 streamtype=5; profile-level-id=14; mode=AAC-lbr; \</span><br><span class="line">          config=1388; sizeLength=6; indexLength=2; \</span><br><span class="line">          indexDeltaLength=2; constantDuration=1024; maxDisplacement=5</span><br></pre></td></tr></table></figure>
+
+<p><code>maxDisplacement=5</code> 表示交错缓冲区允许最多 5 帧的位移，用于提升丢包场景下的鲁棒性。</p>
+<hr>
+<h1 id="7-在直播与录制场景中的应用"><a href="#7-在直播与录制场景中的应用" class="headerlink" title="7. 在直播与录制场景中的应用"></a>7. 在直播与录制场景中的应用</h1><h3 id="7-1-直播协议栈中的-AAC"><a href="#7-1-直播协议栈中的-AAC" class="headerlink" title="7.1 直播协议栈中的 AAC"></a>7.1 直播协议栈中的 AAC</h3><p>在当今主流直播生态中，AAC 几乎是不可绕过的基础设施：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">推流端（OBS / 编码器）</span><br><span class="line">    │  RTMP（FLV 封装，AAC 音频）</span><br><span class="line">    ▼</span><br><span class="line"> 直播服务器（如 Nginx-RTMP、SRS）</span><br><span class="line">    │</span><br><span class="line">    ├──► HLS（.m3u8 + .ts/.aac 分片）   ← AAC-LC, 128kbps 立体声</span><br><span class="line">    ├──► DASH（.mpd + .m4s 分片）       ← AAC-LC/HE-AAC</span><br><span class="line">    └──► RTMP 分发至播放端               ← AAC</span><br></pre></td></tr></table></figure>
+
+<p><strong>RTMP 中的 AAC 封装</strong>：RTMP 音频消息使用 <code>AudioTagHeader</code>，<code>SoundFormat=10</code> 标识 AAC，后跟一个字节的 <code>AACPacketType</code>：<code>0x00</code> 表示 <code>AudioSpecificConfig</code>（在推流开始时发送一次），<code>0x01</code> 表示实际 AAC 音频帧（ADTS 去掉头部后的裸帧）。</p>
+<p><strong>HLS 中的 AAC</strong>：HLS 规范（RFC 8216）要求 AAC 音频以 ADTS 封装写入 MPEG-2 TS 分片，或以 <code>ftyp=mp42</code> 封装写入 fMP4 分片。Apple 推荐 HLS 使用 HE-AAC v2 @ 40kbps 用于低带宽回退，AAC-LC @ 160kbps 作为标准质量档。</p>
+<h3 id="7-2-录制场景"><a href="#7-2-录制场景" class="headerlink" title="7.2 录制场景"></a>7.2 录制场景</h3><p>录制场景通常将 AAC 封装到 MP4（ISO Base Media File Format，ISO&#x2F;IEC 14496-12）或 MOV 容器：</p>
+<ul>
+<li><strong><code>stsd</code> box（Sample Description Box）</strong> 中包含 <code>mp4a</code> 编解码类型，内嵌 <code>esds</code>（Elementary Stream Descriptor）或 <code>AudioSpecificConfig</code>。</li>
+<li>AAC-LC @ 256 kbps 是 Apple 设备录制的默认配置，提供接近透明的感知质量。</li>
+</ul>
+<h3 id="7-3-典型平台音频策略"><a href="#7-3-典型平台音频策略" class="headerlink" title="7.3 典型平台音频策略"></a>7.3 典型平台音频策略</h3><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>编码</th>
+<th>码率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>YouTube</td>
+<td>AAC-LC</td>
+<td>128kbps（标清）&#x2F; 256kbps（高清）</td>
+</tr>
+<tr>
+<td>Apple Music</td>
+<td>AAC-LC</td>
+<td>256kbps（iTunes Plus）</td>
+</tr>
+<tr>
+<td>Twitch</td>
+<td>AAC-LC</td>
+<td>128–160kbps（推荐）</td>
+</tr>
+<tr>
+<td>DAB+ 数字广播</td>
+<td>HE-AAC v2</td>
+<td>24–48kbps</td>
+</tr>
+<tr>
+<td>HD Radio</td>
+<td>HE-AAC</td>
+<td>36–64kbps</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="8-AAC-与-Opus-的边界：在-WebRTC-生态中的定位"><a href="#8-AAC-与-Opus-的边界：在-WebRTC-生态中的定位" class="headerlink" title="8. AAC 与 Opus 的边界：在 WebRTC 生态中的定位"></a>8. AAC 与 Opus 的边界：在 WebRTC 生态中的定位</h1><p>理解 AAC 在 WebRTC 生态中的定位，需要先明确 WebRTC 的强制性规范。</p>
+<p>根据 <strong>RFC 7874</strong>（<em>WebRTC Audio Codec and Processing Requirements</em>），WebRTC 浏览器<strong>必须（MUST）</strong>支持以下音频编解码器：</p>
+<ul>
+<li><strong>Opus</strong>（6–510 kbps，RFC 6716）—— WebRTC 主力编解码器</li>
+<li><strong>G.711 PCMU&#x2F;PCMA</strong>（64 kbps）—— 电话网络互通</li>
+</ul>
+<p><strong>AAC 不在 WebRTC 强制要求之列</strong>。</p>
+<h3 id="8-1-为什么-WebRTC-默认使用-Opus-而非-AAC？"><a href="#8-1-为什么-WebRTC-默认使用-Opus-而非-AAC？" class="headerlink" title="8.1 为什么 WebRTC 默认使用 Opus 而非 AAC？"></a>8.1 为什么 WebRTC 默认使用 Opus 而非 AAC？</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Opus</th>
+<th>AAC-LC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>算法延迟</td>
+<td><strong>2.5–26.5ms</strong>（可配置）</td>
+<td>40–100ms（典型），最低约 20ms（HE-AAC v2）</td>
+</tr>
+<tr>
+<td>WebRTC 强制要求</td>
+<td>✅ RFC 7874</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>专利&#x2F;授权</td>
+<td><strong>完全免专利费</strong>（Xiph&#x2F;IETF）</td>
+<td>需授权（Via Licensing Alliance，约 $0.98&#x2F;decoder）</td>
+</tr>
+<tr>
+<td>低码率质量（&lt; 64kbps）</td>
+<td>更优</td>
+<td>较弱（HE-AAC 有改善）</td>
+</tr>
+<tr>
+<td>自适应码率</td>
+<td>内建支持（6–510 kbps 无缝切换）</td>
+<td>需外部控制</td>
+</tr>
+<tr>
+<td>FEC 内建</td>
+<td>✅ In-band FEC</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>编解码器统一性</td>
+<td>语音&#x2F;音乐统一处理</td>
+<td>多配置，复杂</td>
+</tr>
+</tbody></table>
+<p>实时通话（WebRTC）场景需要的是<strong>低延迟</strong>和<strong>带宽自适应</strong>，Opus 在这两方面均有压倒性优势。</p>
+<h3 id="8-2-AAC-进入-WebRTC-生态的场景"><a href="#8-2-AAC-进入-WebRTC-生态的场景" class="headerlink" title="8.2 AAC 进入 WebRTC 生态的场景"></a>8.2 AAC 进入 WebRTC 生态的场景</h3><p>尽管如此，AAC 并非与 WebRTC 完全无关：</p>
+<p><strong>场景一：SFU 转码&#x2F;转封装</strong></p>
+<p>WebRTC 推流 → SFU（如 Janus, mediasoup）→ RTMP&#x2F;HLS 分发时，SFU 需要将 Opus 转码为 AAC。这是因为下游的 CDN、播放器、录制系统普遍只支持 AAC，而不支持 Opus。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">WebRTC 推流端（Opus）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">SFU（Opus → AAC 转码）</span><br><span class="line">    │</span><br><span class="line">    ├──► RTMP → CDN → HLS（AAC）→ 观众播放器</span><br><span class="line">    └──► 录制文件（AAC in MP4）</span><br></pre></td></tr></table></figure>
+
+<p><strong>场景二：Safari 的 WebRTC 实现</strong></p>
+<p>Safari（基于 WebKit）历史上在 WebRTC 中提供了对 AAC 的可选支持（<code>RTCRtpCodecCapability</code> 中包含 <code>audio/mp4a-latm</code>），主要用于与 Apple 自有平台的互通。但大多数主流 WebRTC 应用仍使用 Opus 作为主选编解码器。</p>
+<p><strong>场景三：低延迟直播（LL-HLS &#x2F; WebRTC 分发）</strong></p>
+<p>在低延迟直播（Low Latency HLS）场景中，WebRTC 有时被用作”最后一公里”的推流协议（如 WHIP 协议），但到达播放端时仍会转换为 AAC+HLS&#x2F;DASH。</p>
+<h3 id="8-3-延迟对比"><a href="#8-3-延迟对比" class="headerlink" title="8.3 延迟对比"></a>8.3 延迟对比</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Opus（WebRTC 默认）：</span><br><span class="line">  ├── 最小算法延迟：2.5ms（2.5ms 帧 + CELT 模式）</span><br><span class="line">  ├── 典型 VoIP：20ms（20ms 帧）</span><br><span class="line">  └── 含处理总延迟：≈ 26.5ms</span><br><span class="line"></span><br><span class="line">AAC-LC：</span><br><span class="line">  ├── 帧长：1024 samples @ 44.1kHz ≈ 23.2ms</span><br><span class="line">  ├── 编码/解码 lookahead：额外 10–20ms</span><br><span class="line">  └── 典型端到端算法延迟：40–100ms</span><br><span class="line"></span><br><span class="line">AAC-LD（Low Delay）：</span><br><span class="line">  └── 算法延迟：约 20ms（专为双向通话设计）</span><br><span class="line"></span><br><span class="line">AAC-ELD（Enhanced Low Delay）：</span><br><span class="line">  └── 算法延迟：约 15ms（Apple FaceTime 使用）</span><br></pre></td></tr></table></figure>
+
+<p>AAC-LD&#x2F;ELD 虽然延迟改善明显，但仍高于 Opus，且属于 Apple 主导的私有生态，在开放 WebRTC 场景中几乎不被使用。</p>
+<hr>
+<h1 id="9-主流编解码实现"><a href="#9-主流编解码实现" class="headerlink" title="9. 主流编解码实现"></a>9. 主流编解码实现</h1><h3 id="开源实现"><a href="#开源实现" class="headerlink" title="开源实现"></a>开源实现</h3><table>
+<thead>
+<tr>
+<th>库</th>
+<th>支持</th>
+<th>许可</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>FFmpeg (libavcodec)</strong></td>
+<td>AAC-LC 编码（内建 + fdk-aac）、全系列解码</td>
+<td>LGPL（内建 AAC 编码器）&#x2F; GPL（fdk-aac）</td>
+</tr>
+<tr>
+<td><strong>fdk-aac（Fraunhofer）</strong></td>
+<td>AAC-LC、HE-AAC v1&#x2F;v2、AAC-LD&#x2F;ELD 编解码</td>
+<td>专有开源（需关注专利授权）</td>
+</tr>
+<tr>
+<td><strong>FAAC &#x2F; FAAD2</strong></td>
+<td>早期开源编解码器，已较少使用</td>
+<td>LGPL</td>
+</tr>
+<tr>
+<td><strong>libavcodec AAC encoder</strong></td>
+<td>纯开源实现，质量已相当成熟</td>
+<td>LGPL</td>
+</tr>
+</tbody></table>
+<h3 id="硬件加速"><a href="#硬件加速" class="headerlink" title="硬件加速"></a>硬件加速</h3><p>AAC 编解码的运算量相比视频编解码很小，但硬件加速仍有价值：</p>
+<ul>
+<li><strong>Apple：</strong> AudioToolbox 框架提供 AAC 硬件&#x2F;系统加速编解码，iOS&#x2F;macOS 设备均支持。</li>
+<li><strong>Android：</strong> MediaCodec API 提供 <code>OMX.*.aac.*</code> 系列硬件编解码器。</li>
+<li><strong>DSP&#x2F;嵌入式：</strong> 大量 IoT 音频芯片内建 AAC 解码硬件，适合低功耗场景。</li>
+</ul>
+<h3 id="FFmpeg-基本用法"><a href="#FFmpeg-基本用法" class="headerlink" title="FFmpeg 基本用法"></a>FFmpeg 基本用法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># AAC-LC 编码，128kbps 立体声，输出 ADTS</span></span><br><span class="line">ffmpeg -i input.wav -c:a aac -b:a 128k -f adts output.aac</span><br><span class="line"></span><br><span class="line"><span class="comment"># HE-AAC v2 编码，使用 fdk-aac，48kbps</span></span><br><span class="line">ffmpeg -i input.wav -c:a libfdk_aac -profile:a aac_he_v2 -b:a 48k output.m4a</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 AAC 文件信息</span></span><br><span class="line">ffprobe -v quiet -print_format json -show_streams output.aac</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="10-常见问题与工程陷阱"><a href="#10-常见问题与工程陷阱" class="headerlink" title="10. 常见问题与工程陷阱"></a>10. 常见问题与工程陷阱</h1><h3 id="10-1-ADTS-头部重复封装问题"><a href="#10-1-ADTS-头部重复封装问题" class="headerlink" title="10.1 ADTS 头部重复封装问题"></a>10.1 ADTS 头部重复封装问题</h3><p>在将 AAC 写入 MP4 容器时，<strong>不应包含 ADTS 头</strong>——MP4 的 <code>esds</code>&#x2F;<code>AudioSpecificConfig</code> 已承担了带外配置传递的职责，再加 ADTS 头会导致解码失败。从 RTMP 流中提取的 AAC 帧通常已去掉 ADTS 头（RTMP FLV 封装的 AudioSpecificConfig 独立发送），直接写入 MP4 即可。</p>
+<p><strong>反之</strong>，将 MP4 中的裸 AAC 帧直接写成 <code>.aac</code> 文件时，需要手动添加 ADTS 头，否则播放器无法识别。</p>
+<h3 id="10-2-AudioSpecificConfig-解析"><a href="#10-2-AudioSpecificConfig-解析" class="headerlink" title="10.2 AudioSpecificConfig 解析"></a>10.2 AudioSpecificConfig 解析</h3><p>SDP <code>fmtp</code> 中的 <code>config=XXXX</code> 是 <code>AudioSpecificConfig</code> 的十六进制字符串，必须正确解析才能初始化解码器。常见错误包括：</p>
+<ul>
+<li>忽略 SBR 扩展标志（<code>extensionAudioObjectType = 5</code>），导致 HE-AAC 流被按 AAC-LC 解码（音质变差、采样率减半）。</li>
+<li>未处理 <code>samplingFrequencyIndex = 0xF</code>（扩展形式），此时后续 24 bit 才是实际采样率值。</li>
+</ul>
+<h3 id="10-3-HE-AAC-的向后兼容解码"><a href="#10-3-HE-AAC-的向后兼容解码" class="headerlink" title="10.3 HE-AAC 的向后兼容解码"></a>10.3 HE-AAC 的向后兼容解码</h3><p>HE-AAC v1&#x2F;v2 采用<strong>向后兼容设计</strong>：不支持 SBR&#x2F;PS 的老旧 AAC-LC 解码器可以只解码核心 AAC 层，输出采样率将是目标采样率的一半（因为核心 AAC 以半速运行）。这会导致音频缺失高频成分并且速度异常。在实践中需确认解码库版本支持 SBR&#x2F;PS 解码（libfdk_aac 和现代 FFmpeg 均支持）。</p>
+<h3 id="10-4-RFC-3640-中的时间戳"><a href="#10-4-RFC-3640-中的时间戳" class="headerlink" title="10.4 RFC 3640 中的时间戳"></a>10.4 RFC 3640 中的时间戳</h3><p>RFC 3640 规定 AAC 的 RTP 时间戳以<strong>采样率</strong>为单位计算。对于 AAC-LC（每帧 1024 样本，44100Hz 采样率）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">时间戳增量 = 1024</span><br><span class="line">两帧间隔  = 1024 / 44100 ≈ 23.2ms</span><br></pre></td></tr></table></figure>
+
+<p>SDP 中 <code>a=rtpmap</code> 的时钟频率（<code>/44100</code>）必须与 <code>AudioSpecificConfig</code> 中的 <code>samplingFrequencyIndex</code> 一致，否则会导致音视频同步漂移。</p>
+<h3 id="10-5-RTMP-中-AAC-序列头的时序"><a href="#10-5-RTMP-中-AAC-序列头的时序" class="headerlink" title="10.5 RTMP 中 AAC 序列头的时序"></a>10.5 RTMP 中 AAC 序列头的时序</h3><p>在 RTMP 推流中，<strong>AudioSpecificConfig 必须先于任何 AAC 音频帧发送</strong>（<code>AACPacketType=0x00</code>），否则拉流端和录制端无法初始化解码器，前几秒音频会静音或解码失败。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><strong>标准文档</strong></p>
+<ul>
+<li>ISO&#x2F;IEC 13818-7 — <em>MPEG-2 Part 7: Advanced Audio Coding</em>（1997）</li>
+<li>ISO&#x2F;IEC 14496-3 — <em>MPEG-4 Part 3: Audio</em>（含 AAC、HE-AAC、AAC-LD 等所有 Audio Object）</li>
+<li>ISO&#x2F;IEC 14496-3:2001&#x2F;Amd 1:2003 — HE-AAC v1（SBR）标准化</li>
+<li>ISO&#x2F;IEC 14496-3:2005&#x2F;Amd 2:2006 — HE-AAC v2（PS）标准化</li>
+</ul>
+<p><strong>IETF RFC</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3640">RFC 3640</a> — <em>RTP Payload Format for Transport of MPEG-4 Elementary Streams</em>（2003）</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc3016">RFC 3016</a> — <em>RTP Payload Format for MPEG-4 Audio&#x2F;Visual Streams</em>（MP4A-LATM）</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc7874">RFC 7874</a> — <em>WebRTC Audio Codec and Processing Requirements</em></li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc6716">RFC 6716</a> — <em>Definition of the Opus Audio Codec</em></li>
+</ul>
+<p><strong>技术文章与 Wiki</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Advanced_Audio_Coding">Advanced Audio Coding — Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/High-Efficiency_Advanced_Audio_Coding">High-Efficiency Advanced Audio Coding — Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Spectral_band_replication">Spectral Band Replication — Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Parametric_stereo">Parametric Stereo — Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://wiki.multimedia.cx/index.php/Understanding_AAC">Understanding AAC — MultimediaWiki</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E5%8E%86%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">1. 背景与标准化历程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-AAC-%E5%AE%B6%E6%97%8F%E4%B8%80%E8%A7%88"><span class="toc-number">3.</span> <span class="toc-text">2. AAC 家族一览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E7%BC%96%E7%A0%81%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="toc-number">4.</span> <span class="toc-text">3. 编码核心技术原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%84%9F%E7%9F%A5%E9%9F%B3%E9%A2%91%E7%BC%96%E7%A0%81%E5%9F%BA%E7%A1%80"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 感知音频编码基础</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-MDCT-%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%BB%84"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 MDCT 滤波器组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%BF%83%E7%90%86%E5%A3%B0%E5%AD%A6%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 心理声学模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%87%8F%E5%8C%96%E4%B8%8E-Huffman-%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 量化与 Huffman 熵编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E6%97%B6%E5%9F%9F%E5%99%AA%E5%A3%B0%E6%95%B4%E5%BD%A2%EF%BC%88TNS%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 时域噪声整形（TNS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E8%81%94%E5%90%88%E5%A3%B0%E9%81%93%E7%BC%96%E7%A0%81%EF%BC%88M-S-Stereo-Intensity-Stereo%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 联合声道编码（M&#x2F;S Stereo &amp; Intensity Stereo）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%84%9F%E7%9F%A5%E5%99%AA%E5%A3%B0%E6%9B%BF%E4%BB%A3%EF%BC%88PNS%EF%BC%89"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 感知噪声替代（PNS）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E9%95%BF%E6%9C%9F%E9%A2%84%E6%B5%8B%EF%BC%88LTP%EF%BC%89"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 长期预测（LTP）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-HE-AAC%EF%BC%9A%E9%AB%98%E6%95%88%E6%89%A9%E5%B1%95%E6%8A%80%E6%9C%AF"><span class="toc-number">5.</span> <span class="toc-text">4. HE-AAC：高效扩展技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%A2%91%E8%B0%B1%E5%B8%A6%E5%A4%8D%E5%88%B6%EF%BC%88SBR%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 频谱带复制（SBR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%8F%82%E6%95%B0%E5%8C%96%E7%AB%8B%E4%BD%93%E5%A3%B0%EF%BC%88PS%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 参数化立体声（PS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%A0%81%E6%B5%81%E5%B0%81%E8%A3%85%E6%A0%BC%E5%BC%8F"><span class="toc-number">6.</span> <span class="toc-text">5. 码流封装格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-ADIF%EF%BC%88Audio-Data-Interchange-Format%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 ADIF（Audio Data Interchange Format）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-ADTS%EF%BC%88Audio-Data-Transport-Stream%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 ADTS（Audio Data Transport Stream）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-LATM-LOAS"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 LATM &#x2F; LOAS</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-%E4%BC%A0%E8%BE%93%EF%BC%9ARFC-3640-%E8%AF%A6%E8%A7%A3"><span class="toc-number">7.</span> <span class="toc-text">6. RTP 传输：RFC 3640 详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-RFC-3640-%E8%BD%BD%E8%8D%B7%E7%BB%93%E6%9E%84"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 RFC 3640 载荷结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-AAC-lbr-%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BD%8E%E7%A0%81%E7%8E%87-AAC%EF%BC%89"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 AAC-lbr 模式（低码率 AAC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-AAC-hbr-%E6%A8%A1%E5%BC%8F%EF%BC%88%E9%AB%98%E7%A0%81%E7%8E%87-AAC%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 AAC-hbr 模式（高码率 AAC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-SDP-%E5%8D%8F%E5%95%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 SDP 协商示例</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%9C%A8%E7%9B%B4%E6%92%AD%E4%B8%8E%E5%BD%95%E5%88%B6%E5%9C%BA%E6%99%AF%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">7. 在直播与录制场景中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9B%B4%E6%92%AD%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84-AAC"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 直播协议栈中的 AAC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%BD%95%E5%88%B6%E5%9C%BA%E6%99%AF"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 录制场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%B8%E5%9E%8B%E5%B9%B3%E5%8F%B0%E9%9F%B3%E9%A2%91%E7%AD%96%E7%95%A5"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 典型平台音频策略</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-AAC-%E4%B8%8E-Opus-%E7%9A%84%E8%BE%B9%E7%95%8C%EF%BC%9A%E5%9C%A8-WebRTC-%E7%94%9F%E6%80%81%E4%B8%AD%E7%9A%84%E5%AE%9A%E4%BD%8D"><span class="toc-number">9.</span> <span class="toc-text">8. AAC 与 Opus 的边界：在 WebRTC 生态中的定位</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E4%B8%BA%E4%BB%80%E4%B9%88-WebRTC-%E9%BB%98%E8%AE%A4%E4%BD%BF%E7%94%A8-Opus-%E8%80%8C%E9%9D%9E-AAC%EF%BC%9F"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 为什么 WebRTC 默认使用 Opus 而非 AAC？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-AAC-%E8%BF%9B%E5%85%A5-WebRTC-%E7%94%9F%E6%80%81%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 AAC 进入 WebRTC 生态的场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E5%BB%B6%E8%BF%9F%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 延迟对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%B8%BB%E6%B5%81%E7%BC%96%E8%A7%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.</span> <span class="toc-text">9. 主流编解码实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E6%BA%90%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.0.1.</span> <span class="toc-text">开源实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="toc-number">10.0.2.</span> <span class="toc-text">硬件加速</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FFmpeg-%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-number">10.0.3.</span> <span class="toc-text">FFmpeg 基本用法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E5%B7%A5%E7%A8%8B%E9%99%B7%E9%98%B1"><span class="toc-number">11.</span> <span class="toc-text">10. 常见问题与工程陷阱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-ADTS-%E5%A4%B4%E9%83%A8%E9%87%8D%E5%A4%8D%E5%B0%81%E8%A3%85%E9%97%AE%E9%A2%98"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 ADTS 头部重复封装问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-AudioSpecificConfig-%E8%A7%A3%E6%9E%90"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 AudioSpecificConfig 解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-HE-AAC-%E7%9A%84%E5%90%91%E5%90%8E%E5%85%BC%E5%AE%B9%E8%A7%A3%E7%A0%81"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 HE-AAC 的向后兼容解码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-RFC-3640-%E4%B8%AD%E7%9A%84%E6%97%B6%E9%97%B4%E6%88%B3"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 RFC 3640 中的时间戳</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-RTMP-%E4%B8%AD-AAC-%E5%BA%8F%E5%88%97%E5%A4%B4%E7%9A%84%E6%97%B6%E5%BA%8F"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 RTMP 中 AAC 序列头的时序</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">12.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/26/webrtc/28.aac/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/26/webrtc/28.aac/&text=AAC（Advanced Audio Coding）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/26/webrtc/28.aac/&is_video=false&description=AAC（Advanced Audio Coding）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AAC（Advanced Audio Coding）&body=Check out this article: http://example.com/2023/02/26/webrtc/28.aac/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/26/webrtc/28.aac/&title=AAC（Advanced Audio Coding）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/26/webrtc/28.aac/&name=AAC（Advanced Audio Coding）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/26/webrtc/28.aac/&t=AAC（Advanced Audio Coding）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

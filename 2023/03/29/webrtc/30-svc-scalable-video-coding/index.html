@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 什么是 SVC 历史背景与标准化进程 SVC 的三种可伸缩性维度 3.1 时间可伸缩性（Temporal Scalability） 3.2 空间可伸缩性（Spatial Scalability） 3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）   层依赖结构与关键帧 4.1 Full SVC 4.2 K-SVC（Key-frame SVC）   SVC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽">
+<meta property="og:url" content="http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 什么是 SVC 历史背景与标准化进程 SVC 的三种可伸缩性维度 3.1 时间可伸缩性（Temporal Scalability） 3.2 空间可伸缩性（Spatial Scalability） 3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）   层依赖结构与关键帧 4.1 Full SVC 4.2 K-SVC（Key-frame SVC）   SVC">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-03-29T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T08:37:24.605Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/03/14/webrtc/29-simulcast/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&text=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&is_video=false&description=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽&body=Check out this article: http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&name=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&t=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-SVC"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是 SVC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8E%86%E5%8F%B2%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">2. 历史背景与标准化进程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SVC-%E7%9A%84%E4%B8%89%E7%A7%8D%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E7%BB%B4%E5%BA%A6"><span class="toc-number">4.</span> <span class="toc-text">3. SVC 的三种可伸缩性维度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 时间可伸缩性（Temporal Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%A9%BA%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Spatial-Scalability%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 空间可伸缩性（Spatial Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%B4%A8%E9%87%8F%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Quality-SNR-Scalability%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%B1%82%E4%BE%9D%E8%B5%96%E7%BB%93%E6%9E%84%E4%B8%8E%E5%85%B3%E9%94%AE%E5%B8%A7"><span class="toc-number">5.</span> <span class="toc-text">4. 层依赖结构与关键帧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Full-SVC"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Full SVC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-K-SVC%EF%BC%88Key-frame-SVC%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 K-SVC（Key-frame SVC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SVC-%E4%B8%8E-Simulcast-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">5. SVC 与 Simulcast 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6%EF%BC%88RFC-6190-RFC-7656%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. RTP 传输机制（RFC 6190 &amp; RFC 7656）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8D%95%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93%EF%BC%88SST%EF%BC%89%E4%B8%8E%E5%A4%9A%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93%EF%BC%88MST%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 单会话传输（SST）与多会话传输（MST）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SRST-%E4%B8%8E-MRST"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SRST 与 MRST</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SVC-in-WebRTC%EF%BC%9AW3C-%E8%A7%84%E8%8C%83"><span class="toc-number">8.</span> <span class="toc-text">7. SVC in WebRTC：W3C 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-scalabilityMode-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 scalabilityMode 命名规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%AE%8C%E6%95%B4-scalabilityMode-%E5%88%97%E8%A1%A8"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 完整 scalabilityMode 列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-WebIDL-API"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 WebIDL API</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%90%84%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%9A%84-SVC-%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">9.</span> <span class="toc-text">8. 各编解码器的 SVC 支持情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-H-264-SVC%EF%BC%88Annex-G%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 H.264 SVC（Annex G）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VP8"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-VP9"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 VP9</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-AV1"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 AV1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-H-265%EF%BC%88HEVC%EF%BC%89"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 H.265（HEVC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SFU-%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8-SVC-%E8%BF%9B%E8%A1%8C%E5%B1%82%E9%80%89%E6%8B%A9"><span class="toc-number">10.</span> <span class="toc-text">9. SFU 如何利用 SVC 进行层选择</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-WebRTC-API-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="toc-number">11.</span> <span class="toc-text">10. WebRTC API 使用示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88L1T3%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 时间可伸缩性（L1T3）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E7%A9%BA%E9%97%B4-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88L3T3-KEY%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 空间 + 时间可伸缩性（L3T3_KEY）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-Simulcast-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E6%B7%B7%E5%90%88"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 Simulcast + 时间可伸缩性混合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E6%9F%A5%E8%AF%A2%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E8%83%BD%E5%8A%9B"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 查询编解码器能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E5%8A%A8%E6%80%81%E5%88%87%E6%8D%A2-SVC-%E6%A8%A1%E5%BC%8F"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 动态切换 SVC 模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%AE%9E%E9%99%85%E9%83%A8%E7%BD%B2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">12.</span> <span class="toc-text">11. 实际部署注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86%E4%B8%8E-scalabilityMode-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">12.0.1.</span> <span class="toc-text">SDP 协商与 scalabilityMode 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SFU-%E8%83%BD%E5%8A%9B%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.2.</span> <span class="toc-text">SFU 能力协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81%E5%99%A8%E9%99%90%E5%88%B6"><span class="toc-number">12.0.3.</span> <span class="toc-text">硬件编码器限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E4%B8%8E-SVC"><span class="toc-number">12.0.4.</span> <span class="toc-text">丢包与 SVC</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6"><span class="toc-number">13.</span> <span class="toc-text">12. 浏览器支持现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-29T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-03-29</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-svc">什么是 SVC</a></li>
+<li><a href="#2-%E5%8E%86%E5%8F%B2%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B">历史背景与标准化进程</a></li>
+<li><a href="#3-svc-%E7%9A%84%E4%B8%89%E7%A7%8D%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E7%BB%B4%E5%BA%A6">SVC 的三种可伸缩性维度</a><ul>
+<li>3.1 <a href="#31-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7temporal-scalability">时间可伸缩性（Temporal Scalability）</a></li>
+<li>3.2 <a href="#32-%E7%A9%BA%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7spatial-scalability">空间可伸缩性（Spatial Scalability）</a></li>
+<li>3.3 <a href="#33-%E8%B4%A8%E9%87%8F%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7quality--snr-scalability">质量可伸缩性（Quality &#x2F; SNR Scalability）</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B1%82%E4%BE%9D%E8%B5%96%E7%BB%93%E6%9E%84%E4%B8%8E%E5%85%B3%E9%94%AE%E5%B8%A7">层依赖结构与关键帧</a><ul>
+<li>4.1 <a href="#41-full-svc">Full SVC</a></li>
+<li>4.2 <a href="#42-k-svckey-frame-svc">K-SVC（Key-frame SVC）</a></li>
+</ul>
+</li>
+<li><a href="#5-svc-%E4%B8%8E-simulcast-%E7%9A%84%E5%AF%B9%E6%AF%94">SVC 与 Simulcast 的对比</a></li>
+<li><a href="#6-rtp-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6rfc-6190--rfc-7656">RTP 传输机制（RFC 6190 &amp; RFC 7656）</a><ul>
+<li>6.1 <a href="#61-%E5%8D%95%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93sst%E4%B8%8E%E5%A4%9A%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93mst">单会话传输（SST）与多会话传输（MST）</a></li>
+<li>6.2 <a href="#62-srst-%E4%B8%8E-mrst">SRST 与 MRST</a></li>
+</ul>
+</li>
+<li><a href="#7-svc-in-webrtcw3c-%E8%A7%84%E8%8C%83">SVC in WebRTC：W3C 规范</a><ul>
+<li>7.1 <a href="#71-scalabilitymode-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99">scalabilityMode 命名规则</a></li>
+<li>7.2 <a href="#72-%E5%AE%8C%E6%95%B4-scalabilitymode-%E5%88%97%E8%A1%A8">完整 scalabilityMode 列表</a></li>
+<li>7.3 <a href="#73-webidl-api">WebIDL API</a></li>
+</ul>
+</li>
+<li><a href="#8-%E5%90%84%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%9A%84-svc-%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5">各编解码器的 SVC 支持情况</a><ul>
+<li>8.1 <a href="#81-h264-svcannex-g">H.264 SVC（Annex G）</a></li>
+<li>8.2 <a href="#82-vp8">VP8</a></li>
+<li>8.3 <a href="#83-vp9">VP9</a></li>
+<li>8.4 <a href="#84-av1">AV1</a></li>
+<li>8.5 <a href="#85-h265hevc">H.265（HEVC）</a></li>
+</ul>
+</li>
+<li><a href="#9-sfu-%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8-svc-%E8%BF%9B%E8%A1%8C%E5%B1%82%E9%80%89%E6%8B%A9">SFU 如何利用 SVC 进行层选择</a></li>
+<li><a href="#10-webrtc-api-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B">WebRTC API 使用示例</a><ul>
+<li>10.1 <a href="#101-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7l1t3">时间可伸缩性（L1T3）</a></li>
+<li>10.2 <a href="#102-%E7%A9%BA%E9%97%B4--%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7l3t3_key">空间 + 时间可伸缩性（L3T3_KEY）</a></li>
+<li>10.3 <a href="#103-simulcast--%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E6%B7%B7%E5%90%88">Simulcast + 时间可伸缩性混合</a></li>
+<li>10.4 <a href="#104-%E6%9F%A5%E8%AF%A2%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E8%83%BD%E5%8A%9B">查询编解码器能力</a></li>
+</ul>
+</li>
+<li><a href="#11-%E5%AE%9E%E9%99%85%E9%83%A8%E7%BD%B2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">实际部署注意事项</a></li>
+<li><a href="#12-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6">浏览器支持现状</a></li>
+</ol>
+<hr>
+<h1 id="1-什么是-SVC"><a href="#1-什么是-SVC" class="headerlink" title="1. 什么是 SVC"></a>1. 什么是 SVC</h1><p><strong>Scalable Video Coding（SVC，可伸缩视频编码）</strong> 是一种将同一视频源编码为分层码流（Layered Bitstream）的技术。编码器产出的码流由一个<strong>基础层（Base Layer）</strong> 和若干<strong>增强层（Enhancement Layer）</strong> 叠加而成；解码器可以只解码基础层，也可以选择性地叠加增强层，从而在分辨率、帧率、画质等维度上灵活适配不同接收端的带宽与算力。</p>
+<blockquote>
+<p>“SVC encodes a video source in a single stream, with multiple layers that can be selectively decoded to obtain video with particular resolutions, bitrate, or quality.”<br>— MDN Web Docs, <em>Introduction to WebRTC protocols</em></p>
+</blockquote>
+<p>与传统的单一码率编码不同，SVC 的本质在于<strong>层间复用</strong>：高层增强包的编码依赖低层信息，因此编码一次即可服务多种质量需求，而无需像 Simulcast 那样对同一画面进行多次独立编码。</p>
+<p>在 WebRTC 场景中，SVC 与 SFU（Selective Forwarding Unit）协同工作的价值尤为显著：SFU 无需转码，只需按照每个接收端的网络条件，选择性地转发对应的层包，便可实现细粒度的自适应传输。</p>
+<hr>
+<h1 id="2-历史背景与标准化进程"><a href="#2-历史背景与标准化进程" class="headerlink" title="2. 历史背景与标准化进程"></a>2. 历史背景与标准化进程</h1><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2005 年</td>
+<td>H.264&#x2F;AVC 的 Annex G 正式纳入 SVC 扩展，由 ITU-T 与 ISO&#x2F;IEC MPEG 联合标准化，编号为 <strong>ITU-T H.264 Amendment 3 &#x2F; ISO&#x2F;IEC 14496-10:2005&#x2F;Amd.3</strong></td>
+</tr>
+<tr>
+<td>2011 年</td>
+<td>IETF 发布 <strong>RFC 6190</strong>，定义 H.264 SVC 的 RTP Payload Format，支持单&#x2F;多 RTP 会话传输</td>
+</tr>
+<tr>
+<td>2013 年</td>
+<td>Vidyo 与 Google 宣布合作，为 VP9 引入可伸缩扩展</td>
+</tr>
+<tr>
+<td>2019 年</td>
+<td>W3C Web Real-Time Communications 工作组发布 <strong>Scalable Video Coding (SVC) Extension for WebRTC</strong> 首个公开工作草案</td>
+</tr>
+<tr>
+<td>2024 年 8 月</td>
+<td>W3C 发布最新工作草案版本（Working Draft），持续迭代</td>
+</tr>
+</tbody></table>
+<p>SVC 并非一种独立的编码格式，而是一种编码特性，可嵌入到 VP9、AV1、H.264、H.265 等主流视频编解码器中。</p>
+<hr>
+<h1 id="3-SVC-的三种可伸缩性维度"><a href="#3-SVC-的三种可伸缩性维度" class="headerlink" title="3. SVC 的三种可伸缩性维度"></a>3. SVC 的三种可伸缩性维度</h1><h3 id="3-1-时间可伸缩性（Temporal-Scalability）"><a href="#3-1-时间可伸缩性（Temporal-Scalability）" class="headerlink" title="3.1 时间可伸缩性（Temporal Scalability）"></a>3.1 时间可伸缩性（Temporal Scalability）</h3><p>时间可伸缩性通过控制<strong>帧率（Frame Rate）</strong> 实现伸缩，是 WebRTC 中最早且最广泛被支持的 SVC 形态。</p>
+<p>编码器将帧序列划分为多个时间层（Temporal Layer）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">T0（基础层）: I  P     P     P     P</span><br><span class="line">T1（增强层）:    P  P     P  P     P</span><br><span class="line">T2（增强层）:      P  P     P  P  P</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>T0（基础时间层）</strong>：仅包含关键帧与参考帧，可独立解码，帧率最低（如 7.5 fps）</li>
+<li><strong>T1</strong>：依赖 T0，叠加后帧率翻倍（如 15 fps）</li>
+<li><strong>T2</strong>：依赖 T0 和 T1，叠加后再次翻倍（如 30 fps）</li>
+</ul>
+<p>SFU 可以在不触碰数据包内容的情况下，通过<strong>丢弃高层时间层的包</strong>来降低帧率，将 30 fps 流降为 15 fps 或 7.5 fps 转发给带宽受限的接收端。</p>
+<blockquote>
+<p>“The real advantage of temporal scalability is the flexibility it provides. For instance, if we want to reduce the frame rate from 30 to 15 frames per second, we can simply drop all L1 frames, maintaining the dependency chain between the L0 frames. This can be done by the SFU.”<br>— BlogGeek.me, <em>Temporal Scalability</em></p>
+</blockquote>
+<p><strong>重要约束</strong>：在时间层切换时，SFU 需要等待带有<strong>切换点标记（Switching Point &#x2F; U-bit）</strong> 的帧，才能安全地切入高层，避免解码器引用丢失的参考帧而花屏。</p>
+<h3 id="3-2-空间可伸缩性（Spatial-Scalability）"><a href="#3-2-空间可伸缩性（Spatial-Scalability）" class="headerlink" title="3.2 空间可伸缩性（Spatial Scalability）"></a>3.2 空间可伸缩性（Spatial Scalability）</h3><p>空间可伸缩性通过不同的<strong>分辨率（Resolution）</strong> 实现伸缩。高层空间层的编码依赖低层空间层的重建图像（上采样作为预测参考）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">S0（基础层）: 320×180</span><br><span class="line">S1（增强层）: 640×360  （依赖 S0）</span><br><span class="line">S2（增强层）: 1280×720 （依赖 S1）</span><br></pre></td></tr></table></figure>
+
+<p>全 SVC 模式下，高层空间帧在编码时直接利用低层的预测信息（Inter-Layer Prediction），因此单独编码高层所需的比特数更少，整体码率低于独立编码三路视频。</p>
+<p>层间的分辨率比例通常为 <strong>2:1</strong>（即标准 SVC）或 <strong>1.5:1</strong>（即带 <code>h</code> 后缀的模式，如 <code>L2T2h</code>）。</p>
+<h3 id="3-3-质量可伸缩性（Quality-SNR-Scalability）"><a href="#3-3-质量可伸缩性（Quality-SNR-Scalability）" class="headerlink" title="3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）"></a>3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）</h3><p>质量可伸缩性在<strong>相同分辨率和帧率</strong>下，通过增加增强层来提升画面的 SNR（信噪比）和视觉质量，本质上是对残差（Residual）信息的分层精细化编码。</p>
+<p>这种伸缩性在 WebRTC 实践中的使用相对较少，多见于广播和流媒体存储场景。</p>
+<hr>
+<h1 id="4-层依赖结构与关键帧"><a href="#4-层依赖结构与关键帧" class="headerlink" title="4. 层依赖结构与关键帧"></a>4. 层依赖结构与关键帧</h1><p>SVC 的核心难点之一是<strong>层间依赖关系（Inter-Layer Dependency）</strong> 的管理。根据依赖强度的不同，业界形成了两种主要模式：</p>
+<h3 id="4-1-Full-SVC"><a href="#4-1-Full-SVC" class="headerlink" title="4.1 Full SVC"></a>4.1 Full SVC</h3><p>在完整 SVC（Full SVC &#x2F; Continuous SVC）模式下，高层空间层的<strong>每一帧</strong>都参考了低层空间层的对应帧。这意味着：</p>
+<ul>
+<li><strong>编码效率最高</strong>：最大化利用层间预测，整体码率最省</li>
+<li><strong>SFU 层切换困难</strong>：只有在关键帧处才能安全切换到更低的空间层，且 SFU 需要深入理解码流结构</li>
+</ul>
+<p>对应的 scalabilityMode 命名格式为 <code>LxTy</code>（如 <code>L3T3</code>）。</p>
+<h3 id="4-2-K-SVC（Key-frame-SVC）"><a href="#4-2-K-SVC（Key-frame-SVC）" class="headerlink" title="4.2 K-SVC（Key-frame SVC）"></a>4.2 K-SVC（Key-frame SVC）</h3><p>K-SVC（Keyframe SVC）是一种折中方案，高层空间层<strong>仅在关键帧（Key Frame）处</strong>依赖低层，其余 P 帧在空间维度上独立编码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">关键帧时刻：S2 → S1 → S0（层间依赖，压缩率高）</span><br><span class="line">非关键帧：  S0, S1, S2 各自独立预测（无层间依赖）</span><br></pre></td></tr></table></figure>
+
+<p>优势：</p>
+<ul>
+<li><strong>SFU 可在任意 P 帧处切换空间层</strong>，无需等待下一个关键帧</li>
+<li><strong>带宽利用更平滑</strong>：避免关键帧后的码率突刺</li>
+</ul>
+<p>劣势：</p>
+<ul>
+<li>相较 Full SVC，非关键帧压缩效率稍低</li>
+</ul>
+<p>对应 scalabilityMode 命名格式为 <code>LxTy_KEY</code>（如 <code>L3T3_KEY</code>）。</p>
+<p><strong>K-SVC 带时间位移（KEY_SHIFT）</strong>：进一步优化时间层的预测结构，降低码率突刺，通过将后续帧的时间标识符上移（Shift up）来实现更平滑的带宽使用曲线。格式为 <code>LxTy_KEY_SHIFT</code>。</p>
+<hr>
+<h1 id="5-SVC-与-Simulcast-的对比"><a href="#5-SVC-与-Simulcast-的对比" class="headerlink" title="5. SVC 与 Simulcast 的对比"></a>5. SVC 与 Simulcast 的对比</h1><p>理解 SVC 需要将其与 Simulcast 进行对比，因为二者解决的是同一个问题，<strong>如何让 SFU 服务不同能力的接收端</strong>，但方法论截然不同。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>SVC</th>
+<th>Simulcast</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>编码方式</strong></td>
+<td>单次编码，产出分层码流</td>
+<td>多次独立编码，产出多路完整流</td>
+</tr>
+<tr>
+<td><strong>上行带宽</strong></td>
+<td>较低（层间共享预测信息）</td>
+<td>较高（多路冗余）</td>
+</tr>
+<tr>
+<td><strong>上行 CPU</strong></td>
+<td>较高（层间依赖计算复杂）</td>
+<td>较低（各路独立编码，可复用硬件编码器）</td>
+</tr>
+<tr>
+<td><strong>SFU 复杂度</strong></td>
+<td>高（需理解层依赖，精确控制转发切换点）</td>
+<td>低（直接选流转发，无需解析码流内部）</td>
+</tr>
+<tr>
+<td><strong>切换粒度</strong></td>
+<td>细（时间层可逐帧切换，空间层视模式而定）</td>
+<td>粗（整流切换，存在切换延迟）</td>
+</tr>
+<tr>
+<td><strong>硬件加速</strong></td>
+<td>支持较差（SVC 层间依赖难以硬件化）</td>
+<td>支持好（各路流可独立走硬件编码器）</td>
+</tr>
+<tr>
+<td><strong>编解码器要求</strong></td>
+<td>VP9、AV1 原生支持；H.264&#x2F;SVC 通过 Annex G</td>
+<td>VP8、H.264、VP9 均支持</td>
+</tr>
+<tr>
+<td><strong>行业成熟度</strong></td>
+<td>仍在发展中（尤其全空间 SVC）</td>
+<td>成熟，广泛部署</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>“While SVC is technically superior and more bandwidth-efficient, Simulcast remains the industry workhorse because it works reliably across almost all browsers and devices.”<br>— BlogGeek.me, <em>WebRTC Simulcast</em></p>
+</blockquote>
+<p><strong>实践层面</strong>：目前业界最常见的是<strong>Simulcast + 时间可伸缩性（Temporal SVC）</strong> 的组合：每一路 Simulcast 流内部使用时间分层（L1T2 或 L1T3），SFU 在流粒度上切换分辨率，在帧粒度上按时间层控制帧率与码率，兼顾了两种技术的优点。</p>
+<hr>
+<h1 id="6-RTP-传输机制（RFC-6190-RFC-7656）"><a href="#6-RTP-传输机制（RFC-6190-RFC-7656）" class="headerlink" title="6. RTP 传输机制（RFC 6190 &amp; RFC 7656）"></a>6. RTP 传输机制（RFC 6190 &amp; RFC 7656）</h1><h3 id="6-1-单会话传输（SST）与多会话传输（MST）"><a href="#6-1-单会话传输（SST）与多会话传输（MST）" class="headerlink" title="6.1 单会话传输（SST）与多会话传输（MST）"></a>6.1 单会话传输（SST）与多会话传输（MST）</h3><p><strong>RFC 6190</strong>（<em>RTP Payload Format for Scalable Video Coding</em>，2011 年 5 月）定义了 H.264 SVC 的 RTP 封装格式，并引入了两种基本传输模式：</p>
+<p><strong>单会话传输（Single-Session Transmission, SST）</strong>：将所有可伸缩层的 NAL 单元（Network Abstraction Layer Unit）封装在<strong>单个 RTP 会话</strong>中传输。简单直接，是 WebRTC 规范（W3C SVC Extension）唯一支持的模式。</p>
+<p><strong>多会话传输（Multi-Session Transmission, MST）</strong>：将不同可伸缩层分散到<strong>多个 RTP 会话</strong>中独立传输，可灵活利用差分网络路径，但复杂度高，W3C SVC Extension 明确不支持此模式。</p>
+<h3 id="6-2-SRST-与-MRST"><a href="#6-2-SRST-与-MRST" class="headerlink" title="6.2 SRST 与 MRST"></a>6.2 SRST 与 MRST</h3><p>在 SST 框架内，<strong>RFC 7656</strong>（<em>A Taxonomy of Semantics and Mechanisms for Real-Time Transport Protocol (RTP) Sources</em>）进一步区分了：</p>
+<p><strong>SRST（Single RTP stream Single Transport）</strong>：所有层的数据通过<strong>单个 RTP 流</strong>（单个 SSRC）发送。W3C SVC Extension for WebRTC 仅支持 SRST。</p>
+<p>支持 SRST 的 RTP Payload 规范包括：</p>
+<ul>
+<li>VP8：<a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7741/">RFC 7741</a></li>
+<li>VP9：<a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/draft-ietf-payload-vp9/">VP9-PAYLOAD</a></li>
+<li>AV1：<a target="_blank" rel="noopener" href="https://aomediacodec.github.io/av1-rtp-spec/">AV1-RTP-SPEC</a></li>
+<li>H.264：<a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc6184/">RFC 6184</a></li>
+<li>H.265：<a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7798/">RFC 7798</a></li>
+</ul>
+<p><strong>MRST（Multiple RTP stream Single Transport）</strong>：多层通过<strong>多个 RTP 流</strong>（每层独立 SSRC）在同一传输通道中传输。W3C SVC Extension 同样不支持此模式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">WebRTC SVC 支持矩阵：</span><br><span class="line">  SST + SRST  → W3C SVC Extension 支持</span><br><span class="line">  MST         → 不支持</span><br><span class="line">  MRST        → 不支持</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="7-SVC-in-WebRTC：W3C-规范"><a href="#7-SVC-in-WebRTC：W3C-规范" class="headerlink" title="7. SVC in WebRTC：W3C 规范"></a>7. SVC in WebRTC：W3C 规范</h1><p>W3C <strong>Scalable Video Coding (SVC) Extension for WebRTC</strong>（最新工作草案：2024 年 8 月 17 日）是在 WebRTC 标准基础上的扩展，不改变现有 WebRTC 对象和方法的行为，而是通过扩展 <code>RTCRtpEncodingParameters</code> 字典，新增一个 <code>scalabilityMode</code> 字段来声明期望的 SVC 模式。</p>
+<blockquote>
+<p>规范地址：<a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc-svc/">https://www.w3.org/TR/webrtc-svc/</a><br>编辑者草稿：<a target="_blank" rel="noopener" href="https://w3c.github.io/webrtc-svc/">https://w3c.github.io/webrtc-svc/</a></p>
+</blockquote>
+<h3 id="7-1-scalabilityMode-命名规则"><a href="#7-1-scalabilityMode-命名规则" class="headerlink" title="7.1 scalabilityMode 命名规则"></a>7.1 scalabilityMode 命名规则</h3><p>W3C 规范用一套紧凑的字符串来描述所有 SVC 模式，命名规则如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">LxTy           : x 个空间层（2:1 分辨率比），y 个时间层，Full SVC（每帧层间依赖）</span><br><span class="line">LxTyh          : 同上，但空间层比例为 1.5:1</span><br><span class="line">LxTy_KEY       : x 空间层，y 时间层，K-SVC（仅关键帧有空间层间依赖）</span><br><span class="line">LxTy_KEY_SHIFT : 同 K-SVC，但时间预测结构带时间位移，码率更平滑</span><br><span class="line">SxTy           : x 路 Simulcast 编码（2:1 分辨率比），每路含 y 个时间层，单 SSRC 传输</span><br><span class="line">SxTyh          : 同上，但分辨率比例为 1.5:1</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>L</code> &#x3D; Layer（空间层，Spatial Layer）</li>
+<li><code>T</code> &#x3D; Temporal（时间层）</li>
+<li><code>S</code> &#x3D; Simulcast（以 S 开头代表单 SSRC 多路 Simulcast，即”S mode”）</li>
+<li><code>h</code> &#x3D; Half（1.5:1 比例，区别于标准 2:1）</li>
+<li><code>KEY</code> &#x3D; 仅关键帧处有层间依赖</li>
+<li><code>KEY_SHIFT</code> &#x3D; K-SVC 带时间位移</li>
+</ul>
+<p><strong>L1T1</strong> 是一个特殊值，代表关闭 SVC，退化为普通单层编码，可通过 <code>setParameters()</code> 动态设置来关闭 SVC。</p>
+<h3 id="7-2-完整-scalabilityMode-列表"><a href="#7-2-完整-scalabilityMode-列表" class="headerlink" title="7.2 完整 scalabilityMode 列表"></a>7.2 完整 scalabilityMode 列表</h3><p>以下是 W3C 规范定义的全部 scalabilityMode 标识符（截至 2024 年 8 月草案版本）：</p>
+<p><strong>纯时间可伸缩（1 空间层）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>L1T1</code></td>
+<td>1 空间层，1 时间层（无 SVC，基准模式）</td>
+</tr>
+<tr>
+<td><code>L1T2</code></td>
+<td>1 空间层，2 时间层</td>
+</tr>
+<tr>
+<td><code>L1T3</code></td>
+<td>1 空间层，3 时间层</td>
+</tr>
+</tbody></table>
+<p><strong>2 空间层（Full SVC）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>L2T1</code></td>
+<td>2 空间层（2:1），1 时间层</td>
+</tr>
+<tr>
+<td><code>L2T1h</code></td>
+<td>2 空间层（1.5:1），1 时间层</td>
+</tr>
+<tr>
+<td><code>L2T2</code></td>
+<td>2 空间层（2:1），2 时间层</td>
+</tr>
+<tr>
+<td><code>L2T2h</code></td>
+<td>2 空间层（1.5:1），2 时间层</td>
+</tr>
+<tr>
+<td><code>L2T3</code></td>
+<td>2 空间层（2:1），3 时间层</td>
+</tr>
+<tr>
+<td><code>L2T3h</code></td>
+<td>2 空间层（1.5:1），3 时间层</td>
+</tr>
+</tbody></table>
+<p><strong>2 空间层（K-SVC）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>L2T1_KEY</code></td>
+<td>2 空间层，1 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L2T2_KEY</code></td>
+<td>2 空间层，2 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L2T2_KEY_SHIFT</code></td>
+<td>2 空间层，2 时间层，K-SVC + 时间位移</td>
+</tr>
+<tr>
+<td><code>L2T3_KEY</code></td>
+<td>2 空间层，3 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L2T3_KEY_SHIFT</code></td>
+<td>2 空间层，3 时间层，K-SVC + 时间位移</td>
+</tr>
+</tbody></table>
+<p><strong>3 空间层（Full SVC）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>L3T1</code></td>
+<td>3 空间层（2:1），1 时间层</td>
+</tr>
+<tr>
+<td><code>L3T1h</code></td>
+<td>3 空间层（1.5:1），1 时间层</td>
+</tr>
+<tr>
+<td><code>L3T2</code></td>
+<td>3 空间层（2:1），2 时间层</td>
+</tr>
+<tr>
+<td><code>L3T2h</code></td>
+<td>3 空间层（1.5:1），2 时间层</td>
+</tr>
+<tr>
+<td><code>L3T3</code></td>
+<td>3 空间层（2:1），3 时间层</td>
+</tr>
+<tr>
+<td><code>L3T3h</code></td>
+<td>3 空间层（1.5:1），3 时间层</td>
+</tr>
+</tbody></table>
+<p><strong>3 空间层（K-SVC）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>L3T1_KEY</code></td>
+<td>3 空间层，1 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L3T2_KEY</code></td>
+<td>3 空间层，2 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L3T2_KEY_SHIFT</code></td>
+<td>3 空间层，2 时间层，K-SVC + 时间位移</td>
+</tr>
+<tr>
+<td><code>L3T3_KEY</code></td>
+<td>3 空间层，3 时间层，K-SVC</td>
+</tr>
+<tr>
+<td><code>L3T3_KEY_SHIFT</code></td>
+<td>3 空间层，3 时间层，K-SVC + 时间位移</td>
+</tr>
+</tbody></table>
+<p><strong>S 模式（单 SSRC Simulcast + 时间层）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>S2T1</code></td>
+<td>2 路 Simulcast（2:1），每路 1 时间层</td>
+</tr>
+<tr>
+<td><code>S2T1h</code></td>
+<td>2 路 Simulcast（1.5:1），每路 1 时间层</td>
+</tr>
+<tr>
+<td><code>S2T2</code></td>
+<td>2 路 Simulcast，每路 2 时间层</td>
+</tr>
+<tr>
+<td><code>S2T2h</code></td>
+<td>2 路 Simulcast（1.5:1），每路 2 时间层</td>
+</tr>
+<tr>
+<td><code>S2T3</code></td>
+<td>2 路 Simulcast，每路 3 时间层</td>
+</tr>
+<tr>
+<td><code>S2T3h</code></td>
+<td>2 路 Simulcast（1.5:1），每路 3 时间层</td>
+</tr>
+<tr>
+<td><code>S3T1</code></td>
+<td>3 路 Simulcast（2:1），每路 1 时间层</td>
+</tr>
+<tr>
+<td><code>S3T1h</code></td>
+<td>3 路 Simulcast（1.5:1），每路 1 时间层</td>
+</tr>
+<tr>
+<td><code>S3T2</code></td>
+<td>3 路 Simulcast，每路 2 时间层</td>
+</tr>
+<tr>
+<td><code>S3T2h</code></td>
+<td>3 路 Simulcast（1.5:1），每路 2 时间层</td>
+</tr>
+<tr>
+<td><code>S3T3</code></td>
+<td>3 路 Simulcast，每路 3 时间层</td>
+</tr>
+<tr>
+<td><code>S3T3h</code></td>
+<td>3 路 Simulcast（1.5:1），每路 3 时间层</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：S 模式下，多路编码通过单个 SSRC 发送（区别于标准 Simulcast 的多 SSRC）。当 <code>sendEncodings</code> 中包含多个编码时，不可同时使用 S 模式，二者不可混用（否则抛出 <code>OperationError</code>）。</p>
+</blockquote>
+<h3 id="7-3-WebIDL-API"><a href="#7-3-WebIDL-API" class="headerlink" title="7.3 WebIDL API"></a>7.3 WebIDL API</h3><p>规范通过扩展 <code>RTCRtpEncodingParameters</code> 字典新增字段：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">partial dictionary RTCRtpEncodingParameters &#123;</span><br><span class="line">    DOMString scalabilityMode;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>涉及的主要 API 操作：</p>
+<p>**<code>addTransceiver()</code>**：在建立 Transceiver 时通过 <code>sendEncodings</code> 声明 SVC 模式。若所请求的 <code>scalabilityMode</code> 值不被任何已实现的编码器支持，则抛出 <code>OperationError</code>。</p>
+<p>**<code>setParameters()</code>**：在协商完成后动态修改 SVC 模式，无需重新触发 SDP Offer&#x2F;Answer 协商。若当前协商的编解码器不支持所请求的模式，则拒绝并返回 <code>InvalidModificationError</code>。</p>
+<p>**<code>getParameters()</code>**：获取当前实际生效的 <code>scalabilityMode</code> 值。实际生效值可能与请求值不同（如协商的编解码器不支持时，用户代理可回退到其他值）。</p>
+<hr>
+<h1 id="8-各编解码器的-SVC-支持情况"><a href="#8-各编解码器的-SVC-支持情况" class="headerlink" title="8. 各编解码器的 SVC 支持情况"></a>8. 各编解码器的 SVC 支持情况</h1><h3 id="8-1-H-264-SVC（Annex-G）"><a href="#8-1-H-264-SVC（Annex-G）" class="headerlink" title="8.1 H.264 SVC（Annex G）"></a>8.1 H.264 SVC（Annex G）</h3><p><strong>规范</strong>：ITU-T H.264 Annex G（SVC 扩展）、RFC 6190（RTP 封装）</p>
+<p>H.264 SVC 是最早成熟的 SVC 实现，由 Fraunhofer HHI、Vidyo 等主导开发，在 2005 年纳入 H.264 标准。WebRTC 中通过 <code>H264-SVC</code> 媒体子类型描述，但在 WebRTC 实践中支持有限，主要因为：</p>
+<ul>
+<li>专利负担重（ MPEG-LA H.264 SVC 专利池）</li>
+<li>WebRTC 主流实现（libwebrtc &#x2F; Chrome）未实现 H.264 空间 SVC</li>
+<li>W3C SVC Extension 对 H.264 <strong>仅支持时间可伸缩性</strong>（即 <code>L1T2</code>、<code>L1T3</code>）</li>
+</ul>
+<h3 id="8-2-VP8"><a href="#8-2-VP8" class="headerlink" title="8.2 VP8"></a>8.2 VP8</h3><p>VP8 通过 RTP 的时间层扩展（<code>TL0PICIDX</code>、<code>TID</code> 字段）支持<strong>时间可伸缩性</strong>，最多 3 个时间层。但 VP8 不支持空间可伸缩性，因此无法实现真正意义上的完整 SVC。</p>
+<p>在 WebRTC 中，VP8 的时间可伸缩性长期是事实上的标配，Chrome Simulcast 默认自动附带时间层（通常为 L1T2 或 L1T3）。</p>
+<blockquote>
+<p>“Temporal scalability is available in VP8, but only in simulcast.”<br>— BlogGeek.me</p>
+</blockquote>
+<p>W3C SVC Extension 对 VP8 仅支持时间层模式（<code>L1T1</code>、<code>L1T2</code>、<code>L1T3</code>）。</p>
+<h3 id="8-3-VP9"><a href="#8-3-VP9" class="headerlink" title="8.3 VP9"></a>8.3 VP9</h3><p>VP9 是 WebRTC 生态中 SVC 支持最为完善的编解码器，同时支持：</p>
+<ul>
+<li><strong>时间可伸缩性</strong>（最多 3 层）</li>
+<li><strong>空间可伸缩性</strong>（Full SVC 和 K-SVC）</li>
+<li><strong>S 模式</strong>（单 SSRC Simulcast + 时间层）</li>
+</ul>
+<p>VP9 Payload 规范（草案：<code>draft-ietf-payload-vp9</code>）在 RTP 包头扩展中携带 <code>VP9 Payload Descriptor</code>，包含层 ID（空间层 <code>S</code>、时间层 <code>T</code>）、关键帧标记、切换点标记（U-bit）等信息，使 SFU 无需解析 VP9 码流内部即可做出层转发决策。</p>
+<p>Chrome 对 VP9 SVC 的支持历程：</p>
+<ul>
+<li>早期：仅在实验性 flag 后支持时间层（<code>L1T2</code>、<code>L1T3</code>）</li>
+<li>后期：逐步开放空间层支持（<code>L3T3_KEY</code> 等 K-SVC 模式）</li>
+</ul>
+<h3 id="8-4-AV1"><a href="#8-4-AV1" class="headerlink" title="8.4 AV1"></a>8.4 AV1</h3><p>AV1 是目前 SVC 支持最完善、最现代的开源视频编解码器：</p>
+<ul>
+<li>原生支持时间层、空间层、质量层</li>
+<li>AV1 RTP Payload 规范（<a target="_blank" rel="noopener" href="https://aomediacodec.github.io/av1-rtp-spec/">AV1-RTP-SPEC v1.0</a>）已正式发布</li>
+<li>支持 SRST 单 SSRC 传输</li>
+<li>W3C SVC Extension 支持 AV1 的 <code>L</code>、<code>S</code> 全系列模式</li>
+</ul>
+<blockquote>
+<p>AV1 SVC 的 Chrome 支持（包括 Full SVC）是近年来 WebRTC 媒体能力的重要里程碑，由 CoSMo &#x2F; Millicast 团队联合推动。</p>
+</blockquote>
+<h3 id="8-5-H-265（HEVC）"><a href="#8-5-H-265（HEVC）" class="headerlink" title="8.5 H.265（HEVC）"></a>8.5 H.265（HEVC）</h3><p>H.265 HEVC 标准内含 SHVC（Scalable HEVC）扩展，支持多层编码。W3C SVC Extension 对 H.265 <strong>仅支持时间可伸缩性</strong>，空间 SVC 在 WebRTC 中目前不被规范覆盖。</p>
+<hr>
+<h1 id="9-SFU-如何利用-SVC-进行层选择"><a href="#9-SFU-如何利用-SVC-进行层选择" class="headerlink" title="9. SFU 如何利用 SVC 进行层选择"></a>9. SFU 如何利用 SVC 进行层选择</h1><p>SFU（Selective Forwarding Unit）是 SVC 在多方视频会议中发挥价值的核心组件。其工作流程如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">发送端                     SFU                      接收端 A（高带宽）</span><br><span class="line"> ┌────────┐   单路 SVC 流   ┌────────┐  L3T3 全层   ┌────────┐</span><br><span class="line"> │Encoder │ ─────────────► │        │ ──────────► │ Full   │</span><br><span class="line"> │L3T3_KEY│                │  SFU   │             │Quality │</span><br><span class="line"> └────────┘                │        │  L1T1 基础   ┌────────┐</span><br><span class="line">                           │        │ ──────────► │接收端B  │</span><br><span class="line">                           └────────┘ （低带宽）    │低画质   │</span><br><span class="line">                                                  └────────┘</span><br></pre></td></tr></table></figure>
+
+<p>SFU 进行层选择的关键信息来源于 <strong>RTP 包头扩展</strong>（不同编解码器各异）：</p>
+<ul>
+<li><strong>VP9</strong>：VP9 Payload Descriptor 中的 <code>S</code>（空间层 ID）、<code>T</code>（时间层 ID）、<code>U</code>（切换点）、<code>B</code>（层起始包）等字段</li>
+<li><strong>AV1</strong>：AV1 RTP 头扩展中的 Dependency Descriptor（DD）扩展，包含完整的层依赖图（Dependency Structure）</li>
+<li><strong>VP8</strong>：RTP 扩展头中的时间层 TID 字段</li>
+</ul>
+<p>层切换的安全时机：</p>
+<ol>
+<li><strong>时间层降级</strong>：可在任意非参考帧时刻丢弃高时间层包，无需等待关键帧</li>
+<li><strong>时间层升级</strong>：需等待下一个切换点（U-bit &#x3D; 1 的帧），确保不引用已丢弃的帧</li>
+<li><strong>空间层降级（Full SVC）</strong>：必须等待下一个关键帧（IDR）时刻</li>
+<li><strong>空间层降级（K-SVC）</strong>：可在任意 P 帧时刻直接降级，因 P 帧无层间依赖</li>
+</ol>
+<p>SFU 通常通过向发送端发送 <strong>RTCP REMB</strong> 或 <strong>Transport-CC</strong> 反馈，配合 <strong>PLI</strong>（Picture Loss Indication）请求关键帧来触发层切换流程。</p>
+<hr>
+<h1 id="10-WebRTC-API-使用示例"><a href="#10-WebRTC-API-使用示例" class="headerlink" title="10. WebRTC API 使用示例"></a>10. WebRTC API 使用示例</h1><h3 id="10-1-时间可伸缩性（L1T3）"><a href="#10-1-时间可伸缩性（L1T3）" class="headerlink" title="10.1 时间可伸缩性（L1T3）"></a>10.1 时间可伸缩性（L1T3）</h3><p>最简单、兼容性最好的 SVC 配置，适用于 VP8、VP9、AV1：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>();</span><br><span class="line"><span class="keyword">const</span> sender = pc.<span class="title function_">addTransceiver</span>(videoTrack, &#123;</span><br><span class="line">  <span class="attr">direction</span>: <span class="string">&#x27;sendonly&#x27;</span>,</span><br><span class="line">  <span class="attr">sendEncodings</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L1T3&#x27;</span>  <span class="comment">// 1 空间层，3 时间层（7.5 / 15 / 30 fps）</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-2-空间-时间可伸缩性（L3T3-KEY）"><a href="#10-2-空间-时间可伸缩性（L3T3-KEY）" class="headerlink" title="10.2 空间 + 时间可伸缩性（L3T3_KEY）"></a>10.2 空间 + 时间可伸缩性（L3T3_KEY）</h3><p>全功能 SVC，要求 VP9 或 AV1 编解码器：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 先限制编解码器，确保协商使用 VP9 或 AV1</span></span><br><span class="line"><span class="keyword">const</span> transceiver = pc.<span class="title function_">addTransceiver</span>(videoTrack, &#123;</span><br><span class="line">  <span class="attr">direction</span>: <span class="string">&#x27;sendonly&#x27;</span>,</span><br><span class="line">  <span class="attr">sendEncodings</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L3T3_KEY&#x27;</span></span><br><span class="line">      <span class="comment">// 3 空间层（360p / 720p / 1080p）</span></span><br><span class="line">      <span class="comment">// 3 时间层（7.5 / 15 / 30 fps）</span></span><br><span class="line">      <span class="comment">// K-SVC 模式（P 帧可随时切换空间层）</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优先使用 VP9，排除不支持空间 SVC 的编解码器</span></span><br><span class="line"><span class="keyword">const</span> capabilities = <span class="title class_">RTCRtpSender</span>.<span class="title function_">getCapabilities</span>(<span class="string">&#x27;video&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> vp9Codecs = capabilities.<span class="property">codecs</span>.<span class="title function_">filter</span>(<span class="function"><span class="params">c</span> =&gt;</span> c.<span class="property">mimeType</span> === <span class="string">&#x27;video/VP9&#x27;</span>);</span><br><span class="line">transceiver.<span class="title function_">setCodecPreferences</span>(vp9Codecs);</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-3-Simulcast-时间可伸缩性混合"><a href="#10-3-Simulcast-时间可伸缩性混合" class="headerlink" title="10.3 Simulcast + 时间可伸缩性混合"></a>10.3 Simulcast + 时间可伸缩性混合</h3><p>这是当前生产环境最常见的配置：多路 Simulcast，每路附带时间层：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>();</span><br><span class="line"></span><br><span class="line">pc.<span class="title function_">addTransceiver</span>(videoTrack, &#123;</span><br><span class="line">  <span class="attr">direction</span>: <span class="string">&#x27;sendonly&#x27;</span>,</span><br><span class="line">  <span class="attr">sendEncodings</span>: [</span><br><span class="line">    &#123; <span class="attr">rid</span>: <span class="string">&#x27;q&#x27;</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">4.0</span>, <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L1T3&#x27;</span> &#125;,  <span class="comment">// 360p, 3 时间层</span></span><br><span class="line">    &#123; <span class="attr">rid</span>: <span class="string">&#x27;h&#x27;</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">2.0</span>, <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L1T3&#x27;</span> &#125;,  <span class="comment">// 540p, 3 时间层</span></span><br><span class="line">    &#123; <span class="attr">rid</span>: <span class="string">&#x27;f&#x27;</span>, <span class="attr">scaleResolutionDownBy</span>: <span class="number">1.0</span>, <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L1T3&#x27;</span> &#125;   <span class="comment">// 1080p, 3 时间层</span></span><br><span class="line">  ]</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：多路 <code>sendEncodings</code> 时不可使用 S 模式（<code>S2T3</code> 等），否则抛出 <code>OperationError</code>。</p>
+</blockquote>
+<h3 id="10-4-查询编解码器能力"><a href="#10-4-查询编解码器能力" class="headerlink" title="10.4 查询编解码器能力"></a>10.4 查询编解码器能力</h3><p>通过 Media Capabilities API 在发送前查询浏览器是否支持特定 SVC 配置：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> contentType = <span class="string">&#x27;video/VP9&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> configuration = &#123;</span><br><span class="line">  <span class="attr">type</span>: <span class="string">&#x27;webrtc&#x27;</span>,</span><br><span class="line">  <span class="attr">video</span>: &#123;</span><br><span class="line">    contentType,</span><br><span class="line">    <span class="attr">width</span>: <span class="number">1280</span>,</span><br><span class="line">    <span class="attr">height</span>: <span class="number">720</span>,</span><br><span class="line">    <span class="attr">bitrate</span>: <span class="number">2_000_000</span>,</span><br><span class="line">    <span class="attr">framerate</span>: <span class="number">30</span>,</span><br><span class="line">    <span class="attr">scalabilityMode</span>: <span class="string">&#x27;L3T3_KEY&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> info = <span class="keyword">await</span> navigator.<span class="property">mediaCapabilities</span>.<span class="title function_">encodingInfo</span>(configuration);</span><br><span class="line">  <span class="keyword">if</span> (!info.<span class="property">supported</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`<span class="subst">$&#123;contentType&#125;</span> L3T3_KEY 不支持，回退到 L1T3`</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`支持：smooth=<span class="subst">$&#123;info.smooth&#125;</span>, powerEfficient=<span class="subst">$&#123;info.powerEfficient&#125;</span>`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;能力查询失败：&#x27;</span>, err);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-5-动态切换-SVC-模式"><a href="#10-5-动态切换-SVC-模式" class="headerlink" title="10.5 动态切换 SVC 模式"></a>10.5 动态切换 SVC 模式</h3><p>在通话过程中，无需重协商即可动态修改 SVC 模式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 当网络变差时，降级到时间层</span></span><br><span class="line"><span class="keyword">const</span> params = sender.<span class="title function_">getParameters</span>();</span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">0</span>].<span class="property">scalabilityMode</span> = <span class="string">&#x27;L1T2&#x27;</span>;</span><br><span class="line"><span class="keyword">await</span> sender.<span class="title function_">setParameters</span>(params);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 恢复时，升级回完整模式</span></span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">0</span>].<span class="property">scalabilityMode</span> = <span class="string">&#x27;L3T3_KEY&#x27;</span>;</span><br><span class="line"><span class="keyword">await</span> sender.<span class="title function_">setParameters</span>(params);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 完全关闭 SVC</span></span><br><span class="line">params.<span class="property">encodings</span>[<span class="number">0</span>].<span class="property">scalabilityMode</span> = <span class="string">&#x27;L1T1&#x27;</span>;</span><br><span class="line"><span class="keyword">await</span> sender.<span class="title function_">setParameters</span>(params);</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="11-实际部署注意事项"><a href="#11-实际部署注意事项" class="headerlink" title="11. 实际部署注意事项"></a>11. 实际部署注意事项</h1><h3 id="SDP-协商与-scalabilityMode-的关系"><a href="#SDP-协商与-scalabilityMode-的关系" class="headerlink" title="SDP 协商与 scalabilityMode 的关系"></a>SDP 协商与 scalabilityMode 的关系</h3><p><code>setParameters()</code> <strong>不触发 SDP 重协商</strong>，这是 WebRTC 规范的刻意设计。这意味着：</p>
+<ul>
+<li>SVC 模式在 Offer&#x2F;Answer 阶段<strong>不会通过 SDP 明确协商</strong></li>
+<li>协商的是编解码器（如 VP9），而 SVC 层数在协商完成后才通过 <code>setParameters()</code> 配置</li>
+<li>若协商后的编解码器不支持所配置的 <code>scalabilityMode</code>，用户代理可能回退到默认值</li>
+</ul>
+<p>因此，若应用强依赖特定 SVC 能力，应先通过 <code>setCodecPreferences()</code> 限制编解码器列表，确保协商结果满足要求。</p>
+<h3 id="SFU-能力协商"><a href="#SFU-能力协商" class="headerlink" title="SFU 能力协商"></a>SFU 能力协商</h3><p>SFU 的 SVC 层选择能力通过 <code>RTCRtpReceiver.getCapabilities()</code> 暴露（作为 SFM Capabilities），应用可据此判断 SFU 支持哪些 <code>scalabilityMode</code>，避免配置超出 SFU 能力的模式。</p>
+<h3 id="硬件编码器限制"><a href="#硬件编码器限制" class="headerlink" title="硬件编码器限制"></a>硬件编码器限制</h3><p>空间 SVC（多空间层）通常<strong>无法利用硬件编码加速</strong>，会回退到软件编码，对移动端 CPU 资源有较大压力。如果设备无法支持请求的 SVC 配置，会抛出 <code>RTCError</code>（<code>hardware-encoder-error</code>）。</p>
+<h3 id="丢包与-SVC"><a href="#丢包与-SVC" class="headerlink" title="丢包与 SVC"></a>丢包与 SVC</h3><p>SVC 层间依赖在丢包场景下存在<strong>级联损坏</strong>风险：基础层包的丢失会导致所有依赖该包的增强层无法解码。因此：</p>
+<ul>
+<li>SVC 场景下 <strong>NACK 重传</strong>更为重要</li>
+<li>可考虑对基础层包叠加 <strong>FEC（冗余纠错）</strong>保护</li>
+<li>K-SVC 模式因 P 帧无层间依赖，对随机丢包的容错性优于 Full SVC</li>
+</ul>
+<hr>
+<h1 id="12-浏览器支持现状"><a href="#12-浏览器支持现状" class="headerlink" title="12. 浏览器支持现状"></a>12. 浏览器支持现状</h1><table>
+<thead>
+<tr>
+<th>浏览器</th>
+<th>时间 SVC（L1Tx）</th>
+<th>空间 SVC（LxTy）</th>
+<th>S 模式</th>
+<th>主要编解码器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chrome</td>
+<td>✅ 稳定支持</td>
+<td>✅ 支持（VP9 K-SVC、AV1）</td>
+<td>✅</td>
+<td>VP9、AV1、VP8</td>
+</tr>
+<tr>
+<td>Firefox</td>
+<td>✅ 时间层（VP8）</td>
+<td>⚠️ 有限支持</td>
+<td>⚠️ 部分</td>
+<td>VP8、VP9</td>
+</tr>
+<tr>
+<td>Safari</td>
+<td>✅ H.264 时间层</td>
+<td>❌ 基本不支持</td>
+<td>❌</td>
+<td>H.264、H.265</td>
+</tr>
+<tr>
+<td>Edge（Chromium）</td>
+<td>✅ 同 Chrome</td>
+<td>✅ 同 Chrome</td>
+<td>✅</td>
+<td>同 Chrome</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>以上为截至 2024 年底的一般状况，具体支持情况随浏览器版本持续更新，建议通过 <code>navigator.mediaCapabilities.encodingInfo()</code> 运行时查询。</p>
+</blockquote>
+<p>目前 <strong>VP9 + K-SVC（<code>L3T3_KEY</code>）</strong> 是生产环境中兼具可用性与效率的最优选择；<strong>AV1 SVC</strong> 则代表未来方向，随着硬件编解码支持的普及，有望成为下一个行业标准。</p>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><strong>标准与规范</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc-svc/">W3C: Scalable Video Coding (SVC) Extension for WebRTC（Working Draft, 2024-08-17）</a></li>
+<li><a target="_blank" rel="noopener" href="https://w3c.github.io/webrtc-svc/">W3C SVC Extension Editor’s Draft</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/w3c/webrtc-svc">GitHub: w3c&#x2F;webrtc-svc</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc6190/">RFC 6190: RTP Payload Format for Scalable Video Coding（IETF, 2011）</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7656/">RFC 7656: A Taxonomy of Semantics and Mechanisms for RTP Sources</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7667/">RFC 7667: RTP Topologies（SFM 定义）</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7741/">RFC 7741: RTP Payload Format for VP8 Video</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc6184/">RFC 6184: RTP Payload Format for H.264 Video</a></li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc7798/">RFC 7798: RTP Payload Format for H.265 (HEVC)</a></li>
+<li><a target="_blank" rel="noopener" href="https://aomediacodec.github.io/av1-rtp-spec/">AV1 RTP Payload Specification v1.0</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.itu.int/rec/T-REC-H.264">ITU-T H.264 (2021) — Advanced video coding for generic audiovisual services</a></li>
+</ul>
+<p><strong>延伸阅读</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols">MDN: Introduction to WebRTC protocols — SVC 部分</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtchacks.com/chrome-vp9-svc/">webrtcHacks: Chrome’s WebRTC VP9 SVC Layer Cake</a></li>
+<li><a target="_blank" rel="noopener" href="https://bloggeek.me/webrtcglossary/svc/">BlogGeek.me: SVC in WebRTC — VP9 &amp; AV1 Scalable Video Coding Explained</a></li>
+<li><a target="_blank" rel="noopener" href="https://medooze.medium.com/mastering-the-av1-svc-chains-a4b2a6a23925">Millicast&#x2F;Medooze: Mastering the AV1 SVC chains</a></li>
+<li><a target="_blank" rel="noopener" href="https://tokbox.com/developer/guides/codecs/vp9-scalable-video.html">Vonage: VP9 Scalable Video Coding for routed sessions</a></li>
+</ul>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-SVC"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是 SVC</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8E%86%E5%8F%B2%E8%83%8C%E6%99%AF%E4%B8%8E%E6%A0%87%E5%87%86%E5%8C%96%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.</span> <span class="toc-text">2. 历史背景与标准化进程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-SVC-%E7%9A%84%E4%B8%89%E7%A7%8D%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E7%BB%B4%E5%BA%A6"><span class="toc-number">4.</span> <span class="toc-text">3. SVC 的三种可伸缩性维度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 时间可伸缩性（Temporal Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%A9%BA%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Spatial-Scalability%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 空间可伸缩性（Spatial Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%B4%A8%E9%87%8F%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88Quality-SNR-Scalability%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 质量可伸缩性（Quality &#x2F; SNR Scalability）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%B1%82%E4%BE%9D%E8%B5%96%E7%BB%93%E6%9E%84%E4%B8%8E%E5%85%B3%E9%94%AE%E5%B8%A7"><span class="toc-number">5.</span> <span class="toc-text">4. 层依赖结构与关键帧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Full-SVC"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 Full SVC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-K-SVC%EF%BC%88Key-frame-SVC%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 K-SVC（Key-frame SVC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-SVC-%E4%B8%8E-Simulcast-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">5. SVC 与 Simulcast 的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-RTP-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6%EF%BC%88RFC-6190-RFC-7656%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. RTP 传输机制（RFC 6190 &amp; RFC 7656）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8D%95%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93%EF%BC%88SST%EF%BC%89%E4%B8%8E%E5%A4%9A%E4%BC%9A%E8%AF%9D%E4%BC%A0%E8%BE%93%EF%BC%88MST%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 单会话传输（SST）与多会话传输（MST）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-SRST-%E4%B8%8E-MRST"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 SRST 与 MRST</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-SVC-in-WebRTC%EF%BC%9AW3C-%E8%A7%84%E8%8C%83"><span class="toc-number">8.</span> <span class="toc-text">7. SVC in WebRTC：W3C 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-scalabilityMode-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 scalabilityMode 命名规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%AE%8C%E6%95%B4-scalabilityMode-%E5%88%97%E8%A1%A8"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 完整 scalabilityMode 列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-WebIDL-API"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 WebIDL API</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%90%84%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E7%9A%84-SVC-%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-number">9.</span> <span class="toc-text">8. 各编解码器的 SVC 支持情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-H-264-SVC%EF%BC%88Annex-G%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 H.264 SVC（Annex G）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-VP8"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-VP9"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 VP9</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-AV1"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 AV1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-H-265%EF%BC%88HEVC%EF%BC%89"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 H.265（HEVC）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-SFU-%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8-SVC-%E8%BF%9B%E8%A1%8C%E5%B1%82%E9%80%89%E6%8B%A9"><span class="toc-number">10.</span> <span class="toc-text">9. SFU 如何利用 SVC 进行层选择</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-WebRTC-API-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="toc-number">11.</span> <span class="toc-text">10. WebRTC API 使用示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88L1T3%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 时间可伸缩性（L1T3）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E7%A9%BA%E9%97%B4-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%EF%BC%88L3T3-KEY%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 空间 + 时间可伸缩性（L3T3_KEY）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-Simulcast-%E6%97%B6%E9%97%B4%E5%8F%AF%E4%BC%B8%E7%BC%A9%E6%80%A7%E6%B7%B7%E5%90%88"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 Simulcast + 时间可伸缩性混合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E6%9F%A5%E8%AF%A2%E7%BC%96%E8%A7%A3%E7%A0%81%E5%99%A8%E8%83%BD%E5%8A%9B"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 查询编解码器能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E5%8A%A8%E6%80%81%E5%88%87%E6%8D%A2-SVC-%E6%A8%A1%E5%BC%8F"><span class="toc-number">11.0.5.</span> <span class="toc-text">10.5 动态切换 SVC 模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%AE%9E%E9%99%85%E9%83%A8%E7%BD%B2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">12.</span> <span class="toc-text">11. 实际部署注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86%E4%B8%8E-scalabilityMode-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">12.0.1.</span> <span class="toc-text">SDP 协商与 scalabilityMode 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SFU-%E8%83%BD%E5%8A%9B%E5%8D%8F%E5%95%86"><span class="toc-number">12.0.2.</span> <span class="toc-text">SFU 能力协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E7%BC%96%E7%A0%81%E5%99%A8%E9%99%90%E5%88%B6"><span class="toc-number">12.0.3.</span> <span class="toc-text">硬件编码器限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A2%E5%8C%85%E4%B8%8E-SVC"><span class="toc-number">12.0.4.</span> <span class="toc-text">丢包与 SVC</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%B5%8F%E8%A7%88%E5%99%A8%E6%94%AF%E6%8C%81%E7%8E%B0%E7%8A%B6"><span class="toc-number">13.</span> <span class="toc-text">12. 浏览器支持现状</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&text=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&is_video=false&description=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽&body=Check out this article: http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&title=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&name=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/29/webrtc/30-svc-scalable-video-coding/&t=SVC（Scalable Video Coding）— 可伸缩视频编码，按层解码灵活适配带宽"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

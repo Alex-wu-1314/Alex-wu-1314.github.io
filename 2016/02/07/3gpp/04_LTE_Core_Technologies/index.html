@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景：LTE的设计目标？ OFDMA：下行多址接入技术 2.1 OFDM 基本原理 2.2 物理资源结构 2.3 OFDMA 调度机制 2.4 上行：SC-FDMA   MIMO：多天线技术 3.1 分集与复用的权衡 3.2 发射分集（Transmit Diversity） 3.3 空间复用（Spatial Multiplexing） 3.4 传输模式（TM1～TM9） 3.5 CSI 反馈">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LTE 核心技术速览">
+<meta property="og:url" content="http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景：LTE的设计目标？ OFDMA：下行多址接入技术 2.1 OFDM 基本原理 2.2 物理资源结构 2.3 OFDMA 调度机制 2.4 上行：SC-FDMA   MIMO：多天线技术 3.1 分集与复用的权衡 3.2 发射分集（Transmit Diversity） 3.3 空间复用（Spatial Multiplexing） 3.4 传输模式（TM1～TM9） 3.5 CSI 反馈">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-02-07T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-05T11:10:08.967Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>LTE 核心技术速览</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/02/16/3gpp/05-5G_NR_Scenarios_Architecture_Improvements/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/01/29/3gpp/03-mobile-network-evolution/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&text=LTE 核心技术速览"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&is_video=false&description=LTE 核心技术速览"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LTE 核心技术速览&body=Check out this article: http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&name=LTE 核心技术速览&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&t=LTE 核心技术速览"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9ALTE%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：LTE的设计目标？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-OFDMA%EF%BC%9AOrthogonal-Frequency-Division-Multiple-Access"><span class="toc-number">3.</span> <span class="toc-text">2. OFDMA：Orthogonal Frequency Division Multiple Access</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-OFDM-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 OFDM 基本原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%90%E8%BD%BD%E6%B3%A2%E6%AD%A3%E4%BA%A4%E6%80%A7"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">子载波正交性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88Cyclic-Prefix-CP%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">循环前缀（Cyclic Prefix, CP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#IFFT-FFT-%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">IFFT&#x2F;FFT 实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E7%BB%93%E6%9E%84"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 物理资源结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E7%BB%B4%E5%BA%A6"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">时间维度</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E7%8E%87%E7%BB%B4%E5%BA%A6%E4%B8%8E%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">频率维度与资源块（RB）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-OFDMA-%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 OFDMA 调度机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%B8%8A%E8%A1%8C%EF%BC%9ASC-FDMA"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 上行：SC-FDMA</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BD%95%E9%80%89%E6%8B%A9-SC-FDMA%EF%BC%9F"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">为何选择 SC-FDMA？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SC-FDMA-%E5%8F%91%E5%B0%84%E9%93%BE%E8%B7%AF"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">SC-FDMA 发射链路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%90%E8%BD%BD%E6%B3%A2%E6%98%A0%E5%B0%84%E6%96%B9%E5%BC%8F"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">子载波映射方式</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-MIMO%EF%BC%9A%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AF"><span class="toc-number">4.</span> <span class="toc-text">3. MIMO：多天线技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%9B%86%E4%B8%8E%E5%A4%8D%E7%94%A8%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分集与复用的权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%91%E5%B0%84%E5%88%86%E9%9B%86%EF%BC%88Transmit-Diversity%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 发射分集（Transmit Diversity）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SFBC%EF%BC%88%E7%A9%BA%E9%A2%91%E5%9D%97%E7%BC%96%E7%A0%81%EF%BC%8CSpace-Frequency-Block-Coding%EF%BC%89"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">SFBC（空频块编码，Space-Frequency Block Coding）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%A9%BA%E9%97%B4%E5%A4%8D%E7%94%A8%EF%BC%88Spatial-Multiplexing%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 空间复用（Spatial Multiplexing）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B1%82%E6%98%A0%E5%B0%84%EF%BC%88Layer-Mapping%EF%BC%89"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">层映射（Layer Mapping）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%84%E7%BC%96%E7%A0%81%EF%BC%88Precoding%EF%BC%89"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">预编码（Precoding）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MU-MIMO%EF%BC%88%E5%A4%9A%E7%94%A8%E6%88%B7-MIMO%EF%BC%89"><span class="toc-number">4.0.3.3.</span> <span class="toc-text">MU-MIMO（多用户 MIMO）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F%EF%BC%88Transmission-Mode%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 传输模式（Transmission Mode）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-CSI-%E5%8F%8D%E9%A6%88%EF%BC%9ACQI-PMI-RI"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 CSI 反馈：CQI &#x2F; PMI &#x2F; RI</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-EPS%EF%BC%9A%E6%BC%94%E8%BF%9B%E5%88%86%E7%BB%84%E7%B3%BB%E7%BB%9F%EF%BC%88Evolved-Packet-System%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. EPS：演进分组系统（Evolved Packet System）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-E-UTRAN%EF%BC%9AeNB"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 E-UTRAN：eNB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-EPC-%E6%A0%B8%E5%BF%83%E7%BD%91%E5%85%83"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 EPC 核心网元</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#MME%EF%BC%88Mobility-Management-Entity%EF%BC%8C%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86%E5%AE%9E%E4%BD%93%EF%BC%89"><span class="toc-number">5.0.3.1.</span> <span class="toc-text">MME（Mobility Management Entity，移动性管理实体）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SGW%EF%BC%88Serving-Gateway%EF%BC%8C%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%EF%BC%89"><span class="toc-number">5.0.3.2.</span> <span class="toc-text">SGW（Serving Gateway，服务网关）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PGW%EF%BC%88PDN-Gateway%EF%BC%8CPDN-%E7%BD%91%E5%85%B3%EF%BC%89"><span class="toc-number">5.0.3.3.</span> <span class="toc-text">PGW（PDN Gateway，PDN 网关）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HSS%EF%BC%88Home-Subscriber-Server%EF%BC%8C%E5%BD%92%E5%B1%9E%E7%94%A8%E6%88%B7%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%89"><span class="toc-number">5.0.3.4.</span> <span class="toc-text">HSS（Home Subscriber Server，归属用户服务器）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PCRF%EF%BC%88Policy-and-Charging-Rules-Function%EF%BC%8C%E7%AD%96%E7%95%A5%E4%B8%8E%E8%AE%A1%E8%B4%B9%E8%A7%84%E5%88%99%E5%8A%9F%E8%83%BD%EF%BC%89"><span class="toc-number">5.0.3.5.</span> <span class="toc-text">PCRF（Policy and Charging Rules Function，策略与计费规则功能）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 关键接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-EPS-Bearer-%E4%B8%8E-QoS-%E4%BD%93%E7%B3%BB"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 EPS Bearer 与 QoS 体系</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Bearer-%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.0.5.1.</span> <span class="toc-text">Bearer 类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#QCI%EF%BC%88QoS-Class-Identifier%EF%BC%89"><span class="toc-number">5.0.5.2.</span> <span class="toc-text">QCI（QoS Class Identifier）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AF%94%E7%89%B9%E7%8E%87%E5%8F%82%E6%95%B0"><span class="toc-number">5.0.5.3.</span> <span class="toc-text">比特率参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UE-%E6%95%B0%E6%8D%AE%E8%B7%AF%E5%BE%84%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">5.0.5.4.</span> <span class="toc-text">UE 数据路径（用户面）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-LTE-%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87%E4%B8%80%E8%A7%88"><span class="toc-number">6.</span> <span class="toc-text">5. LTE 性能指标一览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">7.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        LTE 核心技术速览
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-02-07T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-02-07</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E8%83%8C%E6%99%AF%EF%BC%9Alte%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%EF%BC%9F">背景：LTE的设计目标？</a></li>
+<li><a href="#2-ofdmaorthogonal-frequency-division-multiple-access">OFDMA：下行多址接入技术</a><ul>
+<li><a href="#21-ofdm-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">2.1 OFDM 基本原理</a></li>
+<li><a href="#22-%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E7%BB%93%E6%9E%84">2.2 物理资源结构</a></li>
+<li><a href="#23-ofdma-%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6">2.3 OFDMA 调度机制</a></li>
+<li><a href="#24-%E4%B8%8A%E8%A1%8C%EF%BC%9Asc-fdma">2.4 上行：SC-FDMA</a></li>
+</ul>
+</li>
+<li><a href="#3-mimo%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AF">MIMO：多天线技术</a><ul>
+<li><a href="#31-%E5%88%86%E9%9B%86%E4%B8%8E%E5%A4%8D%E7%94%A8%E6%9D%83%E8%A1%A1">3.1 分集与复用的权衡</a></li>
+<li><a href="#32-%E5%8F%91%E5%B0%84%E5%88%86%E9%9B%86%EF%BC%88transmit-diversity%EF%BC%89">3.2 发射分集（Transmit Diversity）</a></li>
+<li><a href="#33-%E7%A9%BA%E9%97%B4%E5%A4%8D%E7%94%A8%EF%BC%88spatial-multiplexing%EF%BC%89">3.3 空间复用（Spatial Multiplexing）</a></li>
+<li><a href="#34-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F%EF%BC%88tm1%EF%BD%9Etm9%EF%BC%89">3.4 传输模式（TM1～TM9）</a></li>
+<li><a href="#35-csi-%E5%8F%8D%E9%A6%88cqi-pmi-ri">3.5 CSI 反馈：CQI &#x2F; PMI &#x2F; RI</a></li>
+</ul>
+</li>
+<li><a href="#4-eps%E6%BC%94%E8%BF%9B%E5%88%86%E7%BB%84%E7%B3%BB%E7%BB%9Fevolved-packet-system">EPS：演进分组系统</a><ul>
+<li><a href="#41-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">4.1 整体架构</a></li>
+<li><a href="#42-E-UTRAN%EF%BC%9AeNB">4.2 E-UTRAN：eNB</a></li>
+<li><a href="#43-epc-%E6%A0%B8%E5%BF%83%E7%BD%91%E5%85%83">4.3 EPC 核心网元</a></li>
+<li><a href="#44-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3">4.4 关键接口</a></li>
+<li><a href="#45-eps-bearer-%E4%B8%8E-qos-%E4%BD%93%E7%B3%BB">4.5 EPS Bearer 与 QoS 体系</a></li>
+</ul>
+</li>
+<li><a href="#5-lte-%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87%E4%B8%80%E8%A7%88">LTE 性能指标一览</a></li>
+</ol>
+<hr>
+<h1 id="1-背景：LTE的设计目标？"><a href="#1-背景：LTE的设计目标？" class="headerlink" title="1. 背景：LTE的设计目标？"></a>1. 背景：LTE的设计目标？</h1><p>进入 2000 年代中后期，移动互联网的爆炸式增长将 3G（UMTS&#x2F;HSPA）推向了容量极限。视频流媒体、智能手机应用和移动宽带的普及，使得运营商急需一种具备更高峰值速率、更低时延、更高频谱效率的新一代无线技术。</p>
+<p>3GPP 在 Release 8（2008 年冻结）中正式定义了 LTE，在 Release 10 中进一步演进为 <strong>LTE-Advanced</strong>（满足 IMT-Advanced 要求）。LTE 的设计目标（来自 3GPP TR 25.913）包括：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>目标值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>下行峰值速率</td>
+<td>100 Mbps（20 MHz 带宽，2×2 MIMO）</td>
+</tr>
+<tr>
+<td>上行峰值速率</td>
+<td>50 Mbps（20 MHz 带宽）</td>
+</tr>
+<tr>
+<td>控制面时延（C-plane）</td>
+<td>&lt; 100 ms（从 Idle 到 Connected）</td>
+</tr>
+<tr>
+<td>用户面时延（U-plane）</td>
+<td>&lt; 5 ms（单向）</td>
+</tr>
+<tr>
+<td>频谱效率</td>
+<td>下行 3×、上行 2.5×（相对 R6 HSPA）</td>
+</tr>
+<tr>
+<td>支持带宽</td>
+<td>1.4 &#x2F; 3 &#x2F; 5 &#x2F; 10 &#x2F; 15 &#x2F; 20 MHz</td>
+</tr>
+<tr>
+<td>移动速度</td>
+<td>优化至 15 km&#x2F;h，支持至 350 km&#x2F;h</td>
+</tr>
+</tbody></table>
+<p>为实现这些目标，LTE 选择了三项核心技术：<strong>OFDMA</strong>（正交频分多址）作为下行多址、<strong>MIMO</strong>（多输入多输出）提升空间维度的容量、<strong>EPS</strong>（演进分组系统）构建全 IP 扁平化架构。</p>
+<hr>
+<h1 id="2-OFDMA：Orthogonal-Frequency-Division-Multiple-Access"><a href="#2-OFDMA：Orthogonal-Frequency-Division-Multiple-Access" class="headerlink" title="2. OFDMA：Orthogonal Frequency Division Multiple Access"></a>2. OFDMA：Orthogonal Frequency Division Multiple Access</h1><h3 id="2-1-OFDM-基本原理"><a href="#2-1-OFDM-基本原理" class="headerlink" title="2.1 OFDM 基本原理"></a>2.1 OFDM 基本原理</h3><p><strong>OFDM（正交频分复用）</strong> 是 LTE 下行的物理层调制基础。其核心思想是将宽带信道分割为大量正交的窄带子载波，每条子载波独立承载数据，从而将频率选择性衰落信道转化为多个平坦衰落子信道。</p>
+<h4 id="子载波正交性"><a href="#子载波正交性" class="headerlink" title="子载波正交性"></a>子载波正交性</h4><p>OFDM 中相邻子载波的间隔恰好等于符号速率的倒数，使得在任意一个子载波频率处，其他子载波的贡献为零（即”正交”）。数学表达上，若子载波间隔为 Δf，则符号持续时间 T &#x3D; 1&#x2F;Δf，各子载波 <code>e^(j2πnΔft)</code> 在 [0, T] 内互相正交。</p>
+<p><strong>LTE 下行标准子载波参数</strong>（来自 3GPP TS 36.211 第 6 章）：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>普通 CP</th>
+<th>扩展 CP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>子载波间隔（Δf）</td>
+<td><strong>15 kHz</strong></td>
+<td>15 kHz（或 7.5 kHz for MBSFN）</td>
+</tr>
+<tr>
+<td>FFT 有效符号时长</td>
+<td>66.67 μs（&#x3D; 1&#x2F;15000）</td>
+<td>66.67 μs</td>
+</tr>
+<tr>
+<td>普通 CP 时长</td>
+<td>第一个符号：5.21 μs；其余：4.69 μs</td>
+<td>—</td>
+</tr>
+<tr>
+<td>扩展 CP 时长</td>
+<td>—</td>
+<td>16.67 μs</td>
+</tr>
+<tr>
+<td>每时隙 OFDM 符号数</td>
+<td><strong>7</strong></td>
+<td><strong>6</strong></td>
+</tr>
+<tr>
+<td>每子帧 OFDM 符号数</td>
+<td>14</td>
+<td>12</td>
+</tr>
+</tbody></table>
+<h4 id="循环前缀（Cyclic-Prefix-CP）"><a href="#循环前缀（Cyclic-Prefix-CP）" class="headerlink" title="循环前缀（Cyclic Prefix, CP）"></a>循环前缀（Cyclic Prefix, CP）</h4><p>CP 是将 OFDM 符号尾部的一段复制粘贴到头部，其作用是：</p>
+<ol>
+<li><strong>消除 ISI（符号间干扰）</strong>：只要 CP 长度 &gt; 信道最大时延扩展，多径回波就不会污染下一符号。</li>
+<li><strong>将线性卷积转化为循环卷积</strong>，使频域均衡只需简单的复数除法。</li>
+</ol>
+<p>普通 CP（4.69 μs）对应约 1.4 km 的小区半径覆盖；扩展 CP（16.67 μs）用于大型小区或 MBSFN（多播单频网）场景。</p>
+<h4 id="IFFT-FFT-实现"><a href="#IFFT-FFT-实现" class="headerlink" title="IFFT&#x2F;FFT 实现"></a>IFFT&#x2F;FFT 实现</h4><p>OFDM 调制&#x2F;解调通过 <strong>IFFT&#x2F;FFT</strong> 高效实现：</p>
+<ul>
+<li><strong>发射端</strong>：将频域调制符号通过 IFFT 转换为时域波形，加 CP 后发送。</li>
+<li><strong>接收端</strong>：去除 CP，FFT 变换回频域，各子载波独立均衡。</li>
+</ul>
+<p>这种实现方式极大降低了硬件复杂度，使得支持 20 MHz（2048 点 FFT）的实现变得可行。</p>
+<hr>
+<h3 id="2-2-物理资源结构"><a href="#2-2-物理资源结构" class="headerlink" title="2.2 物理资源结构"></a>2.2 物理资源结构</h3><p>LTE 引入了严格的时频资源网格（Resource Grid），这是 OFDMA 调度的基础。</p>
+<h4 id="时间维度"><a href="#时间维度" class="headerlink" title="时间维度"></a>时间维度</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">10 ms 无线帧（Radio Frame）</span><br><span class="line">├── 子帧 0（Subframe, 1 ms）</span><br><span class="line">│   ├── 时隙 0（Slot, 0.5 ms）= 7 个 OFDM 符号（普通 CP）</span><br><span class="line">│   └── 时隙 1（Slot, 0.5 ms）= 7 个 OFDM 符号</span><br><span class="line">├── 子帧 1（Subframe, 1 ms）</span><br><span class="line">│   ...</span><br><span class="line">└── 子帧 9（共 10 个子帧）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>传输时间间隔（TTI）&#x3D; 1 ms &#x3D; 1 个子帧</strong>，是 LTE 调度的基本时间单位。</li>
+<li>FDD 帧结构（Type 1）：下行与上行分别在不同频段上连续传输，各 10 个子帧&#x2F;帧均可用。</li>
+<li>TDD 帧结构（Type 2）：下行和上行共享同一频段，通过时间划分，特殊子帧（DwPTS &#x2F; GP &#x2F; UpPTS）用于切换保护。</li>
+</ul>
+<h4 id="频率维度与资源块（RB）"><a href="#频率维度与资源块（RB）" class="headerlink" title="频率维度与资源块（RB）"></a>频率维度与资源块（RB）</h4><p>根据 3GPP TS 36.211 第 6.2 节，<strong>物理资源块（Physical Resource Block, PRB）</strong> 的定义为：</p>
+<ul>
+<li><strong>频率维度</strong>：12 个连续子载波 × 15 kHz &#x3D; <strong>180 kHz</strong></li>
+<li><strong>时间维度</strong>：1 个时隙 &#x3D; 0.5 ms</li>
+</ul>
+<p><strong>资源单元（Resource Element, RE）</strong> 是最小的资源粒度，对应一个子载波在一个 OFDM 符号上的时频位置，用坐标 (k, l) 表示（k 为子载波编号，l 为符号编号）。</p>
+<p>不同系统带宽下的 PRB 数量（来自 TS 36.211 表 6.2.3-1）：</p>
+<table>
+<thead>
+<tr>
+<th>系统带宽（MHz）</th>
+<th>PRB 数（N_RB）</th>
+<th>实际占用子载波数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.4</td>
+<td>6</td>
+<td>73（含 DC 子载波）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>15</td>
+<td>181</td>
+</tr>
+<tr>
+<td>5</td>
+<td>25</td>
+<td>301</td>
+</tr>
+<tr>
+<td>10</td>
+<td>50</td>
+<td>601</td>
+</tr>
+<tr>
+<td>15</td>
+<td>75</td>
+<td>901</td>
+</tr>
+<tr>
+<td><strong>20</strong></td>
+<td><strong>100</strong></td>
+<td><strong>1201</strong></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>调度颗粒度</strong>：eNB 调度器以 <strong>PRB pair</strong>（一个子帧内的两个时隙，即 1 ms × 180 kHz）为最小单位分配资源。</p>
+</blockquote>
+<hr>
+<h3 id="2-3-OFDMA-调度机制"><a href="#2-3-OFDMA-调度机制" class="headerlink" title="2.3 OFDMA 调度机制"></a>2.3 OFDMA 调度机制</h3><p>OFDMA 的核心优势在于允许 eNB 在时域和频域两个维度上灵活分配资源：</p>
+<p><strong>动态调度（Dynamic Scheduling）</strong>：</p>
+<ul>
+<li>eNB 每 1 ms TTI 对所有激活 UE 进行调度决策</li>
+<li>基于信道质量反馈（CQI）将 PRB 分配给信道条件最好的用户</li>
+<li>实现<strong>多用户分集（Multiuser Diversity）</strong>：在频率选择性信道中，不同 UE 在不同频点的信道质量不同，调度器将每段频率分给在该频点信道最优的 UE</li>
+</ul>
+<p><strong>频域调度（Frequency-Domain Scheduling）</strong>：<br>与 HSPA（只有时域调度）相比，LTE 可以在频域精确选择 PRB，充分利用频率选择性信道的多用户分集增益。</p>
+<p><strong>半静态调度（Semi-Persistent Scheduling, SPS）</strong>：<br>对于 VoIP 等周期性业务，可预先分配固定资源，减少信令开销。</p>
+<hr>
+<h3 id="2-4-上行：SC-FDMA"><a href="#2-4-上行：SC-FDMA" class="headerlink" title="2.4 上行：SC-FDMA"></a>2.4 上行：SC-FDMA</h3><p>LTE 上行并非使用 OFDMA，而是采用 <strong>SC-FDMA（单载波频分多址）</strong>。</p>
+<h4 id="为何选择-SC-FDMA？"><a href="#为何选择-SC-FDMA？" class="headerlink" title="为何选择 SC-FDMA？"></a>为何选择 SC-FDMA？</h4><p>OFDMA 的主要缺点是<strong>高峰均比（PAPR, Peak-to-Average Power Ratio）</strong>。OFDM 信号是多个子载波叠加，当随机相位导致所有子载波同相叠加时，瞬时功率可能远高于平均功率（理论 PAPR 可达 10-12 dB）。对 UE（用户终端）而言，高 PAPR 意味着：</p>
+<ul>
+<li>需要更高线性度、更昂贵的功率放大器</li>
+<li>放大器工作于回退区，效率降低，电池续航缩短</li>
+</ul>
+<p>SC-FDMA 在本质上是在 OFDMA 的基础上<strong>增加了一个 DFT（离散傅里叶变换）预编码</strong>步骤，将单载波信号的特性映射到 OFDM 子载波上，因此也称为 <strong>DFT-S-OFDM（DFT-Spread OFDM）</strong>。</p>
+<h4 id="SC-FDMA-发射链路"><a href="#SC-FDMA-发射链路" class="headerlink" title="SC-FDMA 发射链路"></a>SC-FDMA 发射链路</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[数据符号] → [M点 DFT] → [子载波映射] → [N点 IFFT] → [加 CP] → [发射]</span><br></pre></td></tr></table></figure>
+
+<p>经过 DFT 预编码后，时域信号近似保持单载波特性，PAPR 相较 OFDMA 可降低约 <strong>2-4 dB</strong>，大幅降低了 UE 的功放设计难度。</p>
+<h4 id="子载波映射方式"><a href="#子载波映射方式" class="headerlink" title="子载波映射方式"></a>子载波映射方式</h4><p>SC-FDMA 支持两种子载波映射方式（TS 36.211）：</p>
+<ul>
+<li><strong>局部化（Localized，LFDMA）</strong>：占用连续的子载波，便于频域调度，<strong>LTE 上行采用此方式</strong>。</li>
+<li><strong>分布式（Distributed，DFDMA）</strong>：子载波均匀分布，获得频率分集增益，但不利于频域调度（LTE 上行未采用）。</li>
+</ul>
+<p><strong>注意</strong>：由于局部化映射要求每个 UE 的上行资源必须是<strong>连续 PRB</strong>，这与下行 OFDMA 可以任意分配非连续 PRB 有所不同，对上行调度算法带来约束。</p>
+<hr>
+<h1 id="3-MIMO：多天线技术"><a href="#3-MIMO：多天线技术" class="headerlink" title="3. MIMO：多天线技术"></a>3. MIMO：多天线技术</h1><p>MIMO（Multiple-Input Multiple-Output）是 LTE 实现高频谱效率的另一核心技术。通过在发射端和接收端部署多根天线，MIMO 可以在不额外占用频谱的情况下显著提升系统容量和链路可靠性。</p>
+<p>3GPP 在 TS 36.211、TS 36.212、TS 36.213 中对 LTE MIMO 进行了完整规范。</p>
+<h3 id="3-1-分集与复用的权衡"><a href="#3-1-分集与复用的权衡" class="headerlink" title="3.1 分集与复用的权衡"></a>3.1 分集与复用的权衡</h3><p>MIMO 系统的两个基本增益相互制衡：</p>
+<p><strong>分集增益（Diversity Gain）</strong>：</p>
+<ul>
+<li>多根天线提供信道的独立衰落路径</li>
+<li>各路信号同时深度衰落的概率大幅降低</li>
+<li>提升链路可靠性，改善小区边缘覆盖</li>
+<li>适用：低 SNR、信道恶劣、控制信道传输</li>
+</ul>
+<p><strong>空间复用增益（Multiplexing Gain）</strong>：</p>
+<ul>
+<li>利用多条空间独立信道同时传输不同数据流（称为”层”，Layer）</li>
+<li>理论上，min(N_T, N_R) 根天线可支持同等数量的独立数据流</li>
+<li>线性提升系统容量</li>
+<li>适用：高 SNR、丰富散射环境（即多径丰富时空间信道秩高）</li>
+</ul>
+<p>根据 Shannon 容量公式的 MIMO 推广（Foschini-Telatar 公式），对于 N_T 发 N_R 收的 MIMO 信道：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C = log₂ det(I + (SNR/N_T) · H·H^H)  [bps/Hz]</span><br></pre></td></tr></table></figure>
+
+<p>其中 H 为信道矩阵，信道的<strong>秩（Rank）</strong>决定了最大可并行传输的数据流数。</p>
+<hr>
+<h3 id="3-2-发射分集（Transmit-Diversity）"><a href="#3-2-发射分集（Transmit-Diversity）" class="headerlink" title="3.2 发射分集（Transmit Diversity）"></a>3.2 发射分集（Transmit Diversity）</h3><p>发射分集（Tx Diversity）牺牲容量换取可靠性，是 LTE 控制信道（如 PBCH、PCFICH、PDCCH）的默认工作方式。</p>
+<h4 id="SFBC（空频块编码，Space-Frequency-Block-Coding）"><a href="#SFBC（空频块编码，Space-Frequency-Block-Coding）" class="headerlink" title="SFBC（空频块编码，Space-Frequency Block Coding）"></a>SFBC（空频块编码，Space-Frequency Block Coding）</h4><p>LTE 下行采用 <strong>SFBC</strong>（2 天线时）或 <strong>SFBC+FSTD</strong>（4 天线时）实现发射分集（TS 36.211 第 6.3.4.3 节）。</p>
+<p>以 2 天线 SFBC 为例：对两个调制符号 s₁、s₂，映射到两对相邻子载波和两根天线上：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">天线 0：[s₁, -s₂*]（子载波 k, k+1）</span><br><span class="line">天线 1：[s₂,  s₁*]（子载波 k, k+1）</span><br></pre></td></tr></table></figure>
+
+<p>这是 Alamouti 编码在频域的实现，接收端通过简单的线性组合即可解码，获得 2 阶发射分集增益，无需信道状态信息（CSI）反馈，适用于信道变化迅速或 UE 处于小区边缘的情况。</p>
+<hr>
+<h3 id="3-3-空间复用（Spatial-Multiplexing）"><a href="#3-3-空间复用（Spatial-Multiplexing）" class="headerlink" title="3.3 空间复用（Spatial Multiplexing）"></a>3.3 空间复用（Spatial Multiplexing）</h3><p>空间复用是 LTE 实现高峰值速率的关键，允许 eNB 同时向同一 UE 发送多个独立数据流（层）。</p>
+<h4 id="层映射（Layer-Mapping）"><a href="#层映射（Layer-Mapping）" class="headerlink" title="层映射（Layer Mapping）"></a>层映射（Layer Mapping）</h4><p>发射的数据流经过信道编码后，被分配到各”层”（Layer）。LTE 最多支持 <strong>4 层</strong>（即 4×4 MIMO 时的 Rank-4 传输）。TS 36.211 第 6.3.3 节定义了码字（Codeword）到层的映射规则：</p>
+<ul>
+<li>Rank 1：1 个码字 → 1 层</li>
+<li>Rank 2：2 个码字 → 2 层（每码字 1 层）</li>
+<li>Rank 3：2 个码字 → 3 层（码字 1→层 1，码字 2→层 2,3）</li>
+<li>Rank 4：2 个码字 → 4 层（码字 1→层 1,2，码字 2→层 3,4）</li>
+</ul>
+<h4 id="预编码（Precoding）"><a href="#预编码（Precoding）" class="headerlink" title="预编码（Precoding）"></a>预编码（Precoding）</h4><p>层映射后，数据乘以预编码矩阵 <strong>W</strong>（N_T × ν，ν 为层数），将抽象的”层”映射到物理天线端口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y = W · x</span><br></pre></td></tr></table></figure>
+
+<p>LTE 采用<strong>基于码本的预编码</strong>（Codebook-based Precoding），预编码矩阵从预定义的码本中选取，UE 通过 <strong>PMI（Precoding Matrix Indicator）</strong> 向 eNB 推荐最优的预编码矩阵（TS 36.211 表 6.3.4.2.3-1 至 2，分别为 2 天线和 4 天线码本）。</p>
+<p><strong>开环空间复用（TM3，Large Delay CDD）</strong>：</p>
+<ul>
+<li>不依赖 PMI 反馈</li>
+<li>eNB 使用大时延循环延迟分集（CDD）矩阵，实现近似随机的预编码</li>
+<li>适用：UE 移动较快、信道变化快、反馈不及时</li>
+</ul>
+<p><strong>闭环空间复用（TM4，Closed-Loop SM）</strong>：</p>
+<ul>
+<li>依赖 UE 反馈的 PMI</li>
+<li>eNB 选择码本中与当前信道最匹配的预编码矩阵</li>
+<li>适用：低速、信道估计准确的场景，可获最大复用增益</li>
+</ul>
+<h4 id="MU-MIMO（多用户-MIMO）"><a href="#MU-MIMO（多用户-MIMO）" class="headerlink" title="MU-MIMO（多用户 MIMO）"></a>MU-MIMO（多用户 MIMO）</h4><p>LTE 还支持 <strong>MU-MIMO</strong>（TM5），即 eNB 在同一时频资源上同时服务多个 UE，每个 UE 接收 1 层数据，利用空间维度分离不同用户，实现小区吞吐量的提升（尽管单用户速率未提升）。</p>
+<hr>
+<h3 id="3-4-传输模式（Transmission-Mode）"><a href="#3-4-传输模式（Transmission-Mode）" class="headerlink" title="3.4 传输模式（Transmission Mode）"></a>3.4 传输模式（Transmission Mode）</h3><p>3GPP TS 36.213 第 7.1 节定义了 LTE 下行的 <strong>9 种传输模式（TM1～TM9）</strong>，eNB 通过 RRC 信令配置 UE 工作于某一模式：</p>
+<table>
+<thead>
+<tr>
+<th>TM</th>
+<th>传输方案</th>
+<th>典型应用</th>
+<th>CSI 反馈</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TM1</td>
+<td>单天线端口（Port 0）</td>
+<td>单天线 eNB 或参考场景</td>
+<td>无</td>
+</tr>
+<tr>
+<td>TM2</td>
+<td>发射分集</td>
+<td>覆盖边缘、高速移动</td>
+<td>无</td>
+</tr>
+<tr>
+<td>TM3</td>
+<td>开环空间复用（Large-delay CDD）</td>
+<td>高速 UE，多流</td>
+<td>RI, CQI</td>
+</tr>
+<tr>
+<td>TM4</td>
+<td>闭环空间复用</td>
+<td>低速 UE，高吞吐</td>
+<td>RI, PMI, CQI</td>
+</tr>
+<tr>
+<td>TM5</td>
+<td>多用户 MIMO（MU-MIMO）</td>
+<td>小区容量提升</td>
+<td>PMI, CQI</td>
+</tr>
+<tr>
+<td>TM6</td>
+<td>闭环 Rank-1 预编码</td>
+<td>小区边缘，单流波束赋形</td>
+<td>PMI, CQI</td>
+</tr>
+<tr>
+<td>TM7</td>
+<td>UE 专属参考信号（单层）</td>
+<td>波束赋形（R8）</td>
+<td>无</td>
+</tr>
+<tr>
+<td>TM8</td>
+<td>双层 UE 专属参考信号</td>
+<td>2 层波束赋形（R9）</td>
+<td>可选</td>
+</tr>
+<tr>
+<td>TM9</td>
+<td>最多 8 层传输</td>
+<td>LTE-A 最高阶 MIMO（R10）</td>
+<td>CSI-RS 反馈</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>TM9 是 LTE-Advanced（R10）的核心增强</strong>，引入了 <strong>CSI-RS（信道状态信息参考信号）</strong> 代替 CRS 进行信道估计，支持最多 8 天线端口（Port 15-22）和最多 8 层传输（Rank 8），峰值下行速率可达 1 Gbps。</p>
+</blockquote>
+<hr>
+<h3 id="3-5-CSI-反馈：CQI-PMI-RI"><a href="#3-5-CSI-反馈：CQI-PMI-RI" class="headerlink" title="3.5 CSI 反馈：CQI &#x2F; PMI &#x2F; RI"></a>3.5 CSI 反馈：CQI &#x2F; PMI &#x2F; RI</h3><p>UE 通过上行信道（PUCCH 或 PUSCH）向 eNB 周期或非周期地上报信道状态信息（CSI），包含三个关键指标（TS 36.213 第 7.2 节）：</p>
+<p><strong>CQI（Channel Quality Indicator，信道质量指示）</strong>：</p>
+<ul>
+<li>4 bit，范围 1～15，反映 eNB 当前应使用的 MCS（调制编码方案）</li>
+<li>CQI &#x3D; 0 表示”信道太差，无法解码”</li>
+<li>eNB 据此选择 QPSK（低 SNR）至 64QAM（高 SNR）的调制方式，以及对应码率</li>
+</ul>
+<p><strong>PMI（Precoding Matrix Indicator，预编码矩阵指示）</strong>：</p>
+<ul>
+<li>指示 UE 认为最优的预编码矩阵在码本中的索引</li>
+<li>2 天线系统：PMI 为 2 bit；4 天线系统：PMI 为 4 bit（双码本 i₁, i₂ 结构）</li>
+</ul>
+<p><strong>RI（Rank Indicator，秩指示）</strong>：</p>
+<ul>
+<li>指示当前信道支持的空间独立流数（即信道矩阵的有效秩）</li>
+<li>范围：1～min(N_T, N_R)</li>
+<li>eNB 根据 RI 决定是否启用多层传输</li>
+</ul>
+<hr>
+<h1 id="4-EPS：演进分组系统（Evolved-Packet-System）"><a href="#4-EPS：演进分组系统（Evolved-Packet-System）" class="headerlink" title="4. EPS：演进分组系统（Evolved Packet System）"></a>4. EPS：演进分组系统（Evolved Packet System）</h1><h3 id="4-1-整体架构"><a href="#4-1-整体架构" class="headerlink" title="4.1 整体架构"></a>4.1 整体架构</h3><p><strong>EPS</strong> 是 LTE 的完整系统架构，由接入网（E-UTRAN）和核心网（EPC）两部分组成（3GPP TS 23.401）。EPS 的设计目标是：</p>
+<ul>
+<li><strong>全 IP（All-IP）</strong>：摒弃传统 2G&#x2F;3G 的电路域，所有业务（包括语音）均承载于 IP 之上</li>
+<li><strong>扁平化</strong>：减少网络层级，降低时延（对比 3G 的 RNC → SGSN → GGSN 三级结构，EPS 仅有 eNB → SGW&#x2F;PGW 两级）</li>
+<li><strong>控制面与用户面分离（CUPS）</strong>：逻辑上将信令处理与数据转发解耦，为后续虚拟化和云化奠定基础</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│                        EPS 总体架构                          │</span><br><span class="line">│                                                             │</span><br><span class="line">│  UE ──── E-UTRAN (eNB) ──── EPC ──── 外部数据网络(PDN)        │</span><br><span class="line">│                  │           │                              │</span><br><span class="line">│               (S1 接口)   (SGi 接口)                         │</span><br><span class="line">│                  │                                          │</span><br><span class="line">│              ┌───┴────────────────────┐                     │</span><br><span class="line">│              │         EPC            │                     │</span><br><span class="line">│              │  MME / SGW / PGW / HSS │                     │</span><br><span class="line">│              │  PCRF / ANDSF ...      │                     │</span><br><span class="line">│              └────────────────────────┘                     │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-2-E-UTRAN：eNB"><a href="#4-2-E-UTRAN：eNB" class="headerlink" title="4.2 E-UTRAN：eNB"></a>4.2 E-UTRAN：eNB</h3><p><strong>eNB（evolved Node B，演进基站）</strong> 是 LTE 无线接入网的唯一节点（与 3G 不同，LTE 取消了 RNC，eNB 直接与 EPC 相连）。eNB 的主要功能包括（TS 36.300）：</p>
+<p><strong>无线资源管理（RRM）</strong>：</p>
+<ul>
+<li>无线承载控制（Radio Bearer Control）</li>
+<li>无线接纳控制（Radio Admission Control）</li>
+<li>连接态移动性管理（切换决策与执行）</li>
+<li>上下行动态资源调度（PRB 分配、MCS 选择）</li>
+</ul>
+<p><strong>物理层功能</strong>：</p>
+<ul>
+<li>OFDMA&#x2F;SC-FDMA 调制解调</li>
+<li>HARQ（混合自动重传）管理</li>
+<li>功率控制</li>
+<li>天线管理（波束赋形、预编码）</li>
+</ul>
+<p><strong>协议层功能</strong>：</p>
+<ul>
+<li>IP 头压缩（PDCP 层，ROHC 协议）</li>
+<li>加密与完整性保护（PDCP 层）</li>
+<li>寻呼、广播系统信息（SIB）</li>
+</ul>
+<p>eNB 之间通过 <strong>X2 接口</strong>直接互连，用于切换流程中的用户上下文转移（X2 切换）和干扰协调（ICIC，小区间干扰协调）。</p>
+<hr>
+<h3 id="4-3-EPC-核心网元"><a href="#4-3-EPC-核心网元" class="headerlink" title="4.3 EPC 核心网元"></a>4.3 EPC 核心网元</h3><p>EPC（Evolved Packet Core，演进分组核心网）由以下主要功能实体组成：</p>
+<h4 id="MME（Mobility-Management-Entity，移动性管理实体）"><a href="#MME（Mobility-Management-Entity，移动性管理实体）" class="headerlink" title="MME（Mobility Management Entity，移动性管理实体）"></a>MME（Mobility Management Entity，移动性管理实体）</h4><p>MME 是 LTE 控制面的核心节点，<strong>不处理用户面数据</strong>，专职信令处理（TS 23.401 第 4.4.2 节）：</p>
+<ul>
+<li><strong>NAS 信令终结点</strong>：UE 与 MME 之间的 NAS（Non-Access Stratum）协议，用于注册（Attach&#x2F;Detach）、鉴权、安全（完整性保护&#x2F;加密）</li>
+<li><strong>移动性管理</strong>：跟踪区（TA &#x2F; TAI List）管理，空闲态 UE 的位置登记</li>
+<li><strong>会话管理</strong>：触发 PDN 连接建立，协调 SGW&#x2F;PGW 的 Bearer 建立</li>
+<li><strong>寻呼协调</strong>：向 UE 所在 TA 内的所有 eNB 发起寻呼</li>
+<li><strong>eNB 选择与 SGW 选择</strong>：在切换、附着时为 UE 选择合适的网络节点</li>
+<li><strong>漫游</strong>：协调 VPLMN 与 HPLMN 之间的信令</li>
+</ul>
+<p>MME 通过 <strong>S6a 接口</strong>（基于 Diameter 协议）与 HSS 交互进行用户鉴权和订阅数据查询。</p>
+<h4 id="SGW（Serving-Gateway，服务网关）"><a href="#SGW（Serving-Gateway，服务网关）" class="headerlink" title="SGW（Serving Gateway，服务网关）"></a>SGW（Serving Gateway，服务网关）</h4><p>SGW 是 <strong>用户面数据的本地移动性锚点</strong>（TS 23.401 第 4.4.3.2 节）：</p>
+<ul>
+<li><strong>用户面数据转发</strong>：在 eNB 与 PGW 之间转发 IP 数据包，通过 <strong>GTP-U（GPRS 隧道协议用户面）</strong> 隧道承载</li>
+<li><strong>切换锚点</strong>：在 Xn 切换（eNB 间切换）时，SGW 保持连接，仅更新 S1-U 接口的隧道端点，实现快速切换（无需重建 S5&#x2F;S8 隧道）</li>
+<li><strong>3GPP 系统间移动性锚点</strong>：终结 S4 接口，支持 UE 在 LTE 与 2G&#x2F;3G 之间切换</li>
+<li><strong>空闲态下行数据缓存</strong>：当 UE 处于 ECM-IDLE 时，SGW 缓存下行数据并触发寻呼（通过 MME）</li>
+<li><strong>计费统计</strong>：按 UE 和 Bearer 生成计费数据记录（CDR）</li>
+</ul>
+<h4 id="PGW（PDN-Gateway，PDN-网关）"><a href="#PGW（PDN-Gateway，PDN-网关）" class="headerlink" title="PGW（PDN Gateway，PDN 网关）"></a>PGW（PDN Gateway，PDN 网关）</h4><p>PGW 是 UE 接入外部数据网络（如互联网、IMS）的<strong>会话锚点</strong>（TS 23.401 第 4.4.3.3 节）：</p>
+<ul>
+<li><strong>IP 地址分配</strong>：为 UE 分配 IP 地址（IPv4 &#x2F; IPv6 &#x2F; IPv4v6 双栈）</li>
+<li><strong>策略执行（Policy and Charging Enforcement Function, PCEF）</strong>：执行 PCRF 下发的 PCC 规则，实现深度包检测（DPI）和 QoS 执行</li>
+<li><strong>用户面数据路由</strong>：UE → SGW → PGW → SGi → 外部 PDN</li>
+<li><strong>非 3GPP 接入锚点</strong>：支持 UE 通过 WiFi（S2a&#x2F;S2b）接入 EPC</li>
+<li><strong>合法监听</strong>：支持 Lawful Interception 接口</li>
+</ul>
+<h4 id="HSS（Home-Subscriber-Server，归属用户服务器）"><a href="#HSS（Home-Subscriber-Server，归属用户服务器）" class="headerlink" title="HSS（Home Subscriber Server，归属用户服务器）"></a>HSS（Home Subscriber Server，归属用户服务器）</h4><p>HSS 是 LTE 核心网的<strong>用户数据库</strong>（对应 2G&#x2F;3G 的 HLR），存储：</p>
+<ul>
+<li>用户的 <strong>IMSI</strong>（国际移动用户标识）和认证向量</li>
+<li>用户的<strong>订阅数据</strong>（允许的 QoS、漫游限制、PDN 接入权限）</li>
+<li>当前服务 MME 的注册信息（用于寻呼路由）</li>
+</ul>
+<p>HSS 通过 <strong>S6a 接口</strong>（Diameter 协议）与 MME 交互，在 UE 附着时提供鉴权向量（AV）和订阅数据。</p>
+<h4 id="PCRF（Policy-and-Charging-Rules-Function，策略与计费规则功能）"><a href="#PCRF（Policy-and-Charging-Rules-Function，策略与计费规则功能）" class="headerlink" title="PCRF（Policy and Charging Rules Function，策略与计费规则功能）"></a>PCRF（Policy and Charging Rules Function，策略与计费规则功能）</h4><p>PCRF 是 LTE 的<strong>策略控制中心</strong>（TS 23.203）：</p>
+<ul>
+<li>制定并向 PGW（PCEF）下发 <strong>PCC 规则</strong>（Policy and Charging Control Rules）</li>
+<li>根据用户订阅、业务类型、网络状态动态调整 Bearer 的 QoS 参数</li>
+<li>通过 <strong>Gx 接口</strong>（Diameter）与 PGW 交互，通过 <strong>Rx 接口</strong>与 IMS P-CSCF 交互</li>
+</ul>
+<hr>
+<h3 id="4-4-关键接口"><a href="#4-4-关键接口" class="headerlink" title="4.4 关键接口"></a>4.4 关键接口</h3><p>EPS 接口体系（TS 23.401 第 4.4 节）：</p>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>连接节点</th>
+<th>协议</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>S1-MME</strong></td>
+<td>eNB ↔ MME</td>
+<td>S1AP（SCTP&#x2F;IP）</td>
+<td>控制面：UE 上下文管理、切换</td>
+</tr>
+<tr>
+<td><strong>S1-U</strong></td>
+<td>eNB ↔ SGW</td>
+<td>GTP-U（UDP&#x2F;IP）</td>
+<td>用户面：每 Bearer 一条 GTP 隧道</td>
+</tr>
+<tr>
+<td><strong>X2</strong></td>
+<td>eNB ↔ eNB</td>
+<td>X2AP（SCTP&#x2F;IP）</td>
+<td>eNB 间切换、干扰协调</td>
+</tr>
+<tr>
+<td><strong>S5&#x2F;S8</strong></td>
+<td>SGW ↔ PGW</td>
+<td>GTP-U + GTPv2-C</td>
+<td>用户面与控制面（S5：同 PLMN；S8：漫游）</td>
+</tr>
+<tr>
+<td><strong>S6a</strong></td>
+<td>MME ↔ HSS</td>
+<td>Diameter</td>
+<td>鉴权、用户数据查询</td>
+</tr>
+<tr>
+<td><strong>S11</strong></td>
+<td>MME ↔ SGW</td>
+<td>GTPv2-C</td>
+<td>会话&#x2F;Bearer 控制（创建&#x2F;修改&#x2F;删除）</td>
+</tr>
+<tr>
+<td><strong>Gx</strong></td>
+<td>PGW ↔ PCRF</td>
+<td>Diameter</td>
+<td>PCC 规则下发</td>
+</tr>
+<tr>
+<td><strong>SGi</strong></td>
+<td>PGW ↔ 外部 PDN</td>
+<td>IP</td>
+<td>用户面数据出口</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="4-5-EPS-Bearer-与-QoS-体系"><a href="#4-5-EPS-Bearer-与-QoS-体系" class="headerlink" title="4.5 EPS Bearer 与 QoS 体系"></a>4.5 EPS Bearer 与 QoS 体系</h3><p>EPS 的 QoS 模型以 <strong>EPS Bearer（EPS 承载）</strong> 为基本单位（TS 23.401 第 4.7 节）。Bearer 是一条从 UE 到 PGW 的端到端逻辑管道，在其上传输的所有数据包享有相同的 QoS 处理。</p>
+<h4 id="Bearer-类型"><a href="#Bearer-类型" class="headerlink" title="Bearer 类型"></a>Bearer 类型</h4><p><strong>默认 Bearer（Default Bearer）</strong>：</p>
+<ul>
+<li>在 UE <strong>附着（Attach）</strong> 时自动建立，全程保持（Always-On）</li>
+<li>为 UE 提供基础 IP 连通性（互联网访问）</li>
+<li><strong>始终为 Non-GBR 类型</strong>（无保证带宽）</li>
+<li>QCI 通常为 QCI 9（尽力而为的数据业务）</li>
+</ul>
+<p><strong>专用 Bearer（Dedicated Bearer）</strong>：</p>
+<ul>
+<li>由 PGW（PCRF 触发）按需建立，提供差异化 QoS</li>
+<li>可以是 <strong>GBR（Guaranteed Bit Rate）</strong> 或 <strong>Non-GBR</strong> 类型</li>
+<li>典型应用：VoLTE 语音（QCI 1，GBR）、IMS 信令（QCI 5，Non-GBR）</li>
+</ul>
+<h4 id="QCI（QoS-Class-Identifier）"><a href="#QCI（QoS-Class-Identifier）" class="headerlink" title="QCI（QoS Class Identifier）"></a>QCI（QoS Class Identifier）</h4><p>QCI 是 LTE QoS 的核心参数，定义了 Bearer 的服务质量特性（TS 23.203 表 6.1.7-1）：</p>
+<table>
+<thead>
+<tr>
+<th>QCI</th>
+<th>资源类型</th>
+<th>优先级</th>
+<th>包时延预算</th>
+<th>包误差率</th>
+<th>典型业务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>GBR</td>
+<td>2</td>
+<td>100 ms</td>
+<td>10⁻²</td>
+<td>VoIP 语音</td>
+</tr>
+<tr>
+<td>2</td>
+<td>GBR</td>
+<td>4</td>
+<td>150 ms</td>
+<td>10⁻³</td>
+<td>视频通话（Live）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>GBR</td>
+<td>3</td>
+<td>50 ms</td>
+<td>10⁻³</td>
+<td>实时游戏</td>
+</tr>
+<tr>
+<td>4</td>
+<td>GBR</td>
+<td>5</td>
+<td>300 ms</td>
+<td>10⁻⁶</td>
+<td>视频流（缓冲）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Non-GBR</td>
+<td>1</td>
+<td>100 ms</td>
+<td>10⁻⁶</td>
+<td>IMS 信令</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Non-GBR</td>
+<td>6</td>
+<td>300 ms</td>
+<td>10⁻⁶</td>
+<td>TCP 视频（缓冲）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Non-GBR</td>
+<td>7</td>
+<td>100 ms</td>
+<td>10⁻³</td>
+<td>TCP 语音&#x2F;视频（交互）</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Non-GBR</td>
+<td>8</td>
+<td>300 ms</td>
+<td>10⁻⁶</td>
+<td>TCP 数据（流量控制）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Non-GBR</td>
+<td>9</td>
+<td>300 ms</td>
+<td>10⁻⁶</td>
+<td>默认 Bearer（互联网浏览）</td>
+</tr>
+</tbody></table>
+<h4 id="比特率参数"><a href="#比特率参数" class="headerlink" title="比特率参数"></a>比特率参数</h4><ul>
+<li><strong>GBR &#x2F; MBR（Guaranteed&#x2F;Maximum Bit Rate）</strong>：仅用于 GBR Bearer，分别定义保证速率和峰值速率</li>
+<li><strong>APN-AMBR（APN Aggregate Maximum Bit Rate）</strong>：一个 APN 下所有 Non-GBR Bearer 的聚合最大速率，由 PGW 执行</li>
+<li><strong>UE-AMBR（UE Aggregate Maximum Bit Rate）</strong>：一个 UE 所有 Non-GBR Bearer 的总聚合最大速率，由 eNB 执行</li>
+</ul>
+<h4 id="UE-数据路径（用户面）"><a href="#UE-数据路径（用户面）" class="headerlink" title="UE 数据路径（用户面）"></a>UE 数据路径（用户面）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">UE</span><br><span class="line"> │  (LTE-Uu 空口)</span><br><span class="line">eNB  ——S1-U (GTP-U隧道)——  SGW  ——S5 (GTP-U隧道)——  PGW  ——SGi——  Internet</span><br><span class="line">                                                              │</span><br><span class="line">                                                          IP 地址分配</span><br><span class="line">                                                          DPI / 策略执行</span><br></pre></td></tr></table></figure>
+
+<p>每一条 EPS Bearer 在 S1-U 和 S5 上都有对应的 <strong>GTP-U 隧道（TEID 标识）</strong>，确保不同 Bearer 的数据在用户面得到隔离和差异化处理。</p>
+<hr>
+<h1 id="5-LTE-性能指标一览"><a href="#5-LTE-性能指标一览" class="headerlink" title="5. LTE 性能指标一览"></a>5. LTE 性能指标一览</h1><p>综合三大核心技术的叠加效应，LTE Release 8&#x2F;10 的实际性能如下：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>LTE Rel-8</th>
+<th>LTE-A Rel-10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>下行峰值速率</td>
+<td>150 Mbps（20 MHz，2×2 MIMO）</td>
+<td><strong>1 Gbps</strong>（100 MHz CA，8×8 MIMO）</td>
+</tr>
+<tr>
+<td>上行峰值速率</td>
+<td>75 Mbps（20 MHz，1×2 MIMO）</td>
+<td>500 Mbps</td>
+</tr>
+<tr>
+<td>下行频谱效率</td>
+<td>~16 bps&#x2F;Hz（理论峰值）</td>
+<td>~30 bps&#x2F;Hz</td>
+</tr>
+<tr>
+<td>控制面时延</td>
+<td>&lt; 50 ms（实测，RRC 连接建立）</td>
+<td>&lt; 50 ms</td>
+</tr>
+<tr>
+<td>用户面时延</td>
+<td>&lt; 10 ms（端到端，不含传输网）</td>
+<td>&lt; 5 ms</td>
+</tr>
+<tr>
+<td>支持并发用户</td>
+<td>200+ UE&#x2F;小区（激活态）</td>
+<td>—</td>
+</tr>
+<tr>
+<td>最大信道带宽</td>
+<td>20 MHz（单载波）</td>
+<td>100 MHz（5CC 聚合）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h1><p>以下为本文核心参考的 3GPP 标准文档：</p>
+<table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>标题</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 36.211</strong></td>
+<td>E-UTRA Physical Channels and Modulation</td>
+<td>OFDMA 帧结构、资源网格、SC-FDMA、MIMO 预编码矩阵</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 36.212</strong></td>
+<td>E-UTRA Multiplexing and Channel Coding</td>
+<td>信道编码（Turbo&#x2F;CC）、码字到层映射</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 36.213</strong></td>
+<td>E-UTRA Physical Layer Procedures</td>
+<td>CQI&#x2F;PMI&#x2F;RI 反馈、功率控制、调度、传输模式定义</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 36.300</strong></td>
+<td>E-UTRA and E-UTRAN Overall Description</td>
+<td>eNB 功能、X2&#x2F;S1 接口、整体架构</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 23.401</strong></td>
+<td>GPRS Enhancements for E-UTRAN Access</td>
+<td>EPC 架构、MME&#x2F;SGW&#x2F;PGW 功能、接口定义、EPS Bearer 管理</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 23.203</strong></td>
+<td>Policy and Charging Control Architecture</td>
+<td>QCI 定义、GBR&#x2F;Non-GBR、PCRF&#x2F;PCEF 交互</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 25.913</strong></td>
+<td>Requirements for E-UTRA and E-UTRAN</td>
+<td>LTE 设计目标与需求</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所有 3GPP 规范均可在 <a target="_blank" rel="noopener" href="https://www.3gpp.org/ftp/Specs/">https://www.3gpp.org/ftp/Specs/</a> 免费下载最新版本。</p>
+</blockquote>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%EF%BC%9ALTE%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 背景：LTE的设计目标？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-OFDMA%EF%BC%9AOrthogonal-Frequency-Division-Multiple-Access"><span class="toc-number">3.</span> <span class="toc-text">2. OFDMA：Orthogonal Frequency Division Multiple Access</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-OFDM-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 OFDM 基本原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%90%E8%BD%BD%E6%B3%A2%E6%AD%A3%E4%BA%A4%E6%80%A7"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">子载波正交性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88Cyclic-Prefix-CP%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">循环前缀（Cyclic Prefix, CP）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#IFFT-FFT-%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">IFFT&#x2F;FFT 实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E7%BB%93%E6%9E%84"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 物理资源结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E7%BB%B4%E5%BA%A6"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">时间维度</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E7%8E%87%E7%BB%B4%E5%BA%A6%E4%B8%8E%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">频率维度与资源块（RB）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-OFDMA-%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 OFDMA 调度机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E4%B8%8A%E8%A1%8C%EF%BC%9ASC-FDMA"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 上行：SC-FDMA</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BD%95%E9%80%89%E6%8B%A9-SC-FDMA%EF%BC%9F"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">为何选择 SC-FDMA？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SC-FDMA-%E5%8F%91%E5%B0%84%E9%93%BE%E8%B7%AF"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">SC-FDMA 发射链路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%90%E8%BD%BD%E6%B3%A2%E6%98%A0%E5%B0%84%E6%96%B9%E5%BC%8F"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">子载波映射方式</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-MIMO%EF%BC%9A%E5%A4%9A%E5%A4%A9%E7%BA%BF%E6%8A%80%E6%9C%AF"><span class="toc-number">4.</span> <span class="toc-text">3. MIMO：多天线技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%9B%86%E4%B8%8E%E5%A4%8D%E7%94%A8%E7%9A%84%E6%9D%83%E8%A1%A1"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分集与复用的权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%91%E5%B0%84%E5%88%86%E9%9B%86%EF%BC%88Transmit-Diversity%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 发射分集（Transmit Diversity）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SFBC%EF%BC%88%E7%A9%BA%E9%A2%91%E5%9D%97%E7%BC%96%E7%A0%81%EF%BC%8CSpace-Frequency-Block-Coding%EF%BC%89"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">SFBC（空频块编码，Space-Frequency Block Coding）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%A9%BA%E9%97%B4%E5%A4%8D%E7%94%A8%EF%BC%88Spatial-Multiplexing%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 空间复用（Spatial Multiplexing）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B1%82%E6%98%A0%E5%B0%84%EF%BC%88Layer-Mapping%EF%BC%89"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">层映射（Layer Mapping）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%84%E7%BC%96%E7%A0%81%EF%BC%88Precoding%EF%BC%89"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">预编码（Precoding）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MU-MIMO%EF%BC%88%E5%A4%9A%E7%94%A8%E6%88%B7-MIMO%EF%BC%89"><span class="toc-number">4.0.3.3.</span> <span class="toc-text">MU-MIMO（多用户 MIMO）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%BC%A0%E8%BE%93%E6%A8%A1%E5%BC%8F%EF%BC%88Transmission-Mode%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 传输模式（Transmission Mode）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-CSI-%E5%8F%8D%E9%A6%88%EF%BC%9ACQI-PMI-RI"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 CSI 反馈：CQI &#x2F; PMI &#x2F; RI</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-EPS%EF%BC%9A%E6%BC%94%E8%BF%9B%E5%88%86%E7%BB%84%E7%B3%BB%E7%BB%9F%EF%BC%88Evolved-Packet-System%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. EPS：演进分组系统（Evolved Packet System）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 整体架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-E-UTRAN%EF%BC%9AeNB"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 E-UTRAN：eNB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-EPC-%E6%A0%B8%E5%BF%83%E7%BD%91%E5%85%83"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 EPC 核心网元</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#MME%EF%BC%88Mobility-Management-Entity%EF%BC%8C%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86%E5%AE%9E%E4%BD%93%EF%BC%89"><span class="toc-number">5.0.3.1.</span> <span class="toc-text">MME（Mobility Management Entity，移动性管理实体）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SGW%EF%BC%88Serving-Gateway%EF%BC%8C%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%EF%BC%89"><span class="toc-number">5.0.3.2.</span> <span class="toc-text">SGW（Serving Gateway，服务网关）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PGW%EF%BC%88PDN-Gateway%EF%BC%8CPDN-%E7%BD%91%E5%85%B3%EF%BC%89"><span class="toc-number">5.0.3.3.</span> <span class="toc-text">PGW（PDN Gateway，PDN 网关）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HSS%EF%BC%88Home-Subscriber-Server%EF%BC%8C%E5%BD%92%E5%B1%9E%E7%94%A8%E6%88%B7%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%89"><span class="toc-number">5.0.3.4.</span> <span class="toc-text">HSS（Home Subscriber Server，归属用户服务器）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PCRF%EF%BC%88Policy-and-Charging-Rules-Function%EF%BC%8C%E7%AD%96%E7%95%A5%E4%B8%8E%E8%AE%A1%E8%B4%B9%E8%A7%84%E5%88%99%E5%8A%9F%E8%83%BD%EF%BC%89"><span class="toc-number">5.0.3.5.</span> <span class="toc-text">PCRF（Policy and Charging Rules Function，策略与计费规则功能）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 关键接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-EPS-Bearer-%E4%B8%8E-QoS-%E4%BD%93%E7%B3%BB"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 EPS Bearer 与 QoS 体系</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Bearer-%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.0.5.1.</span> <span class="toc-text">Bearer 类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#QCI%EF%BC%88QoS-Class-Identifier%EF%BC%89"><span class="toc-number">5.0.5.2.</span> <span class="toc-text">QCI（QoS Class Identifier）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AF%94%E7%89%B9%E7%8E%87%E5%8F%82%E6%95%B0"><span class="toc-number">5.0.5.3.</span> <span class="toc-text">比特率参数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UE-%E6%95%B0%E6%8D%AE%E8%B7%AF%E5%BE%84%EF%BC%88%E7%94%A8%E6%88%B7%E9%9D%A2%EF%BC%89"><span class="toc-number">5.0.5.4.</span> <span class="toc-text">UE 数据路径（用户面）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-LTE-%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87%E4%B8%80%E8%A7%88"><span class="toc-number">6.</span> <span class="toc-text">5. LTE 性能指标一览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">7.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&text=LTE 核心技术速览"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&is_video=false&description=LTE 核心技术速览"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LTE 核心技术速览&body=Check out this article: http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&title=LTE 核心技术速览"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&name=LTE 核心技术速览&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/02/07/3gpp/04_LTE_Core_Technologies/&t=LTE 核心技术速览"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

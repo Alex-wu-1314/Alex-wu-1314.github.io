@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="引言 代码写出来是要给人看的，顺便能在机器上跑。这句话道出了软件设计的本质，设计是写给人看的艺术，而不只是给编译器听的技巧。  在软件开发中，我们整天在设计：类该怎么划分，接口该怎么定义，模块之间的依赖该怎么管理。设计原则就是前辈们从无数失败和成功中提炼出的智慧结晶，它们不告诉我们怎么做，但告诉我们什么方向是对的。 这篇六个最核心的设计原则：YAGNI让我们别做多余的事，DRY教我们消除重复，KI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程之设计篇：减少复杂度、保持简单的原则">
+<meta property="og:url" content="http://example.com/2021/11/04/software%20engineering/06-design%20laws/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="引言 代码写出来是要给人看的，顺便能在机器上跑。这句话道出了软件设计的本质，设计是写给人看的艺术，而不只是给编译器听的技巧。  在软件开发中，我们整天在设计：类该怎么划分，接口该怎么定义，模块之间的依赖该怎么管理。设计原则就是前辈们从无数失败和成功中提炼出的智慧结晶，它们不告诉我们怎么做，但告诉我们什么方向是对的。 这篇六个最核心的设计原则：YAGNI让我们别做多余的事，DRY教我们消除重复，KI">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-11-04T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-04T13:02:57.383Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="software engineering">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>软件工程之设计篇：减少复杂度、保持简单的原则</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/11/20/software%20engineering/07-decision%20laws/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/28/software%20engineering/05-scale%20laws/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/04/software%20engineering/06-design%20laws/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&text=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&is_video=false&description=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之设计篇：减少复杂度、保持简单的原则&body=Check out this article: http://example.com/2021/11/04/software%20engineering/06-design%20laws/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&name=软件工程之设计篇：减少复杂度、保持简单的原则&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&t=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#YAGNI-%E2%80%94-%E4%B8%8D%E9%9C%80%E8%A6%81%E7%9A%84%E4%B8%9C%E8%A5%BF%EF%BC%8C%E4%B8%8D%E8%A6%81%E5%81%9A"><span class="toc-number">2.</span> <span class="toc-text">YAGNI — 不需要的东西，不要做</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DRY-%E2%80%94-%E6%AF%8F%E4%B8%AA%E7%9F%A5%E8%AF%86%E5%8F%AA%E6%9C%89%E4%B8%80%E4%B8%AA%E6%9D%83%E5%A8%81%E6%9D%A5%E6%BA%90"><span class="toc-number">3.</span> <span class="toc-text">DRY — 每个知识只有一个权威来源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#KISS-%E2%80%94-%E8%B6%8A%E7%AE%80%E5%8D%95%E8%B6%8A%E5%A5%BD"><span class="toc-number">4.</span> <span class="toc-text">KISS — 越简单越好</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SOLID-Principles-%E2%80%94-%E4%BA%94%E5%A4%A7%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="toc-number">5.</span> <span class="toc-text">SOLID Principles — 五大面向对象设计原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-of-Each-Principle"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview of Each Principle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Law-of-Demeter-%E2%80%94-%E5%8F%AA%E5%92%8C%E7%9B%B4%E6%8E%A5%E6%9C%8B%E5%8F%8B%E4%BA%A4%E4%BA%92"><span class="toc-number">6.</span> <span class="toc-text">Law of Demeter — 只和直接朋友交互</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Principle-of-Least-Astonishment-%E2%80%94-%E4%B8%8D%E8%A6%81%E8%AE%A9%E7%94%A8%E6%88%B7%E5%92%8C%E5%BC%80%E5%8F%91%E8%80%85%E6%84%9F%E5%88%B0%E6%84%8F%E5%A4%96"><span class="toc-number">7.</span> <span class="toc-text">Principle of Least Astonishment — 不要让用户和开发者感到意外</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9C%A8%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%B7%B7%E5%90%88%E4%BD%BF%E7%94%A8%E8%BF%99%E4%BA%9B%E5%8E%9F%E5%88%99%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">总结：如何在项目中混合使用这些原则？</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        软件工程之设计篇：减少复杂度、保持简单的原则
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-11-04T02:44:19.000Z" class="dt-published" itemprop="datePublished">2021-11-04</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/software-engineering/" rel="tag">software engineering</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><blockquote>
+<p>代码写出来是要给人看的，顺便能在机器上跑。这句话道出了软件设计的本质，设计是写给人看的艺术，而不只是给编译器听的技巧。</p>
+</blockquote>
+<p>在软件开发中，我们整天在设计：类该怎么划分，接口该怎么定义，模块之间的依赖该怎么管理。设计原则就是前辈们从无数失败和成功中提炼出的智慧结晶，它们不告诉我们怎么做，但告诉我们什么方向是对的。</p>
+<p>这篇六个最核心的设计原则：YAGNI让我们别做多余的事，DRY教我们消除重复，KISS提醒我们保持简单，SOLID是面向对象的五个金律，Law of Demeter帮我们控制耦合，而最小惊讶原则则让我们站在使用者的角度思考。它们不是铁律，而是在长期的软件工程实践中沉淀出来的经验指南，用来帮我们回答那个终极问题：这段代码到底该怎么写？</p>
+<hr>
+<h1 id="YAGNI-—-不需要的东西，不要做"><a href="#YAGNI-—-不需要的东西，不要做" class="headerlink" title="YAGNI — 不需要的东西，不要做"></a>YAGNI — 不需要的东西，不要做</h1><blockquote>
+<p><em>“Always implement things when you actually need them, never when you just foresee that you need them.”</em><br>— Ron Jeffries</p>
+</blockquote>
+<h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>YAGNI是Extreme Programming中的一句著名口号，全称是“You Aren’t Gonna Need It”。Ron Jeffries创造了这个词，目的是防止过度设计，让软件开发尽可能高效和直接。YAGNI传递的信息很简单：<strong>只实现当前真正需要的功能，不要为猜测中的未来需求提前加代码</strong>。</p>
+<p>为什么YAGNI如此重要？想象一下，你做了一个漂亮的抽象，准备支持明天可能会来的新功能，结果明天那个需求根本没出现。你浪费了时间，增加了代码复杂度，还让所有后来看代码的人困惑：“这段代码为什么存在？它用在哪里？”YAGNI的好处很直接：减少不必要的复杂度，节省时间精力，让代码库更易于维护，也让未来的扩展更加灵活。</p>
+<p>YAGNI能够成立的核心前提是：代码必须容易修改。如果你的代码很难改，就会不敢等到真正需要时才动手，这正是为什么YAGNI通常与持续重构、单元测试等敏捷实践相伴而行。</p>
+<h3 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h3><p><strong>案例一：过早抽象</strong></p>
+<p>想象你在做一个发货管理系统，需要发送短信通知用户包裹已送达。你用了某短信供应商的服务，功能跑得很顺畅。但你想：万一以后换供应商呢？于是你提前抽象出一个接口，开始写一个通用的短信服务层。</p>
+<p>问题来了：当换供应商的需求真的来临时，你发现你当初的抽象和老的供应商耦合太紧，需要大幅修改。而且你提前写的抽象其实并不通用。典型的浪费时间，还引入了新的bug。</p>
+<p>YAGNI的做法：现在就写最简单的版本，直接用某个供应商。将来真要换，再根据新供应商的实际需求来抽象。你会发现，等到真正动手的时候，你需要的信息更准确，抽象也更合理。</p>
+<p><strong>案例二：过早泛化</strong></p>
+<p>你在做一个博客平台，现在只需要简单的标签功能。你心想那些标签将来可能需要嵌套结构，于是花时间提前实现了一个完整的、支持无限层级的标签系统。</p>
+<p>结果呢？嵌套标签的需求从来就没有出现过。浪费的时间能算回来吗？不能。复杂的标签系统让所有后来的开发者在学习代码时都被迫理解那些根本用不上的特性。</p>
+<h3 id="Takeaways"><a href="#Takeaways" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>YAGNI的三个核心原则：</p>
+<ol>
+<li><strong>只做现在需要的，不要为猜测的未来添砖加瓦。</strong> 你猜的未来大概率是错的。</li>
+<li><strong>保持代码容易更改。</strong> 充分的测试覆盖率和遵循单一职责、DRY等原则，让代码更容易适应变化。</li>
+<li><strong>避免预测性通用化。</strong> 先写好当前的特例设计，当真正的重复需求出现时，再提取抽象。提前抽象带来的往往不是节省，而是更多的麻烦。</li>
+</ol>
+<hr>
+<h1 id="DRY-—-每个知识只有一个权威来源"><a href="#DRY-—-每个知识只有一个权威来源" class="headerlink" title="DRY — 每个知识只有一个权威来源"></a>DRY — 每个知识只有一个权威来源</h1><blockquote>
+<p><em>“Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.”</em><br>— Andy Hunt &amp; Dave Thomas, <em>The Pragmatic Programmer</em></p>
+</blockquote>
+<h3 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h3><p>DRY原则出自《程序员修炼之道》，但它不是简单的“不要重复代码”。它的核心是<strong>知识的单一权威来源</strong>，系统中的每个知识片段都应该有唯一、明确、权威的表述。</p>
+<p>如果相同的逻辑（如运费计算规则，或用户权限判定）散落在项目的三四个地方，你就无法保证这些副本永远一致。改一个地方的公式，总要记得去改其他所有地方。如果漏了一个，就会有bug。</p>
+<p>DRY的真正目的是<strong>分离关注点和促进正确的代码复用</strong>，从而写出更容易测试和重构的可维护代码。DRY的原则不仅仅是消除重复代码，还包括文档重复、数据重复、表征重复等多种形式的重复。但并非所有重复都应消灭，关键在于消除知识和意图的重复，而不是字面意义上的代码行重复。</p>
+<h3 id="Examples-1"><a href="#Examples-1" class="headerlink" title="Examples"></a>Examples</h3><p><strong>案例一：什么是真正的重复？</strong></p>
+<p>假设你的代码中有两个看似一样的逻辑：一个判断任务是否逾期，一个判断付款是否逾期。它们的代码一模一样，都是检查日期是否超过了某个阈值。</p>
+<p>但是，“任务逾期”和“付款逾期”是两种不同的概念。虽然现在逻辑相同，但未来的变化方向不同。付款可能增加更多验证，比如需要检查付款方式或汇率；任务则可能加入状态条件，比如“完成状态”的任务不应被视为逾期。如果强行抽取成一个公共函数，后续任何一方需要差异化逻辑时，修改都会变得极其困难。</p>
+<p>正确的做法是：容忍早期的小型重复，等真正看清了模式之后再提取抽象。</p>
+<p><strong>案例二：过度DRY的诅咒</strong></p>
+<p>你有一段共享代码被多个项目使用。你想，这样很DRY，改一处所有地方都同步。完美！</p>
+<p>问题是，某天你修改了那段共享代码里一个小细节（比如四舍五入的精度），所有依赖它的项目的行为都变了。有些可能期待两位小数，有些可能期待整数，但现在它们全被你改了。这就是过度耦合的代价。与其无差别地复用，不如仔细评估每个调用者的真正预期。</p>
+<h3 id="Takeaways-1"><a href="#Takeaways-1" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>DRY的三个核心原则：</p>
+<ol>
+<li><strong>DRY是关于知识的，不是关于代码的。</strong> 两个完全不同的业务概念即使长得一样，也不应该强行复用一个抽象。</li>
+<li><strong>过早抽离比不抽离更危险。</strong> 在需求还没稳定时就强行DRY，往往会把不同方向的未来需求锁死在一起。</li>
+<li><strong>当KISS和DRY冲突时，优先KISS。</strong> 简单清晰的重复优于复杂难懂的抽象。</li>
+</ol>
+<hr>
+<h1 id="KISS-—-越简单越好"><a href="#KISS-—-越简单越好" class="headerlink" title="KISS — 越简单越好"></a>KISS — 越简单越好</h1><blockquote>
+<p><em>“The most effective way to solve a problem is to make it as simple as possible.”</em></p>
+</blockquote>
+<h3 id="Overview-2"><a href="#Overview-2" class="headerlink" title="Overview"></a>Overview</h3><p>KISS原则的核心思想简洁得不讲道理：<strong>最好保持简单。</strong> 在软件设计中，真正优秀的设计往往是最简单的那个，而不是堆满了各种抽象和模式的“杰作”。</p>
+<p>为什么简单如此重要？因为复杂的代码很难读懂，难以维护，也容易藏Bug。简化的系统更容易理解、测试和修改。Unix系统的设计哲学就是KISS的典型体现，由许多只做一件事的小程序组成，复杂的操作通过管道组合完成。</p>
+<p>但请注意，KISS不等于简陋。它提倡的是在满足需求的前提下找到最简单的解决方案。有时复杂性是不可避免的，比如高可靠性系统需要冗余设计，这时KISS就不是与复杂性对立，而是敦促你不要引入无意义的额外复杂性。</p>
+<h3 id="Examples-2"><a href="#Examples-2" class="headerlink" title="Examples"></a>Examples</h3><p><strong>案例一：牙膏厂的迷之方案</strong></p>
+<p>有一家牙膏厂的故事：生产线的空盒子偶尔会漏装牙膏，导致空盒流出。A工程师在流水线上加装了一套复杂的高精度秤、激光传感器和电子气枪，价格昂贵。B工程师则很简单：买一台工业风扇对着流水线吹，空盒子自己就飞走了。</p>
+<p>简单往往是最好的方案。</p>
+<p><strong>案例二：认证服务的设计</strong></p>
+<p>今天你需要一个用户认证功能，只需要校验用户名和密码。KISS的做法就是写一个清晰的函数来完成这个单一任务。千万不要第一天就开始设计全功能、可插拔的“认证策略框架”。那不是简单，那是猜测。第二天可能还是只需要用户名和密码，你的框架注定没人用。</p>
+<h3 id="Takeaways-2"><a href="#Takeaways-2" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>KISS的三个核心原则：</p>
+<ol>
+<li><strong>把KISS作为你的默认立场。</strong> 复杂的设计必须有充分的理由才能被接受。</li>
+<li><strong>不要为了方便延展而提前增加复杂性。</strong> 先做最简单可用的版本，等到复杂的必要性显现时再迭代。</li>
+<li><strong>在KISS与DRY冲突时，优先选择KISS。</strong> 清晰的重复优于晦涩的抽象。</li>
+</ol>
+<hr>
+<h1 id="SOLID-Principles-—-五大面向对象设计原则"><a href="#SOLID-Principles-—-五大面向对象设计原则" class="headerlink" title="SOLID Principles — 五大面向对象设计原则"></a>SOLID Principles — 五大面向对象设计原则</h1><blockquote>
+<p><em>SOLID五个原则帮你写出高内聚、低耦合的面向对象代码。</em></p>
+</blockquote>
+<p>SOLID是面向对象设计五个核心原则的缩写，由Robert C. Martin（Bob大叔）在21世纪初提出，Michael Feathers将其概括为SOLID这个好记的缩写。它们分别是：</p>
+<ul>
+<li><strong>S — Single Responsibility Principle（单一职责原则）</strong></li>
+<li><strong>O — Open&#x2F;Closed Principle（开放-关闭原则）</strong></li>
+<li><strong>L — Liskov Substitution Principle（里氏替换原则）</strong></li>
+<li><strong>I — Interface Segregation Principle（接口隔离原则）</strong></li>
+<li><strong>D — Dependency Inversion Principle（依赖倒置原则）</strong></li>
+</ul>
+<p>SOLID原则的目标是让软件更容易理解、更灵活、更易维护，特别是在系统规模增大的时候。</p>
+<h3 id="Overview-of-Each-Principle"><a href="#Overview-of-Each-Principle" class="headerlink" title="Overview of Each Principle"></a>Overview of Each Principle</h3><p><strong>S — 单一职责原则（SRP）：</strong> 一个类应该只有一个引起它变化的原因（或者说，只对一类行为者负责）。不要把多个职责塞进一个类里，否则改A职责时可能影响B职责。</p>
+<p><strong>O — 开放-关闭原则（OCP）：</strong> 软件实体（类、模块、函数）应该对扩展开放，对修改关闭。新增功能时最好通过扩展已有代码而非修改它。</p>
+<p><strong>L — 里氏替换原则（LSP）：</strong> 子类必须能够替换掉父类。如果某个地方用了父类对象，换成任意子类对象后程序的行为应该保持不变。违反LSP的典型例子是子类抛出了父类没声明的异常，或者改变了父类定义的行为。</p>
+<p><strong>I — 接口隔离原则（ISP）：</strong> 避免设计臃肿的“胖接口”。接口应该针对具体的调用方精准设计，而不是用一个万能接口强迫所有实现方实现不需要的方法。</p>
+<p><strong>D — 依赖倒置原则（DIP）：</strong> 高层模块不应依赖低层模块，两者都应依赖抽象。抽象不依赖细节，细节依赖抽象。这样才能避免“改一个底层实现就导致整个系统震荡”的问题。</p>
+<h3 id="Examples-3"><a href="#Examples-3" class="headerlink" title="Examples"></a>Examples</h3><p><strong>违反SRP的例子：</strong></p>
+<p>一个类同时负责用户数据管理和发送欢迎邮件的逻辑。如果用户数据字段改变，这个类要改；如果邮件发送逻辑改变，这个类也要改，两个不相干的变更原因耦合在了一起。正确的做法是拆成用户实体、邮件发送器和用户服务三个独立的类。</p>
+<p><strong>违反OCP的例子：</strong></p>
+<p>一个消息发布方法里有多个条件分支，分别处理以不同字符开头的消息内容。当你需要支持新的消息类型时，你不得不修改这个方法的源代码。正确的做法是通过继承或多态来实现扩展。</p>
+<p><strong>违反LSP的例子：</strong></p>
+<p>如果有一个鸟类父类和一个企鹅子类，父类有个“飞行”方法在父类中运行正常，但企鹅不会飞。如果强行覆盖父类方法却抛出异常或者留空，任何依赖鸟类并调用“飞行”方法的调用方在传入企鹅时就会出问题。子类无法替换父类，LSP就被破坏了。</p>
+<p><strong>违反ISP的例子：</strong></p>
+<p>一个多功能打印机接口包含了打印、扫描、复印三个方法。普通的打印机类只需要实现打印方法，但按照接口定义，它被迫实现了空置的扫描和复印方法。违背ISP的接口设计就是这样，客户端被迫依赖它们并不使用的方法。</p>
+<p><strong>违反DIP的例子：</strong></p>
+<p>高层的用户服务直接依赖低层的MySQL数据库类。哪天需要替换成PostgreSQL或MongoDB，就必须修改用户服务的代码。正确的做法是依赖一个抽象的数据库接口，让用户服务持有接口，底层实现依赖于这个接口。</p>
+<h3 id="Takeaways-3"><a href="#Takeaways-3" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>SOLID的五点总结：</p>
+<ol>
+<li><strong>单一职责（SRP）</strong> ， 一个类只做一件事，让修改的原因只有一个，合情合理。</li>
+<li><strong>开放-关闭（OCP）</strong> ， 功能通过扩展增加，而不是修改现有代码。大动干戈只会引入问题。</li>
+<li><strong>里氏替换（LSP）</strong> ， 子类可以被当做父类使用，且不改变行为预期。这是多态的基础。</li>
+<li><strong>接口隔离（ISP）</strong> ， 宁愿多点窄接口，也不用一个大而全的“万能接口”污染调用方。</li>
+<li><strong>依赖倒置（DIP）</strong> ， 依赖抽象而不是具体实现，防止底层修改影响高层逻辑。</li>
+</ol>
+<h1 id="Law-of-Demeter-—-只和直接朋友交互"><a href="#Law-of-Demeter-—-只和直接朋友交互" class="headerlink" title="Law of Demeter — 只和直接朋友交互"></a>Law of Demeter — 只和直接朋友交互</h1><blockquote>
+<p><em>“Each unit should have only limited knowledge about other units: only units closely related to the current unit.”</em></p>
+</blockquote>
+<h3 id="Overview-3"><a href="#Overview-3" class="headerlink" title="Overview"></a>Overview</h3><p>得墨忒耳定律（Law of Demeter，LoD）也叫<strong>最少知识原则</strong>，每个模块应该只了解那些和它直接相关的其他模块。简单说，就是告诉你要控制对象之间的聊天范围：不要跟陌生对象讲话。</p>
+<p>具体到代码层面：一个方法只允许调用以下对象的成员：该方法所在对象本身、该方法的参数、该方法创建的局部对象、该方法的直接成员变量。像那种多层链式调用（例如“客户.钱包.获取内容”），LoD强烈反对，因为它增加了类之间的耦合，让代码更难维护。</p>
+<h3 id="Examples-4"><a href="#Examples-4" class="headerlink" title="Examples"></a>Examples</h3><p><strong>违反LoD的例子：</strong></p>
+<p>假设你的代码想获取用户的现金数额。你直接写“客户.钱包.获取内容”，这就不仅访问了客户对象，还访问了它的钱包对象，甚至直接去取钱包的内部内容。如果未来钱包的内部结构发生变化，所有写这种链式调用的地方都必须修改，耦合得太紧。</p>
+<p><strong>正确做法：</strong></p>
+<p>在客户对象里加一个方法“获取可用资金”直接返回余额，调用者只需要知道“客户.获取可用资金”，完全不需要关心客户的对象内部有钱包这件事。LoD的本质是封装和减少耦合。</p>
+<p><strong>另一个常见场景：</strong></p>
+<p>UI层直接遍历类似“协议.类别.学科.名称”这样的链式路径，这种深度访问可达三层以上。当实体关系发生变更时（比如从“类别”改成了“协议类型”），UI层的所有绑定都会失效。</p>
+<h3 id="Takeaways-4"><a href="#Takeaways-4" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>LoD的三个核心原则：</p>
+<ol>
+<li><strong>“告诉，别问”</strong> ， 告诉对象你需要什么（如“客户.获取可用资金”），而不是问它内部结构长什么样。</li>
+<li><strong>长链式调用是代码异味</strong> ， 类似“a.b.c.d.操作”的链是警示信号，说明你可能在过度暴露内部结构。</li>
+<li><strong>更好的信息隐藏带来更强适应性</strong> ， LoD不是让你写无数包装方法，而是帮你培养“谁该负责什么”的良好直觉。</li>
+</ol>
+<hr>
+<h1 id="Principle-of-Least-Astonishment-—-不要让用户和开发者感到意外"><a href="#Principle-of-Least-Astonishment-—-不要让用户和开发者感到意外" class="headerlink" title="Principle of Least Astonishment — 不要让用户和开发者感到意外"></a>Principle of Least Astonishment — 不要让用户和开发者感到意外</h1><blockquote>
+<p><em>“代码应该做它看起来应该做的事情。”</em></p>
+</blockquote>
+<h3 id="Overview-4"><a href="#Overview-4" class="headerlink" title="Overview"></a>Overview</h3><p>最小惊讶原则要求：<strong>系统的行为应该与用户的预期保持一致</strong>。当函数、类或模块的行为与它的名字或接口所暗示的不符时，用户会感到“惊讶”。惊讶就是混淆和错误的温床，它意味着代码的可预测性和可读性很差。</p>
+<p>人类的大脑善于建立心理模型。如果一个名为“添加VLAN”的函数在调用后不但添加了VLAN，还配置了所有端口的VLAN，用户会感觉困惑，进而缺乏信任。代码应该做的是你第一眼看上去会觉得它要做的事。</p>
+<h3 id="Examples-5"><a href="#Examples-5" class="headerlink" title="Examples"></a>Examples</h3><p><strong>案例一：名为只读，实为写入</strong></p>
+<p>一个函数名为“获取用户”，但它不仅在数据库中查询用户，如果用户不存在还会自动创建一个默认用户并写入数据库。函数名暗示“获取”，但实际上它还会创建用户。如果在事务中使用这个函数，你可能会在完全意料不到的地方执行了数据库写入。调用方无法预料这种副作用。解决方案是拆分为“获取用户”和“获取或创建用户”，让函数名准确反映行为。</p>
+<p><strong>案例二：函数调用却修改了原数据</strong></p>
+<p>一个名为“获取排序后的用户列表”的函数，内部直接对输入的用户列表进行了原地排序，然后返回排序后的结果。调用方预期没有副作用，实际上却修改了输入数据。调用方在使用原始数组时可能会发现数据已被打乱，无法理解原因。解决方案是返回排序后的新列表，保留原数据不变。</p>
+<h3 id="Takeaways-5"><a href="#Takeaways-5" class="headerlink" title="Takeaways"></a>Takeaways</h3><p>最小惊讶原则的三个核心原则：</p>
+<ol>
+<li><strong>函数名要诚实</strong> ， “是否有效”不应该同时修复数据，“获取配置”不应该跑去读数据库。</li>
+<li><strong>返回值要用约定俗成的表达方式</strong> ， 用空值&#x2F;可选类型&#x2F;结果类型明确表示“没有”。不要返回空对象造成逻辑谬误。</li>
+<li><strong>优先考虑调用方的心理模型</strong> ， 你的实现细节是你的问题，不是调用方的问题。调用方只看函数名和接口来推测行为。</li>
+</ol>
+<hr>
+<h1 id="总结：如何在项目中混合使用这些原则？"><a href="#总结：如何在项目中混合使用这些原则？" class="headerlink" title="总结：如何在项目中混合使用这些原则？"></a>总结：如何在项目中混合使用这些原则？</h1><p>这些设计原则不是彼此独立、互斥的，而是同一套设计工具箱里的不同工具。KISS、YAGNI和DRY常被一起提及，因为它们共同指向“简化设计”的方向。但千万别把它们当成教条、盲目套用。真正有价值的是灵活运用，理解它们之间的相互作用：</p>
+<ul>
+<li><strong>KISS</strong>是你的默认拳法（绝大部分情况下追求简单），<strong>YAGNI</strong>帮你避免过度设计（防止猜测和过度抽象），<strong>DRY</strong>则要精准打击，只在真正的知识重复时出手。</li>
+<li><strong>KISS</strong> 和 <strong>DRY</strong> 会发生冲突，例如在早期重复模糊的时候。当两者发生冲突，<strong>KISS应该优先于DRY</strong>，清晰的重复优于晦涩的抽象。</li>
+<li><strong>SOLID</strong>是长期维持代码健康的关键，尤其在系统变大之后。但要警惕，过早应用SOLID（特别是在YAGNI之前）可能导致过度设计。</li>
+<li><strong>Law of Demeter</strong>和<strong>最小惊讶原则</strong>更多关乎人类心理成本和可沟通性，确保新开发者能快速理解代码的结构和行为，减少不必要的心智负担。</li>
+</ul>
+<p>这些原则就像雕塑家的工具：KISS是粗雕刀（塑形），DRY是砂纸（打磨），YAGNI是约束你少雕多余部分的手。它们平衡使用才能真正打造出优雅的作品。</p>
+<hr>
+<p><em>本系列博客基于 <a target="_blank" rel="noopener" href="https://lawsofsoftwareengineering.com/">Laws of Software Engineering</a> 网站整理和扩展，如有兴趣深入了解，推荐购买原书获取全部 63+ 条定律的深度解析。</em></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%95%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#YAGNI-%E2%80%94-%E4%B8%8D%E9%9C%80%E8%A6%81%E7%9A%84%E4%B8%9C%E8%A5%BF%EF%BC%8C%E4%B8%8D%E8%A6%81%E5%81%9A"><span class="toc-number">2.</span> <span class="toc-text">YAGNI — 不需要的东西，不要做</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview"><span class="toc-number">2.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples"><span class="toc-number">2.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways"><span class="toc-number">2.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DRY-%E2%80%94-%E6%AF%8F%E4%B8%AA%E7%9F%A5%E8%AF%86%E5%8F%AA%E6%9C%89%E4%B8%80%E4%B8%AA%E6%9D%83%E5%A8%81%E6%9D%A5%E6%BA%90"><span class="toc-number">3.</span> <span class="toc-text">DRY — 每个知识只有一个权威来源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-1"><span class="toc-number">3.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-1"><span class="toc-number">3.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-1"><span class="toc-number">3.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#KISS-%E2%80%94-%E8%B6%8A%E7%AE%80%E5%8D%95%E8%B6%8A%E5%A5%BD"><span class="toc-number">4.</span> <span class="toc-text">KISS — 越简单越好</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-2"><span class="toc-number">4.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-2"><span class="toc-number">4.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-2"><span class="toc-number">4.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SOLID-Principles-%E2%80%94-%E4%BA%94%E5%A4%A7%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="toc-number">5.</span> <span class="toc-text">SOLID Principles — 五大面向对象设计原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-of-Each-Principle"><span class="toc-number">5.0.1.</span> <span class="toc-text">Overview of Each Principle</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-3"><span class="toc-number">5.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-3"><span class="toc-number">5.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Law-of-Demeter-%E2%80%94-%E5%8F%AA%E5%92%8C%E7%9B%B4%E6%8E%A5%E6%9C%8B%E5%8F%8B%E4%BA%A4%E4%BA%92"><span class="toc-number">6.</span> <span class="toc-text">Law of Demeter — 只和直接朋友交互</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-3"><span class="toc-number">6.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-4"><span class="toc-number">6.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-4"><span class="toc-number">6.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Principle-of-Least-Astonishment-%E2%80%94-%E4%B8%8D%E8%A6%81%E8%AE%A9%E7%94%A8%E6%88%B7%E5%92%8C%E5%BC%80%E5%8F%91%E8%80%85%E6%84%9F%E5%88%B0%E6%84%8F%E5%A4%96"><span class="toc-number">7.</span> <span class="toc-text">Principle of Least Astonishment — 不要让用户和开发者感到意外</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Overview-4"><span class="toc-number">7.0.1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Examples-5"><span class="toc-number">7.0.2.</span> <span class="toc-text">Examples</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Takeaways-5"><span class="toc-number">7.0.3.</span> <span class="toc-text">Takeaways</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9C%A8%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%B7%B7%E5%90%88%E4%BD%BF%E7%94%A8%E8%BF%99%E4%BA%9B%E5%8E%9F%E5%88%99%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">总结：如何在项目中混合使用这些原则？</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/04/software%20engineering/06-design%20laws/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&text=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&is_video=false&description=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=软件工程之设计篇：减少复杂度、保持简单的原则&body=Check out this article: http://example.com/2021/11/04/software%20engineering/06-design%20laws/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&title=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&name=软件工程之设计篇：减少复杂度、保持简单的原则&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/04/software%20engineering/06-design%20laws/&t=软件工程之设计篇：减少复杂度、保持简单的原则"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

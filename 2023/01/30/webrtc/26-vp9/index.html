@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 背景与历史 核心设计目标 技术架构详解 编码单元与分区 帧间预测与运动补偿 帧内预测 变换与量化 环路滤波 熵编码   编码 Profile 与 Level 可伸缩编码（SVC） VP9 在 WebRTC 中的应用 RTP 封装（RFC 9628） SDP 协商 SVC 与 SFU 协同   与其他编码器的对比 容器格式支持 实现与工具链 浏览器与平台兼容性 专利与许可 局限性与适用场景">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源">
+<meta property="og:url" content="http://example.com/2023/01/30/webrtc/26-vp9/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 背景与历史 核心设计目标 技术架构详解 编码单元与分区 帧间预测与运动补偿 帧内预测 变换与量化 环路滤波 熵编码   编码 Profile 与 Level 可伸缩编码（SVC） VP9 在 WebRTC 中的应用 RTP 封装（RFC 9628） SDP 协商 SVC 与 SFU 协同   与其他编码器的对比 容器格式支持 实现与工具链 浏览器与平台兼容性 专利与许可 局限性与适用场景">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-01-30T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-04-30T09:10:43.469Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="webrtc">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/02/17/webrtc/27-opus-webrtc-audio-codec/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/01/15/webrtc/25-VP8/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/30/webrtc/26-vp9/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/30/webrtc/26-vp9/&text=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/30/webrtc/26-vp9/&is_video=false&description=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源&body=Check out this article: http://example.com/2023/01/30/webrtc/26-vp9/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/30/webrtc/26-vp9/&name=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/30/webrtc/26-vp9/&t=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">2.</span> <span class="toc-text">背景与历史</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="toc-number">3.</span> <span class="toc-text">核心设计目标</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">技术架构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E4%B8%8E%E5%88%86%E5%8C%BA"><span class="toc-number">4.0.1.</span> <span class="toc-text">编码单元与分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">4.0.2.</span> <span class="toc-text">帧间预测与运动补偿</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">帧内预测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96"><span class="toc-number">4.0.4.</span> <span class="toc-text">变换与量化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2"><span class="toc-number">4.0.5.</span> <span class="toc-text">环路滤波</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.6.</span> <span class="toc-text">熵编码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BC%96%E7%A0%81-Profile-%E4%B8%8E-Level"><span class="toc-number">5.</span> <span class="toc-text">编码 Profile 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Profiles%EF%BC%88%E7%BC%96%E7%A0%81%E9%85%8D%E7%BD%AE%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">Profiles（编码配置）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Levels%EF%BC%88%E7%AD%89%E7%BA%A7%E7%BA%A6%E6%9D%9F%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">Levels（等级约束）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%AF%E4%BC%B8%E7%BC%A9%E7%BC%96%E7%A0%81%EF%BC%88SVC%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">可伸缩编码（SVC）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">6.0.1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%B1%82%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">时间层（Temporal Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E9%97%B4%E5%B1%82%EF%BC%88Spatial-Scalability%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">空间层（Spatial Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SVC-vs-Simulcast"><span class="toc-number">6.0.4.</span> <span class="toc-text">SVC vs Simulcast</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#VP9-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">VP9 在 WebRTC 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RTP-%E5%B0%81%E8%A3%85%EF%BC%88RFC-9628%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">RTP 封装（RFC 9628）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.0.2.</span> <span class="toc-text">SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SVC-%E4%B8%8E-SFU-%E5%8D%8F%E5%90%8C"><span class="toc-number">7.0.3.</span> <span class="toc-text">SVC 与 SFU 协同</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">8.</span> <span class="toc-text">与其他编码器的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-VP8"><span class="toc-number">8.0.1.</span> <span class="toc-text">VP9 vs VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-H-265%EF%BC%88HEVC%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">VP9 vs H.265（HEVC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-AV1"><span class="toc-number">8.0.3.</span> <span class="toc-text">VP9 vs AV1</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%E6%A0%BC%E5%BC%8F%E6%94%AF%E6%8C%81"><span class="toc-number">9.</span> <span class="toc-text">容器格式支持</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">10.</span> <span class="toc-text">实现与工具链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#libvpx"><span class="toc-number">10.0.1.</span> <span class="toc-text">libvpx</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FFmpeg%EF%BC%88libvpx-vp9%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">FFmpeg（libvpx-vp9）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.0.3.</span> <span class="toc-text">其他实现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8E%E5%B9%B3%E5%8F%B0%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">11.</span> <span class="toc-text">浏览器与平台兼容性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">12.</span> <span class="toc-text">专利与许可</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">13.</span> <span class="toc-text">局限性与适用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">13.0.1.</span> <span class="toc-text">主要局限性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E6%8E%A8%E8%8D%90"><span class="toc-number">13.0.2.</span> <span class="toc-text">适用场景推荐</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-01-30T02:44:19.000Z" class="dt-published" itemprop="datePublished">2023-01-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/webrtc/" rel="tag">webrtc</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2">背景与历史</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87">核心设计目标</a></li>
+<li><a href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3">技术架构详解</a><ul>
+<li><a href="#%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E4%B8%8E%E5%88%86%E5%8C%BA">编码单元与分区</a></li>
+<li><a href="#%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF">帧间预测与运动补偿</a></li>
+<li><a href="#%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B">帧内预测</a></li>
+<li><a href="#%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96">变换与量化</a></li>
+<li><a href="#%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2">环路滤波</a></li>
+<li><a href="#%E7%86%B5%E7%BC%96%E7%A0%81">熵编码</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BC%96%E7%A0%81-profile-%E4%B8%8E-level">编码 Profile 与 Level</a></li>
+<li><a href="#%E5%8F%AF%E4%BC%B8%E7%BC%A9%E7%BC%96%E7%A0%81svc">可伸缩编码（SVC）</a></li>
+<li><a href="#vp9-%E5%9C%A8-webrtc-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">VP9 在 WebRTC 中的应用</a><ul>
+<li><a href="#rtp-%E5%B0%81%E8%A3%85rfc-9628">RTP 封装（RFC 9628）</a></li>
+<li><a href="#sdp-%E5%8D%8F%E5%95%86">SDP 协商</a></li>
+<li><a href="#svc-%E4%B8%8E-sfu-%E5%8D%8F%E5%90%8C">SVC 与 SFU 协同</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94">与其他编码器的对比</a></li>
+<li><a href="#%E5%AE%B9%E5%99%A8%E6%A0%BC%E5%BC%8F%E6%94%AF%E6%8C%81">容器格式支持</a></li>
+<li><a href="#%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%93%BE">实现与工具链</a></li>
+<li><a href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8E%E5%B9%B3%E5%8F%B0%E5%85%BC%E5%AE%B9%E6%80%A7">浏览器与平台兼容性</a></li>
+<li><a href="#%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF">专利与许可</a></li>
+<li><a href="#%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF">局限性与适用场景</a></li>
+</ol>
+<hr>
+<h1 id="背景与历史"><a href="#背景与历史" class="headerlink" title="背景与历史"></a>背景与历史</h1><p>VP9 是由 Google 主导开发的开源、免版税视频编码格式，于 <strong>2013 年 6 月 17 日</strong> 正式发布，作为 WebM 项目的下一代视频编解码器。</p>
+<p>VP9 的技术血统可追溯至 2010 年 Google 以约 <strong>1.246 亿美元</strong> 收购视频编码公司 On2 Technologies。On2 是 VPx 系列编解码器的开发者，其产品线涵盖 VP6（Adobe Flash 的主要编解码器）、VP7、VP8 等。Google 在 2010 年 5 月将 VP8 开源，同时推出了基于 Matroska 的 WebM 容器格式。2011 年，VP9 的研发工作正式启动，目标是为超高清（4K 及以上）内容提供更高效的压缩方案。</p>
+<p>VP9 比特流规范在 2013 年 6 月随 libvpx 参考实现首次发布后历经多次修订，目前最新草案版本为 <strong>v0.7（2017-02-22）</strong>，可从 WebM 项目官网下载。</p>
+<p><strong>重要里程碑：</strong></p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>事件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2011 年</td>
+<td>VP9 开发启动</td>
+</tr>
+<tr>
+<td>2013-06-17</td>
+<td>VP9 比特流规范及 libvpx 实现正式发布</td>
+</tr>
+<tr>
+<td>2013-06-26</td>
+<td>Chrome 29 Dev 频道默认启用 VP9 解码</td>
+</tr>
+<tr>
+<td>2013-12-06</td>
+<td>Firefox Aurora 夜间版加入 VP9 解码支持</td>
+</tr>
+<tr>
+<td>2015-04</td>
+<td>libvpx 1.4.0 加入 10&#x2F;12bit 及 4:2:2&#x2F;4:4:4 支持</td>
+</tr>
+<tr>
+<td>2016-01</td>
+<td>Chrome 48 稳定版在 WebRTC 中启用 VP9</td>
+</tr>
+<tr>
+<td>2016-04</td>
+<td>Microsoft Edge 宣布支持 VP9</td>
+</tr>
+<tr>
+<td>2016-12</td>
+<td>Netflix 开始使用 VP9 进行视频下载</td>
+</tr>
+<tr>
+<td>2020-09</td>
+<td>Safari 14（iOS 14 &#x2F; macOS Big Sur）加入 VP9 支持</td>
+</tr>
+<tr>
+<td>2025-03</td>
+<td><strong>RFC 9628</strong>（VP9 RTP 载荷格式）正式发布</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="核心设计目标"><a href="#核心设计目标" class="headerlink" title="核心设计目标"></a>核心设计目标</h1><p>VP9 的设计在 VP8 的基础上全面升级，主要目标如下：</p>
+<ol>
+<li><strong>比 VP8 和 H.264 节省约 50% 的码率</strong>，在相同画质下显著降低带宽消耗。</li>
+<li><strong>压缩效率与 H.265（HEVC）相当</strong>，同时保持完全开源、免版税的授权模式。</li>
+<li><strong>原生支持超高分辨率</strong>，最大分辨率可达 65536×65536 像素（远超 HEVC 的 8192×4320）。</li>
+<li><strong>内建可伸缩视频编码（SVC）支持</strong>，通过时间层和空间层实现灵活的自适应码率调整，对 SFU 架构尤为友好。</li>
+<li><strong>支持 HDR 与宽色域</strong>，兼容 Rec. 2020、HLG、PQ 等现代显示标准。</li>
+<li><strong>开放开发流程</strong>，技术演进在公开的代码仓库中进行，接受社区审查。</li>
+</ol>
+<hr>
+<h1 id="技术架构详解"><a href="#技术架构详解" class="headerlink" title="技术架构详解"></a>技术架构详解</h1><p>VP9 与 VP8、H.264 同属混合编解码器（Hybrid Codec）架构，核心流程为：<strong>预测 → 变换 → 量化 → 熵编码</strong>。但 VP9 在每个环节均引入了显著改进。</p>
+<h3 id="编码单元与分区"><a href="#编码单元与分区" class="headerlink" title="编码单元与分区"></a>编码单元与分区</h3><p>VP9 最重要的结构升级来自于 <strong>超级块（Superblock）</strong> 机制。</p>
+<ul>
+<li><strong>VP8</strong> 固定使用 <strong>16×16 像素的宏块（Macroblock）</strong>，在高分辨率视频中编码效率较低。</li>
+<li><strong>VP9</strong> 引入最大 <strong>64×64 像素的超级块</strong>，并支持<strong>递归四叉树分区（Recursive Quadtree Partitioning）</strong>，从 64×64 一路向下细分至 <strong>4×4</strong> 的最小编码单元。</li>
+</ul>
+<p>这种灵活的分区机制允许编码器：</p>
+<ul>
+<li>在平坦区域使用大块（64×64 或 32×32），减少冗余信息；</li>
+<li>在复杂纹理或边缘区域使用小块（8×8 或 4×4），保留细节。</li>
+</ul>
+<p>支持的分区类型包括：正方形分区（SQUARE）、水平分裂（HORZ）、垂直分裂（VERT）以及四叉树分裂（SPLIT）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">64×64 超级块</span><br><span class="line">├── 32×32</span><br><span class="line">│   ├── 16×16</span><br><span class="line">│   │   ├── 8×8</span><br><span class="line">│   │   └── 8×8</span><br><span class="line">│   └── 16×16</span><br><span class="line">└── 32×32</span><br><span class="line">    └── ...（递归细分至 4×4）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="帧间预测与运动补偿"><a href="#帧间预测与运动补偿" class="headerlink" title="帧间预测与运动补偿"></a>帧间预测与运动补偿</h3><p><strong>参考帧管理：</strong></p>
+<p>VP9 维护一个包含 <strong>8 个参考帧的缓冲池</strong>，每帧最多可引用其中 <strong>3 个</strong>参考帧（LAST_FRAME、GOLDEN_FRAME、ALTREF_FRAME）。</p>
+<p>VP9 还允许新帧引用<strong>不同分辨率</strong>的参考帧（当前帧的 1&#x2F;16 到 2 倍分辨率之间均可），这一特性使得在不插入关键帧的前提下实现分辨率动态切换成为可能，也是空间 SVC 的技术基础。</p>
+<p><strong>运动向量预测模式：</strong></p>
+<ul>
+<li><strong>NEARESTMV</strong>：最近邻运动向量</li>
+<li><strong>NEARMV</strong>：次近邻运动向量</li>
+<li><strong>ZEROMV</strong>：零运动向量</li>
+<li><strong>NEWMV</strong>：显式编码新运动向量</li>
+</ul>
+<p><strong>子像素插值：</strong></p>
+<p>VP9 使用 <strong>8 抽头（8-tap）插值滤波器</strong>进行亚像素运动估计（VP8 仅使用 6 抽头），显著提升了复杂运动序列的预测精度。支持的滤波器类型包括 EIGHTTAP、EIGHTTAP_SMOOTH 和 EIGHTTAP_SHARP，编码器可以按块自适应选择。</p>
+<p><strong>Superframe（超级帧）：</strong></p>
+<p>VP9 支持类似 B 帧的 <strong>Alternate Reference（ALTREF）帧</strong>机制。隐藏的 ALTREF 帧与普通帧打包在一个 Superframe 中，在显示时可被用作参考，从而在不破坏帧顺序的前提下提升压缩效率。</p>
+<hr>
+<h3 id="帧内预测"><a href="#帧内预测" class="headerlink" title="帧内预测"></a>帧内预测</h3><p>VP9 相比 VP8 大幅扩展了帧内预测模式，从 4 种增加到 <strong>10 种</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DC_PRED</td>
+<td>使用相邻像素均值填充</td>
+</tr>
+<tr>
+<td>V_PRED</td>
+<td>垂直方向预测</td>
+</tr>
+<tr>
+<td>H_PRED</td>
+<td>水平方向预测</td>
+</tr>
+<tr>
+<td>D45_PRED</td>
+<td>对角线 45° 方向预测</td>
+</tr>
+<tr>
+<td>D135_PRED</td>
+<td>对角线 135° 方向预测</td>
+</tr>
+<tr>
+<td>D117_PRED</td>
+<td>117° 方向预测</td>
+</tr>
+<tr>
+<td>D153_PRED</td>
+<td>153° 方向预测</td>
+</tr>
+<tr>
+<td>D207_PRED</td>
+<td>207° 方向预测</td>
+</tr>
+<tr>
+<td>D63_PRED</td>
+<td>63° 方向预测</td>
+</tr>
+<tr>
+<td>TM_PRED</td>
+<td>True Motion 预测（考虑对角梯度，对自然纹理效果好）</td>
+</tr>
+</tbody></table>
+<p>更丰富的帧内预测方向使得 VP9 能更精准地建模图像的方向性纹理结构，从而减少残差能量，提升压缩效率。</p>
+<hr>
+<h3 id="变换与量化"><a href="#变换与量化" class="headerlink" title="变换与量化"></a>变换与量化</h3><p><strong>变换（Transform）：</strong></p>
+<p>VP9 支持多种尺寸的变换，以适配不同大小的编码块：</p>
+<table>
+<thead>
+<tr>
+<th>变换尺寸</th>
+<th>适用块大小</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>4×4</td>
+<td>最小分区</td>
+</tr>
+<tr>
+<td>8×8</td>
+<td>中等细节区域</td>
+</tr>
+<tr>
+<td>16×16</td>
+<td>较平滑区域</td>
+</tr>
+<tr>
+<td>32×32</td>
+<td>大面积平坦区域</td>
+</tr>
+</tbody></table>
+<p>变换类型方面，VP9 同时支持：</p>
+<ul>
+<li><strong>DCT（离散余弦变换）</strong>：适合平滑信号；</li>
+<li><strong>ADST（非对称离散正弦变换）</strong>：适合靠近帧内预测边界的残差，可更好地建模边界附近的能量分布。</li>
+</ul>
+<p>编码器可以在 DCT 和 ADST 之间自适应选择，以获得最优的率失真性能。</p>
+<p><strong>无损编码：</strong></p>
+<p>VP9 通过在量化参数（q index）为 0 时，额外传输一个 <strong>4×4 Walsh–Hadamard 变换（WHT）残差信号</strong>来实现真正的无损编码。这是 VP9 区别于许多其他编解码器的独特功能。</p>
+<p><strong>量化（Quantization）：</strong></p>
+<p>VP9 提供 <strong>0-255</strong> 共 256 个量化步长（q index），而 VP8 只有 127 个，粒度更细，使码率控制更精准。VP9 还支持<strong>分段量化（Segmentation）</strong>，可将帧划分为最多 8 个分段，每个分段独立控制量化参数，实现内容感知的自适应量化。</p>
+<hr>
+<h3 id="环路滤波"><a href="#环路滤波" class="headerlink" title="环路滤波"></a>环路滤波</h3><p>VP9 的环路滤波器（Loop Filter）在 VP8 基础上进行了改进：</p>
+<ul>
+<li>可以在<strong>超级块级别</strong>调整滤波强度，而非整帧统一处理；</li>
+<li>通过分段（Segmentation）机制，对运动较快或纹理复杂的区域应用不同的滤波强度；</li>
+<li>旨在消除块边界的方块效应（Blocking Artifacts），同时保留真实的图像细节。</li>
+</ul>
+<hr>
+<h3 id="熵编码"><a href="#熵编码" class="headerlink" title="熵编码"></a>熵编码</h3><p>VP9 放弃了 VP8 使用的布尔算术编码器（Boolean Arithmetic Coder），引入了基于<strong>上下文自适应的二进制算术编码</strong>（VP9 布尔编码器）。</p>
+<p>编码器维护了大量上下文相关的概率模型，并根据已编码内容动态更新概率，实现更高效的无损压缩。帧头中还包含可选的<strong>概率刷新（Probability Reset）</strong>机制，允许在关键帧或场景切换时重置概率模型。</p>
+<hr>
+<h1 id="编码-Profile-与-Level"><a href="#编码-Profile-与-Level" class="headerlink" title="编码 Profile 与 Level"></a>编码 Profile 与 Level</h1><h3 id="Profiles（编码配置）"><a href="#Profiles（编码配置）" class="headerlink" title="Profiles（编码配置）"></a>Profiles（编码配置）</h3><p>VP9 定义了 4 个编码 Profile，以适应不同的色彩深度和色度二次采样需求（来源：<a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/profiles/">WebM Project - VP9 Coding Profiles</a>）：</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>色彩深度</th>
+<th>色度格式</th>
+<th>典型应用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0</strong></td>
+<td>8 bit&#x2F;样本</td>
+<td>4:2:0</td>
+<td>Web 流媒体（YouTube、WebRTC）的主流配置</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td>8 bit</td>
+<td>4:2:2、4:4:4</td>
+<td>专业制作、色彩精确度要求高的场景</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>10 或 12 bit</td>
+<td>4:2:0</td>
+<td>HDR10、宽色域 4K 内容</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>10 或 12 bit</td>
+<td>4:2:2、4:4:4</td>
+<td>专业 HDR 内容制作</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Profile 0 是绝大多数 Web 端 VP9 内容的实际配置，YouTube 默认以 Profile 0 编码 SDR 视频。Profile 2 用于 HDR10+ 内容分发，但不支持 Dolby Vision（后者需要 HEVC）。</p>
+</blockquote>
+<h3 id="Levels（等级约束）"><a href="#Levels（等级约束）" class="headerlink" title="Levels（等级约束）"></a>Levels（等级约束）</h3><p>VP9 定义了从 <strong>1.0 到 6.2</strong> 共 <strong>14 个 Level</strong>，每个 Level 对最大分辨率、帧率、码率和解码处理能力进行约束，以便设备厂商声明解码能力。</p>
+<p>部分关键 Level 示例：</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>最大分辨率</th>
+<th>最大帧率</th>
+<th>最大码率（Profile 0&#x2F;1）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.0</td>
+<td>128×96</td>
+<td>30 fps</td>
+<td>200 kbps</td>
+</tr>
+<tr>
+<td>3.0</td>
+<td>1080p</td>
+<td>30 fps</td>
+<td>8 Mbps</td>
+</tr>
+<tr>
+<td>4.0</td>
+<td>2160p（4K）</td>
+<td>30 fps</td>
+<td>18 Mbps</td>
+</tr>
+<tr>
+<td>5.0</td>
+<td>4096×2160</td>
+<td>60 fps</td>
+<td>60 Mbps</td>
+</tr>
+<tr>
+<td>6.0</td>
+<td>8192×4352</td>
+<td>30 fps</td>
+<td>60 Mbps</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="可伸缩编码（SVC）"><a href="#可伸缩编码（SVC）" class="headerlink" title="可伸缩编码（SVC）"></a>可伸缩编码（SVC）</h1><p>VP9 最重要的 WebRTC 相关特性之一是对 <strong>可伸缩视频编码（Scalable Video Coding，SVC）</strong> 的原生支持。</p>
+<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>SVC 允许在<strong>单一码流</strong>中嵌入多个质量层，接收端或中间节点（SFU）可以根据网络状况和设备能力，选择性地解码和转发其中一个子集，而无需进行服务器端转码。</p>
+<p>VP9 支持两种层次类型（与 VP8 的对比见下表）：</p>
+<table>
+<thead>
+<tr>
+<th>编解码器</th>
+<th>时间层（Temporal）</th>
+<th>空间层（Spatial）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>VP8</strong></td>
+<td>支持</td>
+<td>不支持</td>
+</tr>
+<tr>
+<td><strong>VP9</strong></td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>H.264</td>
+<td>部分支持</td>
+<td>不支持</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>引自 MDN Web Docs：VP8 仅支持时间层，VP9 同时支持时间层和空间层。</p>
+</blockquote>
+<h3 id="时间层（Temporal-Scalability）"><a href="#时间层（Temporal-Scalability）" class="headerlink" title="时间层（Temporal Scalability）"></a>时间层（Temporal Scalability）</h3><p>时间层定义了不同的帧率。例如，一个 3 层时间结构（T0&#x2F;T1&#x2F;T2）可以提供：</p>
+<ul>
+<li><strong>T0（基础层）</strong>：完整帧率的 1&#x2F;4，如 7.5 fps</li>
+<li><strong>T1（增强层 1）</strong>：完整帧率的 1&#x2F;2，如 15 fps</li>
+<li><strong>T2（增强层 2）</strong>：完整帧率，如 30 fps</li>
+</ul>
+<p>编码规则：较高层的帧<strong>必须只依赖同层或更低层的帧</strong>，确保在丢弃高层后码流仍然可以正确解码。</p>
+<h3 id="空间层（Spatial-Scalability）"><a href="#空间层（Spatial-Scalability）" class="headerlink" title="空间层（Spatial Scalability）"></a>空间层（Spatial Scalability）</h3><p>空间层定义了不同的分辨率。VP9 利用其<strong>跨分辨率参考帧</strong>机制，高分辨率层的帧可以引用低分辨率层的帧作为参考，实现高效的空间可伸缩性。</p>
+<p>典型配置（<code>2SL3TL</code> 模式，即 2 个空间层 × 3 个时间层）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">S1（全分辨率 640×480）</span><br><span class="line">├── T0（7.5 fps）</span><br><span class="line">├── T1（15 fps）</span><br><span class="line">└── T2（30 fps）</span><br><span class="line"></span><br><span class="line">S0（半分辨率 320×240）</span><br><span class="line">├── T0（7.5 fps）</span><br><span class="line">├── T1（15 fps）</span><br><span class="line">└── T2（30 fps）</span><br></pre></td></tr></table></figure>
+
+<p>SFU 可根据每个订阅者的带宽和设备能力，动态选择转发合适的层，比 VP8 的 Simulcast 方案（需要发送端同时发送多条独立流）在网络和 CPU 利用率上更为高效。</p>
+<p>以 Chrome 开启 VP9 SVC 的调试 flag 为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chrome --force-fieldtrials=WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL</span><br></pre></td></tr></table></figure>
+
+<p>开启后，Chrome 将对每条 VP9 流进行 SVC 编码，生成 2 个空间层（尺寸和尺寸的 1&#x2F;2）和 3 个时间层（fps、fps&#x2F;2、fps&#x2F;4）。</p>
+<h3 id="SVC-vs-Simulcast"><a href="#SVC-vs-Simulcast" class="headerlink" title="SVC vs Simulcast"></a>SVC vs Simulcast</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Simulcast（VP8 常用）</th>
+<th>SVC（VP9 原生支持）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发送端编码流数</td>
+<td>多条独立流</td>
+<td>单条码流</td>
+</tr>
+<tr>
+<td>发送端 CPU 开销</td>
+<td>较高（多路编码）</td>
+<td>较低（单路编码）</td>
+</tr>
+<tr>
+<td>网络带宽占用</td>
+<td>较高（冗余包头）</td>
+<td>较低</td>
+</tr>
+<tr>
+<td>SFU 切换复杂度</td>
+<td>简单</td>
+<td>复杂（需理解依赖关系）</td>
+</tr>
+<tr>
+<td>层间切换延迟</td>
+<td>较低</td>
+<td>可能稍高（等待关键层）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="VP9-在-WebRTC-中的应用"><a href="#VP9-在-WebRTC-中的应用" class="headerlink" title="VP9 在 WebRTC 中的应用"></a>VP9 在 WebRTC 中的应用</h1><h3 id="RTP-封装（RFC-9628）"><a href="#RTP-封装（RFC-9628）" class="headerlink" title="RTP 封装（RFC 9628）"></a>RTP 封装（RFC 9628）</h3><p>VP9 的 RTP 载荷格式经过长达数年的标准化工作，于 <strong>2025 年 3 月</strong> 正式以 <strong>RFC 9628</strong> 发布（前身为 <code>draft-ietf-payload-vp9</code>，由 Justin Uberti、Stefan Holmer 等来自 Google 和 8x8&#x2F;Jitsi 的工程师共同起草）。</p>
+<p><strong>VP9 Payload Descriptor</strong> 是 RFC 9628 的核心数据结构，附加在每个 VP9 RTP 包的载荷头部：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"> 0 1 2 3 4 5 6 7</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line">|I|P|L|F|B|E|V|Z|   （必选字节）</span><br><span class="line">+-+-+-+-+-+-+-+-+</span><br><span class="line"></span><br><span class="line">I: Picture ID 存在标志</span><br><span class="line">P: 帧间预测（非关键帧）</span><br><span class="line">L: Layer Indices 存在标志（时间/空间层 ID）</span><br><span class="line">F: 灵活模式（Flexible Mode）</span><br><span class="line">B: 帧的起始包</span><br><span class="line">E: 帧的结束包</span><br><span class="line">V: Scalability Structure (SS) 存在标志</span><br><span class="line">Z: 此包不用于层间依赖</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键字段说明：</strong></p>
+<ul>
+<li><strong>Picture ID</strong>：单调递增的图像 ID，用于支持乱序重组和 NACK 关联；</li>
+<li><strong>Layer Indices（TID&#x2F;SID）</strong>：分别标识时间层 ID（Temporal ID）和空间层 ID（Spatial ID），SFU 依据这两个字段决定是否转发该包；</li>
+<li><strong>Scalability Structure（SS）</strong>：在特定帧（如关键帧）中携带完整的 SVC 层结构描述，便于 SFU 理解码流拓扑。</li>
+</ul>
+<p><strong>RTP 头部使用（遵循 RFC 3550）：</strong></p>
+<ul>
+<li>Marker 位（M 位）置 1 表示当前 VP9 帧的最后一个 RTP 包；</li>
+<li>时间戳使用 <strong>90000 Hz</strong> 的时钟频率（与其他视频 RTP 格式一致）；</li>
+<li>大帧可以分片（Fragment）跨多个 RTP 包传输。</li>
+</ul>
+<p>RFC 9628 还定义了 VP9 专属的 RTCP 反馈消息扩展：</p>
+<ul>
+<li><strong>RPSI（Reference Picture Selection Indication）</strong>：请求使用特定参考图像；</li>
+<li><strong>FIR（Full Intra Request）</strong>：请求关键帧（与 H.264&#x2F;VP8 通用）；</li>
+<li><strong>LRR（Layer Refresh Request）</strong>：请求刷新特定的时间层或空间层，是 VP9 SVC 特有的机制。</li>
+</ul>
+<h3 id="SDP-协商"><a href="#SDP-协商" class="headerlink" title="SDP 协商"></a>SDP 协商</h3><p>VP9 在 SDP 中的媒体类型标识为 <code>video/VP9</code>，通过标准 SDP Offer&#x2F;Answer 流程协商（参考 RFC 9628 Section 6）。</p>
+<p>典型的 VP9 SDP 媒体行示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">m=video 9 UDP/TLS/RTP/SAVPF 96</span><br><span class="line">a=rtpmap:96 VP9/90000</span><br><span class="line">a=rtcp-fb:96 goog-remb</span><br><span class="line">a=rtcp-fb:96 transport-cc</span><br><span class="line">a=rtcp-fb:96 ccm fir</span><br><span class="line">a=rtcp-fb:96 nack</span><br><span class="line">a=rtcp-fb:96 nack pli</span><br><span class="line">a=fmtp:96 profile-id=0</span><br></pre></td></tr></table></figure>
+
+<p><code>profile-id</code> 参数对应 VP9 的编码 Profile（0-3），默认为 0。Offer&#x2F;Answer 双方应选择双方均支持的最高 Profile。</p>
+<h3 id="SVC-与-SFU-协同"><a href="#SVC-与-SFU-协同" class="headerlink" title="SVC 与 SFU 协同"></a>SVC 与 SFU 协同</h3><p>在大规模视频会议场景中，VP9 SVC 是实现 SFU 架构高效路由的关键：</p>
+<ol>
+<li><strong>发布端</strong>以 VP9 SVC 模式编码，单码流中包含多个空间层和时间层；</li>
+<li><strong>SFU</strong> 解析每个 RTP 包的 Payload Descriptor，读取 TID 和 SID；</li>
+<li><strong>SFU</strong> 根据每个订阅者的下行带宽估计，为其选择合适的层组合进行转发；</li>
+<li><strong>订阅端</strong>只需解码所接收层及其依赖层，无需处理完整码流。</li>
+</ol>
+<p>Google Meet 正是利用 VP9 SVC 支撑其大规模视频会议，在不引入服务器端转码的前提下为不同网络条件的用户提供差异化的视频质量。</p>
+<hr>
+<h1 id="与其他编码器的对比"><a href="#与其他编码器的对比" class="headerlink" title="与其他编码器的对比"></a>与其他编码器的对比</h1><h3 id="VP9-vs-VP8"><a href="#VP9-vs-VP8" class="headerlink" title="VP9 vs VP8"></a>VP9 vs VP8</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>VP8</th>
+<th>VP9</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最大编码单元</td>
+<td>16×16 宏块</td>
+<td>64×64 超级块</td>
+</tr>
+<tr>
+<td>帧内预测模式</td>
+<td>4 种</td>
+<td>10 种</td>
+</tr>
+<tr>
+<td>帧间参考帧数</td>
+<td>3 个固定槽位</td>
+<td>8 个缓冲池，每帧引用 3 个</td>
+</tr>
+<tr>
+<td>子像素插值滤波</td>
+<td>6 抽头</td>
+<td>8 抽头，3 种自适应类型</td>
+</tr>
+<tr>
+<td>变换尺寸</td>
+<td>4×4、8×8、16×16</td>
+<td>4×4 ~ 32×32</td>
+</tr>
+<tr>
+<td>变换类型</td>
+<td>DCT</td>
+<td>DCT + ADST</td>
+</tr>
+<tr>
+<td>最大分辨率</td>
+<td>16383×16383</td>
+<td>65536×65536</td>
+</tr>
+<tr>
+<td>SVC 空间层</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>无损编码</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>压缩效率提升</td>
+<td>基准</td>
+<td>约 30-50% 更优</td>
+</tr>
+</tbody></table>
+<h3 id="VP9-vs-H-265（HEVC）"><a href="#VP9-vs-H-265（HEVC）" class="headerlink" title="VP9 vs H.265（HEVC）"></a>VP9 vs H.265（HEVC）</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>VP9</th>
+<th>H.265 &#x2F; HEVC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>许可证</td>
+<td>开源、免版税（互惠授权）</td>
+<td>需支付 MPEG-LA 等专利费</td>
+</tr>
+<tr>
+<td>压缩效率</td>
+<td>相当（略弱于顶级 HEVC 编码器）</td>
+<td>略优（特别是慢速档位）</td>
+</tr>
+<tr>
+<td>浏览器支持率</td>
+<td>~96%</td>
+<td>~18%</td>
+</tr>
+<tr>
+<td>硬件解码支持</td>
+<td>2016 年后的 GPU&#x2F;SoC 普遍支持</td>
+<td>主流硬件广泛支持</td>
+</tr>
+<tr>
+<td>硬件编码支持</td>
+<td>较弱（主要依赖软件编码）</td>
+<td>成熟（移动端、桌面端均有）</td>
+</tr>
+<tr>
+<td>最大分辨率</td>
+<td>65536×65536</td>
+<td>8192×4320</td>
+</tr>
+</tbody></table>
+<p>在 2017 年 Streaming Media Magazine 基于 VMAF 指标的测试中，VP9 与两种主流 HEVC 编码器压缩效率非常接近；低码率下 VP9 与 H.265 均大幅优于 H.264；在中高码率下三者差距趋于收窄。</p>
+<h3 id="VP9-vs-AV1"><a href="#VP9-vs-AV1" class="headerlink" title="VP9 vs AV1"></a>VP9 vs AV1</h3><p>AV1 是 VP9 的继任者，由 Alliance for Open Media（AOMedia）基于 VP10（Google VP9 后续研发）、Daala（Mozilla）和 Thor（Cisco）融合开发。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>VP9</th>
+<th>AV1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>压缩效率</td>
+<td>基准</td>
+<td>比 VP9 再提升约 30%</td>
+</tr>
+<tr>
+<td>软件编码速度</td>
+<td>较快</td>
+<td>慢（软件编码极为耗时）</td>
+</tr>
+<tr>
+<td>硬件解码成熟度</td>
+<td>成熟</td>
+<td>2020 年后新硬件支持</td>
+</tr>
+<tr>
+<td>WebRTC 应用现状</td>
+<td>广泛</td>
+<td>逐步推进中</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>中大流量平台</td>
+<td>超大规模流媒体平台</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="容器格式支持"><a href="#容器格式支持" class="headerlink" title="容器格式支持"></a>容器格式支持</h1><p>VP9 视频流需要封装在容器格式中才能分发：</p>
+<table>
+<thead>
+<tr>
+<th>容器</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>WebM</strong></td>
+<td>VP9 的原生容器，配套 Opus&#x2F;Vorbis 音频，Google 开发，基于 Matroska（MKV）规范</td>
+</tr>
+<tr>
+<td><strong>MKV（Matroska）</strong></td>
+<td>支持 VP9 及更广泛的音频格式（AAC、FLAC、Opus 等）</td>
+</tr>
+<tr>
+<td><strong>MP4（MPEG-4 Part 14）</strong></td>
+<td>通过 <code>vp09</code> Codec ID 支持 VP9，由 Netflix 于 2015 年提议，支持 DASH 分发；规范见 <a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/mp4/">VP Codec ISO Media File Format Binding</a></td>
+</tr>
+<tr>
+<td><strong>HLS</strong></td>
+<td>官方规范<strong>不支持</strong> VP9，Apple HLS 仅允许 H.264&#x2F;H.265</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="实现与工具链"><a href="#实现与工具链" class="headerlink" title="实现与工具链"></a>实现与工具链</h1><h3 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h3><p><strong>libvpx</strong> 是 VP9 的参考实现，由 Google 维护，以 <strong>修订版 BSD 许可证（Revised BSD License）</strong> 开源。VP9 的编码和解码支持自 2013-06-17 起进入 libvpx 主干，自 libvpx 1.3.0 版本（2013-12-02）起正式发布。</p>
+<p>获取与构建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://chromium.googlesource.com/webm/libvpx</span><br><span class="line"><span class="built_in">cd</span> libvpx</span><br><span class="line">./configure</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用 vpxenc 进行 VP9 编码：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 基础 VP9 编码，CQ 模式（恒定质量）</span></span><br><span class="line">vpxenc input.y4m \</span><br><span class="line">  --codec=vp9 \</span><br><span class="line">  --width=1920 --height=1080 \</span><br><span class="line">  --end-usage=cq \</span><br><span class="line">  --cq-level=33 \</span><br><span class="line">  --passes=2 \</span><br><span class="line">  --threads=4 \</span><br><span class="line">  -o output.webm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 目标码率模式（VBR）</span></span><br><span class="line">vpxenc input.y4m \</span><br><span class="line">  --codec=vp9 \</span><br><span class="line">  --width=1920 --height=1080 \</span><br><span class="line">  --end-usage=vbr \</span><br><span class="line">  --target-bitrate=3000 \</span><br><span class="line">  --passes=2 \</span><br><span class="line">  -o output.webm</span><br></pre></td></tr></table></figure>
+
+<h3 id="FFmpeg（libvpx-vp9）"><a href="#FFmpeg（libvpx-vp9）" class="headerlink" title="FFmpeg（libvpx-vp9）"></a>FFmpeg（libvpx-vp9）</h3><p>FFmpeg 通过 <code>libvpx-vp9</code> 接口调用 libvpx，是最常用的 VP9 工具链。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 两遍编码（Two-Pass），质量优先</span></span><br><span class="line">ffmpeg -i input.mp4 \</span><br><span class="line">  -c:v libvpx-vp9 \</span><br><span class="line">  -b:v 0 -crf 33 \</span><br><span class="line">  -pass 1 -an -f null /dev/null &amp;&amp; \</span><br><span class="line">ffmpeg -i input.mp4 \</span><br><span class="line">  -c:v libvpx-vp9 \</span><br><span class="line">  -b:v 0 -crf 33 \</span><br><span class="line">  -pass 2 \</span><br><span class="line">  -c:a libopus -b:a 128k \</span><br><span class="line">  output.webm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时编码（适合 WebRTC/直播，牺牲部分质量换取速度）</span></span><br><span class="line">ffmpeg -i input.mp4 \</span><br><span class="line">  -c:v libvpx-vp9 \</span><br><span class="line">  -b:v 2000k \</span><br><span class="line">  -deadline realtime \</span><br><span class="line">  -cpu-used 8 \</span><br><span class="line">  -c:a libopus -b:a 128k \</span><br><span class="line">  output.webm</span><br></pre></td></tr></table></figure>
+
+<p><strong>重要编码参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-crf 0-63</code></td>
+<td>恒定质量模式，值越小质量越高（推荐 31-40）</td>
+</tr>
+<tr>
+<td><code>-b:v 0</code></td>
+<td>与 <code>-crf</code> 配合使用，启用恒定质量模式</td>
+</tr>
+<tr>
+<td><code>-deadline realtime</code></td>
+<td>最快速度，适合实时场景</td>
+</tr>
+<tr>
+<td><code>-deadline good</code></td>
+<td>平衡速度与质量</td>
+</tr>
+<tr>
+<td><code>-deadline best</code></td>
+<td>最高质量，速度最慢</td>
+</tr>
+<tr>
+<td><code>-cpu-used 0-8</code></td>
+<td>CPU 使用率控制，0 最慢质量最好，8 最快</td>
+</tr>
+<tr>
+<td><code>-tile-columns</code></td>
+<td>并行解码分片数，建议设为 <code>log2(线程数)</code></td>
+</tr>
+<tr>
+<td><code>-row-mt 1</code></td>
+<td>启用行级多线程，提升编码速度</td>
+</tr>
+</tbody></table>
+<h3 id="其他实现"><a href="#其他实现" class="headerlink" title="其他实现"></a>其他实现</h3><table>
+<thead>
+<tr>
+<th>实现</th>
+<th>开发者</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Intel SVT-VP9</strong></td>
+<td>Intel</td>
+<td>针对服务器优化的速度-质量权衡实现</td>
+</tr>
+<tr>
+<td><strong>Eve-VP9</strong></td>
+<td>Two Orioles</td>
+<td>另一种编码器实现</td>
+</tr>
+<tr>
+<td><strong>FFmpeg 内置解码器</strong></td>
+<td>FFmpeg 社区</td>
+<td>独立于 libvpx 的解码实现，经 SIMD 优化，速度媲美 H.264 解码</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="浏览器与平台兼容性"><a href="#浏览器与平台兼容性" class="headerlink" title="浏览器与平台兼容性"></a>浏览器与平台兼容性</h1><p>根据 CanIUse 数据，VP9 在桌面和移动端的综合浏览器支持率约为 **96.26%**，远高于 HEVC 的 18%。</p>
+<p><strong>浏览器支持时间线：</strong></p>
+<table>
+<thead>
+<tr>
+<th>浏览器</th>
+<th>VP9 解码支持时间</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chrome 29（Dev）</td>
+<td>2013-06-26</td>
+</tr>
+<tr>
+<td>Firefox Aurora</td>
+<td>2013-12-06（夜间版），后续正式版跟进</td>
+</tr>
+<tr>
+<td>Microsoft Edge</td>
+<td>2016-04（宣布），EdgeHTML 14 起</td>
+</tr>
+<tr>
+<td>Opera</td>
+<td>随 Chromium 内核同步</td>
+</tr>
+<tr>
+<td>Safari</td>
+<td><strong>iOS 14 &#x2F; iPadOS 14 &#x2F; macOS Big Sur（2020-09）</strong></td>
+</tr>
+<tr>
+<td>Samsung Internet</td>
+<td>随 Chromium 内核同步</td>
+</tr>
+</tbody></table>
+<p><strong>系统与硬件支持：</strong></p>
+<ul>
+<li><strong>Android</strong>：自 Android 4.4 KitKat 起支持 VP9 软件解码；2016 年后出产的 GPU&#x2F;SoC 普遍具备硬件加速解码能力。</li>
+<li><strong>WebRTC 中的 VP9</strong>：Chrome 48（2016-01）起在 WebRTC 中正式启用 VP9，同时支持桌面端和 Android。</li>
+<li><strong>Google TV</strong>：使用 VP9 Profile 2（配合 Widevine DRM）。</li>
+</ul>
+<hr>
+<h1 id="专利与许可"><a href="#专利与许可" class="headerlink" title="专利与许可"></a>专利与许可</h1><p>VP9 的专利状况较为复杂，需要了解以下背景：</p>
+<p><strong>Google 的立场：</strong></p>
+<p>VP9 的技术代码以 <strong>修订版 BSD 许可证</strong> 开源。Google 基于<strong>专利互惠原则</strong>（Reciprocal Patent Grant）免费授权其持有的 VP9 相关专利——即只要用户不对 Google 提起专利诉讼，即可免费使用。</p>
+<p><strong>Sisvel 专利池（2019 年）：</strong></p>
+<p>2019 年 3 月，卢森堡公司 Sisvel 宣布建立 VP9 专利池，成员包括 JVCKenwood、NTT、Orange、飞利浦、东芝等，并于 2020 年 3 月公布了超过 650 件声明专利。Sisvel 的授权定价为：显示设备每台 0.24 欧元，非显示设备每台 0.08 欧元。</p>
+<p><strong>WebM 项目的回应：</strong></p>
+<p>WebM 项目声明，上述专利池成员均未参与 VP9 的实际开发，且第三方无法阻止其对任何开源、免版税技术主张专利权。Google 表示不会改变对 VP9 和 AV1 的使用计划。</p>
+<p><strong>实际影响：</strong></p>
+<p>在实践中，绝大多数 Web 开发者、平台运营商和设备制造商将 VP9 视为免版税标准使用。但在商业产品决策中，仍建议咨询法律顾问。</p>
+<hr>
+<h1 id="局限性与适用场景"><a href="#局限性与适用场景" class="headerlink" title="局限性与适用场景"></a>局限性与适用场景</h1><h3 id="主要局限性"><a href="#主要局限性" class="headerlink" title="主要局限性"></a>主要局限性</h3><p><strong>编码速度慢：</strong></p>
+<p>VP9 的软件编码速度显著慢于 H.264：在 FFmpeg 中，VP9 软件编码的 CPU 占用约为 x264 的 <strong>4 倍</strong>，且输出码率有时超出目标设置。这使其在需要实时软件编码的场景（如直播推流）中存在挑战。</p>
+<p><strong>硬件编码器稀缺：</strong></p>
+<p>市面上支持 VP9 硬件编码的芯片有限，主要依赖软件编码。相比之下，H.264 和 H.265 有成熟的硬件编码器生态（移动 SoC、GPU、专用编码卡等）。</p>
+<p><strong>HLS 不支持：</strong></p>
+<p>苹果的 HLS 流媒体协议不支持 VP9，直接影响其在 iOS 原生应用中的应用范围。</p>
+<h3 id="适用场景推荐"><a href="#适用场景推荐" class="headerlink" title="适用场景推荐"></a>适用场景推荐</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>VP9 适用性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>点播流媒体（VOD）</strong></td>
+<td>强烈推荐</td>
+<td>YouTube、Netflix 的核心编码格式</td>
+</tr>
+<tr>
+<td><strong>WebRTC 视频会议</strong></td>
+<td>推荐</td>
+<td>SVC 支持使其在 SFU 架构下极具优势</td>
+</tr>
+<tr>
+<td><strong>4K &#x2F; 高清流媒体</strong></td>
+<td>适合</td>
+<td>高压缩效率，适合大文件降带宽</td>
+</tr>
+<tr>
+<td><strong>DASH 自适应流</strong></td>
+<td>支持</td>
+<td>配合 WebM 或 MP4 容器均可</td>
+</tr>
+<tr>
+<td><strong>直播（软件编码）</strong></td>
+<td>谨慎</td>
+<td>编码 CPU 开销大，需充裕的服务器资源</td>
+</tr>
+<tr>
+<td><strong>iOS 原生应用（HLS）</strong></td>
+<td>不适用</td>
+<td>HLS 不支持 VP9</td>
+</tr>
+<tr>
+<td><strong>需要 Dolby Vision HDR</strong></td>
+<td>不支持</td>
+<td>需使用 HEVC</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><strong><a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/">The WebM Project - VP9 Video Codec</a></strong> — 官方 VP9 主页</li>
+<li><strong><a target="_blank" rel="noopener" href="https://storage.googleapis.com/downloads.webmproject.org/docs/vp9/vp9-bitstream-specification-v0.7-20170222-draft.pdf">VP9 Bitstream and Decoding Process Specification v0.7</a></strong> — VP9 比特流规范草案</li>
+<li><strong><a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/profiles/">VP9 Coding Profiles</a></strong> — 官方 Profile 定义</li>
+<li><strong><a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/levels/">VP9 Levels and Decoder Testing</a></strong> — 官方 Level 定义</li>
+<li><strong><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc9628">RFC 9628 - RTP Payload Format for VP9 Video</a></strong> — VP9 RTP 载荷格式正式标准（2025-03）</li>
+<li><strong><a target="_blank" rel="noopener" href="https://www.webmproject.org/vp9/mp4/">VP Codec ISO Media File Format Binding</a></strong> — VP9 in MP4 规范</li>
+<li><strong><a target="_blank" rel="noopener" href="https://www.webmproject.org/code/#libvpx-vp8vp9-codec-sdk">libvpx - VP8&#x2F;VP9 Codec SDK</a></strong> — VP9 参考实现</li>
+<li><strong><a target="_blank" rel="noopener" href="https://developers.google.com/media/vp9">Google Developers - VP9 Overview</a></strong> — Google 官方 VP9 概述</li>
+<li><strong><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc-svc/">W3C WebRTC SVC Specification</a></strong> — WebRTC 可伸缩视频编码规范</li>
+<li><strong><a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols">MDN - WebRTC Protocols</a></strong> — MDN 对 VP9 SVC 的说明</li>
+<li><strong>Mukherjee, D. et al.</strong> - <em>A Technical Overview of VP9 – the Latest Open-Source Video Codec</em>, IEEE ICME 2015</li>
+<li><strong><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/VP9">VP9 Wikipedia</a></strong> — 综合技术信息与历史</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%86%E5%8F%B2"><span class="toc-number">2.</span> <span class="toc-text">背景与历史</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87"><span class="toc-number">3.</span> <span class="toc-text">核心设计目标</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">技术架构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E5%8D%95%E5%85%83%E4%B8%8E%E5%88%86%E5%8C%BA"><span class="toc-number">4.0.1.</span> <span class="toc-text">编码单元与分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%A7%E9%97%B4%E9%A2%84%E6%B5%8B%E4%B8%8E%E8%BF%90%E5%8A%A8%E8%A1%A5%E5%81%BF"><span class="toc-number">4.0.2.</span> <span class="toc-text">帧间预测与运动补偿</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%A7%E5%86%85%E9%A2%84%E6%B5%8B"><span class="toc-number">4.0.3.</span> <span class="toc-text">帧内预测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E6%8D%A2%E4%B8%8E%E9%87%8F%E5%8C%96"><span class="toc-number">4.0.4.</span> <span class="toc-text">变换与量化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E8%B7%AF%E6%BB%A4%E6%B3%A2"><span class="toc-number">4.0.5.</span> <span class="toc-text">环路滤波</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%86%B5%E7%BC%96%E7%A0%81"><span class="toc-number">4.0.6.</span> <span class="toc-text">熵编码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BC%96%E7%A0%81-Profile-%E4%B8%8E-Level"><span class="toc-number">5.</span> <span class="toc-text">编码 Profile 与 Level</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Profiles%EF%BC%88%E7%BC%96%E7%A0%81%E9%85%8D%E7%BD%AE%EF%BC%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">Profiles（编码配置）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Levels%EF%BC%88%E7%AD%89%E7%BA%A7%E7%BA%A6%E6%9D%9F%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">Levels（等级约束）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%AF%E4%BC%B8%E7%BC%A9%E7%BC%96%E7%A0%81%EF%BC%88SVC%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">可伸缩编码（SVC）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">6.0.1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%B1%82%EF%BC%88Temporal-Scalability%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">时间层（Temporal Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E9%97%B4%E5%B1%82%EF%BC%88Spatial-Scalability%EF%BC%89"><span class="toc-number">6.0.3.</span> <span class="toc-text">空间层（Spatial Scalability）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SVC-vs-Simulcast"><span class="toc-number">6.0.4.</span> <span class="toc-text">SVC vs Simulcast</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#VP9-%E5%9C%A8-WebRTC-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">7.</span> <span class="toc-text">VP9 在 WebRTC 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RTP-%E5%B0%81%E8%A3%85%EF%BC%88RFC-9628%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">RTP 封装（RFC 9628）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SDP-%E5%8D%8F%E5%95%86"><span class="toc-number">7.0.2.</span> <span class="toc-text">SDP 协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SVC-%E4%B8%8E-SFU-%E5%8D%8F%E5%90%8C"><span class="toc-number">7.0.3.</span> <span class="toc-text">SVC 与 SFU 协同</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E7%BC%96%E7%A0%81%E5%99%A8%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">8.</span> <span class="toc-text">与其他编码器的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-VP8"><span class="toc-number">8.0.1.</span> <span class="toc-text">VP9 vs VP8</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-H-265%EF%BC%88HEVC%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">VP9 vs H.265（HEVC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VP9-vs-AV1"><span class="toc-number">8.0.3.</span> <span class="toc-text">VP9 vs AV1</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%B9%E5%99%A8%E6%A0%BC%E5%BC%8F%E6%94%AF%E6%8C%81"><span class="toc-number">9.</span> <span class="toc-text">容器格式支持</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="toc-number">10.</span> <span class="toc-text">实现与工具链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#libvpx"><span class="toc-number">10.0.1.</span> <span class="toc-text">libvpx</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#FFmpeg%EF%BC%88libvpx-vp9%EF%BC%89"><span class="toc-number">10.0.2.</span> <span class="toc-text">FFmpeg（libvpx-vp9）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E5%AE%9E%E7%8E%B0"><span class="toc-number">10.0.3.</span> <span class="toc-text">其他实现</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%8E%E5%B9%B3%E5%8F%B0%E5%85%BC%E5%AE%B9%E6%80%A7"><span class="toc-number">11.</span> <span class="toc-text">浏览器与平台兼容性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%93%E5%88%A9%E4%B8%8E%E8%AE%B8%E5%8F%AF"><span class="toc-number">12.</span> <span class="toc-text">专利与许可</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B1%80%E9%99%90%E6%80%A7%E4%B8%8E%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">13.</span> <span class="toc-text">局限性与适用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">13.0.1.</span> <span class="toc-text">主要局限性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E6%8E%A8%E8%8D%90"><span class="toc-number">13.0.2.</span> <span class="toc-text">适用场景推荐</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/01/30/webrtc/26-vp9/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/01/30/webrtc/26-vp9/&text=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/01/30/webrtc/26-vp9/&is_video=false&description=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源&body=Check out this article: http://example.com/2023/01/30/webrtc/26-vp9/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/01/30/webrtc/26-vp9/&title=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/01/30/webrtc/26-vp9/&name=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/01/30/webrtc/26-vp9/&t=VP9 —— VP8 的升级版，压缩效率接近 H.265 且完全开源"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
