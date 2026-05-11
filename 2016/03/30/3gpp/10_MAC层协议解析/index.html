@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 MAC 子层概述 信道体系：逻辑信道与传输信道 2.1 逻辑信道（Logical Channel） 2.2 传输信道（Transport Channel）   MAC PDU 结构 逻辑信道优先级与复用（LCP） 4.1 优先级参数配置 4.2 令牌桶算法（Token Bucket） 4.3 LCP 算法执行步骤 4.4 映射限制（Mapping Restriction） 4.5 调度请求（">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MAC 层协议解析">
+<meta property="og:url" content="http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 MAC 子层概述 信道体系：逻辑信道与传输信道 2.1 逻辑信道（Logical Channel） 2.2 传输信道（Transport Channel）   MAC PDU 结构 逻辑信道优先级与复用（LCP） 4.1 优先级参数配置 4.2 令牌桶算法（Token Bucket） 4.3 LCP 算法执行步骤 4.4 映射限制（Mapping Restriction） 4.5 调度请求（">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-03-30T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-10T08:44:45.502Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>MAC 层协议解析</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&text=MAC 层协议解析"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&is_video=false&description=MAC 层协议解析"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MAC 层协议解析&body=Check out this article: http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&name=MAC 层协议解析&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&t=MAC 层协议解析"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-MAC-%E5%AD%90%E5%B1%82%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. MAC 子层概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%BF%A1%E9%81%93%E4%BD%93%E7%B3%BB%EF%BC%9A%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%B8%8E%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.</span> <span class="toc-text">2. 信道体系：逻辑信道与传输信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%EF%BC%88Logical-Channel%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 逻辑信道（Logical Channel）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93%EF%BC%88Control-Channels%EF%BC%89"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">控制信道（Control Channels）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E4%BF%A1%E9%81%93%EF%BC%88Traffic-Channel%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">业务信道（Traffic Channel）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93%EF%BC%88Transport-Channel%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 传输信道（Transport Channel）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">下行传输信道</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">上行传输信道</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-MAC-PDU-%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. MAC PDU 结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MAC-Control-Element%EF%BC%88MAC-CE%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">MAC Control Element（MAC CE）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%8E%E5%A4%8D%E7%94%A8%EF%BC%88LCP%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 逻辑信道优先级与复用（LCP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BC%98%E5%85%88%E7%BA%A7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 优先级参数配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95%EF%BC%88Token-Bucket%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 令牌桶算法（Token Bucket）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-LCP-%E7%AE%97%E6%B3%95%E6%89%A7%E8%A1%8C%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 LCP 算法执行步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%98%A0%E5%B0%84%E9%99%90%E5%88%B6%EF%BC%88Mapping-Restriction%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 映射限制（Mapping Restriction）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E8%B0%83%E5%BA%A6%E8%AF%B7%E6%B1%82%EF%BC%88SR%EF%BC%89%E4%B8%8E%E7%BC%93%E5%86%B2%E7%8A%B6%E6%80%81%E4%B8%8A%E6%8A%A5%EF%BC%88BSR%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 调度请求（SR）与缓冲状态上报（BSR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-HARQ-%E6%9C%BA%E5%88%B6"><span class="toc-number">6.</span> <span class="toc-text">5. HARQ 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-ARQ-HARQ-FEC-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 ARQ &#x2F; HARQ &#x2F; FEC 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%81%9C%E7%AD%89%E5%8D%8F%E8%AE%AE%EF%BC%88Stop-and-Wait%EF%BC%89%E4%B8%8E%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%B9%B6%E8%A1%8C"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 停等协议（Stop-and-Wait）与多进程并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BD%AF%E5%90%88%E5%B9%B6%EF%BC%88Soft-Combining%EF%BC%89%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 软合并（Soft Combining）原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Chase-Combining%EF%BC%88CC%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 Chase Combining（CC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-Incremental-Redundancy%EF%BC%88IR%EF%BC%89"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 Incremental Redundancy（IR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-%E5%86%97%E4%BD%99%E7%89%88%E6%9C%AC%EF%BC%88Redundancy-Version%EF%BC%8CRV%EF%BC%89"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 冗余版本（Redundancy Version，RV）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-HARQ-%E5%8F%8D%E9%A6%88%EF%BC%9ANDI-ACK-NACK"><span class="toc-number">6.0.7.</span> <span class="toc-text">5.7 HARQ 反馈：NDI &#x2F; ACK &#x2F; NACK</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-8-%E4%B8%8B%E8%A1%8C-HARQ-%E4%B8%8E%E4%B8%8A%E8%A1%8C-HARQ-%E7%9A%84%E5%BC%82%E5%90%8C"><span class="toc-number">6.0.8.</span> <span class="toc-text">5.8 下行 HARQ 与上行 HARQ 的异同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-9-%E7%A0%81%E5%9D%97%E7%BB%84%E9%87%8D%E4%BC%A0%EF%BC%88CBG-based-Retransmission%EF%BC%89"><span class="toc-number">6.0.9.</span> <span class="toc-text">5.9 码块组重传（CBG-based Retransmission）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-10-HARQ-%E5%AE%9A%E6%97%B6%E5%85%B3%E7%B3%BB"><span class="toc-number">6.0.10.</span> <span class="toc-text">5.10 HARQ 定时关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-MAC-%E4%B8%8E-RLC-%E7%9A%84%E5%8D%8F%E4%BD%9C%EF%BC%9AARQ-HARQ-%E5%8F%8C%E5%B1%82%E9%87%8D%E4%BC%A0"><span class="toc-number">7.</span> <span class="toc-text">6. MAC 与 RLC 的协作：ARQ + HARQ 双层重传</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">7. 总结与关键参数速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%B8%8E%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93%E9%80%9F%E6%9F%A5"><span class="toc-number">8.0.1.</span> <span class="toc-text">逻辑信道与传输信道速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LCP-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0"><span class="toc-number">8.0.2.</span> <span class="toc-text">LCP 关键参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HARQ-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0"><span class="toc-number">8.0.3.</span> <span class="toc-text">HARQ 关键参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5G-NR-HARQ-vs-LTE-HARQ-%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82"><span class="toc-number">8.0.4.</span> <span class="toc-text">5G NR HARQ vs LTE HARQ 关键差异</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">9.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        MAC 层协议解析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-03-30T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-03-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-mac-%E5%AD%90%E5%B1%82%E6%A6%82%E8%BF%B0">MAC 子层概述</a></li>
+<li><a href="#2-%E4%BF%A1%E9%81%93%E4%BD%93%E7%B3%BB%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%B8%8E%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93">信道体系：逻辑信道与传输信道</a><ul>
+<li><a href="#21-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93logical-channel">2.1 逻辑信道（Logical Channel）</a></li>
+<li><a href="#22-%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93transport-channel">2.2 传输信道（Transport Channel）</a></li>
+</ul>
+</li>
+<li><a href="#3-mac-pdu-%E7%BB%93%E6%9E%84">MAC PDU 结构</a></li>
+<li><a href="#4-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%8E%E5%A4%8D%E7%94%A8lcp">逻辑信道优先级与复用（LCP）</a><ul>
+<li><a href="#41-%E4%BC%98%E5%85%88%E7%BA%A7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE">4.1 优先级参数配置</a></li>
+<li><a href="#42-%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95token-bucket">4.2 令牌桶算法（Token Bucket）</a></li>
+<li><a href="#43-lcp-%E7%AE%97%E6%B3%95%E6%89%A7%E8%A1%8C%E6%AD%A5%E9%AA%A4">4.3 LCP 算法执行步骤</a></li>
+<li><a href="#44-%E6%98%A0%E5%B0%84%E9%99%90%E5%88%B6mapping-restriction">4.4 映射限制（Mapping Restriction）</a></li>
+<li><a href="#45-%E8%B0%83%E5%BA%A6%E8%AF%B7%E6%B1%82sr%E4%B8%8E%E7%BC%93%E5%86%B2%E7%8A%B6%E6%80%81%E4%B8%8A%E6%8A%A5bsr">4.5 调度请求（SR）与缓冲状态上报（BSR）</a></li>
+</ul>
+</li>
+<li><a href="#5-harq-%E6%9C%BA%E5%88%B6">HARQ 机制</a><ul>
+<li><a href="#51-harq-%E6%9C%BA%E5%88%B6">5.1 ARQ &#x2F; HARQ &#x2F; FEC 的关系</a></li>
+<li><a href="#52-%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%B9%B6%E8%A1%8C">5.2 停等协议（Stop-and-Wait）与多进程并行</a></li>
+<li><a href="#53-%E8%BD%AF%E5%90%88%E5%B9%B6%E5%8E%9F%E7%90%86">5.3 软合并（Soft Combining）原理</a></li>
+<li><a href="#54-CC">5.4 Chase Combining</a></li>
+<li><a href="#55-%E8%BD%AF%E5%90%88%E5%B9%B6%E5%8E%9F%E7%90%86">5.5 Incremental Redundancy（IR）</a></li>
+<li><a href="#56-%E5%86%97%E4%BD%99%E7%89%88%E6%9C%AC">5.6 冗余版本（Redundancy Version，RV）</a></li>
+<li><a href="#56-harq-%E5%8F%8D%E9%A6%88">5.7 HARQ 反馈：NDI &#x2F; ACK &#x2F; NACK</a></li>
+<li><a href="#56-harq-%E6%9C%BA%E5%88%B6">5.8 下行 HARQ 与上行 HARQ 的异同</a></li>
+<li><a href="#56-harq-%E5%8F%8D%E9%A6%88">5.9 码块组重传（CBG-based Retransmission）</a></li>
+<li><a href="#56-harq-%E5%AE%9A%E6%97%B6%E5%85%B3%E7%B3%BB">5.10 HARQ 定时关系</a></li>
+</ul>
+</li>
+<li><a href="#6-mac-%E4%B8%8E-rlc-%E7%9A%84%E5%8D%8F%E4%BD%9Carq--harq-%E5%8F%8C%E5%B1%82%E9%87%8D%E4%BC%A0">MAC 与 RLC 的协作：ARQ + HARQ 双层重传</a></li>
+<li><a href="#7-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5">总结与关键参数速查</a></li>
+</ol>
+<hr>
+<h1 id="1-MAC-子层概述"><a href="#1-MAC-子层概述" class="headerlink" title="1. MAC 子层概述"></a>1. MAC 子层概述</h1><p>MAC（Medium Access Control，媒体接入控制）是 5G NR Layer 2 协议栈的最底层子层，位于 RLC 之下、物理层（PHY）之上。其核心职责由 <strong>3GPP TS 38.321</strong> 规范定义，主要包括：</p>
+<table>
+<thead>
+<tr>
+<th>功能域</th>
+<th>具体功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>信道映射</td>
+<td>逻辑信道 ↔ 传输信道的映射与复用</td>
+</tr>
+<tr>
+<td>调度支撑</td>
+<td>BSR（缓冲状态上报）、SR（调度请求）、PHR（功率余量上报）</td>
+</tr>
+<tr>
+<td>随机接入</td>
+<td>RACH 过程控制（Msg1<del>Msg4 &#x2F; msgA</del>msgB）</td>
+</tr>
+<tr>
+<td>HARQ</td>
+<td>停等协议管理、软合并协调、ACK&#x2F;NACK 反馈</td>
+</tr>
+<tr>
+<td>时间对齐</td>
+<td>定时提前（Timing Advance）维护</td>
+</tr>
+<tr>
+<td>SCell 管理</td>
+<td>辅载波（SCell）的激活与去激活</td>
+</tr>
+<tr>
+<td>BWP 切换</td>
+<td>带宽部分（Bandwidth Part）切换控制</td>
+</tr>
+</tbody></table>
+<p>MAC 子层为上层（RLC）提供<strong>逻辑信道</strong>服务，为下层（PHY）提供<strong>传输信道</strong>接口。其核心角色可概括为：**”将来自多个逻辑信道的数据按优先级复用进传输块，并通过 HARQ 保障传输可靠性”**。</p>
+<hr>
+<h1 id="2-信道体系：逻辑信道与传输信道"><a href="#2-信道体系：逻辑信道与传输信道" class="headerlink" title="2. 信道体系：逻辑信道与传输信道"></a>2. 信道体系：逻辑信道与传输信道</h1><h3 id="2-1-逻辑信道（Logical-Channel）"><a href="#2-1-逻辑信道（Logical-Channel）" class="headerlink" title="2.1 逻辑信道（Logical Channel）"></a>2.1 逻辑信道（Logical Channel）</h3><p>逻辑信道是 <strong>RLC 与 MAC 之间的服务访问点（SAP）</strong>，按所承载信息的类型划分：</p>
+<h4 id="控制信道（Control-Channels）"><a href="#控制信道（Control-Channels）" class="headerlink" title="控制信道（Control Channels）"></a>控制信道（Control Channels）</h4><table>
+<thead>
+<tr>
+<th>信道名称</th>
+<th>英文全称</th>
+<th>方向</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>BCCH</strong></td>
+<td>Broadcast Control Channel</td>
+<td>DL</td>
+<td>广播系统信息（MIB &#x2F; SIB）</td>
+</tr>
+<tr>
+<td><strong>PCCH</strong></td>
+<td>Paging Control Channel</td>
+<td>DL</td>
+<td>寻呼消息</td>
+</tr>
+<tr>
+<td><strong>CCCH</strong></td>
+<td>Common Control Channel</td>
+<td>UL&#x2F;DL</td>
+<td>RRC 连接建立前的公共控制信令</td>
+</tr>
+<tr>
+<td><strong>DCCH</strong></td>
+<td>Dedicated Control Channel</td>
+<td>UL&#x2F;DL</td>
+<td>UE 专用控制信令（RRC 消息）</td>
+</tr>
+</tbody></table>
+<h4 id="业务信道（Traffic-Channel）"><a href="#业务信道（Traffic-Channel）" class="headerlink" title="业务信道（Traffic Channel）"></a>业务信道（Traffic Channel）</h4><table>
+<thead>
+<tr>
+<th>信道名称</th>
+<th>英文全称</th>
+<th>方向</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DTCH</strong></td>
+<td>Dedicated Traffic Channel</td>
+<td>UL&#x2F;DL</td>
+<td>用户面数据（SDAP&#x2F;PDCP SDU）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：与 LTE 相比，NR 中取消了 MCCH &#x2F; MTCH（多播相关信道），在 R17 之前不支持广播多播业务（后续 Release 中作为增强功能引入）。</p>
+</blockquote>
+<h3 id="2-2-传输信道（Transport-Channel）"><a href="#2-2-传输信道（Transport-Channel）" class="headerlink" title="2.2 传输信道（Transport Channel）"></a>2.2 传输信道（Transport Channel）</h3><p>传输信道是 <strong>MAC 与 PHY 之间的服务访问点（SAP）</strong>，按传输方式和物理特性划分：</p>
+<h4 id="下行传输信道"><a href="#下行传输信道" class="headerlink" title="下行传输信道"></a>下行传输信道</h4><table>
+<thead>
+<tr>
+<th>信道名称</th>
+<th>英文全称</th>
+<th>对应物理信道</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>BCH</strong></td>
+<td>Broadcast Channel</td>
+<td>PBCH</td>
+<td>承载 MIB，固定编码格式，覆盖全小区</td>
+</tr>
+<tr>
+<td><strong>DL-SCH</strong></td>
+<td>Downlink Shared Channel</td>
+<td>PDSCH</td>
+<td>主要下行数据承载，支持 HARQ、动态调度、波束赋形</td>
+</tr>
+<tr>
+<td><strong>PCH</strong></td>
+<td>Paging Channel</td>
+<td>PDSCH</td>
+<td>承载寻呼消息，支持 DRX</td>
+</tr>
+</tbody></table>
+<h4 id="上行传输信道"><a href="#上行传输信道" class="headerlink" title="上行传输信道"></a>上行传输信道</h4><table>
+<thead>
+<tr>
+<th>信道名称</th>
+<th>英文全称</th>
+<th>对应物理信道</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UL-SCH</strong></td>
+<td>Uplink Shared Channel</td>
+<td>PUSCH</td>
+<td>主要上行数据承载，支持 HARQ、动态&#x2F;配置授权</td>
+</tr>
+<tr>
+<td><strong>RACH</strong></td>
+<td>Random Access Channel</td>
+<td>PRACH</td>
+<td>随机接入前导码</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-MAC-PDU-结构"><a href="#3-MAC-PDU-结构" class="headerlink" title="3. MAC PDU 结构"></a>3. MAC PDU 结构</h1><h3 id="MAC-Control-Element（MAC-CE）"><a href="#MAC-Control-Element（MAC-CE）" class="headerlink" title="MAC Control Element（MAC CE）"></a>MAC Control Element（MAC CE）</h3><p>MAC CE 是 MAC 层内嵌的控制信息，通过 LCID 的特殊取值标识。常见 MAC CE 类型：</p>
+<table>
+<thead>
+<tr>
+<th>MAC CE</th>
+<th>LCID 值</th>
+<th>方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>C-RNTI</td>
+<td>011100</td>
+<td>UL</td>
+<td>上行竞争解决，携带 UE 的 C-RNTI</td>
+</tr>
+<tr>
+<td>BSR（Short）</td>
+<td>111101</td>
+<td>UL</td>
+<td>短格式缓冲状态上报</td>
+</tr>
+<tr>
+<td>BSR（Long）</td>
+<td>111110</td>
+<td>UL</td>
+<td>长格式缓冲状态上报</td>
+</tr>
+<tr>
+<td>PHR（Single）</td>
+<td>111001</td>
+<td>UL</td>
+<td>单小区功率余量上报</td>
+</tr>
+<tr>
+<td>Timing Advance Command</td>
+<td>000001</td>
+<td>DL</td>
+<td>gNB 下发定时提前命令</td>
+</tr>
+<tr>
+<td>DRX Command</td>
+<td>000010</td>
+<td>DL</td>
+<td>激活 DRX</td>
+</tr>
+<tr>
+<td>TCI State Indication</td>
+<td>000101</td>
+<td>DL</td>
+<td>下行 TCI 状态指示（R15+）</td>
+</tr>
+<tr>
+<td>SP ZP CSI-RS RES SET ACT&#x2F;DEACT</td>
+<td>多值</td>
+<td>DL</td>
+<td>半持久 CSI-RS 资源集激活&#x2F;去激活</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>TS 38.321 V18.5.0 中已定义超过 <strong>50 种</strong> MAC CE 类型，覆盖资源分配、同步、安全激活、多 TRP 协作等全方位场景。</p>
+</blockquote>
+<p><strong>优先级排序</strong>：在 MAC PDU 组装时，MAC CE 按 LCID 优先级排序，高优先级 MAC CE 优先组装。</p>
+<hr>
+<h1 id="4-逻辑信道优先级与复用（LCP）"><a href="#4-逻辑信道优先级与复用（LCP）" class="headerlink" title="4. 逻辑信道优先级与复用（LCP）"></a>4. 逻辑信道优先级与复用（LCP）</h1><p>LCP（Logical Channel Prioritization）过程是 MAC 上行复用的核心机制，解决以下问题：<strong>当 gNB 为 UE 分配了上行资源（UL Grant）时，UE 如何决定将哪些逻辑信道的数据填入这次传输机会？</strong></p>
+<p>规范参考：<strong>TS 38.321 Section 5.4.3</strong></p>
+<h3 id="4-1-优先级参数配置"><a href="#4-1-优先级参数配置" class="headerlink" title="4.1 优先级参数配置"></a>4.1 优先级参数配置</h3><p>gNB 通过 RRC 信令（<code>LogicalChannelConfig</code>）为每个逻辑信道配置以下参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>取值范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>priority</strong></td>
+<td>逻辑信道优先级（数值越小优先级越高）</td>
+<td>1（最高）~ 16（最低）</td>
+</tr>
+<tr>
+<td><strong>prioritisedBitRate（PBR）</strong></td>
+<td>优先保障的比特率（令牌桶填充速率）</td>
+<td>0, 8, 16, 32, 64, 128, 256, 512 kbps, infinity</td>
+</tr>
+<tr>
+<td><strong>bucketSizeDuration（BSD）</strong></td>
+<td>令牌桶持续时长，决定桶的容量上限</td>
+<td>5, 10, 20, 50, 100, 150, 300, 500, 1000 ms</td>
+</tr>
+</tbody></table>
+<p><strong>逻辑信道组（LCG，Logical Channel Group）</strong>：每个逻辑信道可被 RRC 分配到 LCG 0~7 中的某个组，用于 BSR 上报（8 个 LCG）。</p>
+<h3 id="4-2-令牌桶算法（Token-Bucket）"><a href="#4-2-令牌桶算法（Token-Bucket）" class="headerlink" title="4.2 令牌桶算法（Token Bucket）"></a>4.2 令牌桶算法（Token Bucket）</h3><p>LCP 采用令牌桶（Token Bucket）机制实现速率保障：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">令牌桶容量（Bucket Size）= PBR × BSD</span><br><span class="line"></span><br><span class="line">每隔时间 T，为逻辑信道 i 的令牌桶 B_i 补充令牌：</span><br><span class="line">    B_i = B_i + PBR × T</span><br><span class="line"></span><br><span class="line">令牌桶上限：</span><br><span class="line">    B_i = min(B_i, PBR × BSD)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>B_i &gt; 0</code>：逻辑信道 i 处于”有保障配额”状态</li>
+<li><code>B_i ≤ 0</code>：保障配额已耗尽，进入次优先级竞争</li>
+</ul>
+<h3 id="4-3-LCP-算法执行步骤"><a href="#4-3-LCP-算法执行步骤" class="headerlink" title="4.3 LCP 算法执行步骤"></a>4.3 LCP 算法执行步骤</h3><p>当 UE 收到 UL Grant（大小为 <code>TBS</code> 字节），执行如下 LCP 流程：</p>
+<p><strong>第一轮（优先保障）</strong>：</p>
+<ol>
+<li>对所有满足映射限制的逻辑信道，按 priority 从高到低排列</li>
+<li>对每个 <code>B_i &gt; 0</code> 的逻辑信道，尽量从其缓冲区取数据填入 MAC SDU，直到：<ul>
+<li>该信道的 <code>B_i</code> 被耗尽，或</li>
+<li>该信道的缓冲区清空，或</li>
+<li>传输块空间不足</li>
+</ul>
+</li>
+<li>填完后扣减对应 <code>B_i</code></li>
+</ol>
+<p><strong>第二轮（剩余空间竞争）</strong>：</p>
+<ol start="4">
+<li>若传输块仍有剩余空间，继续按 priority 从高到低服务所有有数据的逻辑信道（不考虑 <code>B_i</code> 是否为正），直到传输块填满</li>
+</ol>
+<blockquote>
+<p><strong>核心原则</strong>：PBR &gt; 0 保证了”有保障速率”的逻辑信道（如 VoNR 语音 DRB）始终能在令牌范围内得到服务；超出 PBR 的部分则按纯优先级竞争剩余资源。PBR &#x3D; infinity 意味着该信道可耗尽全部资源。</p>
+</blockquote>
+<h3 id="4-4-映射限制（Mapping-Restriction）"><a href="#4-4-映射限制（Mapping-Restriction）" class="headerlink" title="4.4 映射限制（Mapping Restriction）"></a>4.4 映射限制（Mapping Restriction）</h3><p>5G NR 相比 LTE 引入了更细粒度的逻辑信道映射限制，通过 RRC 为每个逻辑信道配置：</p>
+<table>
+<thead>
+<tr>
+<th>限制参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>allowedSCS-List</code></td>
+<td>允许使用的子载波间隔（Numerology）</td>
+</tr>
+<tr>
+<td><code>maxPUSCH-Duration</code></td>
+<td>允许的最大 PUSCH 持续时长</td>
+</tr>
+<tr>
+<td><code>configuredGrantType1Allowed</code></td>
+<td>是否允许使用 Configured Grant Type 1 调度</td>
+</tr>
+<tr>
+<td><code>allowedServingCells</code></td>
+<td>允许传输的载波小区集合</td>
+</tr>
+<tr>
+<td><code>allowedCG-List</code></td>
+<td>允许使用的 Configured Grant 列表</td>
+</tr>
+<tr>
+<td><code>allowedPHY-PriorityIndex</code></td>
+<td>允许的动态授权 PHY 优先级索引</td>
+</tr>
+</tbody></table>
+<p>这些限制允许网络将不同 SCS（子载波间隔）的 PUSCH 资源与特定业务的逻辑信道严格绑定，例如 URLLC 业务强制使用小 TTI（μ&#x3D;3，0.125ms slot）。</p>
+<h3 id="4-5-调度请求（SR）与缓冲状态上报（BSR）"><a href="#4-5-调度请求（SR）与缓冲状态上报（BSR）" class="headerlink" title="4.5 调度请求（SR）与缓冲状态上报（BSR）"></a>4.5 调度请求（SR）与缓冲状态上报（BSR）</h3><p><strong>调度请求（Scheduling Request，SR）</strong>：</p>
+<p>当 UE 上行缓冲区从空变为非空（有新数据），且当前没有 UL Grant 时，UE 通过 PUCCH 发送 SR，请求 gNB 为其分配上行资源。</p>
+<ul>
+<li>RRC 为每个 SR 配置 <code>sr-ProhibitTimer</code>（防止 SR 过于频繁）和 <code>sr-TransMax</code>（最大重传次数）</li>
+<li>若 SR 发送达到上限仍未获得 Grant，则触发 RLF（Radio Link Failure）处理</li>
+</ul>
+<p><strong>缓冲状态上报（Buffer Status Report，BSR）</strong>：</p>
+<p>BSR 告知 gNB 当前 UE 上行各逻辑信道组的缓冲数据量，供 gNB 调度决策使用。TS 38.321 定义了 4 种 BSR 格式：</p>
+<table>
+<thead>
+<tr>
+<th>BSR 类型</th>
+<th>触发条件</th>
+<th>格式说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Regular BSR</strong></td>
+<td>有新数据到达且属于更高优先级 LCG</td>
+<td>上报单个或多个 LCG</td>
+</tr>
+<tr>
+<td><strong>Periodic BSR</strong></td>
+<td><code>periodicBSR-Timer</code> 超时</td>
+<td>周期上报所有 LCG</td>
+</tr>
+<tr>
+<td><strong>Padding BSR</strong></td>
+<td>MAC PDU 中有填充（Padding）空间</td>
+<td>利用填充空间上报</td>
+</tr>
+<tr>
+<td><strong>Short Truncated BSR</strong></td>
+<td>多个 LCG 有数据但空间不足</td>
+<td>只上报最高优先级 LCG</td>
+</tr>
+</tbody></table>
+<p><strong>BSR 字段结构</strong>：</p>
+<ul>
+<li><strong>Short BSR &#x2F; Short Truncated BSR</strong>：8 bits，其中 3 bits &#x3D; LCG ID，5 bits &#x3D; 缓冲大小索引（0~31，对应 0 ~ 150,000 bytes）</li>
+<li><strong>Long BSR &#x2F; Long Truncated BSR</strong>：包含所有有数据的 LCG（由 <code>LCGi</code> 位图标识），每个 LCG 8 bits 缓冲大小索引（0~255，颗粒度更高）</li>
+</ul>
+<hr>
+<h1 id="5-HARQ-机制"><a href="#5-HARQ-机制" class="headerlink" title="5. HARQ 机制"></a>5. HARQ 机制</h1><p>HARQ（Hybrid Automatic Repeat reQuest，混合自动重传请求）是 5G NR 可靠传输的基石，结合了 <strong>前向纠错（FEC）</strong> 与 <strong>自动重传（ARQ）</strong> 的优势。规范参考：<strong>TS 38.321</strong>（MAC 层 HARQ 过程管理）+ <strong>TS 38.214</strong>（物理层软合并实现）。</p>
+<h3 id="5-1-ARQ-HARQ-FEC-的关系"><a href="#5-1-ARQ-HARQ-FEC-的关系" class="headerlink" title="5.1 ARQ &#x2F; HARQ &#x2F; FEC 的关系"></a>5.1 ARQ &#x2F; HARQ &#x2F; FEC 的关系</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">纯 FEC：发送端加入冗余编码，接收端尝试纠错</span><br><span class="line">         优点：无重传延迟    缺点：冗余开销固定，无法应对深度衰落</span><br><span class="line"></span><br><span class="line">纯 ARQ：检测到错误就丢弃，请求重传</span><br><span class="line">         优点：简单           缺点：浪费已接收的信号能量</span><br><span class="line"></span><br><span class="line">HARQ = FEC + ARQ + 软合并</span><br><span class="line">         接收端保留错误包，与重传版本合并后再解码</span><br><span class="line">         → 利用了多次传输积累的信号能量，大幅提升成功率</span><br></pre></td></tr></table></figure>
+
+<p>在 5G 协议栈中，重传由两层机制联合保障：</p>
+<ul>
+<li><strong>HARQ（MAC 层）</strong>：快速重传（亚毫秒级时延感知），残留错误率约 0.1%~1%</li>
+<li><strong>ARQ（RLC 层）</strong>：处理 HARQ 无法纠正的残余错误，实现近乎无损传输</li>
+</ul>
+<h3 id="5-2-停等协议（Stop-and-Wait）与多进程并行"><a href="#5-2-停等协议（Stop-and-Wait）与多进程并行" class="headerlink" title="5.2 停等协议（Stop-and-Wait）与多进程并行"></a>5.2 停等协议（Stop-and-Wait）与多进程并行</h3><p>最简单的 HARQ 实现是<strong>停等（SAW，Stop-And-Wait）协议</strong>：发送端发出一个 TB（Transport Block），等待接收端反馈 ACK&#x2F;NACK 后再发下一个。</p>
+<p><strong>问题</strong>：等待反馈期间发送端完全空闲，信道利用率极低。</p>
+<p><strong>解决方案：多进程并行 HARQ（Multi-Process SAW）</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">时间轴（下行示意）：</span><br><span class="line">Process 0: TX0 ──────(等待)────── NACK → ReTX0 ─────</span><br><span class="line">Process 1:     TX1 ──────(等待)────── ACK  ──────────</span><br><span class="line">Process 2:         TX2 ──────(等待)────── ACK ────────</span><br><span class="line">Process 3:             TX3 ──────(等待)────── NACK → ReTX3</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">多个进程交织发送，覆盖 RTT 延迟，信道持续被利用</span><br></pre></td></tr></table></figure>
+
+<p><strong>5G NR HARQ 进程数</strong>（TS 38.321 &amp; TS 38.214）：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>最大 HARQ 进程数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>下行（DL-SCH）</td>
+<td><strong>16</strong></td>
+<td>由 <code>nrofHARQ-ProcessesForPDSCH</code>（RRC）配置，默认 8</td>
+</tr>
+<tr>
+<td>上行（UL-SCH）</td>
+<td><strong>16</strong></td>
+<td>由 DCI 中的 HARQ 进程号字段（4 bits）指示，最多 16 个</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>NR 将 LTE 的最大 8 个进程扩展到 16 个，以适应更大的 RTT（特别是 FR2 毫米波和 TDD 场景）。</p>
+</blockquote>
+<p>每个 HARQ 进程独立维护：</p>
+<ul>
+<li>进程状态（等待 ACK &#x2F; 空闲）</li>
+<li>软缓冲区（存储已接收但未能解码的软比特）</li>
+<li>当前冗余版本（RV）</li>
+</ul>
+<h3 id="5-3-软合并（Soft-Combining）原理"><a href="#5-3-软合并（Soft-Combining）原理" class="headerlink" title="5.3 软合并（Soft Combining）原理"></a>5.3 软合并（Soft Combining）原理</h3><p>HARQ 的精髓在于<strong>软合并</strong>：接收端不丢弃错误接收的 TB，而是将其存入软缓冲区（Soft Buffer），与后续重传版本在比特域（LLR 域）进行叠加。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">LLR（对数似然比）：代表每个比特为 0 或 1 的置信度</span><br><span class="line">    LLR &gt; 0 → 偏向 0，LLR &lt; 0 → 偏向 1，|LLR| 越大置信度越高</span><br><span class="line"></span><br><span class="line">软合并原理：</span><br><span class="line">    LLR_combined[i] = LLR_rx1[i] + LLR_rx2[i] + ... + LLR_rxN[i]</span><br><span class="line"></span><br><span class="line">多次传输的信号能量累积 → 等效 SNR 提升 → 解码成功概率上升</span><br></pre></td></tr></table></figure>
+
+<p>软合并不要求每次传输完全相同——这正是 Chase Combining 与 Incremental Redundancy 的分叉点。</p>
+<h3 id="5-4-Chase-Combining（CC）"><a href="#5-4-Chase-Combining（CC）" class="headerlink" title="5.4 Chase Combining（CC）"></a>5.4 Chase Combining（CC）</h3><p><strong>原理</strong>：每次重传发送与初传<strong>完全相同</strong>的比特集合（使用相同的打孔模式），接收端对相同位置的 LLR 直接累加。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">初传：  [系统位 S | 校验位 P1_部分]    (同一打孔模式)</span><br><span class="line">重传1： [系统位 S | 校验位 P1_部分]    ← 完全相同</span><br><span class="line">重传2： [系统位 S | 校验位 P1_部分]    ← 完全相同</span><br><span class="line"></span><br><span class="line">软合并：LLR_combined = LLR_tx1 + LLR_tx2 + LLR_tx3</span><br><span class="line">        → 等效于 3× 发射功率累积</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：</p>
+<ul>
+<li>实现简单，UE 软缓冲区需求固定（等于一个 TB 大小）</li>
+<li>接收端处理复杂度低</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>频谱效率较低：重传没有携带任何新的编码信息</li>
+<li>增益仅来自功率累积（分集增益），没有编码增益</li>
+</ul>
+<h3 id="5-5-Incremental-Redundancy（IR）"><a href="#5-5-Incremental-Redundancy（IR）" class="headerlink" title="5.5 Incremental Redundancy（IR）"></a>5.5 Incremental Redundancy（IR）</h3><p><strong>原理</strong>：每次重传采用<strong>不同的打孔模式（不同 RV）</strong>，发送不同的冗余比特，接收端将历次传输的比特拼接后获得更完整的编码字。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">母码（Turbo/LDPC 全部编码比特）：</span><br><span class="line">[S S S S S S | P1 P1 P1 P1 | P2 P2 P2 P2]</span><br><span class="line">  ↑系统位        ↑校验1         ↑校验2</span><br><span class="line"></span><br><span class="line">初传（RV0，自解码版本）：  [S S S S | P1 P1]        → 优先发系统位</span><br><span class="line">重传1（RV2）：              [P1 P1 P1 | P2 P2]      → 发不同校验位</span><br><span class="line">重传2（RV3）：              [P2 P2 P2 | S S S]      → 进一步补充</span><br><span class="line">重传3（RV1）：              [P1 P1 | P2 P2 P2]      → 循环补全</span><br><span class="line"></span><br><span class="line">合并后：接收端逐步积累，等效于一个码率更低、纠错能力更强的编码</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：</p>
+<ul>
+<li>同时获得<strong>分集增益 + 编码增益</strong>，综合性能优于 CC</li>
+<li>码率随重传次数下降，自适应信道质量</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>软缓冲区需求更大（需存储多次不同 RV 的 LLR）</li>
+<li>接收端复杂度略高</li>
+</ul>
+<blockquote>
+<p><strong>5G NR 的选择</strong>：NR 标准中实际以 <strong>IR 为主</strong>，CC 可视为 IR 在 RV 固定为 0 时的特殊情形。</p>
+</blockquote>
+<h3 id="5-6-冗余版本（Redundancy-Version，RV）"><a href="#5-6-冗余版本（Redundancy-Version，RV）" class="headerlink" title="5.6 冗余版本（Redundancy Version，RV）"></a>5.6 冗余版本（Redundancy Version，RV）</h3><p>5G NR LDPC 编码定义了 <strong>4 个冗余版本</strong>：RV0、RV1、RV2、RV3，对应母码中不同的起始打孔位置。</p>
+<table>
+<thead>
+<tr>
+<th>RV</th>
+<th>起始位置（环形缓冲区）</th>
+<th>特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RV0</strong></td>
+<td>0</td>
+<td><strong>自解码版本</strong>，优先包含系统位，初传通常使用</td>
+</tr>
+<tr>
+<td><strong>RV2</strong></td>
+<td>~1&#x2F;3 处</td>
+<td>重传常用</td>
+</tr>
+<tr>
+<td><strong>RV3</strong></td>
+<td>~1&#x2F;2 处</td>
+<td>重传常用</td>
+</tr>
+<tr>
+<td><strong>RV1</strong></td>
+<td>~1&#x2F;4 处（LDPC 特有）</td>
+<td>重传使用</td>
+</tr>
+</tbody></table>
+<p>RV 序列的典型调度顺序：<code>RV0 → RV2 → RV3 → RV1 → RV0（循环）</code></p>
+<blockquote>
+<p>RV0 是自解码（self-decodable）版本，意味着即使没有先前传输的软比特，仅凭 RV0 本身也可能成功解码（取决于信道质量）。其他 RV 在与 RV0 合并后才能有效发挥作用。</p>
+</blockquote>
+<h3 id="5-7-HARQ-反馈：NDI-ACK-NACK"><a href="#5-7-HARQ-反馈：NDI-ACK-NACK" class="headerlink" title="5.7 HARQ 反馈：NDI &#x2F; ACK &#x2F; NACK"></a>5.7 HARQ 反馈：NDI &#x2F; ACK &#x2F; NACK</h3><p><strong>NDI（New Data Indicator，新数据指示）</strong>：</p>
+<p>NDI 是 DCI（下行控制信息）中的 1-bit 字段，用于区分初传与重传：</p>
+<ul>
+<li><strong>NDI 翻转</strong>（Toggle）：表示这是新的传输（新 TB），接收端清空该进程的软缓冲区</li>
+<li><strong>NDI 不变</strong>：表示这是重传，接收端将新收到的 LLR 与缓冲区中的旧 LLR 合并</li>
+</ul>
+<p><strong>HARQ-ACK 反馈</strong>：</p>
+<p>接收端通过 <strong>PUCCH</strong>（或 PUSCH 捎带）向发送端反馈 ACK&#x2F;NACK：</p>
+<ul>
+<li><strong>ACK</strong>：CRC 校验通过，TB 解码成功，发送端可释放该进程</li>
+<li><strong>NACK</strong>：CRC 校验失败，请求重传</li>
+</ul>
+<p><strong>DTX（Discontinuous Transmission）</strong>：gNB 收不到 UE 的 HARQ 反馈时的特殊状态，可能触发重传。</p>
+<h3 id="5-8-下行-HARQ-与上行-HARQ-的异同"><a href="#5-8-下行-HARQ-与上行-HARQ-的异同" class="headerlink" title="5.8 下行 HARQ 与上行 HARQ 的异同"></a>5.8 下行 HARQ 与上行 HARQ 的异同</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>下行 HARQ</th>
+<th>上行 HARQ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>定时方式</strong></td>
+<td>异步（Asynchronous）</td>
+<td>异步（Asynchronous，NR 与 LTE 不同）</td>
+</tr>
+<tr>
+<td><strong>软缓冲区位置</strong></td>
+<td>UE 端</td>
+<td>gNB 端</td>
+</tr>
+<tr>
+<td><strong>重传调度</strong></td>
+<td>gNB 通过 DCI 调度</td>
+<td>gNB 通过 DCI（UL grant）调度</td>
+</tr>
+<tr>
+<td><strong>HARQ 反馈</strong></td>
+<td>UE → gNB（via PUCCH&#x2F;PUSCH）</td>
+<td>gNB → UE（via PDCCH，PHICH 已废弃）</td>
+</tr>
+<tr>
+<td><strong>CBG 支持</strong></td>
+<td>支持（CBGTI + CBGFI）</td>
+<td>支持（CBGTI，无 CBGFI）</td>
+</tr>
+<tr>
+<td><strong>进程数</strong></td>
+<td>最多 16（RRC 配置）</td>
+<td>最多 16（DCI 4 bits 指示）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>NR vs LTE 关键差异</strong>：LTE 上行 HARQ 是<strong>同步</strong>的（固定 8ms RTT，进程号隐含在时序中）；NR 上行改为<strong>异步</strong>，进程号由 DCI 显式携带，使得调度更灵活，更适应 TDD 的多样时隙配置。</p>
+</blockquote>
+<p><strong>下行 HARQ 操作流程</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">gNB                                    UE</span><br><span class="line"> │──── DCI (PDCCH): HARQ进程#3, NDI=1, RV=0 ─────→│</span><br><span class="line"> │──── PDSCH (TB 数据) ──────────────────────────→│</span><br><span class="line"> │                                               │ CRC 校验失败</span><br><span class="line"> │                                               │ 软比特存入进程#3缓冲区</span><br><span class="line"> │←──── HARQ-ACK: NACK ───────────────────────── │</span><br><span class="line"> │──── DCI: HARQ进程#3, NDI=1（不变）, RV=2 ──────→│</span><br><span class="line"> │──── PDSCH (重传 RV2) ─────────────────────────→│</span><br><span class="line"> │                                               │ LLR 合并，CRC 通过</span><br><span class="line"> │←──── HARQ-ACK: ACK ───────────────────────────│</span><br><span class="line"> │ 进程#3 释放                                    │ 进程#3 释放</span><br></pre></td></tr></table></figure>
+
+<p><strong>上行 HARQ 操作流程</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">gNB                                    UE</span><br><span class="line"> │──── DCI (UL Grant): HARQ进程#5, NDI=1, RV=0 →│</span><br><span class="line"> │←──── PUSCH (TB 数据) ────────────────────────│</span><br><span class="line"> │ CRC 校验失败</span><br><span class="line"> │ 软比特存入进程#5缓冲区（gNB端）</span><br><span class="line"> │──── DCI (UL Grant): HARQ进程#5, NDI=1, RV=2 →│</span><br><span class="line"> │←──── PUSCH (重传 RV2) ───────────────────────│</span><br><span class="line"> │ LLR 合并，CRC 通过，进程#5 释放</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-9-码块组重传（CBG-based-Retransmission）"><a href="#5-9-码块组重传（CBG-based-Retransmission）" class="headerlink" title="5.9 码块组重传（CBG-based Retransmission）"></a>5.9 码块组重传（CBG-based Retransmission）</h3><p>当一个 TB 过大时，会被分割为多个<strong>码块（Code Block，CB）</strong>，若干 CB 组成一个<strong>码块组（Code Block Group，CBG）</strong>。</p>
+<p><strong>CBG 重传的动机</strong>：若仅有少数 CB 解码失败，全 TB 重传浪费大量无线资源。CBG 重传只需重发失败的 CBG，大幅提升频谱效率。</p>
+<p><strong>配置</strong>：通过 RRC <code>codeBlockGroupTransmission</code> 配置，每个 TB 可包含 2、4、6 或 8 个 CBG。</p>
+<p><strong>下行 CBG 相关 DCI 字段</strong>（TS 38.214）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CBGTI</strong>（Code Block Group Transmission Information）</td>
+<td>位图，指示哪些 CBG 在本次传输中出现（1&#x3D;传输，0&#x3D;不传输）</td>
+</tr>
+<tr>
+<td><strong>CBGFI</strong>（Code Block Group Flushing Information）</td>
+<td>1 bit，指示是否清空软缓冲区（1&#x3D;清空，0&#x3D;合并）</td>
+</tr>
+</tbody></table>
+<p><strong>上行 CBG</strong>：上行也支持 CBGTI（gNB 告知 UE 重传哪些 CBG），但无需 CBGFI（软缓冲区在 gNB 侧，gNB 自行决定是否清空）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">TB 分割示意（4个CBG）：</span><br><span class="line">┌──────┬──────┬──────┬──────┐</span><br><span class="line">│ CBG0 │ CBG1 │ CBG2 │ CBG3 │</span><br><span class="line">└──────┴──────┴──────┴──────┘</span><br><span class="line">   ✓      ✗      ✓      ✗       ← 接收结果</span><br><span class="line"></span><br><span class="line">CBG 重传：CBGTI = 0101（只重传 CBG1 和 CBG3）</span><br><span class="line">节省资源：50% 的重传量</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-10-HARQ-定时关系"><a href="#5-10-HARQ-定时关系" class="headerlink" title="5.10 HARQ 定时关系"></a>5.10 HARQ 定时关系</h3><p>HARQ 定时关系在 NR 中由 <strong>TS 38.213</strong> 定义，通过以下参数控制：</p>
+<p><strong>PDSCH-to-HARQ 反馈时序</strong>（<code>PDSCH-to-HARQ_feedback timing indicator</code>）：</p>
+<p>UE 收到 PDSCH 后，在 K1 个 slot 后通过 PUCCH 发送 HARQ-ACK。K1 的取值集合（<code>dl-DataToUL-ACK</code>）由 RRC 配置，典型值为 {1, 2, 3, 4, 5, 6, 7, 8}。</p>
+<p><strong>PUSCH 调度时序</strong>（PDCCH 到 PUSCH 的时延 K2）：</p>
+<p>gNB 发送 UL Grant（DCI format 0_x）后，UE 在 K2 个 slot 后在 PUSCH 上传输数据，K2 的最小值由 Numerology 决定。</p>
+<p><strong>NR 灵活定时的优势</strong>：</p>
+<ul>
+<li>NR 的 HARQ 定时完全灵活可配，使得 <strong>URLLC</strong> 场景可使用极小的 K1（如 1 slot），最小化反馈延迟</li>
+<li>TDD 场景下，K1&#x2F;K2 的灵活配置可避免 UL&#x2F;DL 时隙冲突</li>
+</ul>
+<hr>
+<h1 id="6-MAC-与-RLC-的协作：ARQ-HARQ-双层重传"><a href="#6-MAC-与-RLC-的协作：ARQ-HARQ-双层重传" class="headerlink" title="6. MAC 与 RLC 的协作：ARQ + HARQ 双层重传"></a>6. MAC 与 RLC 的协作：ARQ + HARQ 双层重传</h1><p>5G NR 采用<strong>双层重传</strong>架构，MAC 层 HARQ 与 RLC 层 ARQ 分工明确：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">应用层数据</span><br><span class="line">    ↓</span><br><span class="line">SDAP (QoS Flow → DRB 映射)</span><br><span class="line">    ↓</span><br><span class="line">PDCP (加密 / 头压缩 / 乱序重排)</span><br><span class="line">    ↓</span><br><span class="line">RLC (分段 / 重组 / ARQ 重传)  ←───────────────────────┐</span><br><span class="line">    ↓                                               │</span><br><span class="line">MAC (LCP 复用 / HARQ 管理)    ←──── HARQ NACK ──────│</span><br><span class="line">    ↓                               （快速重传）      │</span><br><span class="line">PHY (编码 / 调制 / 发射)                             │</span><br><span class="line">    ↓ 空口                                           │</span><br><span class="line">PHY (接收 / 解调 / 软合并)                           │</span><br><span class="line">    ↓                                               │</span><br><span class="line">MAC (HARQ 反馈: ACK/NACK) ──── NACK → 重传 ─────────┘</span><br><span class="line">    ↓ （HARQ ACK 后）</span><br><span class="line">RLC (SDU 重组 / 检测丢失 → ARQ NACK → 触发 RLC 重传) ──┘</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>HARQ（MAC 层）</th>
+<th>ARQ（RLC 层）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目标错误率</td>
+<td><del>0.1%</del>1%（BLER 目标）</td>
+<td>接近 0%（近无损）</td>
+</tr>
+<tr>
+<td>重传粒度</td>
+<td>Transport Block &#x2F; CBG</td>
+<td>RLC SDU &#x2F; 分段</td>
+</tr>
+<tr>
+<td>重传延迟</td>
+<td>亚毫秒~数毫秒</td>
+<td>数毫秒~数十毫秒</td>
+</tr>
+<tr>
+<td>重传次数</td>
+<td>通常 ≤ 4 次（可配置）</td>
+<td>可多次（窗口机制）</td>
+</tr>
+<tr>
+<td>软合并</td>
+<td>核心特性</td>
+<td>不支持</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="7-总结与关键参数速查"><a href="#7-总结与关键参数速查" class="headerlink" title="7. 总结与关键参数速查"></a>7. 总结与关键参数速查</h1><h3 id="逻辑信道与传输信道速查"><a href="#逻辑信道与传输信道速查" class="headerlink" title="逻辑信道与传输信道速查"></a>逻辑信道与传输信道速查</h3><table>
+<thead>
+<tr>
+<th>逻辑信道</th>
+<th>类型</th>
+<th>方向</th>
+<th>→ 传输信道</th>
+<th>→ 物理信道</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BCCH</td>
+<td>控制</td>
+<td>DL</td>
+<td>BCH &#x2F; DL-SCH</td>
+<td>PBCH &#x2F; PDSCH</td>
+</tr>
+<tr>
+<td>PCCH</td>
+<td>控制</td>
+<td>DL</td>
+<td>PCH</td>
+<td>PDSCH</td>
+</tr>
+<tr>
+<td>CCCH</td>
+<td>控制</td>
+<td>UL&#x2F;DL</td>
+<td>UL-SCH &#x2F; DL-SCH</td>
+<td>PUSCH &#x2F; PDSCH</td>
+</tr>
+<tr>
+<td>DCCH</td>
+<td>控制</td>
+<td>UL&#x2F;DL</td>
+<td>UL-SCH &#x2F; DL-SCH</td>
+<td>PUSCH &#x2F; PDSCH</td>
+</tr>
+<tr>
+<td>DTCH</td>
+<td>业务</td>
+<td>UL&#x2F;DL</td>
+<td>UL-SCH &#x2F; DL-SCH</td>
+<td>PUSCH &#x2F; PDSCH</td>
+</tr>
+</tbody></table>
+<h3 id="LCP-关键参数"><a href="#LCP-关键参数" class="headerlink" title="LCP 关键参数"></a>LCP 关键参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+<th>配置位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>priority（1~16）</td>
+<td>决定信道服务顺序</td>
+<td>RRC LogicalChannelConfig</td>
+</tr>
+<tr>
+<td>prioritisedBitRate</td>
+<td>令牌桶填充速率，保障最低速率</td>
+<td>RRC LogicalChannelConfig</td>
+</tr>
+<tr>
+<td>bucketSizeDuration</td>
+<td>令牌桶容量 &#x3D; PBR × BSD</td>
+<td>RRC LogicalChannelConfig</td>
+</tr>
+<tr>
+<td>allowedSCS-List</td>
+<td>绑定特定 Numerology</td>
+<td>RRC LogicalChannelConfig</td>
+</tr>
+<tr>
+<td>LCG 0~7</td>
+<td>BSR 上报分组</td>
+<td>RRC LogicalChannelConfig</td>
+</tr>
+</tbody></table>
+<h3 id="HARQ-关键参数"><a href="#HARQ-关键参数" class="headerlink" title="HARQ 关键参数"></a>HARQ 关键参数</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>典型值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HARQ 进程数（DL）</td>
+<td>RRC 配置，最大 16</td>
+<td>8（默认）</td>
+</tr>
+<tr>
+<td>HARQ 进程数（UL）</td>
+<td>DCI 4-bit 指示</td>
+<td>最大 16</td>
+</tr>
+<tr>
+<td>RV 序列</td>
+<td>初传与重传的冗余版本</td>
+<td>0→2→3→1</td>
+</tr>
+<tr>
+<td>K1（PDSCH→HARQ-ACK）</td>
+<td>UE 发送 ACK 的时延（slot 数）</td>
+<td>1~8，RRC 配置</td>
+</tr>
+<tr>
+<td>K2（UL Grant→PUSCH）</td>
+<td>UE 发送 PUSCH 的时延（slot 数）</td>
+<td>Numerology 相关</td>
+</tr>
+<tr>
+<td>CBG 数量</td>
+<td>每 TB 的码块组数</td>
+<td>2&#x2F;4&#x2F;6&#x2F;8，RRC 配置</td>
+</tr>
+<tr>
+<td>最大重传次数</td>
+<td>HARQ 最大重传上限</td>
+<td>通常 4（可调）</td>
+</tr>
+</tbody></table>
+<h3 id="5G-NR-HARQ-vs-LTE-HARQ-关键差异"><a href="#5G-NR-HARQ-vs-LTE-HARQ-关键差异" class="headerlink" title="5G NR HARQ vs LTE HARQ 关键差异"></a>5G NR HARQ vs LTE HARQ 关键差异</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>LTE</th>
+<th>5G NR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DL HARQ 定时</td>
+<td>异步</td>
+<td>异步</td>
+</tr>
+<tr>
+<td>UL HARQ 定时</td>
+<td><strong>同步</strong></td>
+<td><strong>异步</strong></td>
+</tr>
+<tr>
+<td>UL HARQ 进程数</td>
+<td>8（FDD）&#x2F;最多 8（TDD）</td>
+<td>最多 <strong>16</strong></td>
+</tr>
+<tr>
+<td>CBG 重传</td>
+<td>不支持</td>
+<td>支持（R15+）</td>
+</tr>
+<tr>
+<td>HARQ 反馈信道</td>
+<td>PUCCH + PHICH（UL ACK 用 PHICH）</td>
+<td>PUCCH（PHICH 废弃）</td>
+</tr>
+<tr>
+<td>最小重传时延</td>
+<td>8ms（FDD）</td>
+<td>灵活，取决于 Numerology 和 K1</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ol>
+<li><strong>3GPP TS 38.321</strong> - NR; Medium Access Control (MAC) protocol specification（Release 15 ~ Release 18）</li>
+<li><strong>3GPP TS 38.213</strong> - NR; Physical layer procedures for control</li>
+<li><strong>3GPP TS 38.214</strong> - NR; Physical layer procedures for data</li>
+<li><strong>3GPP TS 38.300</strong> - NR; NR and NG-RAN Overall Description: Stage-2</li>
+<li><strong>3GPP TS 38.322</strong> - NR; Radio Link Control (RLC) protocol specification</li>
+<li>Erik Dahlman, Stefan Parkvall, Johan Sköld - <em>5G NR: The Next Generation Wireless Access Technology</em>, Academic Press</li>
+<li>ETSI TS 138 321 V15.3.0 (2018-09) - 5G; NR; Medium Access Control (MAC) protocol specification</li>
+</ol>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-MAC-%E5%AD%90%E5%B1%82%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. MAC 子层概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%BF%A1%E9%81%93%E4%BD%93%E7%B3%BB%EF%BC%9A%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%B8%8E%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.</span> <span class="toc-text">2. 信道体系：逻辑信道与传输信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%EF%BC%88Logical-Channel%EF%BC%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 逻辑信道（Logical Channel）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93%EF%BC%88Control-Channels%EF%BC%89"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">控制信道（Control Channels）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E4%BF%A1%E9%81%93%EF%BC%88Traffic-Channel%EF%BC%89"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">业务信道（Traffic Channel）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93%EF%BC%88Transport-Channel%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 传输信道（Transport Channel）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">下行传输信道</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">上行传输信道</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-MAC-PDU-%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. MAC PDU 结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MAC-Control-Element%EF%BC%88MAC-CE%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">MAC Control Element（MAC CE）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%8E%E5%A4%8D%E7%94%A8%EF%BC%88LCP%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 逻辑信道优先级与复用（LCP）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BC%98%E5%85%88%E7%BA%A7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 优先级参数配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95%EF%BC%88Token-Bucket%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 令牌桶算法（Token Bucket）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-LCP-%E7%AE%97%E6%B3%95%E6%89%A7%E8%A1%8C%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 LCP 算法执行步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%98%A0%E5%B0%84%E9%99%90%E5%88%B6%EF%BC%88Mapping-Restriction%EF%BC%89"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 映射限制（Mapping Restriction）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E8%B0%83%E5%BA%A6%E8%AF%B7%E6%B1%82%EF%BC%88SR%EF%BC%89%E4%B8%8E%E7%BC%93%E5%86%B2%E7%8A%B6%E6%80%81%E4%B8%8A%E6%8A%A5%EF%BC%88BSR%EF%BC%89"><span class="toc-number">5.0.5.</span> <span class="toc-text">4.5 调度请求（SR）与缓冲状态上报（BSR）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-HARQ-%E6%9C%BA%E5%88%B6"><span class="toc-number">6.</span> <span class="toc-text">5. HARQ 机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-ARQ-HARQ-FEC-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 ARQ &#x2F; HARQ &#x2F; FEC 的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%81%9C%E7%AD%89%E5%8D%8F%E8%AE%AE%EF%BC%88Stop-and-Wait%EF%BC%89%E4%B8%8E%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%B9%B6%E8%A1%8C"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 停等协议（Stop-and-Wait）与多进程并行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BD%AF%E5%90%88%E5%B9%B6%EF%BC%88Soft-Combining%EF%BC%89%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 软合并（Soft Combining）原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Chase-Combining%EF%BC%88CC%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 Chase Combining（CC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-Incremental-Redundancy%EF%BC%88IR%EF%BC%89"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 Incremental Redundancy（IR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-%E5%86%97%E4%BD%99%E7%89%88%E6%9C%AC%EF%BC%88Redundancy-Version%EF%BC%8CRV%EF%BC%89"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 冗余版本（Redundancy Version，RV）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-HARQ-%E5%8F%8D%E9%A6%88%EF%BC%9ANDI-ACK-NACK"><span class="toc-number">6.0.7.</span> <span class="toc-text">5.7 HARQ 反馈：NDI &#x2F; ACK &#x2F; NACK</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-8-%E4%B8%8B%E8%A1%8C-HARQ-%E4%B8%8E%E4%B8%8A%E8%A1%8C-HARQ-%E7%9A%84%E5%BC%82%E5%90%8C"><span class="toc-number">6.0.8.</span> <span class="toc-text">5.8 下行 HARQ 与上行 HARQ 的异同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-9-%E7%A0%81%E5%9D%97%E7%BB%84%E9%87%8D%E4%BC%A0%EF%BC%88CBG-based-Retransmission%EF%BC%89"><span class="toc-number">6.0.9.</span> <span class="toc-text">5.9 码块组重传（CBG-based Retransmission）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-10-HARQ-%E5%AE%9A%E6%97%B6%E5%85%B3%E7%B3%BB"><span class="toc-number">6.0.10.</span> <span class="toc-text">5.10 HARQ 定时关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-MAC-%E4%B8%8E-RLC-%E7%9A%84%E5%8D%8F%E4%BD%9C%EF%BC%9AARQ-HARQ-%E5%8F%8C%E5%B1%82%E9%87%8D%E4%BC%A0"><span class="toc-number">7.</span> <span class="toc-text">6. MAC 与 RLC 的协作：ARQ + HARQ 双层重传</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E6%80%BB%E7%BB%93%E4%B8%8E%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">7. 总结与关键参数速查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E4%B8%8E%E4%BC%A0%E8%BE%93%E4%BF%A1%E9%81%93%E9%80%9F%E6%9F%A5"><span class="toc-number">8.0.1.</span> <span class="toc-text">逻辑信道与传输信道速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LCP-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0"><span class="toc-number">8.0.2.</span> <span class="toc-text">LCP 关键参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HARQ-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0"><span class="toc-number">8.0.3.</span> <span class="toc-text">HARQ 关键参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5G-NR-HARQ-vs-LTE-HARQ-%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82"><span class="toc-number">8.0.4.</span> <span class="toc-text">5G NR HARQ vs LTE HARQ 关键差异</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">9.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&text=MAC 层协议解析"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&is_video=false&description=MAC 层协议解析"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MAC 层协议解析&body=Check out this article: http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&title=MAC 层协议解析"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&name=MAC 层协议解析&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/&t=MAC 层协议解析"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

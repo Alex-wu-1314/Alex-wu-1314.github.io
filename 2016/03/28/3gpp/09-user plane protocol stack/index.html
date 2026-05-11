@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 用户面协议栈总览 SDAP：QoS Flow 到 DRB 的映射 PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序 RLC：三种模式与重传机制 MAC 与 PHY 简述 各层协作关系与数据流全景 小结与对比：NR vs LTE 协议栈差异   1. 用户面协议栈总览1.1 协议栈分层结构5G NR 用户面协议栈位于 UE 与 gNB 之间，负责将应用层的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MAC 层协议解析">
+<meta property="og:url" content="http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 用户面协议栈总览 SDAP：QoS Flow 到 DRB 的映射 PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序 RLC：三种模式与重传机制 MAC 与 PHY 简述 各层协作关系与数据流全景 小结与对比：NR vs LTE 协议栈差异   1. 用户面协议栈总览1.1 协议栈分层结构5G NR 用户面协议栈位于 UE 与 gNB 之间，负责将应用层的">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-03-28T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-08T12:57:08.909Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>MAC 层协议解析</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&text=MAC 层协议解析"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&is_video=false&description=MAC 层协议解析"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MAC 层协议解析&body=Check out this article: http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&name=MAC 层协议解析&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&t=MAC 层协议解析"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E7%94%A8%E6%88%B7%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">1. 用户面协议栈总览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%88%86%E5%B1%82%E7%BB%93%E6%9E%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 协议栈分层结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%84%E5%B1%82%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3%E9%80%9F%E8%A7%88"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 各层核心职责速览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-SDU-%E4%B8%8E-PDU-%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 SDU 与 PDU 的概念</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-SDAP%EF%BC%9AQoS-Flow-%E5%88%B0-DRB-%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">3.</span> <span class="toc-text">2. SDAP：QoS Flow 到 DRB 的映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-SDAP-%E5%AD%98%E5%9C%A8%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8E%E6%84%8F%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 SDAP 存在的背景与意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-SDAP-%E5%AE%9E%E4%BD%93%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 SDAP 实体模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-QoS-Flow-%E5%88%B0-DRB-%E7%9A%84%E6%98%A0%E5%B0%84%E8%A7%84%E5%88%99"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 QoS Flow 到 DRB 的映射规则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">2.3.1 映射关系约束</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E6%98%A0%E5%B0%84%E9%85%8D%E7%BD%AE%E6%9D%A5%E6%BA%90"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">2.3.2 映射配置来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-End-Marker-PDU"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">2.3.3 End-Marker PDU</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-SDAP-PDU-%E6%A0%BC%E5%BC%8F"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 SDAP PDU 格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%8F%8D%E5%B0%84-QoS%EF%BC%88Reflective-QoS%EF%BC%89"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 反射 QoS（Reflective QoS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-PDCP%EF%BC%9A%E5%A4%B4%E5%8E%8B%E7%BC%A9-%E5%8A%A0%E5%AF%86-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4-%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">3. PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-PDCP-%E5%AD%90%E5%B1%82%E7%9A%84%E5%AE%8C%E6%95%B4%E5%8A%9F%E8%83%BD%E5%88%97%E8%A1%A8"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 PDCP 子层的完整功能列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-PDCP-%E5%AE%9E%E4%BD%93%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 PDCP 实体模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-PDCP-%E5%BA%8F%E5%88%97%E5%8F%B7%EF%BC%88SN%EF%BC%89%E4%B8%8E-COUNT-%E5%80%BC"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 PDCP 序列号（SN）与 COUNT 值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%A4%B4%E5%8E%8B%E7%BC%A9%EF%BC%88ROHC%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 头压缩（ROHC）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-1-%E4%B8%BA%E4%BD%95%E9%9C%80%E8%A6%81%E5%A4%B4%E5%8E%8B%E7%BC%A9"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">3.4.1 为何需要头压缩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-2-ROHC-%E6%A1%86%E6%9E%B6%EF%BC%88RFC-5795%EF%BC%89"><span class="toc-number">4.0.4.2.</span> <span class="toc-text">3.4.2 ROHC 框架（RFC 5795）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%8A%A0%E5%AF%86%EF%BC%88Ciphering%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 加密（Ciphering）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-1-%E5%8A%A0%E5%AF%86%E8%8C%83%E5%9B%B4"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">3.5.1 加密范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-2-%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%88NEA%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">3.5.2 加密算法（NEA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-3-%E5%8A%A0%E5%AF%86%E8%BE%93%E5%85%A5%E5%8F%82%E6%95%B0"><span class="toc-number">4.0.5.3.</span> <span class="toc-text">3.5.3 加密输入参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4%EF%BC%88Integrity-Protection%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 完整性保护（Integrity Protection）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-1-%E4%BF%9D%E6%8A%A4%E8%8C%83%E5%9B%B4"><span class="toc-number">4.0.6.1.</span> <span class="toc-text">3.6.1 保护范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-2-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4%E7%AE%97%E6%B3%95%EF%BC%88NIA%EF%BC%89"><span class="toc-number">4.0.6.2.</span> <span class="toc-text">3.6.2 完整性保护算法（NIA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-3-MAC-I-%E5%AD%97%E6%AE%B5"><span class="toc-number">4.0.6.3.</span> <span class="toc-text">3.6.3 MAC-I 字段</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%88Reordering%EF%BC%89%E4%B8%8E%E9%A1%BA%E5%BA%8F%E9%80%92%E4%BA%A4"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 重排序（Reordering）与顺序递交</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-1-%E9%87%8D%E6%8E%92%E5%BA%8F%E7%AA%97%E5%8F%A3"><span class="toc-number">4.0.7.1.</span> <span class="toc-text">3.7.1 重排序窗口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-2-t-Reordering-%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">4.0.7.2.</span> <span class="toc-text">3.7.2 t-Reordering 定时器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-3-%E5%88%87%E6%8D%A2%E5%9C%BA%E6%99%AF%E7%9A%84-PDCP-%E9%87%8D%E5%BB%BA"><span class="toc-number">4.0.7.3.</span> <span class="toc-text">3.7.3 切换场景的 PDCP 重建</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RLC%EF%BC%9A%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">4. RLC：三种模式与重传机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-RLC-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 RLC 核心功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-RLC-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 RLC 三种模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-TM%EF%BC%88Transparent-Mode%EF%BC%8C%E9%80%8F%E6%98%8E%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">4.2.1 TM（Transparent Mode，透明模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-UM%EF%BC%88Unacknowledged-Mode%EF%BC%8C%E9%9D%9E%E7%A1%AE%E8%AE%A4%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">4.2.2 UM（Unacknowledged Mode，非确认模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-3-AM%EF%BC%88Acknowledged-Mode%EF%BC%8C%E7%A1%AE%E8%AE%A4%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.3.</span> <span class="toc-text">4.2.3 AM（Acknowledged Mode，确认模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-4-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">5.0.2.4.</span> <span class="toc-text">4.2.4 三种模式对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-RLC-%E4%B8%8E-HARQ-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 RLC 与 HARQ 的关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-MAC-%E4%B8%8E-PHY-%E7%AE%80%E8%BF%B0"><span class="toc-number">6.</span> <span class="toc-text">5. MAC 与 PHY 简述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-MAC-%E5%AD%90%E5%B1%82%EF%BC%88TS-38-321%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 MAC 子层（TS 38.321）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-PHY-%E7%89%A9%E7%90%86%E5%B1%82%EF%BC%88TS-38-211-212-213-214%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 PHY 物理层（TS 38.211&#x2F;212&#x2F;213&#x2F;214）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%90%84%E5%B1%82%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B5%81%E5%85%A8%E6%99%AF"><span class="toc-number">7.</span> <span class="toc-text">6. 各层协作关系与数据流全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%8B%E8%A1%8C%E6%95%B0%E6%8D%AE%E6%B5%81%EF%BC%88gNB-%E2%86%92-UE%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 下行数据流（gNB → UE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3%E4%B8%8E-SDU-PDU-%E5%90%8D%E7%A7%B0%E5%AF%B9%E5%BA%94"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 关键接口与 SDU&#x2F;PDU 名称对应</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AF%B9%E6%AF%94%EF%BC%9ANR-vs-LTE-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B7%AE%E5%BC%82"><span class="toc-number">8.</span> <span class="toc-text">7. 小结与对比：NR vs LTE 协议栈差异</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">9.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        MAC 层协议解析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-03-28T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-03-28</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E7%94%A8%E6%88%B7%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88">用户面协议栈总览</a></li>
+<li><a href="#2-sdap-qos-flow-%E5%88%B0-drb-%E7%9A%84%E6%98%A0%E5%B0%84">SDAP：QoS Flow 到 DRB 的映射</a></li>
+<li><a href="#3-pdcp%E5%A4%B4%E5%8E%8B%E7%BC%A9--%E5%8A%A0%E5%AF%86--%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4--%E9%87%8D%E6%8E%92%E5%BA%8F">PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序</a></li>
+<li><a href="#4-rlc%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6">RLC：三种模式与重传机制</a></li>
+<li><a href="#5-mac-%E4%B8%8E-phy-%E7%AE%80%E8%BF%B0">MAC 与 PHY 简述</a></li>
+<li><a href="#6-%E5%90%84%E5%B1%82%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B5%81%E5%85%A8%E6%99%AF">各层协作关系与数据流全景</a></li>
+<li><a href="#7-%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AF%B9%E6%AF%94nr-vs-lte-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B7%AE%E5%BC%82">小结与对比：NR vs LTE 协议栈差异</a></li>
+</ol>
+<hr>
+<h1 id="1-用户面协议栈总览"><a href="#1-用户面协议栈总览" class="headerlink" title="1. 用户面协议栈总览"></a>1. 用户面协议栈总览</h1><h3 id="1-1-协议栈分层结构"><a href="#1-1-协议栈分层结构" class="headerlink" title="1.1 协议栈分层结构"></a>1.1 协议栈分层结构</h3><p>5G NR 用户面协议栈位于 UE 与 gNB 之间，负责将应用层的 IP 数据包安全、可靠、高效地在无线空口上传输。根据 <strong>3GPP TS 38.300</strong>，用户面协议栈由上至下共分为五个子层：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│                   上层（IP / 应用层）                     │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  SDAP  │ Service Data Adaptation Protocol   TS 37.324   │  ← 5G NR 新增</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  PDCP  │ Packet Data Convergence Protocol   TS 38.323   │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  RLC   │ Radio Link Control                 TS 38.322   │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  MAC   │ Medium Access Control              TS 38.321   │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  PHY   │ Physical Layer                     TS 38.211~  │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：SDAP 是 5G NR 相比 LTE 新增的子层，仅存在于连接 5G 核心网（5GC）的场景（SA 架构）。在 NSA（Option 3x）架构中，LTE 侧不配置 SDAP。</p>
+</blockquote>
+<h3 id="1-2-各层核心职责速览"><a href="#1-2-各层核心职责速览" class="headerlink" title="1.2 各层核心职责速览"></a>1.2 各层核心职责速览</h3><table>
+<thead>
+<tr>
+<th>子层</th>
+<th>核心职责</th>
+<th>关键规范</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SDAP</strong></td>
+<td>QoS Flow → DRB 映射；QFI 标记</td>
+<td>TS 37.324</td>
+</tr>
+<tr>
+<td><strong>PDCP</strong></td>
+<td>头压缩（ROHC）；加密与完整性保护；PDCP SN 维护；重排序</td>
+<td>TS 38.323</td>
+</tr>
+<tr>
+<td><strong>RLC</strong></td>
+<td>分段与重组；ARQ（AM 模式）；TM &#x2F; UM &#x2F; AM 三模式</td>
+<td>TS 38.322</td>
+</tr>
+<tr>
+<td><strong>MAC</strong></td>
+<td>逻辑信道到传输信道的复用；HARQ；调度请求</td>
+<td>TS 38.321</td>
+</tr>
+<tr>
+<td><strong>PHY</strong></td>
+<td>编码调制；多天线处理；物理资源映射</td>
+<td>TS 38.211&#x2F;212&#x2F;213&#x2F;214</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-SDU-与-PDU-的概念"><a href="#1-3-SDU-与-PDU-的概念" class="headerlink" title="1.3 SDU 与 PDU 的概念"></a>1.3 SDU 与 PDU 的概念</h3><p>在协议栈中，每一层的数据单元有严格定义：</p>
+<ul>
+<li><strong>SDU（Service Data Unit）</strong>：来自上层的数据单元，即本层的”输入”。</li>
+<li><strong>PDU（Protocol Data Unit）</strong>：经本层处理后交给下层的数据单元，即本层的”输出”。</li>
+</ul>
+<p>数据从 SDAP 自顶向下流动时，每层在 SDU 基础上添加头部（Header），形成本层 PDU，再作为下层 SDU；反方向（上行接收）则依次去头还原。</p>
+<hr>
+<h1 id="2-SDAP：QoS-Flow-到-DRB-的映射"><a href="#2-SDAP：QoS-Flow-到-DRB-的映射" class="headerlink" title="2. SDAP：QoS Flow 到 DRB 的映射"></a>2. SDAP：QoS Flow 到 DRB 的映射</h1><h3 id="2-1-SDAP-存在的背景与意义"><a href="#2-1-SDAP-存在的背景与意义" class="headerlink" title="2.1 SDAP 存在的背景与意义"></a>2.1 SDAP 存在的背景与意义</h3><p>在 LTE&#x2F;EPC 体系中，QoS 管理以 <strong>EPS Bearer</strong> 为粒度，承载与 QoS 参数绑定，接入网（eNB）直接感知 Bearer。</p>
+<p>进入 5G&#x2F;5GC 时代，核心网引入了更细粒度的 <strong>QoS Flow</strong> 概念（参见 TS 23.501）：</p>
+<ul>
+<li>一个 <strong>PDU Session</strong> 内可包含多个 QoS Flow，每个 Flow 携带 <strong>QFI（QoS Flow Identifier）</strong>。</li>
+<li>UPF 与 gNB 之间通过 GTP-U 隧道传输数据，下行方向通过 GTP-U 扩展头中的 QFI 区分 Flow。</li>
+<li>gNB 侧需要将 QoS Flow 映射到无线空口的 <strong>DRB（Data Radio Bearer）</strong> 上。</li>
+</ul>
+<p><strong>SDAP（Service Data Adaptation Protocol）</strong> 正是为了承担这一映射职责而被引入。SDAP 规范定义在 <strong>TS 37.324</strong>，之所以使用 TS 37.x 编号（而非 38.x），是因为 SDAP 同样可适用于 LTE UE 连接 5GC 的场景（EPS 与 NR 共用）。</p>
+<h3 id="2-2-SDAP-实体模型"><a href="#2-2-SDAP-实体模型" class="headerlink" title="2.2 SDAP 实体模型"></a>2.2 SDAP 实体模型</h3><p>根据 TS 37.324 第 4 章，<strong>每个 PDU Session 对应一个 SDAP 实体</strong>（Dual Connectivity 场景下可配置两个实体）。SDAP 实体存在于 gNB 和 UE 两侧，仅位于用户面，控制面无 SDAP。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">     PDU Session 1                  PDU Session 2</span><br><span class="line">┌─────────────────────┐       ┌─────────────────────┐</span><br><span class="line">│   SDAP Entity 1     │       │   SDAP Entity 2     │</span><br><span class="line">│  QFI=1 → DRB1       │       │  QFI=5 → DRB3       │</span><br><span class="line">│  QFI=2 → DRB1       │       │  QFI=6 → DRB4       │</span><br><span class="line">│  QFI=3 → DRB2       │       │                     │</span><br><span class="line">└─────────────────────┘       └─────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-QoS-Flow-到-DRB-的映射规则"><a href="#2-3-QoS-Flow-到-DRB-的映射规则" class="headerlink" title="2.3 QoS Flow 到 DRB 的映射规则"></a>2.3 QoS Flow 到 DRB 的映射规则</h3><h4 id="2-3-1-映射关系约束"><a href="#2-3-1-映射关系约束" class="headerlink" title="2.3.1 映射关系约束"></a>2.3.1 映射关系约束</h4><p>TS 37.324 规定：</p>
+<ul>
+<li><strong>一个 QoS Flow 在上行方向同一时刻只能映射到一个 DRB</strong>（1:1 UL 约束）。</li>
+<li><strong>一个 DRB 可以承载来自同一 PDU Session 的多个 QoS Flow</strong>（多 Flow 聚合到一个 DRB）。</li>
+<li>每个 PDU Session 有且只有一个 <strong>Default DRB</strong>。当没有明确映射规则时，数据包默认路由到 Default DRB。</li>
+</ul>
+<h4 id="2-3-2-映射配置来源"><a href="#2-3-2-映射配置来源" class="headerlink" title="2.3.2 映射配置来源"></a>2.3.2 映射配置来源</h4><p>QoS Flow 到 DRB 的映射规则由 <strong>RRC 层通过 TS 38.331 中的 SDAP-Config IE</strong> 配置下发，主要参数包括：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>defaultDRB</code></td>
+<td>是否为该 PDU Session 的默认 DRB</td>
+</tr>
+<tr>
+<td><code>mappedQoS-FlowsToAdd</code></td>
+<td>需要映射到本 DRB 的 QFI 列表</td>
+</tr>
+<tr>
+<td><code>mappedQoS-FlowsToRelease</code></td>
+<td>从本 DRB 移除的 QFI 列表</td>
+</tr>
+<tr>
+<td><code>sdap-HeaderDL</code></td>
+<td>下行是否添加 SDAP 头部</td>
+</tr>
+<tr>
+<td><code>sdap-HeaderUL</code></td>
+<td>上行是否添加 SDAP 头部</td>
+</tr>
+</tbody></table>
+<h4 id="2-3-3-End-Marker-PDU"><a href="#2-3-3-End-Marker-PDU" class="headerlink" title="2.3.3 End-Marker PDU"></a>2.3.3 End-Marker PDU</h4><p>当某个 QoS Flow 需要从一个 DRB 重映射（remap）到另一个 DRB 时，发送侧的 SDAP 实体会在原 DRB 上发送一个 <strong>End-Marker Control PDU</strong>，通知接收端该 DRB 上该 Flow 的数据流已结束，后续数据将从新 DRB 到达，避免乱序。</p>
+<h3 id="2-4-SDAP-PDU-格式"><a href="#2-4-SDAP-PDU-格式" class="headerlink" title="2.4 SDAP PDU 格式"></a>2.4 SDAP PDU 格式</h3><p>SDAP PDU 分为 <strong>Data PDU</strong> 和 <strong>Control PDU</strong> 两类。</p>
+<p><strong>SDAP Data PDU 格式（含 SDAP 头部时）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">├───────────────────┼────────────────────────────────────────┤</span><br><span class="line">│D/C│ RQI │  QFI    │           SDAP SDU（IP 数据包）          │</span><br><span class="line">│ 1b│  1b │  6b     │                                        │</span><br><span class="line">└───────────────────┴────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>D&#x2F;C</strong></td>
+<td>1 bit</td>
+<td>区分 Data PDU（1）还是 Control PDU（0）</td>
+</tr>
+<tr>
+<td><strong>RQI</strong></td>
+<td>1 bit</td>
+<td>Reflective QoS Indication，置 1 时通知 UE 使用反射 QoS</td>
+</tr>
+<tr>
+<td><strong>QFI</strong></td>
+<td>6 bit</td>
+<td>QoS Flow Identifier，标识本数据包所属的 QoS Flow</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注：当 <code>sdap-HeaderDL</code> &#x2F; <code>sdap-HeaderUL</code> 未配置时，SDAP 头部可以省略（无头模式）。此时 SDAP 层对数据透明传递，不添加任何开销。</p>
+</blockquote>
+<h3 id="2-5-反射-QoS（Reflective-QoS）"><a href="#2-5-反射-QoS（Reflective-QoS）" class="headerlink" title="2.5 反射 QoS（Reflective QoS）"></a>2.5 反射 QoS（Reflective QoS）</h3><p><strong>反射 QoS</strong> 是 5G 引入的一种简化 QoS 配置的机制（定义于 TS 23.501）：</p>
+<ol>
+<li>核心网下行发送数据时，在 SDAP 头部将 <strong>RQI 置 1</strong>，并携带 QFI。</li>
+<li>UE 的 SDAP 实体检测到 RQI&#x3D;1 后，自动推导出：该 QFI 对应的上行数据应映射到与下行相同的 DRB。</li>
+<li>UE 无需等待显式的 NAS 或 RRC 映射规则配置，即可建立上行的 QoS Flow → DRB 映射。</li>
+</ol>
+<p>这一机制特别适合 IP 应用的对称流（如视频通话），减少信令开销。</p>
+<hr>
+<h1 id="3-PDCP：头压缩-加密-完整性保护-重排序"><a href="#3-PDCP：头压缩-加密-完整性保护-重排序" class="headerlink" title="3. PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序"></a>3. PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序</h1><p>PDCP（Packet Data Convergence Protocol）由 <strong>TS 38.323</strong> 定义，是用户面和控制面共用的重要子层（控制面 SRB 与用户面 DRB 均使用 PDCP）。</p>
+<h3 id="3-1-PDCP-子层的完整功能列表"><a href="#3-1-PDCP-子层的完整功能列表" class="headerlink" title="3.1 PDCP 子层的完整功能列表"></a>3.1 PDCP 子层的完整功能列表</h3><p>根据 TS 38.323 第 4.4 节，PDCP 提供以下功能：</p>
+<ol>
+<li>数据传输（用户面与控制面）</li>
+<li>PDCP 序列号（SN）维护</li>
+<li>头压缩与解压缩（ROHC &#x2F; EHC &#x2F; UDC）</li>
+<li>加密与解密（Ciphering）</li>
+<li>完整性保护与校验（Integrity Protection）</li>
+<li>基于定时器的 SDU 丢弃（t-DiscardTimer）</li>
+<li>针对分裂承载（Split Bearer）的路由</li>
+<li>PDCP PDU 复制（Duplication，用于可靠性增强）</li>
+<li>重排序与顺序递交（Reordering &amp; In-order Delivery）</li>
+<li>乱序递交（Out-of-order Delivery，可选配置）</li>
+<li>重复丢弃（Duplicate Discarding）</li>
+</ol>
+<h3 id="3-2-PDCP-实体模型"><a href="#3-2-PDCP-实体模型" class="headerlink" title="3.2 PDCP 实体模型"></a>3.2 PDCP 实体模型</h3><p>每个无线承载（SRB 或 DRB）对应<strong>一个 PDCP 实体</strong>（DAPS 切换场景下可有两套安全配置）。PDCP 实体由 RRC 配置，位于 CU-CP（控制面）或 CU-UP（用户面，F1 分离架构下）中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">上层（SDAP / RRC）</span><br><span class="line">      │</span><br><span class="line">┌─────▼─────────────────────────────────────────────────────┐</span><br><span class="line">│                      PDCP 实体                             │</span><br><span class="line">│  ┌────────────┐  ┌──────────────┐  ┌───────────────────┐  │</span><br><span class="line">│  │ 头压缩      │  │ 加密/完整性   │   │ SN / 重排序窗口    │  │</span><br><span class="line">│  │ (ROHC/EHC) │  │ (COUNT值)    │  │ (t-Reordering)    │  │</span><br><span class="line">│  └────────────┘  └──────────────┘  └───────────────────┘  │</span><br><span class="line">└───────────────────────────────────────────────────────────┘</span><br><span class="line">      │</span><br><span class="line">      ▼</span><br><span class="line">下层（RLC）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-PDCP-序列号（SN）与-COUNT-值"><a href="#3-3-PDCP-序列号（SN）与-COUNT-值" class="headerlink" title="3.3 PDCP 序列号（SN）与 COUNT 值"></a>3.3 PDCP 序列号（SN）与 COUNT 值</h3><p>PDCP 为每个 PDU 分配一个 <strong>PDCP SN</strong>，与 <strong>HFN（Hyper Frame Number）</strong> 合并构成 <strong>COUNT 值</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">COUNT [32 bit] = HFN [32-SN_Length bits] || PDCP SN [SN_Length bits]</span><br></pre></td></tr></table></figure>
+
+<p>COUNT 值在加密和完整性保护中充当输入参数（等同于序列计数），保证每个 PDU 使用唯一的加密流，防止重放攻击。</p>
+<p>NR PDCP SN 长度可配置：</p>
+<table>
+<thead>
+<tr>
+<th>承载类型</th>
+<th>SN 长度</th>
+<th>最大 SN 值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SRB（信令承载）</td>
+<td>12 bit</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>DRB</td>
+<td>12 bit 或 <strong>18 bit</strong></td>
+<td>4096 &#x2F; 262144</td>
+</tr>
+</tbody></table>
+<p>相比 LTE 最大 15 bit SN，NR 引入 18 bit SN 是为了支持更高吞吐率下的更大窗口，避免在高速传输时 SN 回绕导致的问题。</p>
+<h3 id="3-4-头压缩（ROHC）"><a href="#3-4-头压缩（ROHC）" class="headerlink" title="3.4 头压缩（ROHC）"></a>3.4 头压缩（ROHC）</h3><h4 id="3-4-1-为何需要头压缩"><a href="#3-4-1-为何需要头压缩" class="headerlink" title="3.4.1 为何需要头压缩"></a>3.4.1 为何需要头压缩</h4><p>IP&#x2F;UDP&#x2F;RTP 报头典型大小为 40 字节（IPv4）或 60 字节（IPv6），对于 VoIP 等每帧载荷仅 20<del>30 字节的业务而言，头部开销占比极高。头压缩可将其压缩到 1</del>3 字节，显著节省无线资源。</p>
+<h4 id="3-4-2-ROHC-框架（RFC-5795）"><a href="#3-4-2-ROHC-框架（RFC-5795）" class="headerlink" title="3.4.2 ROHC 框架（RFC 5795）"></a>3.4.2 ROHC 框架（RFC 5795）</h4><p>NR PDCP 支持 <strong>ROHC（Robust Header Compression）</strong>，定义于 IETF RFC 5795，核心思想是：</p>
+<ul>
+<li><strong>初始化（IR 模式）</strong>：传输完整未压缩头部，建立上下文（Context）。</li>
+<li><strong>一阶（FO 模式）</strong>：传输变化字段的增量，固定字段不传。</li>
+<li><strong>二阶（SO 模式）</strong>：仅传输最小变化量（如 RTP SN、时间戳），压缩比最高。</li>
+</ul>
+<p>当信道质量较差导致上下文同步失败时，ROHC 可回退到更保守的模式重新同步。</p>
+<p>TS 38.323 支持的 ROHC Profile（TS 38.323 Table 5.7.1-1）：</p>
+<table>
+<thead>
+<tr>
+<th>Profile ID</th>
+<th>适用协议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x0000</td>
+<td>无压缩（ROHC 不压缩模式）</td>
+</tr>
+<tr>
+<td>0x0001</td>
+<td>RTP&#x2F;UDP&#x2F;IP（IPv4）</td>
+</tr>
+<tr>
+<td>0x0002</td>
+<td>UDP&#x2F;IP（IPv4）</td>
+</tr>
+<tr>
+<td>0x0003</td>
+<td>ESP&#x2F;IP</td>
+</tr>
+<tr>
+<td>0x0004</td>
+<td>IP（IPv4 only）</td>
+</tr>
+<tr>
+<td>0x0006</td>
+<td>TCP&#x2F;IP</td>
+</tr>
+<tr>
+<td>0x0101</td>
+<td>RTP&#x2F;UDP&#x2F;IP（IPv6）</td>
+</tr>
+<tr>
+<td>0x0102</td>
+<td>UDP&#x2F;IP（IPv6）</td>
+</tr>
+<tr>
+<td>0x0104</td>
+<td>IP（IPv6）</td>
+</tr>
+</tbody></table>
+<p>每个 PDCP 实体最多配置一个 ROHC 压缩实例和一个解压缩实例，下行与上行各为单向信道。</p>
+<blockquote>
+<p>R17 起还引入了 <strong>EHC（Ethernet Header Compression）</strong> 和 <strong>UDC（Uplink Data Compression）</strong>，分别面向 TSN 以太帧承载和上行数据体积压缩场景。</p>
+</blockquote>
+<h3 id="3-5-加密（Ciphering）"><a href="#3-5-加密（Ciphering）" class="headerlink" title="3.5 加密（Ciphering）"></a>3.5 加密（Ciphering）</h3><h4 id="3-5-1-加密范围"><a href="#3-5-1-加密范围" class="headerlink" title="3.5.1 加密范围"></a>3.5.1 加密范围</h4><p>根据 TS 38.323 第 5.8 节，加密对象为：</p>
+<ul>
+<li><strong>PDCP Data PDU 的数据部分</strong>（含 MAC-I 字段），<strong>不包括</strong> SDAP 头部（如存在）。</li>
+<li>PDCP Control PDU <strong>不加密</strong>。</li>
+</ul>
+<h4 id="3-5-2-加密算法（NEA）"><a href="#3-5-2-加密算法（NEA）" class="headerlink" title="3.5.2 加密算法（NEA）"></a>3.5.2 加密算法（NEA）</h4><p>加密算法由 RRC 配置，支持以下三种（TS 33.501）：</p>
+<table>
+<thead>
+<tr>
+<th>算法标识</th>
+<th>算法名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NEA0</td>
+<td>空算法</td>
+<td>不加密（测试&#x2F;紧急业务）</td>
+</tr>
+<tr>
+<td>128-NEA1</td>
+<td>SNOW 3G</td>
+<td>基于流加密</td>
+</tr>
+<tr>
+<td>128-NEA2</td>
+<td>AES-CTR</td>
+<td>128 bit 密钥，计数器模式</td>
+</tr>
+<tr>
+<td>128-NEA3</td>
+<td>ZUC</td>
+<td>中国祖冲之算法</td>
+</tr>
+</tbody></table>
+<h4 id="3-5-3-加密输入参数"><a href="#3-5-3-加密输入参数" class="headerlink" title="3.5.3 加密输入参数"></a>3.5.3 加密输入参数</h4><p>加密函数的输入为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">EEA(KEY, COUNT, BEARER, DIRECTION, LENGTH, PLAINTEXT) → CIPHERTEXT</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>KEY</code>：KUPenc（用户面）或 KRRCenc（控制面），由密钥层级（KgNB）派生</li>
+<li><code>COUNT</code>：PDCP 序列计数（HFN + SN）</li>
+<li><code>BEARER</code>：无线承载 ID（5 bit）</li>
+<li><code>DIRECTION</code>：上行（0）&#x2F; 下行（1）</li>
+</ul>
+<h3 id="3-6-完整性保护（Integrity-Protection）"><a href="#3-6-完整性保护（Integrity-Protection）" class="headerlink" title="3.6 完整性保护（Integrity Protection）"></a>3.6 完整性保护（Integrity Protection）</h3><h4 id="3-6-1-保护范围"><a href="#3-6-1-保护范围" class="headerlink" title="3.6.1 保护范围"></a>3.6.1 保护范围</h4><ul>
+<li><strong>SRB（信令承载）</strong>：所有 PDCP Data PDU <strong>强制</strong>进行完整性保护。</li>
+<li><strong>DRB（数据承载）</strong>：由 RRC 配置决定是否启用（R15 默认不启用，R16 后针对用户面完整性保护有增强选项，但考虑到性能开销，通常仅在高安全需求场景配置）。</li>
+<li>PDCP Control PDU <strong>不进行</strong>完整性保护。</li>
+</ul>
+<h4 id="3-6-2-完整性保护算法（NIA）"><a href="#3-6-2-完整性保护算法（NIA）" class="headerlink" title="3.6.2 完整性保护算法（NIA）"></a>3.6.2 完整性保护算法（NIA）</h4><table>
+<thead>
+<tr>
+<th>算法标识</th>
+<th>算法名称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NIA0</td>
+<td>空算法</td>
+</tr>
+<tr>
+<td>128-NIA1</td>
+<td>SNOW 3G</td>
+</tr>
+<tr>
+<td>128-NIA2</td>
+<td>AES-CMAC</td>
+</tr>
+<tr>
+<td>128-NIA3</td>
+<td>ZUC</td>
+</tr>
+</tbody></table>
+<h4 id="3-6-3-MAC-I-字段"><a href="#3-6-3-MAC-I-字段" class="headerlink" title="3.6.3 MAC-I 字段"></a>3.6.3 MAC-I 字段</h4><p>完整性保护的输出为 <strong>MAC-I（Message Authentication Code for Integrity）</strong>，长度 <strong>4 字节（32 bit）</strong>，附在 PDCP PDU 末尾。接收端重新计算 MAC-I 并与收到的 MAC-I 对比，不一致则丢弃 PDU。</p>
+<p>完整性保护在加密之前执行（先算 MAC-I，再加密整体）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PDCP SDU → [完整性保护] → 得到 MAC-I → [加密 (SDU + MAC-I)] → PDCP PDU</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-7-重排序（Reordering）与顺序递交"><a href="#3-7-重排序（Reordering）与顺序递交" class="headerlink" title="3.7 重排序（Reordering）与顺序递交"></a>3.7 重排序（Reordering）与顺序递交</h3><p>由于无线信道的多路径传输（Split Bearer &#x2F; CA）以及 RLC AM 层的 ARQ 乱序，PDCP 接收端收到的 PDU 序号可能不连续。PDCP 通过以下机制处理：</p>
+<h4 id="3-7-1-重排序窗口"><a href="#3-7-1-重排序窗口" class="headerlink" title="3.7.1 重排序窗口"></a>3.7.1 重排序窗口</h4><p>PDCP 维护一个接收窗口，以 COUNT 值排序。状态变量：</p>
+<ul>
+<li><code>RX_NEXT</code>：期望接收的下一个 PDCP COUNT 值。</li>
+<li><code>RX_DELIV</code>：待递交给上层的最小 COUNT 值（已按序排列的指针）。</li>
+<li><code>RX_REORD</code>：触发 t-Reordering 的 COUNT 值。</li>
+</ul>
+<h4 id="3-7-2-t-Reordering-定时器"><a href="#3-7-2-t-Reordering-定时器" class="headerlink" title="3.7.2 t-Reordering 定时器"></a>3.7.2 t-Reordering 定时器</h4><p>当 PDCP 检测到 SN 乱序（收到 COUNT 值比 RX_DELIV 更大但中间有空缺），启动 <strong>t-Reordering 定时器</strong>。定时器超时前，乱序的 PDU 在缓冲区等待；超时后，无论空缺是否填补，强制将所有已收到的 PDU 按序递交给上层，防止无限等待造成延迟。</p>
+<h4 id="3-7-3-切换场景的-PDCP-重建"><a href="#3-7-3-切换场景的-PDCP-重建" class="headerlink" title="3.7.3 切换场景的 PDCP 重建"></a>3.7.3 切换场景的 PDCP 重建</h4><p>切换时，PDCP 实体可能需要<strong>重建（Re-establishment）</strong>：</p>
+<ul>
+<li>AM DRB：未成功递交的 SDU 需要重传（PDCP Status Report 机制），以保证数据不丢失。</li>
+<li>UM DRB：重建后丢弃窗口外数据，直接递交窗口内有序数据。</li>
+</ul>
+<p>PDCP Status Report（状态报告）包含 <code>FMC（First Missing COUNT）</code>，告知对端从哪个 COUNT 值开始重传，用于切换场景的数据恢复。</p>
+<hr>
+<h1 id="4-RLC：三种模式与重传机制"><a href="#4-RLC：三种模式与重传机制" class="headerlink" title="4. RLC：三种模式与重传机制"></a>4. RLC：三种模式与重传机制</h1><p>RLC（Radio Link Control）由 <strong>TS 38.322</strong> 定义，位于 PDCP 之下、MAC 之上，提供逻辑信道上的数据传输服务。</p>
+<h3 id="4-1-RLC-核心功能"><a href="#4-1-RLC-核心功能" class="headerlink" title="4.1 RLC 核心功能"></a>4.1 RLC 核心功能</h3><ul>
+<li>上层 PDU 的传输（分段 &#x2F; 重组）</li>
+<li>AM 模式下的 ARQ 错误纠正</li>
+<li>RLC SDU 的分段（Segmentation）与拼接（按 MAC 层指示的 TB 大小切分）</li>
+<li>SDU 的丢弃（上层触发）</li>
+</ul>
+<blockquote>
+<p><strong>NR 相比 LTE 的重要变化</strong>：NR RLC <strong>取消了</strong>拼接（Concatenation）功能，Concatenation 下移到 MAC 层处理；同时也<strong>取消</strong>了 LTE 中的 RLC 重分段（Re-segmentation 机制简化）。这使得 RLC PDU 格式更简洁，同时降低了时延（不必等待多个 SDU 再拼接）。</p>
+</blockquote>
+<h3 id="4-2-RLC-三种模式"><a href="#4-2-RLC-三种模式" class="headerlink" title="4.2 RLC 三种模式"></a>4.2 RLC 三种模式</h3><p>TS 38.322 定义了三种 RLC 模式，对应不同的逻辑信道和业务需求。</p>
+<h4 id="4-2-1-TM（Transparent-Mode，透明模式）"><a href="#4-2-1-TM（Transparent-Mode，透明模式）" class="headerlink" title="4.2.1 TM（Transparent Mode，透明模式）"></a>4.2.1 TM（Transparent Mode，透明模式）</h4><p><strong>应用场景：</strong></p>
+<ul>
+<li><strong>BCCH</strong>（广播控制信道）：SIB 系统信息广播</li>
+<li><strong>PCCH</strong>（寻呼控制信道）：寻呼消息</li>
+<li><strong>CCCH</strong>（公共控制信道）：RRC 连接建立（初始 Msg3）</li>
+</ul>
+<p><strong>工作机制：</strong></p>
+<ul>
+<li>TM RLC 实体的 TMD PDU <strong>不含任何 RLC 头部</strong>，完全透明传输。</li>
+<li>不分段、不重传、不排序，保持原始 SDU 的完整性。</li>
+<li>一个 TMD PDU 对应一个 RLC SDU（1:1 关系）。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RLC SDU（原始数据）</span><br><span class="line">     ↓ （无头部，原样输出）</span><br><span class="line">TMD PDU = RLC SDU</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：开销为零，延迟最低。<br><strong>缺点</strong>：无差错保护，依赖上层（PDCP）或下层（HARQ）提供可靠性。</p>
+<h4 id="4-2-2-UM（Unacknowledged-Mode，非确认模式）"><a href="#4-2-2-UM（Unacknowledged-Mode，非确认模式）" class="headerlink" title="4.2.2 UM（Unacknowledged Mode，非确认模式）"></a>4.2.2 UM（Unacknowledged Mode，非确认模式）</h4><p><strong>应用场景：</strong></p>
+<ul>
+<li><strong>DTCH</strong>（专用流量信道）：实时业务，如 VoNR（语音），eMBB 视频流</li>
+<li><strong>MCCH &#x2F; MTCH</strong>（组播控制 &#x2F; 流量信道）</li>
+</ul>
+<p><strong>工作机制：</strong></p>
+<ul>
+<li>UM RLC 实体不提供 ARQ 重传，接收方不向发送方发送 ACK&#x2F;NACK。</li>
+<li>支持 SDU 的<strong>分段（Segmentation）</strong>：当 MAC 层指示的 TB 空间不足时，可将 RLC SDU 分成多个 UMD PDU 传输。</li>
+<li>接收端可进行<strong>重组（Reassembly）</strong>和<strong>重排序</strong>（维护接收窗口，由 t-Reassembly 定时器驱动）。</li>
+<li>SN 长度可配置为 <strong>6 bit</strong> 或 <strong>12 bit</strong>（由 RRC 配置）。</li>
+</ul>
+<p><strong>UMD PDU 头部字段：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SI（Segmentation Info）</strong></td>
+<td>2 bit，指示是否为完整 SDU（00），首分段（01），末分段（10），中间分段（11）</td>
+</tr>
+<tr>
+<td><strong>SN</strong></td>
+<td>6 bit 或 12 bit，序列号</td>
+</tr>
+<tr>
+<td><strong>SO（Segment Offset）</strong></td>
+<td>16 bit，当为非首分段时携带，指示分段在原 SDU 中的字节偏移</td>
+</tr>
+</tbody></table>
+<p><strong>t-Reassembly 定时器</strong>：接收端检测到分段空缺时启动；超时后，将已缓存的分段强制上报或丢弃，防止无限等待。</p>
+<h4 id="4-2-3-AM（Acknowledged-Mode，确认模式）"><a href="#4-2-3-AM（Acknowledged-Mode，确认模式）" class="headerlink" title="4.2.3 AM（Acknowledged Mode，确认模式）"></a>4.2.3 AM（Acknowledged Mode，确认模式）</h4><p><strong>应用场景：</strong></p>
+<ul>
+<li><strong>DCCH</strong>（专用控制信道）：RRC 信令（SRB）</li>
+<li><strong>DTCH</strong>（专用流量信道）：需要可靠传输的数据（大多数 DRB，如 TCP 数据）</li>
+</ul>
+<p><strong>工作机制：</strong></p>
+<p>AM 是最复杂的 RLC 模式，提供基于 ARQ（Automatic Repeat reQuest）的可靠传输。</p>
+<p><strong>AM RLC 发送侧状态机：</strong></p>
+<ol>
+<li>接收上层 PDU，分配 SN，构建 AMD PDU。</li>
+<li>将 AMD PDU 提交 MAC 层发送，同时保留副本在重传缓冲区。</li>
+<li>当收到 STATUS PDU（NACK）时，将对应 AMD PDU 标记为重传。</li>
+<li>当重传计数（RETX_COUNT）达到 <code>maxRetxThreshold</code>（RRC 配置）时，触发 RLC 错误（通知上层链路失败）。</li>
+</ol>
+<p><strong>STATUS PDU（NACK&#x2F;ACK 机制）：</strong></p>
+<ul>
+<li>STATUS PDU 是 AM 模式唯一的控制 PDU（D&#x2F;C bit &#x3D; 0）。</li>
+<li>包含 <code>ACK_SN</code>（当前已成功连续接收的最大 SN + 1）及 <code>NACK_SN</code> 列表（带 SO 范围，支持部分重传）。</li>
+<li>接收端可通过 <strong>polling</strong> 机制触发发送（发送端在 AMD PDU 中置 P bit）。</li>
+<li>为防止 STATUS PDU 风暴，接收端受 <strong>t-StatusProhibit</strong> 定时器限制（超时前不重复发送）。</li>
+</ul>
+<p><strong>AM RLC PDU 格式（AMD PDU）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>D&#x2F;C</td>
+<td>1 bit</td>
+<td>数据（1）或控制（0）</td>
+</tr>
+<tr>
+<td>P</td>
+<td>1 bit</td>
+<td>Polling bit，请求接收端发送 STATUS PDU</td>
+</tr>
+<tr>
+<td>SI</td>
+<td>2 bit</td>
+<td>分段信息</td>
+</tr>
+<tr>
+<td>SN</td>
+<td>12 bit 或 <strong>18 bit</strong></td>
+<td>序列号（RRC 配置）</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>16 bit</td>
+<td>非首分段时携带，字节偏移</td>
+</tr>
+</tbody></table>
+<p>相比 LTE（最大 10 bit SN），NR AM RLC 支持 <strong>12 bit 或 18 bit SN</strong>，最大窗口大小分别为 2048 和 131072，可满足极高吞吐场景。</p>
+<p><strong>STATUS PDU 格式关键字段：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ACK_SN</code></td>
+<td>最大连续接收的下一个 SN</td>
+</tr>
+<tr>
+<td><code>NACK_SN</code></td>
+<td>丢失或需重传的 SN</td>
+</tr>
+<tr>
+<td><code>SOstart/SOend</code></td>
+<td>NACK 对应的字节范围（支持部分段的重传）</td>
+</tr>
+<tr>
+<td><code>NACK_range</code></td>
+<td>连续多个 SN 的 NACK（压缩表达）</td>
+</tr>
+<tr>
+<td>E1&#x2F;E2&#x2F;E3</td>
+<td>扩展位，指示后续是否还有 NACK_SN &#x2F; SO &#x2F; NACK_range</td>
+</tr>
+</tbody></table>
+<h4 id="4-2-4-三种模式对比"><a href="#4-2-4-三种模式对比" class="headerlink" title="4.2.4 三种模式对比"></a>4.2.4 三种模式对比</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>TM</th>
+<th>UM</th>
+<th>AM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RLC 头部</td>
+<td>无</td>
+<td>有（SI&#x2F;SN&#x2F;SO）</td>
+<td>有（D&#x2F;C&#x2F;P&#x2F;SI&#x2F;SN&#x2F;SO）</td>
+</tr>
+<tr>
+<td>分段支持</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>ARQ 重传</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>顺序递交</td>
+<td>✗</td>
+<td>可选</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>序列号长度</td>
+<td>—</td>
+<td>6&#x2F;12 bit</td>
+<td>12&#x2F;18 bit</td>
+</tr>
+<tr>
+<td>典型逻辑信道</td>
+<td>BCCH&#x2F;PCCH&#x2F;CCCH</td>
+<td>DTCH（语音&#x2F;视频）</td>
+<td>DCCH&#x2F;DTCH（数据）</td>
+</tr>
+<tr>
+<td>适用业务</td>
+<td>广播&#x2F;寻呼</td>
+<td>实时低延迟业务</td>
+<td>可靠数据传输</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-RLC-与-HARQ-的关系"><a href="#4-3-RLC-与-HARQ-的关系" class="headerlink" title="4.3 RLC 与 HARQ 的关系"></a>4.3 RLC 与 HARQ 的关系</h3><p>NR 用户面错误纠正采用<strong>两层重传</strong>架构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PHY 层  →  HARQ（快速重传，1 RTT ≈ 8ms）</span><br><span class="line">RLC 层  →  ARQ（慢速重传，多次 HARQ 失败后触发）</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>HARQ</strong> 工作在 PHY&#x2F;MAC 层，基于软合并（Chase Combining 或 Incremental Redundancy），RTT 约 8ms，通常最多 4 次重传。</li>
+<li><strong>RLC ARQ</strong> 工作在 RLC AM 层，仅在 HARQ 最终失败（所有重传均不成功）后触发，RTT 相对较长（涉及 L2 反馈）。</li>
+<li>两层重传形成互补：HARQ 处理大多数错误（低延迟），ARQ 处理极端错误（高可靠）。</li>
+</ul>
+<hr>
+<h1 id="5-MAC-与-PHY-简述"><a href="#5-MAC-与-PHY-简述" class="headerlink" title="5. MAC 与 PHY 简述"></a>5. MAC 与 PHY 简述</h1><p>本节简要描述 MAC 和 PHY 的职责（后续专题文章将详细展开）。</p>
+<h3 id="5-1-MAC-子层（TS-38-321）"><a href="#5-1-MAC-子层（TS-38-321）" class="headerlink" title="5.1 MAC 子层（TS 38.321）"></a>5.1 MAC 子层（TS 38.321）</h3><p>MAC（Medium Access Control）位于 RLC 之下、PHY 之上，主要职责：</p>
+<ul>
+<li><strong>逻辑信道（Logical Channel）→ 传输信道（Transport Channel）的复用&#x2F;解复用</strong>：将来自不同 RLC 实体（不同逻辑信道）的数据拼接打包成一个 <strong>MAC PDU（TB，Transport Block）</strong>。</li>
+<li><strong>调度与资源分配</strong>：由 gNB 的 MAC 调度器决定每个 TTI 分配哪些 UE、哪些逻辑信道、多大 TB 的传输机会。</li>
+<li><strong>HARQ 管理</strong>：维护多个 HARQ 进程，管理重传逻辑（停等 + 软合并）。</li>
+<li><strong>上行 SR &#x2F; BSR &#x2F; PHR 上报</strong>：UE 通过调度请求（SR）、缓冲区状态报告（BSR）、功率余量报告（PHR）告知 gNB 自己的需求。</li>
+<li><strong>随机接入（RACH）管理</strong>：支持基于竞争和非竞争的随机接入过程。</li>
+</ul>
+<h3 id="5-2-PHY-物理层（TS-38-211-212-213-214）"><a href="#5-2-PHY-物理层（TS-38-211-212-213-214）" class="headerlink" title="5.2 PHY 物理层（TS 38.211&#x2F;212&#x2F;213&#x2F;214）"></a>5.2 PHY 物理层（TS 38.211&#x2F;212&#x2F;213&#x2F;214）</h3><p>PHY 负责将 MAC 层的 TB（Transport Block）转换为无线信号发送，主要处理：</p>
+<ul>
+<li><strong>信道编码</strong>：数据信道使用 <strong>LDPC</strong>，控制信道使用 <strong>Polar Code</strong>（NR 相比 LTE 的重大改进）。</li>
+<li><strong>速率匹配与调制</strong>：QPSK &#x2F; 16QAM &#x2F; 64QAM &#x2F; 256QAM，链路自适应（MCS 选择）。</li>
+<li><strong>OFDM 波形</strong>：下行 CP-OFDM，上行 CP-OFDM（也可选 DFT-s-OFDM 降低 PAPR）。</li>
+<li><strong>多天线处理</strong>：Massive MIMO 波束赋形，空分复用。</li>
+<li><strong>物理信道与信号</strong>：PDSCH &#x2F; PDCCH &#x2F; PBCH（下行）；PUSCH &#x2F; PUCCH &#x2F; PRACH &#x2F; SRS（上行）；DMRS &#x2F; CSI-RS 等参考信号。</li>
+</ul>
+<hr>
+<h1 id="6-各层协作关系与数据流全景"><a href="#6-各层协作关系与数据流全景" class="headerlink" title="6. 各层协作关系与数据流全景"></a>6. 各层协作关系与数据流全景</h1><h3 id="6-1-下行数据流（gNB-→-UE）"><a href="#6-1-下行数据流（gNB-→-UE）" class="headerlink" title="6.1 下行数据流（gNB → UE）"></a>6.1 下行数据流（gNB → UE）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">5GC UPF</span><br><span class="line">  │ GTP-U 隧道（N3 接口），携带 QFI</span><br><span class="line">  ▼</span><br><span class="line">gNB（CU-UP）</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  SDAP 实体                                          │</span><br><span class="line">│  └─ 从 GTP-U 扩展头提取 QFI                           │</span><br><span class="line">│  └─ 根据映射规则选择 DRB，添加 SDAP 头部（含 QFI）       │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br><span class="line">  ▼</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  PDCP 实体（每个 DRB 一个）                            │</span><br><span class="line">│  └─ ROHC 头压缩（若配置）                              │</span><br><span class="line">│  └─ 完整性保护（SRB 必选，DRB 可选）：计算 MAC-I          │</span><br><span class="line">│  └─ 加密：COUNT = HFN || SN，AES-CTR 等               │</span><br><span class="line">│  └─ 分配 PDCP SN，构建 PDCP PDU                       │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br><span class="line">  ▼</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  RLC 实体（AM / UM / TM）                            │</span><br><span class="line">│  └─ 按 MAC 指示的 TB 大小对 PDCP PDU 分段              │</span><br><span class="line">│  └─ 添加 RLC 头（SN / SI / SO 等）                    │</span><br><span class="line">│  └─ AM 模式：维护重传缓冲区                            │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br><span class="line">  ▼</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  MAC 实体                                           │</span><br><span class="line">│  └─ 多个逻辑信道 RLC PDU 拼接（Concatenation）         │</span><br><span class="line">│  └─ 添加 MAC CE（BSR / TA Command 等）               │</span><br><span class="line">│  └─ 构建 Transport Block（TB）                       │</span><br><span class="line">│  └─ 分配 HARQ 进程 ID                                │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br><span class="line">  ▼</span><br><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│  PHY 层                                             │</span><br><span class="line">│  └─ LDPC 编码（PDSCH）                               │</span><br><span class="line">│  └─ 调制（256QAM 等）                                │</span><br><span class="line">│  └─ 资源映射（RE 分配）                               │</span><br><span class="line">│  └─ OFDM 调制，发送                                  │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br><span class="line">  ▼ 无线信道</span><br><span class="line">UE PHY → MAC → RLC → PDCP → SDAP → IP 应用层</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-关键接口与-SDU-PDU-名称对应"><a href="#6-2-关键接口与-SDU-PDU-名称对应" class="headerlink" title="6.2 关键接口与 SDU&#x2F;PDU 名称对应"></a>6.2 关键接口与 SDU&#x2F;PDU 名称对应</h3><table>
+<thead>
+<tr>
+<th>接口位置</th>
+<th>数据单元名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDAP ↔ PDCP</td>
+<td>PDCP SDU &#x2F; SDAP PDU</td>
+<td>IP 包（含或不含 SDAP 头）</td>
+</tr>
+<tr>
+<td>PDCP ↔ RLC</td>
+<td>RLC SDU &#x2F; PDCP PDU</td>
+<td>加密后的 PDCP PDU</td>
+</tr>
+<tr>
+<td>RLC ↔ MAC</td>
+<td>MAC SDU &#x2F; RLC PDU</td>
+<td>RLC PDU（可能为分段）</td>
+</tr>
+<tr>
+<td>MAC ↔ PHY</td>
+<td>Transport Block（TB）</td>
+<td>MAC PDU，由 PHY 编码</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="7-小结与对比：NR-vs-LTE-协议栈差异"><a href="#7-小结与对比：NR-vs-LTE-协议栈差异" class="headerlink" title="7. 小结与对比：NR vs LTE 协议栈差异"></a>7. 小结与对比：NR vs LTE 协议栈差异</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>LTE（EPS）</th>
+<th>5G NR（5GS）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QoS 管理层</td>
+<td>无独立 SDAP（EPS Bearer 直接映射）</td>
+<td><strong>新增 SDAP</strong>，QoS Flow → DRB 映射</td>
+</tr>
+<tr>
+<td>PDCP SN 最大长度</td>
+<td>15 bit（DRB AM）</td>
+<td><strong>18 bit</strong>（DRB AM），更大窗口</td>
+</tr>
+<tr>
+<td>头压缩</td>
+<td>ROHC</td>
+<td>ROHC + EHC（R17）+ UDC（R17）</td>
+</tr>
+<tr>
+<td>RLC 拼接（Concatenation）</td>
+<td>在 RLC 层做</td>
+<td><strong>下移到 MAC 层</strong>（RLC 不做拼接）</td>
+</tr>
+<tr>
+<td>RLC AM SN 最大</td>
+<td>10 bit（窗口 512）</td>
+<td><strong>18 bit</strong>（窗口 131072）</td>
+</tr>
+<tr>
+<td>信道编码</td>
+<td>Turbo Code</td>
+<td><strong>数据信道 LDPC + 控制信道 Polar Code</strong></td>
+</tr>
+<tr>
+<td>HARQ</td>
+<td>同步 HARQ（FDD&#x2F;TDD 各异）</td>
+<td><strong>异步 HARQ</strong>（灵活时隙调度）</td>
+</tr>
+<tr>
+<td>完整性保护</td>
+<td>仅 SRB</td>
+<td>SRB 必选，<strong>DRB 可选</strong>（R16 增强）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h1><table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 38.300</strong></td>
+<td>NR; NR and NG-RAN Overall Description; Stage 2</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 37.324</strong></td>
+<td>E-UTRA and NR; Service Data Adaptation Protocol (SDAP) Specification</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.323</strong></td>
+<td>NR; Packet Data Convergence Protocol (PDCP) Specification</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.322</strong></td>
+<td>NR; Radio Link Control (RLC) Protocol Specification</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.321</strong></td>
+<td>NR; Medium Access Control (MAC) Protocol Specification</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 33.501</strong></td>
+<td>Security Architecture and Procedures for 5G System</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 23.501</strong></td>
+<td>System Architecture for the 5G System (5GS)</td>
+</tr>
+<tr>
+<td><strong>IETF RFC 5795</strong></td>
+<td>The RObust Header Compression (ROHC) Framework</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E7%94%A8%E6%88%B7%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">1. 用户面协议栈总览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%88%86%E5%B1%82%E7%BB%93%E6%9E%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 协议栈分层结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%84%E5%B1%82%E6%A0%B8%E5%BF%83%E8%81%8C%E8%B4%A3%E9%80%9F%E8%A7%88"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 各层核心职责速览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-SDU-%E4%B8%8E-PDU-%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 SDU 与 PDU 的概念</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-SDAP%EF%BC%9AQoS-Flow-%E5%88%B0-DRB-%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">3.</span> <span class="toc-text">2. SDAP：QoS Flow 到 DRB 的映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-SDAP-%E5%AD%98%E5%9C%A8%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8E%E6%84%8F%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 SDAP 存在的背景与意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-SDAP-%E5%AE%9E%E4%BD%93%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 SDAP 实体模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-QoS-Flow-%E5%88%B0-DRB-%E7%9A%84%E6%98%A0%E5%B0%84%E8%A7%84%E5%88%99"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 QoS Flow 到 DRB 的映射规则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">2.3.1 映射关系约束</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E6%98%A0%E5%B0%84%E9%85%8D%E7%BD%AE%E6%9D%A5%E6%BA%90"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">2.3.2 映射配置来源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-End-Marker-PDU"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">2.3.3 End-Marker PDU</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-SDAP-PDU-%E6%A0%BC%E5%BC%8F"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 SDAP PDU 格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%8F%8D%E5%B0%84-QoS%EF%BC%88Reflective-QoS%EF%BC%89"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 反射 QoS（Reflective QoS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-PDCP%EF%BC%9A%E5%A4%B4%E5%8E%8B%E7%BC%A9-%E5%8A%A0%E5%AF%86-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4-%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="toc-number">4.</span> <span class="toc-text">3. PDCP：头压缩 &#x2F; 加密 &#x2F; 完整性保护 &#x2F; 重排序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-PDCP-%E5%AD%90%E5%B1%82%E7%9A%84%E5%AE%8C%E6%95%B4%E5%8A%9F%E8%83%BD%E5%88%97%E8%A1%A8"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 PDCP 子层的完整功能列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-PDCP-%E5%AE%9E%E4%BD%93%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 PDCP 实体模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-PDCP-%E5%BA%8F%E5%88%97%E5%8F%B7%EF%BC%88SN%EF%BC%89%E4%B8%8E-COUNT-%E5%80%BC"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 PDCP 序列号（SN）与 COUNT 值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%A4%B4%E5%8E%8B%E7%BC%A9%EF%BC%88ROHC%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 头压缩（ROHC）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-1-%E4%B8%BA%E4%BD%95%E9%9C%80%E8%A6%81%E5%A4%B4%E5%8E%8B%E7%BC%A9"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">3.4.1 为何需要头压缩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-2-ROHC-%E6%A1%86%E6%9E%B6%EF%BC%88RFC-5795%EF%BC%89"><span class="toc-number">4.0.4.2.</span> <span class="toc-text">3.4.2 ROHC 框架（RFC 5795）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%8A%A0%E5%AF%86%EF%BC%88Ciphering%EF%BC%89"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 加密（Ciphering）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-1-%E5%8A%A0%E5%AF%86%E8%8C%83%E5%9B%B4"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">3.5.1 加密范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-2-%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95%EF%BC%88NEA%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">3.5.2 加密算法（NEA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5-3-%E5%8A%A0%E5%AF%86%E8%BE%93%E5%85%A5%E5%8F%82%E6%95%B0"><span class="toc-number">4.0.5.3.</span> <span class="toc-text">3.5.3 加密输入参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4%EF%BC%88Integrity-Protection%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 完整性保护（Integrity Protection）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-1-%E4%BF%9D%E6%8A%A4%E8%8C%83%E5%9B%B4"><span class="toc-number">4.0.6.1.</span> <span class="toc-text">3.6.1 保护范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-2-%E5%AE%8C%E6%95%B4%E6%80%A7%E4%BF%9D%E6%8A%A4%E7%AE%97%E6%B3%95%EF%BC%88NIA%EF%BC%89"><span class="toc-number">4.0.6.2.</span> <span class="toc-text">3.6.2 完整性保护算法（NIA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-3-MAC-I-%E5%AD%97%E6%AE%B5"><span class="toc-number">4.0.6.3.</span> <span class="toc-text">3.6.3 MAC-I 字段</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%88Reordering%EF%BC%89%E4%B8%8E%E9%A1%BA%E5%BA%8F%E9%80%92%E4%BA%A4"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 重排序（Reordering）与顺序递交</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-1-%E9%87%8D%E6%8E%92%E5%BA%8F%E7%AA%97%E5%8F%A3"><span class="toc-number">4.0.7.1.</span> <span class="toc-text">3.7.1 重排序窗口</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-2-t-Reordering-%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">4.0.7.2.</span> <span class="toc-text">3.7.2 t-Reordering 定时器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-7-3-%E5%88%87%E6%8D%A2%E5%9C%BA%E6%99%AF%E7%9A%84-PDCP-%E9%87%8D%E5%BB%BA"><span class="toc-number">4.0.7.3.</span> <span class="toc-text">3.7.3 切换场景的 PDCP 重建</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RLC%EF%BC%9A%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">4. RLC：三种模式与重传机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-RLC-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 RLC 核心功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-RLC-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 RLC 三种模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-TM%EF%BC%88Transparent-Mode%EF%BC%8C%E9%80%8F%E6%98%8E%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">4.2.1 TM（Transparent Mode，透明模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-UM%EF%BC%88Unacknowledged-Mode%EF%BC%8C%E9%9D%9E%E7%A1%AE%E8%AE%A4%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">4.2.2 UM（Unacknowledged Mode，非确认模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-3-AM%EF%BC%88Acknowledged-Mode%EF%BC%8C%E7%A1%AE%E8%AE%A4%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">5.0.2.3.</span> <span class="toc-text">4.2.3 AM（Acknowledged Mode，确认模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-4-%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">5.0.2.4.</span> <span class="toc-text">4.2.4 三种模式对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-RLC-%E4%B8%8E-HARQ-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 RLC 与 HARQ 的关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-MAC-%E4%B8%8E-PHY-%E7%AE%80%E8%BF%B0"><span class="toc-number">6.</span> <span class="toc-text">5. MAC 与 PHY 简述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-MAC-%E5%AD%90%E5%B1%82%EF%BC%88TS-38-321%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 MAC 子层（TS 38.321）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-PHY-%E7%89%A9%E7%90%86%E5%B1%82%EF%BC%88TS-38-211-212-213-214%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 PHY 物理层（TS 38.211&#x2F;212&#x2F;213&#x2F;214）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%90%84%E5%B1%82%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B5%81%E5%85%A8%E6%99%AF"><span class="toc-number">7.</span> <span class="toc-text">6. 各层协作关系与数据流全景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%8B%E8%A1%8C%E6%95%B0%E6%8D%AE%E6%B5%81%EF%BC%88gNB-%E2%86%92-UE%EF%BC%89"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 下行数据流（gNB → UE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%85%B3%E9%94%AE%E6%8E%A5%E5%8F%A3%E4%B8%8E-SDU-PDU-%E5%90%8D%E7%A7%B0%E5%AF%B9%E5%BA%94"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 关键接口与 SDU&#x2F;PDU 名称对应</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%AF%B9%E6%AF%94%EF%BC%9ANR-vs-LTE-%E5%8D%8F%E8%AE%AE%E6%A0%88%E5%B7%AE%E5%BC%82"><span class="toc-number">8.</span> <span class="toc-text">7. 小结与对比：NR vs LTE 协议栈差异</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">9.</span> <span class="toc-text">参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&text=MAC 层协议解析"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&is_video=false&description=MAC 层协议解析"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=MAC 层协议解析&body=Check out this article: http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&title=MAC 层协议解析"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&name=MAC 层协议解析&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/28/3gpp/09-user%20plane%20protocol%20stack/&t=MAC 层协议解析"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

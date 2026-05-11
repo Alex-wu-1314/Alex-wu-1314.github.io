@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 控制面协议栈总览 NAS 层（非接入层） 2.1 NAS 在 5G 架构中的位置 2.2 NAS 的两大子层：5GMM 与 5GSM 2.3 5GMM：移动性管理 2.4 5GSM：会话管理 2.5 NAS 消息结构与安全保护 2.6 NAS 传输机制：消息透传与封装   RRC 层（无线资源控制层） 3.1 RRC 在协议栈中的位置 3.2 RRC 核心功能全景 3.3 系统信息广播（SI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="控制面协议栈——NAS &#x2F; RRC 层功能概述">
+<meta property="og:url" content="http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 控制面协议栈总览 NAS 层（非接入层） 2.1 NAS 在 5G 架构中的位置 2.2 NAS 的两大子层：5GMM 与 5GSM 2.3 5GMM：移动性管理 2.4 5GSM：会话管理 2.5 NAS 消息结构与安全保护 2.6 NAS 传输机制：消息透传与封装   RRC 层（无线资源控制层） 3.1 RRC 在协议栈中的位置 3.2 RRC 核心功能全景 3.3 系统信息广播（SI">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-03-15T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-06T04:11:29.720Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>控制面协议栈——NAS / RRC 层功能概述</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/03/15/3gpp/07_NG-RAN%E6%8E%A5%E5%85%A5%E7%BD%91%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/02/27/3gpp/06_5G%E6%95%B4%E4%BD%93%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&text=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&is_video=false&description=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=控制面协议栈——NAS / RRC 层功能概述&body=Check out this article: http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&name=控制面协议栈——NAS / RRC 层功能概述&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&t=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%8E%A7%E5%88%B6%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">1. 控制面协议栈总览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAS-%E5%B1%82%EF%BC%88%E9%9D%9E%E6%8E%A5%E5%85%A5%E5%B1%82%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. NAS 层（非接入层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAS-%E5%9C%A8-5G-%E6%9E%B6%E6%9E%84%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAS 在 5G 架构中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAS-%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%AD%90%E5%B1%82%EF%BC%9A5GMM-%E4%B8%8E-5GSM"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAS 的两大子层：5GMM 与 5GSM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5GMM%EF%BC%9A%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 5GMM：移动性管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">5GMM 状态机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E4%B8%BB%E8%A6%81%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">5GMM 主要过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E5%AE%89%E5%85%A8%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">5GMM 安全过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-5GSM%EF%BC%9A%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 5GSM：会话管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5GSM-%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%88UE-%E4%BE%A7%EF%BC%8Cper-PDU-Session%EF%BC%89"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">5GSM 状态机（UE 侧，per PDU Session）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PDU-Session-%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">PDU Session 类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GSM-%E4%B8%BB%E8%A6%81%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">5GSM 主要过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-NAS-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%E4%B8%8E%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 NAS 消息结构与安全保护</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NAS-%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F"><span class="toc-number">3.0.5.1.</span> <span class="toc-text">NAS 消息格式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NAS-%E5%AE%89%E5%85%A8%E7%AE%97%E6%B3%95"><span class="toc-number">3.0.5.2.</span> <span class="toc-text">NAS 安全算法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-NAS-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6%EF%BC%9A%E6%B6%88%E6%81%AF%E9%80%8F%E4%BC%A0%E4%B8%8E%E5%B0%81%E8%A3%85"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 NAS 传输机制：消息透传与封装</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RRC-%E5%B1%82%EF%BC%88%E6%97%A0%E7%BA%BF%E8%B5%84%E6%BA%90%E6%8E%A7%E5%88%B6%E5%B1%82%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. RRC 层（无线资源控制层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-RRC-%E5%9C%A8%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 RRC 在协议栈中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-RRC-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E5%85%A8%E6%99%AF"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 RRC 核心功能全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E5%B9%BF%E6%92%AD%EF%BC%88SI%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 系统信息广播（SI）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">系统信息层次结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#On-demand-SI%EF%BC%88%E6%8C%89%E9%9C%80%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%EF%BC%89"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">On-demand SI（按需系统信息）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-RRC-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 RRC 状态机</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E7%8A%B6%E6%80%81%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">三种状态特性对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-RRC-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 RRC 连接管理流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Setup%EF%BC%89"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">RRC 建立流程（RRC Setup）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E6%81%A2%E5%A4%8D%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Resume%EF%BC%8C%E4%BB%8E-INACTIVE%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">RRC 恢复流程（RRC Resume，从 INACTIVE）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E9%87%8D%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Re-establishment%EF%BC%89"><span class="toc-number">4.0.5.3.</span> <span class="toc-text">RRC 重建立流程（RRC Re-establishment）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BD%E4%B8%8E%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E9%85%8D%E7%BD%AE"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 无线承载与逻辑信道配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E4%BF%A1%E4%BB%A4%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BD%EF%BC%88SRB%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 信令无线承载（SRB）详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SRB-%E7%B1%BB%E5%9E%8B%E4%B8%8E%E7%89%B9%E6%80%A7"><span class="toc-number">4.0.7.1.</span> <span class="toc-text">SRB 类型与特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SRB-%E4%B8%8E-NGAP-%E7%9A%84%E6%B6%88%E6%81%AF%E6%98%A0%E5%B0%84"><span class="toc-number">4.0.7.2.</span> <span class="toc-text">SRB 与 NGAP 的消息映射</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E6%B5%8B%E9%87%8F%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%B8%8A%E6%8A%A5"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 测量配置与上报</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E9%87%8F%E9%85%8D%E7%BD%AE%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.8.1.</span> <span class="toc-text">测量配置结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E4%BB%B6%E7%B1%BB%E5%9E%8B%E8%AF%B4%E6%98%8E"><span class="toc-number">4.0.8.2.</span> <span class="toc-text">事件类型说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-RRC-%E5%AE%89%E5%85%A8%E6%BF%80%E6%B4%BB"><span class="toc-number">4.0.9.</span> <span class="toc-text">3.9 RRC 安全激活</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-RRC-%E9%87%8D%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">4.0.10.</span> <span class="toc-text">3.10 RRC 重配置与能力上报</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E9%87%8D%E9%85%8D%E7%BD%AE%EF%BC%88RRCReconfiguration%EF%BC%89"><span class="toc-number">4.0.10.1.</span> <span class="toc-text">RRC 重配置（RRCReconfiguration）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%EF%BC%88UE-Capability%EF%BC%89"><span class="toc-number">4.0.10.2.</span> <span class="toc-text">UE 能力上报（UE Capability）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NAS-%E4%B8%8E-RRC-%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB"><span class="toc-number">5.</span> <span class="toc-text">4. NAS 与 RRC 的协作关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E4%B8%8E-LTE-%E7%9A%84%E4%B8%BB%E8%A6%81%E5%B7%AE%E5%BC%82%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">5. 与 LTE 的主要差异对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">7.1.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        控制面协议栈——NAS / RRC 层功能概述
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-03-15T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-03-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E6%8E%A7%E5%88%B6%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88">控制面协议栈总览</a></li>
+<li><a href="#2-nas-%E5%B1%82%E9%9D%9E%E6%8E%A5%E5%85%A5%E5%B1%82">NAS 层（非接入层）</a><ul>
+<li>2.1 <a href="#21-nas-%E5%9C%A8-5g-%E6%9E%B6%E6%9E%84%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE">NAS 在 5G 架构中的位置</a></li>
+<li>2.2 <a href="#22-nas-%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%AD%90%E5%B1%825gmm-%E4%B8%8E-5gsm">NAS 的两大子层：5GMM 与 5GSM</a></li>
+<li>2.3 <a href="#23-5gmm%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86">5GMM：移动性管理</a></li>
+<li>2.4 <a href="#24-5gsm%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86">5GSM：会话管理</a></li>
+<li>2.5 <a href="#25-nas-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%E4%B8%8E%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4">NAS 消息结构与安全保护</a></li>
+<li>2.6 <a href="#26-nas-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6%E6%B6%88%E6%81%AF%E9%80%8F%E4%BC%A0%E4%B8%8E%E5%B0%81%E8%A3%85">NAS 传输机制：消息透传与封装</a></li>
+</ul>
+</li>
+<li><a href="#3-rrc-%E5%B1%82%E6%97%A0%E7%BA%BF%E8%B5%84%E6%BA%90%E6%8E%A7%E5%88%B6%E5%B1%82">RRC 层（无线资源控制层）</a><ul>
+<li>3.1 <a href="#31-rrc-%E5%9C%A8%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE">RRC 在协议栈中的位置</a></li>
+<li>3.2 <a href="#32-rrc-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E5%85%A8%E6%99%AF">RRC 核心功能全景</a></li>
+<li>3.3 <a href="#33-%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E5%B9%BF%E6%92%ADsi">系统信息广播（SI）</a></li>
+<li>3.4 <a href="#34-rrc-%E7%8A%B6%E6%80%81%E6%9C%BA">RRC 状态机</a></li>
+<li>3.5 <a href="#35-rrc-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B">RRC 连接管理流程</a></li>
+<li>3.6 <a href="#36-%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BD%E4%B8%8E%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E9%85%8D%E7%BD%AE">无线承载与逻辑信道配置</a></li>
+<li>3.7 <a href="#37-%E4%BF%A1%E4%BB%A4%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BDsrb%E8%AF%A6%E8%A7%A3">信令无线承载（SRB）详解</a></li>
+<li>3.8 <a href="#38-%E6%B5%8B%E9%87%8F%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%B8%8A%E6%8A%A5">测量配置与上报</a></li>
+<li>3.9 <a href="#39-rrc-%E5%AE%89%E5%85%A8%E6%BF%80%E6%B4%BB">RRC 安全激活</a></li>
+<li>3.10 <a href="#310-rrc-%E9%87%8D%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5">RRC 重配置与能力上报</a></li>
+</ul>
+</li>
+<li><a href="#4-nas-%E4%B8%8E-rrc-%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB">NAS 与 RRC 的协作关系</a></li>
+<li><a href="#5-%E4%B8%8E-lte-%E7%9A%84%E4%B8%BB%E8%A6%81%E5%B7%AE%E5%BC%82%E5%AF%B9%E6%AF%94">与 LTE 的主要差异对比</a></li>
+<li><a href="#6-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-控制面协议栈总览"><a href="#1-控制面协议栈总览" class="headerlink" title="1. 控制面协议栈总览"></a>1. 控制面协议栈总览</h1><p>5G 控制面协议栈贯穿 UE、gNB 到核心网，承载着网络中所有的管理信令。从整体视角看，控制面分为两大平面：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│                                                             │</span><br><span class="line">│  ┌──────────┐  ┌──────────────────────────────────────────┐ │</span><br><span class="line">│  │  5GMM    │  │              5GSM                        │ │</span><br><span class="line">│  │  5GSM    │◄─┤        (会话管理子层)                      │ │</span><br><span class="line">│  └──────┬───┘  └──────────────────────────────────────────┘ │</span><br><span class="line">│         │  NAS 层 (终止于 AMF / SMF)                         │</span><br><span class="line">│  ┌──────▼───┐                                               │</span><br><span class="line">│  │   RRC    │  ← 3GPP TS 38.331，终止于 gNB                  │</span><br><span class="line">│  ├──────────┤                                               │</span><br><span class="line">│  │   PDCP   │  ← 头压缩 / 加密 / 完整性保护                    │</span><br><span class="line">│  ├──────────┤                                               │</span><br><span class="line">│  │   RLC    │  ← TM / UM / AM 模式                           │</span><br><span class="line">│  ├──────────┤                                               │</span><br><span class="line">│  │   MAC    │  ← 调度 / HARQ                                 │</span><br><span class="line">│  ├──────────┤                                               │</span><br><span class="line">│  │   PHY    │  ← 物理层                                      │</span><br><span class="line">│  └──────────┘                                               │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键原则</strong>：</p>
+<ul>
+<li><strong>NAS</strong>（Non-Access Stratum）：终止于核心网，UE ↔ AMF（5GMM）或 UE ↔ SMF（5GSM），对 RAN 透明。</li>
+<li><strong>RRC</strong>（Radio Resource Control）：终止于 gNB，负责 UE 与基站之间的空口信令控制。</li>
+<li>RRC 通过 <strong>DL&#x2F;UL Information Transfer</strong> 消息透传 NAS PDU，实现 NAS 信令的端到端传递。</li>
+<li>控制面与用户面分离（CUPS）是 5G 架构的核心设计原则，体现在 SMF 控制 UPF 进行用户面转发。</li>
+</ul>
+<hr>
+<h1 id="2-NAS-层（非接入层）"><a href="#2-NAS-层（非接入层）" class="headerlink" title="2. NAS 层（非接入层）"></a>2. NAS 层（非接入层）</h1><h3 id="2-1-NAS-在-5G-架构中的位置"><a href="#2-1-NAS-在-5G-架构中的位置" class="headerlink" title="2.1 NAS 在 5G 架构中的位置"></a>2.1 NAS 在 5G 架构中的位置</h3><p>根据 <strong>3GPP TS 24.501</strong>，NAS 是 UE 与 5G 核心网之间的最高控制层，通过 <strong>N1 接口</strong>（参考点）传递信令。NAS 对接入网（NG-RAN）完全透明，gNB 只负责封装和转发 NAS 消息，不解析其内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UE ──── N1 ──── AMF          （5GMM 消息，直通）</span><br><span class="line">UE ──── N1 ──── AMF ──── SMF （5GSM 消息，经 AMF 透传给 SMF）</span><br></pre></td></tr></table></figure>
+
+<p>NAS 层的主要功能包括：</p>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>注册管理（RM）</td>
+<td>初始注册、移动性注册更新、周期性注册、注销</td>
+</tr>
+<tr>
+<td>连接管理（CM）</td>
+<td>N1 NAS 信令连接建立与释放、服务请求</td>
+</tr>
+<tr>
+<td>会话管理（SM）</td>
+<td>PDU Session 建立 &#x2F; 修改 &#x2F; 释放</td>
+</tr>
+<tr>
+<td>安全控制</td>
+<td>NAS 加密（NEA）与完整性保护（NIA）算法协商与激活</td>
+</tr>
+<tr>
+<td>标识管理</td>
+<td>SUCI 处理、5G-GUTI 分配、身份请求</td>
+</tr>
+<tr>
+<td>鉴权</td>
+<td>5G-AKA &#x2F; EAP-AKA’ 过程</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>TS 24.501 第 4 章明确指出，NAS 协议为 UE 和 AMF 之间（5GMM）以及 UE 和 SMF 之间（5GSM）提供过程，支持 3GPP 接入与非 3GPP 接入两种方式。</p>
+</blockquote>
+<h3 id="2-2-NAS-的两大子层：5GMM-与-5GSM"><a href="#2-2-NAS-的两大子层：5GMM-与-5GSM" class="headerlink" title="2.2 NAS 的两大子层：5GMM 与 5GSM"></a>2.2 NAS 的两大子层：5GMM 与 5GSM</h3><p>5G NAS 协议由两个子层构成，职责明确分离：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────┐</span><br><span class="line">│              NAS 层 (TS 24.501)              │</span><br><span class="line">│  ┌──────────────────┬──────────────────────┐ │</span><br><span class="line">│  │    5GMM 子层      │     5GSM 子层        │ │</span><br><span class="line">│  │ (5GS Mobility    │  (5GS Session        │ │</span><br><span class="line">│  │  Management)     │   Management)        │ │</span><br><span class="line">│  │                  │                      │ │</span><br><span class="line">│  │  UE ↔ AMF        │  UE ↔ SMF            │ │</span><br><span class="line">│  │  (per Access)    │  (per PDU Session)   │ │</span><br><span class="line">│  └──────────────────┴──────────────────────┘ │</span><br><span class="line">└──────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心区别</strong>：</p>
+<ul>
+<li><strong>5GMM</strong> 工作在 <strong>UE 级别（per Access Type）</strong>，每种接入方式（3GPP &#x2F; 非 3GPP）独立维护一套 5GMM 状态机。</li>
+<li><strong>5GSM</strong> 工作在 <strong>PDU Session 级别</strong>，每个 PDU Session 独立管理。</li>
+<li>5GSM 消息通过被 5GMM 的 <strong>UL NAS TRANSPORT &#x2F; DL NAS TRANSPORT</strong> 消息携带（Piggyback 机制）传递到 SMF。</li>
+</ul>
+<h3 id="2-3-5GMM：移动性管理"><a href="#2-3-5GMM：移动性管理" class="headerlink" title="2.3 5GMM：移动性管理"></a>2.3 5GMM：移动性管理</h3><p>5GMM 子层负责跟踪 UE 位置、鉴权、安全控制及标识管理。</p>
+<h4 id="5GMM-状态机"><a href="#5GMM-状态机" class="headerlink" title="5GMM 状态机"></a>5GMM 状态机</h4><p>根据 TS 24.501 第 5.1.3.2 节，UE 侧的 5GMM 状态机如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">          ┌─────────────────────┐</span><br><span class="line">          │  5GMM-DEREGISTERED  │  ← 初始态，无 5GMM 上下文</span><br><span class="line">          └────────┬────────────┘</span><br><span class="line">                   │ 初始注册成功</span><br><span class="line">                   ▼</span><br><span class="line">          ┌─────────────────────┐</span><br><span class="line">┌────────►│  5GMM-REGISTERED    │◄────────────┐</span><br><span class="line">│         │   (已注册)           │             │</span><br><span class="line">│         └────────┬────────────┘             │</span><br><span class="line">│                  │                          │</span><br><span class="line">│         ┌────────┴────────────┐             │</span><br><span class="line">│         │  子状态（Substates）  │             │</span><br><span class="line">│         ├─────────────────────┤             │</span><br><span class="line">│         │ .NORMAL-SERVICE     │             │</span><br><span class="line">│         │ .ATTEMPTING-REG-UPD │             │</span><br><span class="line">│         │ .LIMITED-SERVICE    │             │</span><br><span class="line">│         │ .PLMN-SEARCH        │             │</span><br><span class="line">│         │ .NO-CELL-AVAILABLE  │             │</span><br><span class="line">│         │ .UPDATE-NEEDED      │             │</span><br><span class="line">│         └─────────────────────┘             │</span><br><span class="line">│                                             │</span><br><span class="line">│         ┌─────────────────────┐             │</span><br><span class="line">└─────────┤ 5GMM-DEREGISTERED   ├─────────────┘</span><br><span class="line">          │   .INITIATED        │</span><br><span class="line">          └─────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>在已注册（5GMM-REGISTERED）状态下，UE 还有连接子状态：</p>
+<ul>
+<li><strong>5GMM-IDLE</strong>（CM-IDLE）：N1 NAS 信令连接已释放，UE 处于空闲态。</li>
+<li><strong>5GMM-CONNECTED</strong>（CM-CONNECTED）：N1 NAS 信令连接已建立，UE 可以发送&#x2F;接收 NAS 消息。</li>
+<li><strong>5GMM-CONNECTED with RRC Inactive Indication</strong>（R16+）：NAS 连接维持，但 RRC 处于 INACTIVE 态（对应 RRC 三态中的 RRC_INACTIVE）。</li>
+</ul>
+<h4 id="5GMM-主要过程"><a href="#5GMM-主要过程" class="headerlink" title="5GMM 主要过程"></a>5GMM 主要过程</h4><p><strong>注册管理（RM）过程</strong>（TS 24.501 第 5.5 节）：</p>
+<table>
+<thead>
+<tr>
+<th>过程名称</th>
+<th>触发条件</th>
+<th>主要目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始注册（Initial Registration）</td>
+<td>UE 开机 &#x2F; 从 DEREGISTERED 进入</td>
+<td>建立 5GMM 上下文，分配 5G-GUTI</td>
+</tr>
+<tr>
+<td>移动性注册更新（Mobility Registration Update）</td>
+<td>UE 移动出 TA 列表</td>
+<td>更新 AMF 中 UE 位置信息</td>
+</tr>
+<tr>
+<td>周期性注册更新（Periodic Registration Update）</td>
+<td>T3512 超时</td>
+<td>保持与网络的联系，防止被注销</td>
+</tr>
+<tr>
+<td>去注册（Deregistration）</td>
+<td>UE 关机 &#x2F; 用户手动 &#x2F; 网络请求</td>
+<td>释放 5GMM 上下文</td>
+</tr>
+<tr>
+<td>紧急注册</td>
+<td>紧急呼叫需求</td>
+<td>有限服务下的紧急接入</td>
+</tr>
+</tbody></table>
+<p><strong>连接管理（CM）过程</strong>（TS 24.501 第 5.6 节）：</p>
+<ul>
+<li><strong>Service Request</strong>：UE 在 5GMM-IDLE 下发起，建立 N1 信令连接，恢复用户面资源。<ul>
+<li>分为：MO（UE 主动发起）和 MT（网络 Paging 触发）两类。</li>
+</ul>
+</li>
+<li><strong>Paging</strong>：网络通过寻呼机制通知处于 CM-IDLE 态的 UE。</li>
+<li><strong>Notification</strong>：SMF 通过 AMF 通知 UE PDU Session 相关事件。</li>
+</ul>
+<h4 id="5GMM-安全过程"><a href="#5GMM-安全过程" class="headerlink" title="5GMM 安全过程"></a>5GMM 安全过程</h4><p><strong>鉴权（Authentication）</strong>（TS 24.501 第 5.4.1 节）：</p>
+<ol>
+<li>AMF 收到注册请求后，向 AUSF 发起鉴权数据请求。</li>
+<li>AUSF 向 UDM 获取鉴权向量（Authentication Vector）。</li>
+<li>AMF 向 UE 发送 <strong>Authentication Request</strong>（携带 RAND 和 AUTN）。</li>
+<li>UE 验证 AUTN、计算 RES*，返回 <strong>Authentication Response</strong>。</li>
+<li>AMF 将 RES* 发给 AUSF 比对验证。</li>
+</ol>
+<p><strong>安全模式控制（SMC）</strong>（TS 24.501 第 5.4.2 节）：</p>
+<ol>
+<li>鉴权成功后，AMF 向 UE 发送 <strong>Security Mode Command</strong>（携带选定的 NAS 算法和密钥集标识符 ngKSI）。</li>
+<li>UE 激活 NAS 安全，返回 <strong>Security Mode Complete</strong>（首个已加密且完整性保护的 NAS 消息）。</li>
+</ol>
+<h3 id="2-4-5GSM：会话管理"><a href="#2-4-5GSM：会话管理" class="headerlink" title="2.4 5GSM：会话管理"></a>2.4 5GSM：会话管理</h3><p><strong>5GSM 子层的核心任务</strong>是管理 UE 与 SMF 之间的 PDU Session 生命周期（TS 24.501 第 6 章）。</p>
+<h4 id="5GSM-状态机（UE-侧，per-PDU-Session）"><a href="#5GSM-状态机（UE-侧，per-PDU-Session）" class="headerlink" title="5GSM 状态机（UE 侧，per PDU Session）"></a>5GSM 状态机（UE 侧，per PDU Session）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PDU-SESSION-INACTIVE</span><br><span class="line">        │</span><br><span class="line">        │ PDU Session Establishment Accept</span><br><span class="line">        ▼</span><br><span class="line">PDU-SESSION-ACTIVE</span><br><span class="line">        │</span><br><span class="line">        │ PDU Session Release / Modification</span><br><span class="line">        ▼</span><br><span class="line">PDU-SESSION-INACTIVE-PENDING（释放过渡态）</span><br></pre></td></tr></table></figure>
+
+<h4 id="PDU-Session-类型"><a href="#PDU-Session-类型" class="headerlink" title="PDU Session 类型"></a>PDU Session 类型</h4><p>根据 TS 24.501 第 6.2.2 节，PDU Session 支持以下类型：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>IPv4</strong></td>
+<td>纯 IPv4 地址分配</td>
+</tr>
+<tr>
+<td><strong>IPv6</strong></td>
+<td>纯 IPv6 前缀分配</td>
+</tr>
+<tr>
+<td><strong>IPv4v6</strong></td>
+<td>双栈，同时支持 IPv4 和 IPv6</td>
+</tr>
+<tr>
+<td><strong>Unstructured</strong></td>
+<td>非结构化数据，用于物联网点对点传输（如 LADN）</td>
+</tr>
+<tr>
+<td><strong>Ethernet</strong></td>
+<td>以太网帧传输，用于企业专线场景</td>
+</tr>
+</tbody></table>
+<h4 id="5GSM-主要过程"><a href="#5GSM-主要过程" class="headerlink" title="5GSM 主要过程"></a>5GSM 主要过程</h4><table>
+<thead>
+<tr>
+<th>过程</th>
+<th>发起方</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PDU Session Establishment</td>
+<td>UE 发起</td>
+<td>请求建立新 PDU Session，协商 QoS</td>
+</tr>
+<tr>
+<td>PDU Session Modification</td>
+<td>UE 或 网络发起</td>
+<td>修改 QoS Flow 参数，增减 QoS Rule</td>
+</tr>
+<tr>
+<td>PDU Session Release</td>
+<td>UE 或 网络发起</td>
+<td>释放 PDU Session 及相关资源</td>
+</tr>
+</tbody></table>
+<p><strong>Piggyback 机制</strong>：PDU Session Establishment Request（5GSM 消息）通常被携带在 Registration Request 或 Service Request 的 NAS PDU container 信息元素（IE）中一并发送，减少信令往返次数。</p>
+<h3 id="2-5-NAS-消息结构与安全保护"><a href="#2-5-NAS-消息结构与安全保护" class="headerlink" title="2.5 NAS 消息结构与安全保护"></a>2.5 NAS 消息结构与安全保护</h3><h4 id="NAS-消息格式"><a href="#NAS-消息格式" class="headerlink" title="NAS 消息格式"></a>NAS 消息格式</h4><p>5G NAS 消息的基本格式（TS 24.501 第 9 章）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────┐</span><br><span class="line">│ Extended Protocol Discriminator (8 bits)            │</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│ Security Header Type (4 bits) + Spare (4 bits)      │</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│ Message Authentication Code (MAC, 32 bits)          │  ← 仅已保护消息存在</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│ Sequence Number (8 bits)                            │  ← 重放保护</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│ Message Type (8 bits)                               │</span><br><span class="line">├─────────────────────────────────────────────────────┤</span><br><span class="line">│ Information Elements (IEs, 可变长)                   │</span><br><span class="line">└─────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>Extended Protocol Discriminator</strong>：</p>
+<ul>
+<li><code>0x7E</code>：5GMM 消息</li>
+<li><code>0x2E</code>：5GSM 消息</li>
+</ul>
+<p><strong>Security Header Type</strong> 定义消息安全级别：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0000</code></td>
+<td>未保护（Plain NAS）</td>
+</tr>
+<tr>
+<td><code>0001</code></td>
+<td>完整性保护，非加密</td>
+</tr>
+<tr>
+<td><code>0010</code></td>
+<td>完整性保护 + 加密</td>
+</tr>
+<tr>
+<td><code>0011</code></td>
+<td>完整性保护，非加密（含新安全上下文）</td>
+</tr>
+<tr>
+<td><code>0100</code></td>
+<td>完整性保护 + 加密（含新安全上下文）</td>
+</tr>
+<tr>
+<td><code>1100</code></td>
+<td>安全模式完成（Security Mode Complete）特殊类型</td>
+</tr>
+</tbody></table>
+<h4 id="NAS-安全算法"><a href="#NAS-安全算法" class="headerlink" title="NAS 安全算法"></a>NAS 安全算法</h4><p>根据 TS 33.501，5G NAS 定义以下加密&#x2F;完整性保护算法：</p>
+<table>
+<thead>
+<tr>
+<th>算法标识</th>
+<th>加密（NEA）</th>
+<th>完整性（NIA）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0</code></td>
+<td>NULL（5G-EA0，不加密）</td>
+<td>NULL（5G-IA0，不保护）</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>128-NEA1（SNOW 3G）</td>
+<td>128-NIA1（SNOW 3G）</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>128-NEA2（AES-CTR）</td>
+<td>128-NIA2（AES-CMAC）</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>128-NEA3（ZUC）</td>
+<td>128-NIA3（ZUC）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：5G 要求对所有 NAS 消息执行完整性保护（除初始几条信令外），加密是可选的（但强烈建议）。这与 LTE 中可以协商不保护的设计有所不同。</p>
+</blockquote>
+<h3 id="2-6-NAS-传输机制：消息透传与封装"><a href="#2-6-NAS-传输机制：消息透传与封装" class="headerlink" title="2.6 NAS 传输机制：消息透传与封装"></a>2.6 NAS 传输机制：消息透传与封装</h3><p>NAS 消息在传输路径上的封装关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">UE ──[RRC: UL Information Transfer]──► gNB</span><br><span class="line">       (内含 NAS-PDU IE)</span><br><span class="line">                   │</span><br><span class="line">                   ▼</span><br><span class="line">              [NGAP: Uplink NAS Transport]──► AMF</span><br><span class="line">               (N2 接口，SCTP/IP)</span><br><span class="line">                   │</span><br><span class="line">                   ├──► 5GMM 消息：AMF 处理</span><br><span class="line">                   │</span><br><span class="line">                   └──► 5GSM 消息：AMF 通过 N11 透传给 SMF</span><br></pre></td></tr></table></figure>
+
+<p>NAS 层对 gNB 完全透明，gNB 不能解析 NAS 消息内容（仅知道这是一个 NAS PDU），这是接入网与核心网解耦的基本保证。</p>
+<hr>
+<h1 id="3-RRC-层（无线资源控制层）"><a href="#3-RRC-层（无线资源控制层）" class="headerlink" title="3. RRC 层（无线资源控制层）"></a>3. RRC 层（无线资源控制层）</h1><h3 id="3-1-RRC-在协议栈中的位置"><a href="#3-1-RRC-在协议栈中的位置" class="headerlink" title="3.1 RRC 在协议栈中的位置"></a>3.1 RRC 在协议栈中的位置</h3><p>RRC（Radio Resource Control）是 <strong>3GPP TS 38.331</strong> 规定的 Layer 3 空口协议，终止于 <strong>gNB</strong>（更准确地说是 gNB-CU 的控制面），是空口控制面最核心的协议层。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">      UE                                 gNB-CU-CP</span><br><span class="line">┌──────────────┐                    ┌──────────────┐</span><br><span class="line">│     RRC      │◄──── SRB (空口) ───►│     RRC      │</span><br><span class="line">│  (TS 38.331) │                    │  (TS 38.331) │</span><br><span class="line">└──────┬───────┘                    └──────────────┘</span><br><span class="line">       │ NAS-PDU (透传)</span><br><span class="line">       ▼</span><br><span class="line">(终止于 AMF / SMF)</span><br></pre></td></tr></table></figure>
+
+<p>RRC 消息通过 <strong>信令无线承载（SRB）</strong> 承载，经 PDCP → RLC → MAC → PHY 发送至 gNB，再由 gNB 通过 NGAP（N2 接口）将 NAS 消息转发给 AMF。</p>
+<h3 id="3-2-RRC-核心功能全景"><a href="#3-2-RRC-核心功能全景" class="headerlink" title="3.2 RRC 核心功能全景"></a>3.2 RRC 核心功能全景</h3><p>根据 TS 38.331 第 4 章，RRC 层的主要功能如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">                     ┌─────────────────────────────────┐</span><br><span class="line">                     │           RRC 功能全景           │</span><br><span class="line">                     └──────────────┬──────────────────┘</span><br><span class="line">       ┌─────────────┬──────────────┼──────────────┬──────────────┐</span><br><span class="line">       ▼             ▼              ▼              ▼              ▼</span><br><span class="line">┌─────────────┐ ┌─────────┐ ┌──────────────┐ ┌──────────┐ ┌──────────────┐</span><br><span class="line">│ 系统信息     │ │ 连接     │ │ 测量配置      │ │ 安全      │ │ 移动性管理     │</span><br><span class="line">│ 广播 (SI)   │ │ 管理     │ │ 与上报        │ │ 激活      │ │ 切换 / 重建   │</span><br><span class="line">└─────────────┘ └─────────┘ └──────────────┘ └──────────┘ └──────────────┘</span><br><span class="line">       ▼             ▼              ▼               ▼              ▼</span><br><span class="line">┌─────────────┐ ┌─────────┐ ┌──────────────┐ ┌──────────┐ ┌──────────────┐</span><br><span class="line">│ NAS 消息     │ │ 无线承   │ │ UE 能力       │ │ 寻呼     │ │ QoS 配置      │</span><br><span class="line">│ 透传         │ │ 载配置   │ │ 上报          │ │ 控制     │ │ (DRB)        │</span><br><span class="line">└─────────────┘ └─────────┘ └──────────────┘ └──────────┘ └──────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>具体功能列表：</p>
+<ol>
+<li><strong>系统信息的广播</strong>：MIB、SIB1 及其他 SIB 的调度与广播</li>
+<li><strong>寻呼（Paging）</strong>：CN 发起寻呼和 RAN 发起寻呼的控制</li>
+<li><strong>RRC 连接建立、维护与释放</strong>：包括 RRC_CONNECTED ↔ RRC_IDLE 转换</li>
+<li><strong>RRC_INACTIVE 态管理</strong>（R15 引入）：RNA（RAN Notification Area）配置与管理</li>
+<li><strong>安全功能</strong>：RRC 层加密与完整性保护算法协商与密钥激活</li>
+<li><strong>无线承载（Radio Bearer）的建立、修改与释放</strong>：SRB 和 DRB 的配置</li>
+<li><strong>移动性控制</strong>：测量配置、切换命令、RRC 重建立（Re-establishment）</li>
+<li><strong>UE 能力信息的协商</strong></li>
+<li><strong>NAS 消息透传</strong>：在 UE 与 AMF&#x2F;SMF 之间传递 NAS PDU</li>
+<li><strong>QoS 流到 DRB 的映射支持</strong>（配合 SDAP 层）</li>
+<li><strong>辅小区组（SCG）配置</strong>：用于双连接（DC）场景</li>
+<li><strong>时间戳分发</strong>（R16+）：5G 时间同步分发</li>
+<li><strong>小数据传输（SDT）配置</strong>（R17+）：在 RRC_INACTIVE 态下的小数据传输</li>
+</ol>
+<h3 id="3-3-系统信息广播（SI）"><a href="#3-3-系统信息广播（SI）" class="headerlink" title="3.3 系统信息广播（SI）"></a>3.3 系统信息广播（SI）</h3><p>系统信息是基站周期性广播的，供所有 UE 获取小区配置。5G NR 的系统信息体系比 LTE 更加灵活，引入了按需（On-demand）获取机制。</p>
+<h4 id="系统信息层次结构"><a href="#系统信息层次结构" class="headerlink" title="系统信息层次结构"></a>系统信息层次结构</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">MIB（主信息块）</span><br><span class="line">│  通过 PBCH 承载，每 80ms 广播一次</span><br><span class="line">│  包含：SFN、子载波间隔、SIB1 调度信息</span><br><span class="line">│</span><br><span class="line">└── SIB1（系统信息块 1）</span><br><span class="line">    │  通过 PDSCH 承载，最小周期 160ms</span><br><span class="line">    │  包含：小区接入参数、其他 SIB 的调度信息</span><br><span class="line">    │</span><br><span class="line">    ├── SIB2：小区重选参数（同频）</span><br><span class="line">    ├── SIB3：同频邻区列表</span><br><span class="line">    ├── SIB4：异频邻区列表</span><br><span class="line">    ├── SIB5：异系统邻区列表（E-UTRA）</span><br><span class="line">    ├── SIB6：地震海啸预警（ETWS）主通知</span><br><span class="line">    ├── SIB7：ETWS 次通知</span><br><span class="line">    ├── SIB8：CMAS（商业移动告警）</span><br><span class="line">    ├── SIB9：GPS 时间同步</span><br><span class="line">    ├── SIB10：HRNN（Human Readable Network Name，R16）</span><br><span class="line">    ├── SIB11：测量 Gap 配置（R16）</span><br><span class="line">    ├── SIB12：NR Sidelink 通信参数（R16）</span><br><span class="line">    ├── SIB13：NR Sidelink 发现（R17）</span><br><span class="line">    ├── SIB14：UA 扩展接入限制（R17）</span><br><span class="line">    └── SIB15 / SIB16 / SIB17（R17+）：NSAG、卫星接入等</span><br></pre></td></tr></table></figure>
+
+<h4 id="On-demand-SI（按需系统信息）"><a href="#On-demand-SI（按需系统信息）" class="headerlink" title="On-demand SI（按需系统信息）"></a>On-demand SI（按需系统信息）</h4><p>从 R15 引入，UE 可以在需要时向 gNB <strong>请求特定 SIB</strong>（除 MIB 和 SIB1 外），gNB 在收到请求后临时广播相应 SIB，无需一直周期性广播，节省空口资源。</p>
+<p>流程：</p>
+<ol>
+<li>UE 通过 <strong>PRACH</strong>（Random Access）发送 SI Request（特殊前导码）。</li>
+<li>gNB 识别 SI Request 后，在接下来的 SI Window 内广播被请求的 SIB。</li>
+</ol>
+<h3 id="3-4-RRC-状态机"><a href="#3-4-RRC-状态机" class="headerlink" title="3.4 RRC 状态机"></a>3.4 RRC 状态机</h3><p>5G NR 相较于 LTE 引入了第三个 RRC 状态：<strong>RRC_INACTIVE</strong>，这是 5G 的重要创新之一。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">                 ┌─────────────┐</span><br><span class="line">                 │  RRC_IDLE   │</span><br><span class="line">                 │  (空闲态)    │</span><br><span class="line">                 └──────┬──────┘</span><br><span class="line">                        │ RRC Setup (初始接入)</span><br><span class="line">                        │ RRC Resume (从 INACTIVE 恢复)</span><br><span class="line">               ┌────────▼────────┐</span><br><span class="line">┌──────────────│ RRC_CONNECTED   │──────────────┐</span><br><span class="line">│              │   (连接态)       │              │</span><br><span class="line">│              └────────┬────────┘              │</span><br><span class="line">│                       │ RRC Release           │ RRC Release</span><br><span class="line">│                       │ (suspendConfig)       │ (无 suspendConfig)</span><br><span class="line">│              ┌────────▼────────┐              │</span><br><span class="line">│              │ RRC_INACTIVE    │              │</span><br><span class="line">│              │   (非活动态)     │              │</span><br><span class="line">│              └────────┬────────┘              │</span><br><span class="line">│                       │ RRC Resume            │</span><br><span class="line">│              ┌────────▼────────┐              ▼</span><br><span class="line">└─────────────►│   RRC_IDLE      │◄─────────────┘</span><br><span class="line">               │  (空闲态)        │</span><br><span class="line">               └─────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h4 id="三种状态特性对比"><a href="#三种状态特性对比" class="headerlink" title="三种状态特性对比"></a>三种状态特性对比</h4><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>RRC_IDLE</th>
+<th>RRC_INACTIVE</th>
+<th>RRC_CONNECTED</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RRC 上下文（gNB）</td>
+<td>✗</td>
+<td>✓（保留于 Anchor gNB）</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>NAS&#x2F;AS 安全上下文</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>用户面配置（PDU Session）</td>
+<td>✗</td>
+<td>暂挂（Suspended）</td>
+<td>✓（活跃）</td>
+</tr>
+<tr>
+<td>N2&#x2F;N3 连接</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>下行数据接收</td>
+<td>✗（需经 Paging→接入）</td>
+<td>✗（需 Resume）</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>上行数据发送</td>
+<td>✗</td>
+<td>✗（或 SDT）</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>小区监听（Paging）</td>
+<td>✓</td>
+<td>✓（RAN Paging）</td>
+<td>——</td>
+</tr>
+<tr>
+<td>小区重选</td>
+<td>✓</td>
+<td>✓（RAN 控制）</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>节电效果</td>
+<td>最佳</td>
+<td>中等</td>
+<td>最差</td>
+</tr>
+<tr>
+<td>恢复速度</td>
+<td>最慢</td>
+<td>中等（快于 IDLE）</td>
+<td>——</td>
+</tr>
+</tbody></table>
+<p><strong>RRC_INACTIVE 的核心优势</strong>：UE 在 gNB 中保留 AS 上下文和 RRC 配置，恢复连接时无需重新建立全套配置，时延显著低于从 RRC_IDLE 建立连接。这对 URLLC 和频繁小数据业务场景（如 IoT）意义重大。</p>
+<p><strong>RNA（RAN Notification Area）</strong>：处于 RRC_INACTIVE 的 UE 在 RNA 范围内移动时，不需要通知网络（类似于 NAS 层的 TA）；超出 RNA 时，触发 <strong>RNA Update</strong>（类似于 TA Update），通过 <strong>RRCResumeRequest</strong> 携带原因值执行。</p>
+<h3 id="3-5-RRC-连接管理流程"><a href="#3-5-RRC-连接管理流程" class="headerlink" title="3.5 RRC 连接管理流程"></a>3.5 RRC 连接管理流程</h3><h4 id="RRC-建立流程（RRC-Setup）"><a href="#RRC-建立流程（RRC-Setup）" class="headerlink" title="RRC 建立流程（RRC Setup）"></a>RRC 建立流程（RRC Setup）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">UE                          gNB</span><br><span class="line">│                            │</span><br><span class="line">│──RRCSetupRequest──────────►│  (SRB0, CCCH, TM-RLC)</span><br><span class="line">│  [cause: mo-Signalling]    │</span><br><span class="line">│                            │  触发 RACH 接入已完成</span><br><span class="line">│◄─RRCSetup──────────────────│  (SRB0, CCCH)</span><br><span class="line">│  [配置 SRB1, 初始 BWP]      │</span><br><span class="line">│                            │</span><br><span class="line">│──RRCSetupComplete─────────►│  (SRB1, DCCH, AM-RLC)</span><br><span class="line">│  [NAS: RegistrationReq]    │</span><br><span class="line">│                            │  转发 NAS 到 AMF（NGAP）</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><strong>RRCSetupRequest</strong>（UE → gNB）：通过 SRB0（CCCH）发送，包含 UE 标识（ng-5G-S-TMSI 或随机值）和建立原因。</li>
+<li><strong>RRCSetup</strong>（gNB → UE）：包含 SRB1 配置、初始 BWP 配置、Master Cell Group 配置等。</li>
+<li><strong>RRCSetupComplete</strong>（UE → gNB）：通过 SRB1（DCCH）发送，携带所选 PLMN ID 及 NAS 消息（如 Registration Request）。</li>
+</ol>
+<h4 id="RRC-恢复流程（RRC-Resume，从-INACTIVE）"><a href="#RRC-恢复流程（RRC-Resume，从-INACTIVE）" class="headerlink" title="RRC 恢复流程（RRC Resume，从 INACTIVE）"></a>RRC 恢复流程（RRC Resume，从 INACTIVE）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">UE                          gNB（新）                 gNB（Anchor）</span><br><span class="line">│                            │                         │</span><br><span class="line">│──RRCResumeRequest─────────►│                         │</span><br><span class="line">│  [I-RNTI, resumeCause]     │                         │</span><br><span class="line">│                            │──Retrieve UE Context───►│</span><br><span class="line">│                            │◄─UE Context Response────│</span><br><span class="line">│◄─RRCResume─────────────────│                         │</span><br><span class="line">│  [新配置/增量配置]           │                         │</span><br><span class="line">│                            │                         │</span><br><span class="line">│──RRCResumeComplete────────►│                         │</span><br><span class="line">│  [NAS 消息（可选）]          │──Path Switch───────────►│</span><br></pre></td></tr></table></figure>
+
+<h4 id="RRC-重建立流程（RRC-Re-establishment）"><a href="#RRC-重建立流程（RRC-Re-establishment）" class="headerlink" title="RRC 重建立流程（RRC Re-establishment）"></a>RRC 重建立流程（RRC Re-establishment）</h4><p>当 RRC_CONNECTED 下发生无线链路失败（RLF：Radio Link Failure）时触发：</p>
+<ol>
+<li>UE 检测到 T310 超时（N310 次 OOS 指示后未收到 N311 次 IS 指示）。</li>
+<li>UE 进入 <strong>RRC_CONNECTED 失败</strong>状态，启动 T311，尝试小区选择。</li>
+<li>在新小区发送 <strong>RRCReestablishmentRequest</strong>（包含 UE C-RNTI、物理小区 ID、短 MAC-I 验证）。</li>
+<li>新 gNB 通过 Xn 接口向旧 gNB 获取 UE 上下文。</li>
+<li>gNB 回复 <strong>RRCReestablishment</strong> 消息完成重建立。</li>
+</ol>
+<h3 id="3-6-无线承载与逻辑信道配置"><a href="#3-6-无线承载与逻辑信道配置" class="headerlink" title="3.6 无线承载与逻辑信道配置"></a>3.6 无线承载与逻辑信道配置</h3><p>RRC 负责配置所有无线承载（Radio Bearer）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">无线承载（Radio Bearer）</span><br><span class="line">├── SRB（Signaling Radio Bearer）：承载控制面信令</span><br><span class="line">│   ├── SRB0：RRCSetupRequest 等初始消息（CCCH，TM-RLC）</span><br><span class="line">│   ├── SRB1：RRC 消息（含 NAS Piggyback）（DCCH，AM-RLC）</span><br><span class="line">│   ├── SRB2：NAS 消息专用（DCCH，AM-RLC，安全激活后配置）</span><br><span class="line">│   └── SRB3：EN-DC / NR-DC 场景（DCCH，AM-RLC，可选）</span><br><span class="line">│</span><br><span class="line">└── DRB（Data Radio Bearer）：承载用户面数据</span><br><span class="line">    ├── 与 QoS Flow 映射（由 SDAP 层负责）</span><br><span class="line">    └── 每个 DRB 对应一个 PDU Session 内的一组 QoS Flow</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-7-信令无线承载（SRB）详解"><a href="#3-7-信令无线承载（SRB）详解" class="headerlink" title="3.7 信令无线承载（SRB）详解"></a>3.7 信令无线承载（SRB）详解</h3><p>SRB 是 RRC 层定义的用于承载控制信令的专用无线承载，定义于 <strong>TS 38.331 第 4.2.2 节</strong>。</p>
+<h4 id="SRB-类型与特性"><a href="#SRB-类型与特性" class="headerlink" title="SRB 类型与特性"></a>SRB 类型与特性</h4><table>
+<thead>
+<tr>
+<th>SRB</th>
+<th>用途</th>
+<th>逻辑信道</th>
+<th>RLC 模式</th>
+<th>安全保护</th>
+<th>建立时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SRB0</strong></td>
+<td>初始 RRC 消息（RRCSetupRequest&#x2F;Setup）</td>
+<td>CCCH</td>
+<td>TM（透明模式）</td>
+<td>无</td>
+<td>始终存在</td>
+</tr>
+<tr>
+<td><strong>SRB1</strong></td>
+<td>RRC 消息（可含 NAS Piggyback），SRB2 建立前也承载 NAS</td>
+<td>DCCH</td>
+<td>AM（确认模式）</td>
+<td>RRC 安全激活后（完整性+加密）</td>
+<td>RRCSetup 时建立</td>
+</tr>
+<tr>
+<td><strong>SRB2</strong></td>
+<td>NAS 消息专用，低优先级（低于 SRB1）</td>
+<td>DCCH</td>
+<td>AM（确认模式）</td>
+<td>是（完整性+加密）</td>
+<td>AS 安全激活后</td>
+</tr>
+<tr>
+<td><strong>SRB3</strong></td>
+<td>EN-DC &#x2F; NR-DC 场景中 SgNB 直接信令（RRCReconfiguration &#x2F; MeasurementReport 等）</td>
+<td>DCCH</td>
+<td>AM（确认模式）</td>
+<td>是</td>
+<td>EN-DC 配置时（可选）</td>
+</tr>
+</tbody></table>
+<p><strong>为何 SRB0 使用 TM-RLC？</strong><br>初始接入阶段（RACH 期间），UE 尚未配置 RLC AM 所需的参数，且 RRCSetupRequest 消息极短，不需要重传机制。TM 模式零开销，最适合初始信令传输。</p>
+<p><strong>SRB1 与 SRB2 的优先级差异</strong>：<br>SRB1 优先级高于 SRB2，保证 RRC 控制消息（如切换命令）能优先于 NAS 消息传输，避免 NAS 消息堵塞关键 RRC 信令。</p>
+<p><strong>SRB3 的使用场景</strong>：<br>在 EN-DC（E-UTRA 主站 + NR 从站）或 NR-DC 场景中，SRB3 在 NR 侧提供直接的 RRC 信令路径，支持的消息类型有限（仅 RRCReconfiguration、RRCReconfigurationComplete、MeasurementReport），主要用于对时延敏感的移动性流程，如辅节点内切换。如果未配置 SRB3，则相关消息经由主节点（MeNB&#x2F;MN）的 X2&#x2F;Xn 接口中转。</p>
+<h4 id="SRB-与-NGAP-的消息映射"><a href="#SRB-与-NGAP-的消息映射" class="headerlink" title="SRB 与 NGAP 的消息映射"></a>SRB 与 NGAP 的消息映射</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UE 侧 SRB        gNB            AMF</span><br><span class="line">│               │               │</span><br><span class="line">│ NAS via SRB1  │ NGAP: UL NAS  │</span><br><span class="line">├──────────────►│──────────────►│  5GMM 消息（AMF 处理）</span><br><span class="line">│               │               │</span><br><span class="line">│ NAS via SRB2  │ NGAP: UL NAS  │</span><br><span class="line">├──────────────►│──────────────►├──► SMF  5GSM 消息（AMF 透传）</span><br><span class="line">│               │               │</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-8-测量配置与上报"><a href="#3-8-测量配置与上报" class="headerlink" title="3.8 测量配置与上报"></a>3.8 测量配置与上报</h3><p>测量（Measurement）是 RRC 的重要功能，是移动性决策（切换）的基础。</p>
+<h4 id="测量配置结构"><a href="#测量配置结构" class="headerlink" title="测量配置结构"></a>测量配置结构</h4><p>gNB 通过 <strong>RRCReconfiguration</strong> 消息中的 <code>measConfig</code> IE 下发测量配置，包括：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">measConfig</span><br><span class="line">├── measObjectList（测量对象列表）</span><br><span class="line">│   ├── measObjectNR：NR 频点、小区列表、SSB/CSI-RS 配置</span><br><span class="line">│   └── measObjectEUTRA：E-UTRA 频点（用于 B2 事件）</span><br><span class="line">├── reportConfigList（上报配置列表）</span><br><span class="line">│   ├── reportConfigNR：事件类型（A1~A6）、阈值、滞后量（Hysteresis）、触发时间（TTT）</span><br><span class="line">│   └── reportConfigInterRAT：异系统上报（B1/B2）</span><br><span class="line">├── measIdList（测量 ID：将 measObject 与 reportConfig 关联）</span><br><span class="line">└── quantityConfig（测量量配置：RSRP / RSRQ / SINR 滤波参数）</span><br></pre></td></tr></table></figure>
+
+<h4 id="事件类型说明"><a href="#事件类型说明" class="headerlink" title="事件类型说明"></a>事件类型说明</h4><table>
+<thead>
+<tr>
+<th>事件</th>
+<th>触发条件</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>A1</strong></td>
+<td>服务小区测量量高于阈值</td>
+<td>关闭异频&#x2F;异系统测量（节电）</td>
+</tr>
+<tr>
+<td><strong>A2</strong></td>
+<td>服务小区测量量低于阈值</td>
+<td>触发异频&#x2F;异系统测量</td>
+</tr>
+<tr>
+<td><strong>A3</strong></td>
+<td>邻区测量量比服务小区好超过 offset</td>
+<td>同频&#x2F;同系统切换触发</td>
+</tr>
+<tr>
+<td><strong>A4</strong></td>
+<td>邻区测量量高于阈值</td>
+<td>负载均衡</td>
+</tr>
+<tr>
+<td><strong>A5</strong></td>
+<td>服务小区低于阈值 1 且邻区高于阈值 2</td>
+<td>异频切换</td>
+</tr>
+<tr>
+<td><strong>A6</strong></td>
+<td>SCG 内邻区比主服务小区好超过 offset</td>
+<td>辅小区组切换</td>
+</tr>
+<tr>
+<td><strong>B1</strong></td>
+<td>异系统邻区高于阈值</td>
+<td>异系统切换触发</td>
+</tr>
+<tr>
+<td><strong>B2</strong></td>
+<td>服务小区低于阈值 1 且异系统邻区高于阈值 2</td>
+<td>EPS Fallback 触发</td>
+</tr>
+</tbody></table>
+<p>UE 测量满足事件条件且触发时间（TTT：Time-to-Trigger）超时后，通过 <strong>MeasurementReport</strong> 消息（SRB1）上报测量结果，gNB 根据上报结果决策切换。</p>
+<h3 id="3-9-RRC-安全激活"><a href="#3-9-RRC-安全激活" class="headerlink" title="3.9 RRC 安全激活"></a>3.9 RRC 安全激活</h3><p>RRC 安全（加密 + 完整性保护）通过 <strong>SecurityModeCommand &#x2F; SecurityModeComplete</strong> 流程激活：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gNB                                    UE</span><br><span class="line">│                                       │</span><br><span class="line">│──SecurityModeCommand─────────────────►│</span><br><span class="line">│  [选定算法: cipheringAlgorithm,        │</span><br><span class="line">│   integrityProtAlgorithm]             │</span><br><span class="line">│  (消息本身由 NIA 完整性保护，不加密)       │</span><br><span class="line">│                                       │  UE 验证 MAC-I，激活上行安全</span><br><span class="line">│◄─SecurityModeComplete─────────────────│</span><br><span class="line">│  (第一条已加密且完整性保护的 RRC 消息)     │</span><br><span class="line">│                                       │</span><br></pre></td></tr></table></figure>
+
+<p>密钥来源：</p>
+<ul>
+<li><code>KgNB</code>：由 <code>KSEAF</code>（核心网侧）派生，或切换时由源 gNB 的 <code>NH</code>（Next Hop）派生。</li>
+<li><code>KRRCenc</code>、<code>KRRCint</code>：由 <code>KgNB</code> 和算法标识派生，用于 RRC 层加密和完整性保护。</li>
+<li><code>KUPenc</code>、<code>KUPint</code>：由 <code>KgNB</code> 派生，用于用户面加密和完整性保护（用户面完整性保护为 R15 新增特性）。</li>
+</ul>
+<p>RRC 加密算法（NR-EEA）与完整性保护算法（NR-EIA）：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>加密（NR-EEA &#x2F; NEA）</th>
+<th>完整性（NR-EIA &#x2F; NIA）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>NULL（不加密）</td>
+<td>NULL（不推荐用于 UP）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>SNOW 3G</td>
+<td>SNOW 3G</td>
+</tr>
+<tr>
+<td>2</td>
+<td>AES-CTR</td>
+<td>AES-CMAC</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ZUC</td>
+<td>ZUC</td>
+</tr>
+</tbody></table>
+<h3 id="3-10-RRC-重配置与能力上报"><a href="#3-10-RRC-重配置与能力上报" class="headerlink" title="3.10 RRC 重配置与能力上报"></a>3.10 RRC 重配置与能力上报</h3><h4 id="RRC-重配置（RRCReconfiguration）"><a href="#RRC-重配置（RRCReconfiguration）" class="headerlink" title="RRC 重配置（RRCReconfiguration）"></a>RRC 重配置（RRCReconfiguration）</h4><p><code>RRCReconfiguration</code> 是 5G RRC 中最通用的消息，可用于：</p>
+<ul>
+<li>增&#x2F;删 SRB 和 DRB</li>
+<li>修改 BWP（带宽部分）配置</li>
+<li>更新测量配置</li>
+<li>配置辅小区（SCell）</li>
+<li>执行切换（含 <code>reconfigurationWithSync</code>）</li>
+<li>配置双连接（SCG 配置）</li>
+</ul>
+<p>UE 收到后执行配置，成功则返回 <strong>RRCReconfigurationComplete</strong>；失败（如无法执行）则触发 RRC 重建立。</p>
+<h4 id="UE-能力上报（UE-Capability）"><a href="#UE-能力上报（UE-Capability）" class="headerlink" title="UE 能力上报（UE Capability）"></a>UE 能力上报（UE Capability）</h4><p>gNB 通过 <strong>UECapabilityEnquiry</strong> 查询 UE 能力，UE 回复 <strong>UECapabilityInformation</strong>，包括：</p>
+<ul>
+<li>支持的频段（Band）列表</li>
+<li>支持的频段组合（Band Combination）和 CA 能力</li>
+<li>MIMO 层数（Layers）</li>
+<li>调制阶数（最高 256QAM 或 1024QAM）</li>
+<li>PDCP &#x2F; RLC &#x2F; MAC &#x2F; PHY 特性支持情况</li>
+<li>双连接能力（EN-DC &#x2F; NR-DC）</li>
+</ul>
+<p>gNB 根据 UE 能力选择合适的调度策略和配置。</p>
+<hr>
+<h1 id="4-NAS-与-RRC-的协作关系"><a href="#4-NAS-与-RRC-的协作关系" class="headerlink" title="4. NAS 与 RRC 的协作关系"></a>4. NAS 与 RRC 的协作关系</h1><p>NAS 与 RRC 虽然分属不同协议层，但在 5G 接入流程中紧密协作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">         ┌────────────────────────────────────────────────────────┐</span><br><span class="line">         │                  典型接入与注册流程                       │</span><br><span class="line">         └────────────────────────────────────────────────────────┘</span><br><span class="line"></span><br><span class="line">UE                       gNB                        AMF</span><br><span class="line">│                         │                          │</span><br><span class="line">│ 1. 小区搜索 (PHY/MAC)    │                           │</span><br><span class="line">│ 2. 系统信息解读 (RRC)     │                          │</span><br><span class="line">│ 3. RACH 接入 (MAC/PHY)   │                          │</span><br><span class="line">│──RRCSetupRequest─────►  │                          │  ← RRC 层</span><br><span class="line">│◄─RRCSetup────────────   │                          │  ← RRC 层</span><br><span class="line">│──RRCSetupComplete────►  │──NGAP: InitialUEMsg─────►│  ← RRC 透传 NAS</span><br><span class="line">│  [携带 RegReq (NAS)]     │   [Registration Req]     │</span><br><span class="line">│                         │                          │ NAS 鉴权 (5GMM)</span><br><span class="line">│◄─DLInfoTransfer───────  │◄─NGAP: DL NAS Transport──│</span><br><span class="line">│  [Auth Request(NAS)]    │                          │</span><br><span class="line">│──ULInfoTransfer───────► │──NGAP: UL NAS Transport─►│  ← NAS 鉴权响应</span><br><span class="line">│  [Auth Response(NAS)]   │                          │</span><br><span class="line">│                         │                          │ NAS SMC (5GMM)</span><br><span class="line">│◄─DLInfoTransfer───────  │◄─NGAP: DL NAS Transport──│</span><br><span class="line">│  [SecurityModeCmd(NAS)] │                          │</span><br><span class="line">│──ULInfoTransfer───────► │──NGAP: UL NAS Transport─►│</span><br><span class="line">│  [SecurityModeComp]     │                          │</span><br><span class="line">│                         │                          │ RRC 安全激活</span><br><span class="line">│◄─SecurityModeCommand──  │                          │  ← RRC 层</span><br><span class="line">│──SecurityModeComplete─► │                          │  ← RRC 层</span><br><span class="line">│                         │                          │</span><br><span class="line">│◄─RRCReconfiguration───  │◄─NGAP: InitialContextSetup│  ← RRC 配置</span><br><span class="line">│  [SRB2, DRB, 测量配置]   │                          │</span><br><span class="line">│──RRCReconfigComplete──► │                          │</span><br><span class="line">│                         │                          │</span><br><span class="line">│◄─DLInfoTransfer───────  │◄─NGAP: DL NAS Transport──│  ← NAS 注册完成</span><br><span class="line">│  [Registration Accept]  │                          │</span><br><span class="line">│──ULInfoTransfer───────► │──NGAP: UL NAS Transport─►│</span><br><span class="line">│  [Registration Complete]│                          │</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键协作点</strong>：</p>
+<ol>
+<li><strong>RRC 为 NAS 提供信令通道</strong>：NAS PDU 被封装在 RRC 的 <code>DLInformationTransfer</code> &#x2F; <code>ULInformationTransfer</code> 消息中传递，RRC 是 NAS 的”载体”。</li>
+<li><strong>NAS 触发 RRC 行为</strong>：如注册成功后，AMF 通过 NGAP 下发 <code>InitialContextSetupRequest</code>，触发 gNB 向 UE 发送 <code>RRCReconfiguration</code> 建立 SRB2 和 DRB。</li>
+<li><strong>安全流程分层进行</strong>：先 NAS 层安全（5GMM SMC），再 RRC&#x2F;AS 层安全（RRC SecurityModeCommand），密钥层级依次派生。</li>
+<li><strong>状态联动</strong>：NAS 的 CM-CONNECTED 状态与 RRC 的 RRC_CONNECTED 状态对应；CM-IDLE 可对应 RRC_IDLE 或 RRC_INACTIVE（后者为 R15 新引入）。</li>
+</ol>
+<hr>
+<h1 id="5-与-LTE-的主要差异对比"><a href="#5-与-LTE-的主要差异对比" class="headerlink" title="5. 与 LTE 的主要差异对比"></a>5. 与 LTE 的主要差异对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>4G LTE</th>
+<th>5G NR</th>
+<th>关键改进</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RRC 状态</strong></td>
+<td>2 态（IDLE &#x2F; CONNECTED）</td>
+<td>3 态（IDLE &#x2F; INACTIVE &#x2F; CONNECTED）</td>
+<td>RRC_INACTIVE 降低恢复时延，省电</td>
+</tr>
+<tr>
+<td><strong>NAS 协议</strong></td>
+<td>EMM &#x2F; ESM（TS 24.301）</td>
+<td>5GMM &#x2F; 5GSM（TS 24.501）</td>
+<td>支持网络切片、SUCI 隐私保护</td>
+</tr>
+<tr>
+<td><strong>NAS 终止点</strong></td>
+<td>MME</td>
+<td>AMF（5GMM）&#x2F; SMF（5GSM）</td>
+<td>SMF 专司会话管理，CUPS 分离</td>
+</tr>
+<tr>
+<td><strong>SRB 类型</strong></td>
+<td>SRB0 &#x2F; SRB1 &#x2F; SRB2</td>
+<td>SRB0 &#x2F; SRB1 &#x2F; SRB2 &#x2F; SRB3</td>
+<td>SRB3 支持 EN-DC 直接信令</td>
+</tr>
+<tr>
+<td><strong>SI 获取</strong></td>
+<td>固定周期广播</td>
+<td>周期广播 + On-demand（按需）</td>
+<td>节省空口资源</td>
+</tr>
+<tr>
+<td><strong>用户面完整性保护</strong></td>
+<td>无</td>
+<td>支持（可选，KUPint）</td>
+<td>增强安全性（URLLC 场景）</td>
+</tr>
+<tr>
+<td><strong>测量事件</strong></td>
+<td>A1~A5, B1, B2</td>
+<td>A1~A6, B1, B2</td>
+<td>A6 事件支持 SCG 侧辅小区切换</td>
+</tr>
+<tr>
+<td><strong>UE 标识隐私</strong></td>
+<td>IMSI 有时明文发送</td>
+<td>SUCI（基于椭圆曲线加密 IMSI）</td>
+<td>空口防 IMSI 嗅探</td>
+</tr>
+<tr>
+<td><strong>小数据传输</strong></td>
+<td>无（需先建立 RRC）</td>
+<td>SDT（R17，INACTIVE 态传小数据）</td>
+<td>降低 IoT 场景信令开销</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="6-小结"><a href="#6-小结" class="headerlink" title="6. 小结"></a>6. 小结</h1><p>本文深入解析了 5G NR 控制面协议栈的两大核心层：</p>
+<p><strong>NAS 层</strong>（TS 24.501）：</p>
+<ul>
+<li>分为 <strong>5GMM</strong>（移动性管理，终止于 AMF）和 <strong>5GSM</strong>（会话管理，终止于 SMF）两个子层。</li>
+<li>5GMM 负责注册管理、连接管理和 NAS 层安全（鉴权 + SMC）。</li>
+<li>5GSM 负责 PDU Session 的建立、修改与释放，支持 IPv4&#x2F;v6&#x2F;Ethernet 等多种 PDU 类型。</li>
+<li>NAS 消息对 gNB 透明，通过 RRC 的 Information Transfer 消息透传。</li>
+</ul>
+<p><strong>RRC 层</strong>（TS 38.331）：</p>
+<ul>
+<li>终止于 gNB，负责空口侧所有控制信令。</li>
+<li>新引入 <strong>RRC_INACTIVE</strong> 三态模型，在省电和快速恢复之间取得平衡。</li>
+<li>通过 SRB0&#x2F;1&#x2F;2&#x2F;3 承载不同类型和优先级的控制信令。</li>
+<li>提供系统信息广播（含按需 SI）、连接管理、安全激活、测量配置、移动性控制等完整功能。</li>
+</ul>
+<p><strong>两层的协作</strong>体现在：RRC 是 NAS 的传输载体，NAS 的注册&#x2F;会话管理流程驱动 RRC 的连接建立和无线承载配置，两者在密钥层级上也具有清晰的上下游派生关系。</p>
+<hr>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ol>
+<li>3GPP TS 24.501 — Non-Access-Stratum (NAS) protocol for 5G System (5GS); Stage 3</li>
+<li>3GPP TS 38.331 — NR; Radio Resource Control (RRC); Protocol specification</li>
+<li>3GPP TS 38.300 — NR; NR and NG-RAN Overall Description; Stage-2</li>
+<li>3GPP TS 23.501 — System architecture for the 5G System (5GS)</li>
+<li>3GPP TS 33.501 — Security architecture and procedures for 5G System</li>
+<li>3GPP TS 38.413 — NG-RAN; NG Application Protocol (NGAP)</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%8E%A7%E5%88%B6%E9%9D%A2%E5%8D%8F%E8%AE%AE%E6%A0%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">1. 控制面协议栈总览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAS-%E5%B1%82%EF%BC%88%E9%9D%9E%E6%8E%A5%E5%85%A5%E5%B1%82%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. NAS 层（非接入层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAS-%E5%9C%A8-5G-%E6%9E%B6%E6%9E%84%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAS 在 5G 架构中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAS-%E7%9A%84%E4%B8%A4%E5%A4%A7%E5%AD%90%E5%B1%82%EF%BC%9A5GMM-%E4%B8%8E-5GSM"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAS 的两大子层：5GMM 与 5GSM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5GMM%EF%BC%9A%E7%A7%BB%E5%8A%A8%E6%80%A7%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 5GMM：移动性管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">5GMM 状态机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E4%B8%BB%E8%A6%81%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">5GMM 主要过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GMM-%E5%AE%89%E5%85%A8%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">5GMM 安全过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-5GSM%EF%BC%9A%E4%BC%9A%E8%AF%9D%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 5GSM：会话管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5GSM-%E7%8A%B6%E6%80%81%E6%9C%BA%EF%BC%88UE-%E4%BE%A7%EF%BC%8Cper-PDU-Session%EF%BC%89"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">5GSM 状态机（UE 侧，per PDU Session）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PDU-Session-%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">PDU Session 类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5GSM-%E4%B8%BB%E8%A6%81%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.4.3.</span> <span class="toc-text">5GSM 主要过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-NAS-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%E4%B8%8E%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 NAS 消息结构与安全保护</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#NAS-%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F"><span class="toc-number">3.0.5.1.</span> <span class="toc-text">NAS 消息格式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NAS-%E5%AE%89%E5%85%A8%E7%AE%97%E6%B3%95"><span class="toc-number">3.0.5.2.</span> <span class="toc-text">NAS 安全算法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-NAS-%E4%BC%A0%E8%BE%93%E6%9C%BA%E5%88%B6%EF%BC%9A%E6%B6%88%E6%81%AF%E9%80%8F%E4%BC%A0%E4%B8%8E%E5%B0%81%E8%A3%85"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 NAS 传输机制：消息透传与封装</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RRC-%E5%B1%82%EF%BC%88%E6%97%A0%E7%BA%BF%E8%B5%84%E6%BA%90%E6%8E%A7%E5%88%B6%E5%B1%82%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. RRC 层（无线资源控制层）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-RRC-%E5%9C%A8%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 RRC 在协议栈中的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-RRC-%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E5%85%A8%E6%99%AF"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 RRC 核心功能全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E5%B9%BF%E6%92%AD%EF%BC%88SI%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 系统信息广播（SI）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.3.1.</span> <span class="toc-text">系统信息层次结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#On-demand-SI%EF%BC%88%E6%8C%89%E9%9C%80%E7%B3%BB%E7%BB%9F%E4%BF%A1%E6%81%AF%EF%BC%89"><span class="toc-number">4.0.3.2.</span> <span class="toc-text">On-demand SI（按需系统信息）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-RRC-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 RRC 状态机</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E7%8A%B6%E6%80%81%E7%89%B9%E6%80%A7%E5%AF%B9%E6%AF%94"><span class="toc-number">4.0.4.1.</span> <span class="toc-text">三种状态特性对比</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-RRC-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 RRC 连接管理流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Setup%EF%BC%89"><span class="toc-number">4.0.5.1.</span> <span class="toc-text">RRC 建立流程（RRC Setup）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E6%81%A2%E5%A4%8D%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Resume%EF%BC%8C%E4%BB%8E-INACTIVE%EF%BC%89"><span class="toc-number">4.0.5.2.</span> <span class="toc-text">RRC 恢复流程（RRC Resume，从 INACTIVE）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E9%87%8D%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B%EF%BC%88RRC-Re-establishment%EF%BC%89"><span class="toc-number">4.0.5.3.</span> <span class="toc-text">RRC 重建立流程（RRC Re-establishment）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BD%E4%B8%8E%E9%80%BB%E8%BE%91%E4%BF%A1%E9%81%93%E9%85%8D%E7%BD%AE"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 无线承载与逻辑信道配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E4%BF%A1%E4%BB%A4%E6%97%A0%E7%BA%BF%E6%89%BF%E8%BD%BD%EF%BC%88SRB%EF%BC%89%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.0.7.</span> <span class="toc-text">3.7 信令无线承载（SRB）详解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SRB-%E7%B1%BB%E5%9E%8B%E4%B8%8E%E7%89%B9%E6%80%A7"><span class="toc-number">4.0.7.1.</span> <span class="toc-text">SRB 类型与特性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SRB-%E4%B8%8E-NGAP-%E7%9A%84%E6%B6%88%E6%81%AF%E6%98%A0%E5%B0%84"><span class="toc-number">4.0.7.2.</span> <span class="toc-text">SRB 与 NGAP 的消息映射</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E6%B5%8B%E9%87%8F%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%B8%8A%E6%8A%A5"><span class="toc-number">4.0.8.</span> <span class="toc-text">3.8 测量配置与上报</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E9%87%8F%E9%85%8D%E7%BD%AE%E7%BB%93%E6%9E%84"><span class="toc-number">4.0.8.1.</span> <span class="toc-text">测量配置结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E4%BB%B6%E7%B1%BB%E5%9E%8B%E8%AF%B4%E6%98%8E"><span class="toc-number">4.0.8.2.</span> <span class="toc-text">事件类型说明</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-RRC-%E5%AE%89%E5%85%A8%E6%BF%80%E6%B4%BB"><span class="toc-number">4.0.9.</span> <span class="toc-text">3.9 RRC 安全激活</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-RRC-%E9%87%8D%E9%85%8D%E7%BD%AE%E4%B8%8E%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">4.0.10.</span> <span class="toc-text">3.10 RRC 重配置与能力上报</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#RRC-%E9%87%8D%E9%85%8D%E7%BD%AE%EF%BC%88RRCReconfiguration%EF%BC%89"><span class="toc-number">4.0.10.1.</span> <span class="toc-text">RRC 重配置（RRCReconfiguration）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%EF%BC%88UE-Capability%EF%BC%89"><span class="toc-number">4.0.10.2.</span> <span class="toc-text">UE 能力上报（UE Capability）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-NAS-%E4%B8%8E-RRC-%E7%9A%84%E5%8D%8F%E4%BD%9C%E5%85%B3%E7%B3%BB"><span class="toc-number">5.</span> <span class="toc-text">4. NAS 与 RRC 的协作关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E4%B8%8E-LTE-%E7%9A%84%E4%B8%BB%E8%A6%81%E5%B7%AE%E5%BC%82%E5%AF%B9%E6%AF%94"><span class="toc-number">6.</span> <span class="toc-text">5. 与 LTE 的主要差异对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">7.1.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&text=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&is_video=false&description=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=控制面协议栈——NAS / RRC 层功能概述&body=Check out this article: http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&title=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&name=控制面协议栈——NAS / RRC 层功能概述&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/03/15/3gpp/08-control-plane-nas-rrc/&t=控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

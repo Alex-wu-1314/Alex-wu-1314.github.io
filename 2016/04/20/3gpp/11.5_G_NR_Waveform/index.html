@@ -9,14 +9,14 @@
     <meta name="description" content="目录 背景：什么是”传输波形”？ 一、下行传输波形：CP-OFDM 1.1 OFDM：多子载波并行传输 1.2 循环前缀（CP）：信号的”缓冲垫” 1.3 两种 CP 类型：适配不同传播环境 1.4 下行应用场景   二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换 2.1 DFT 扩展的作用：降低 PAPR 2.2 两种上行模式对比 2.3 模式切换机制：由基站通过">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入理解 5G NR 上下行传输波形">
-<meta property="og:url" content="http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/index.html">
+<meta property="og:url" content="http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 背景：什么是”传输波形”？ 一、下行传输波形：CP-OFDM 1.1 OFDM：多子载波并行传输 1.2 循环前缀（CP）：信号的”缓冲垫” 1.3 两种 CP 类型：适配不同传播环境 1.4 下行应用场景   二、上行传输波形：DFT-S-OFDM &#x2F; CP-OFDM 可切换 2.1 DFT 扩展的作用：降低 PAPR 2.2 两种上行模式对比 2.3 模式切换机制：由基站通过">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-04-27T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-21T01:38:03.350Z">
+<meta property="article:published_time" content="2016-04-20T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-10T09:18:05.370Z">
 <meta property="article:author" content="Alex Wu">
-<meta property="article:tag" content="高性能网络">
+<meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
     
     
@@ -94,10 +94,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" aria-label="Previous post" href="/2020/05/05/HPN/8.network-packet-journey/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Previous post" href="/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2020/04/15/HPN/6.%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3%E9%9D%A2%E5%90%91%E5%AD%97%E8%8A%82%E6%B5%81%E3%80%81%E9%9D%A2%E5%90%91%E6%B6%88%E6%81%AF%E6%B5%81%E3%80%81%E9%9D%A2%E5%90%91%E6%95%B0%E6%8D%AE%E6%8A%A5%E7%9A%84%E5%8C%BA%E5%88%AB/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -110,17 +110,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -152,7 +152,7 @@
       
     <div class="postdate">
       
-        <time datetime="2020-04-27T02:44:19.000Z" class="dt-published" itemprop="datePublished">2020-04-27</time>
+        <time datetime="2016-04-20T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-04-20</time>
         
       
     </div>
@@ -163,7 +163,7 @@
       
     <div class="article-tag">
         <i class="fa-solid fa-tag"></i>
-        <a class="p-category" href="/tags/%E9%AB%98%E6%80%A7%E8%83%BD%E7%BD%91%E7%BB%9C/" rel="tag">高性能网络</a>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
     </div>
 
 
@@ -612,17 +612,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/04/27/HPN/7.5G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&text=深入理解 5G NR 上下行传输波形"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&is_video=false&description=深入理解 5G NR 上下行传输波形"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入理解 5G NR 上下行传输波形&body=Check out this article: http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&title=深入理解 5G NR 上下行传输波形"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&name=深入理解 5G NR 上下行传输波形&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/20/3gpp/11.5_G_NR_Waveform/&t=深入理解 5G NR 上下行传输波形"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

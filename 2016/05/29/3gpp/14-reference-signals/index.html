@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 NR 参考信号总览与设计哲学 DMRS（解调参考信号） 2.1 设计目标与基本原理 2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1） 2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1） 2.4 控制信道 PDCCH&#x2F;PUCCH DMRS 2.5 CDM 复用与天线端口容量 2.6 准共址（QCL）关系   CSI-RS（信道状态信息">
+<meta property="og:type" content="article">
+<meta property="og:title" content="参考信号体系——DMRS &#x2F; CSI-RS &#x2F; PTRS &#x2F; TRS">
+<meta property="og:url" content="http://example.com/2016/05/29/3gpp/14-reference-signals/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 NR 参考信号总览与设计哲学 DMRS（解调参考信号） 2.1 设计目标与基本原理 2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1） 2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1） 2.4 控制信道 PDCCH&#x2F;PUCCH DMRS 2.5 CDM 复用与天线端口容量 2.6 准共址（QCL）关系   CSI-RS（信道状态信息">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-05-29T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-11T00:34:10.619Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>参考信号体系——DMRS / CSI-RS / PTRS / TRS</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/05/14/3gpp/13_Physical_Channels/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/05/29/3gpp/14-reference-signals/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&text=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&is_video=false&description=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=参考信号体系——DMRS / CSI-RS / PTRS / TRS&body=Check out this article: http://example.com/2016/05/29/3gpp/14-reference-signals/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&name=参考信号体系——DMRS / CSI-RS / PTRS / TRS&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/05/29/3gpp/14-reference-signals/&t=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-NR-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%80%BB%E8%A7%88%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">2.</span> <span class="toc-text">1. NR 参考信号总览与设计哲学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-LTE-%E7%9A%84%E2%80%9D%E5%B8%B8%E4%BA%AE%E8%B7%AF%E7%81%AF%E2%80%9D%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 LTE 的”常亮路灯”模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-NR-%E7%9A%84%E2%80%9D%E6%8C%89%E9%9C%80%E7%82%B9%E7%81%AF%E2%80%9D%E5%93%B2%E5%AD%A6"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 NR 的”按需点灯”哲学</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-NR-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E5%85%A8%E6%99%AF"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 NR 参考信号全景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-DMRS%EF%BC%88%E8%A7%A3%E8%B0%83%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. DMRS（解调参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%E4%B8%8E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 设计目标与基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%8B%E8%A1%8C-PDSCH-DMRS%EF%BC%88TS-38-211-%C2%A77-4-1-1%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-%E6%98%A0%E5%B0%84%E7%B1%BB%E5%9E%8B%EF%BC%88Mapping-Type%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">2.2.1 映射类型（Mapping Type）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E9%85%8D%E7%BD%AE%E7%B1%BB%E5%9E%8B%EF%BC%88Configuration-Type%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">2.2.2 配置类型（Configuration Type）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E9%99%84%E5%8A%A0-DMRS-%E7%AC%A6%E5%8F%B7%EF%BC%88Additional-DMRS%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">2.2.3 附加 DMRS 符号（Additional DMRS）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%8A%E8%A1%8C-PUSCH-DMRS%EF%BC%88TS-38-211-%C2%A76-4-1-1%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93-PDCCH-PUCCH-DMRS"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 控制信道 PDCCH&#x2F;PUCCH DMRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-CDM-%E5%A4%8D%E7%94%A8%E4%B8%8E%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E5%AE%B9%E9%87%8F"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 CDM 复用与天线端口容量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%87%86%E5%85%B1%E5%9D%80%EF%BC%88QCL%EF%BC%89%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 准共址（QCL）关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-CSI-RS%EF%BC%88%E4%BF%A1%E9%81%93%E7%8A%B6%E6%80%81%E4%BF%A1%E6%81%AF%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. CSI-RS（信道状态信息参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8A%9F%E8%83%BD%E5%AE%9A%E4%BD%8D%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 功能定位与分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-211-%C2%A77-4-1-5%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 NZP-CSI-RS 资源配置（TS 38.211 §7.4.1.5）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E6%95%B0"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">3.2.1 天线端口数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88Density%EF%BC%89"><span class="toc-number">4.0.2.2.</span> <span class="toc-text">3.2.2 频域密度（Density）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-%E6%97%B6%E5%9F%9F%E9%85%8D%E7%BD%AE"><span class="toc-number">4.0.2.3.</span> <span class="toc-text">3.2.3 时域配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-CDM-%E7%B1%BB%E5%9E%8B"><span class="toc-number">4.0.2.4.</span> <span class="toc-text">3.2.4 CDM 类型</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-ZP-CSI-RS%EF%BC%9A%E5%B9%B2%E6%89%B0%E6%B5%8B%E9%87%8F%E4%B8%8E%E9%80%9F%E7%8E%87%E5%8C%B9%E9%85%8D"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 ZP-CSI-RS：干扰测量与速率匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-CSI-RS-%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%91%A8%E6%9C%9F-%E5%8D%8A%E6%8C%81%E7%BB%AD-%E9%9D%9E%E5%91%A8%E6%9C%9F"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 CSI-RS 触发机制：周期 &#x2F; 半持续 &#x2F; 非周期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-CSI-RS-%E5%9C%A8%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 CSI-RS 在波束管理中的应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-CSI-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 CSI 反馈框架</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-PTRS%EF%BC%88%E7%9B%B8%E4%BD%8D%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. PTRS（相位跟踪参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%9B%B8%E4%BD%8D%E5%99%AA%E5%A3%B0%E9%97%AE%E9%A2%98%E4%B8%8E-PTRS-%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 相位噪声问题与 PTRS 的诞生</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-%E7%9B%B8%E4%BD%8D%E5%99%AA%E5%A3%B0%E7%9A%84%E7%89%A9%E7%90%86%E6%A0%B9%E6%BA%90"><span class="toc-number">5.0.1.1.</span> <span class="toc-text">4.1.1 相位噪声的物理根源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-PTRS-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">5.0.1.2.</span> <span class="toc-text">4.1.2 PTRS 的解决方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-PTRS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-211-%C2%A77-4-1-2-%C2%A76-4-1-2%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 PTRS 资源配置（TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%97%B6%E5%9F%9F%E5%AF%86%E5%BA%A6%E4%B8%8E%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 时域密度与频域密度</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88L-PT-RS%EF%BC%89"><span class="toc-number">5.0.3.1.</span> <span class="toc-text">时域密度（L_PT-RS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88K-PT-RS%EF%BC%89"><span class="toc-number">5.0.3.2.</span> <span class="toc-text">频域密度（K_PT-RS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E5%9F%9F%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.0.3.3.</span> <span class="toc-text">频域位置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-PTRS-%E7%AB%AF%E5%8F%A3%E5%85%B3%E8%81%94%E4%B8%8E-DFT-s-OFDM-%E4%B8%8A%E8%A1%8C"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 PTRS 端口关联与 DFT-s-OFDM 上行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TRS%EF%BC%88%E6%97%B6%E9%A2%91%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. TRS（时频跟踪参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-TRS"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 为什么需要 TRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TRS-%E7%9A%84%E6%9C%AC%E8%B4%A8%EF%BC%9A%E7%89%B9%E6%AE%8A%E9%85%8D%E7%BD%AE%E7%9A%84-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%9B%86"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TRS 的本质：特殊配置的 NZP-CSI-RS 资源集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-TRS-%E6%97%B6%E9%A2%91%E5%9B%BE%E6%A1%88%E4%B8%8E%E8%B7%9F%E8%B8%AA%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 TRS 时频图案与跟踪原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-TRS-%E4%B8%8E-DRX-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 TRS 与 DRX 的协作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9B%9B%E5%A4%A7%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">6. 四大参考信号横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-NR-vs-LTE-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E5%AF%B9%E6%AF%94"><span class="toc-number">8.</span> <span class="toc-text">7. NR vs LTE 参考信号架构演进对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-RRC-%E4%BF%A1%E4%BB%A4%E9%85%8D%E7%BD%AE%E9%80%9F%E8%A7%88"><span class="toc-number">9.</span> <span class="toc-text">8. RRC 信令配置速览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-DMRS-%E9%85%8D%E7%BD%AE%EF%BC%88%E4%B8%8B%E8%A1%8C%E7%A4%BA%E4%BE%8B%EF%BC%8CTS-38-331%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 DMRS 配置（下行示例，TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-331%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 NZP-CSI-RS 资源配置（TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-PTRS-%E9%85%8D%E7%BD%AE%EF%BC%88%E4%B8%8B%E8%A1%8C%EF%BC%8CTS-38-331%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 PTRS 配置（下行，TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-TRS-%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-331%EF%BC%8CNZP-CSI-RS-ResourceSet-%E4%B8%AD%E6%A0%87%E8%AF%86%EF%BC%89"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 TRS 配置（TS 38.331，NZP-CSI-RS-ResourceSet 中标识）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%B0%8F%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">11.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        参考信号体系——DMRS / CSI-RS / PTRS / TRS
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-05-29T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-05-29</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-nr-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%80%BB%E8%A7%88%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6">NR 参考信号总览与设计哲学</a></li>
+<li><a href="#2-dmrs%E8%A7%A3%E8%B0%83%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7">DMRS（解调参考信号）</a><ul>
+<li>2.1 <a href="#21-%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%E4%B8%8E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">设计目标与基本原理</a></li>
+<li>2.2 <a href="#22-%E4%B8%8B%E8%A1%8C-pdsch-drmsts-38211-%C2%A77411">下行 PDSCH DMRS（TS 38.211 §7.4.1.1）</a></li>
+<li>2.3 <a href="#23-%E4%B8%8A%E8%A1%8C-pusch-drmsts-38211-%C2%A76411">上行 PUSCH DMRS（TS 38.211 §6.4.1.1）</a></li>
+<li>2.4 <a href="#24-%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93-pdcchpucch-dmrs">控制信道 PDCCH&#x2F;PUCCH DMRS</a></li>
+<li>2.5 <a href="#25-cdm-%E5%A4%8D%E7%94%A8%E4%B8%8E%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E5%AE%B9%E9%87%8F">CDM 复用与天线端口容量</a></li>
+<li>2.6 <a href="#26-%E5%87%86%E5%85%B1%E5%9D%80qcl%E5%85%B3%E7%B3%BB">准共址（QCL）关系</a></li>
+</ul>
+</li>
+<li><a href="#3-csi-rs%E4%BF%A1%E9%81%93%E7%8A%B6%E6%80%81%E4%BF%A1%E6%81%AF%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7">CSI-RS（信道状态信息参考信号）</a><ul>
+<li>3.1 <a href="#31-%E5%8A%9F%E8%83%BD%E5%AE%9A%E4%BD%8D%E4%B8%8E%E5%88%86%E7%B1%BB">功能定位与分类</a></li>
+<li>3.2 <a href="#32-nzp-csi-rs-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AEts-38211-%C2%A774115">NZP-CSI-RS 资源配置（TS 38.211 §7.4.1.5）</a></li>
+<li>3.3 <a href="#33-zp-csi-rs%E5%B9%B2%E6%89%B0%E6%B5%8B%E9%87%8F%E4%B8%8E%E9%80%9F%E7%8E%87%E5%8C%B9%E9%85%8D">ZP-CSI-RS：干扰测量与速率匹配</a></li>
+<li>3.4 <a href="#34-csi-rs-%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%91%A8%E6%9C%9F--%E5%8D%8A%E6%8C%81%E7%BB%AD--%E9%9D%9E%E5%91%A8%E6%9C%9F">CSI-RS 触发机制：周期 &#x2F; 半持续 &#x2F; 非周期</a></li>
+<li>3.5 <a href="#35-csi-rs-%E5%9C%A8%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">CSI-RS 在波束管理中的应用</a></li>
+<li>3.6 <a href="#36-csi-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6">CSI 反馈框架</a></li>
+</ul>
+</li>
+<li><a href="#4-ptrs%E7%9B%B8%E4%BD%8D%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7">PTRS（相位跟踪参考信号）</a><ul>
+<li>4.1 <a href="#41-%E7%9B%B8%E4%BD%8D%E5%99%AA%E5%A3%B0%E9%97%AE%E9%A2%98%E4%B8%8E-ptrs-%E7%9A%84%E8%AF%9E%E7%94%9F">相位噪声问题与 PTRS 的诞生</a></li>
+<li>4.2 <a href="#42-ptrs-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AEts-38211-%C2%A774112--%C2%A764112">PTRS 资源配置（TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2）</a></li>
+<li>4.3 <a href="#43-%E6%97%B6%E5%9F%9F%E5%AF%86%E5%BA%A6%E4%B8%8E%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6">时域密度与频域密度</a></li>
+<li>4.4 <a href="#44-ptrs-%E7%AB%AF%E5%8F%A3%E5%85%B3%E8%81%94%E4%B8%8E-dft-s-ofdm-%E4%B8%8A%E8%A1%8C">PTRS 端口关联与 DFT-s-OFDM 上行</a></li>
+</ul>
+</li>
+<li><a href="#5-trs%E6%97%B6%E9%A2%91%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7">TRS（时频跟踪参考信号）</a><ul>
+<li>5.1 <a href="#51-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-trs">为什么需要 TRS</a></li>
+<li>5.2 <a href="#52-trs-%E7%9A%84%E6%9C%AC%E8%B4%A8%E7%89%B9%E6%AE%8A%E9%85%8D%E7%BD%AE%E7%9A%84-nzp-csi-rs-%E8%B5%84%E6%BA%90%E9%9B%86">TRS 的本质：特殊配置的 NZP-CSI-RS 资源集</a></li>
+<li>5.3 <a href="#53-trs-%E6%97%B6%E9%A2%91%E5%9B%BE%E6%A1%88%E4%B8%8E%E8%B7%9F%E8%B8%AA%E5%8E%9F%E7%90%86">TRS 时频图案与跟踪原理</a></li>
+<li>5.4 <a href="#54-trs-%E4%B8%8E-drx-%E7%9A%84%E5%8D%8F%E4%BD%9C">TRS 与 DRX 的协作</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%9B%9B%E5%A4%A7%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94">四大参考信号横向对比</a></li>
+<li><a href="#7-nr-vs-lte-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E5%AF%B9%E6%AF%94">NR vs LTE 参考信号架构演进对比</a></li>
+<li><a href="#8-rrc-%E4%BF%A1%E4%BB%A4%E9%85%8D%E7%BD%AE%E9%80%9F%E8%A7%88">RRC 信令配置速览</a></li>
+<li><a href="#9-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-NR-参考信号总览与设计哲学"><a href="#1-NR-参考信号总览与设计哲学" class="headerlink" title="1. NR 参考信号总览与设计哲学"></a>1. NR 参考信号总览与设计哲学</h1><h3 id="1-1-LTE-的”常亮路灯”模式"><a href="#1-1-LTE-的”常亮路灯”模式" class="headerlink" title="1.1 LTE 的”常亮路灯”模式"></a>1.1 LTE 的”常亮路灯”模式</h3><p>LTE 系统引入了小区专用参考信号（CRS，Cell-specific Reference Signal），以固定的时频图案在所有子帧中持续发射，方便任意 UE 随时进行信道估计。这种设计在低密度、低天线数时简单有效，但存在明显局限：</p>
+<ul>
+<li><strong>资源浪费</strong>：CRS 占用固定 RE，即使无数据传输也照样发送；</li>
+<li><strong>阻碍波束赋形</strong>：CRS 是小区级信号，无法针对特定 UE 施加预编码，限制了大规模 MIMO 的潜力；</li>
+<li><strong>干扰受限</strong>：在密集组网或异构网络（HetNet）中，CRS 成为主要的小区间干扰源（CRS interference）。</li>
+</ul>
+<h3 id="1-2-NR-的”按需点灯”哲学"><a href="#1-2-NR-的”按需点灯”哲学" class="headerlink" title="1.2 NR 的”按需点灯”哲学"></a>1.2 NR 的”按需点灯”哲学</h3><p>NR 彻底摒弃了 LTE 的 CRS，转向以”最小化始终在线信号”为核心的参考信号设计原则（参见 3GPP TR 38.912）。具体体现为：</p>
+<table>
+<thead>
+<tr>
+<th>设计原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>UE 专用化</strong></td>
+<td>DMRS、PTRS 均是 UE 特定（UE-specific）信号，可随数据一同预编码，天然支持波束赋形</td>
+</tr>
+<tr>
+<td><strong>按需发送</strong></td>
+<td>CSI-RS 支持周期、半持续、非周期三种触发模式；PTRS 按调度条件动态开关</td>
+</tr>
+<tr>
+<td><strong>精简物理层开销</strong></td>
+<td>空闲态 &#x2F; 无业务时几乎不发送参考信号，降低小区间干扰与终端功耗</td>
+</tr>
+<tr>
+<td><strong>前置加载（Front-loaded）</strong></td>
+<td>DMRS 放置于 slot 前段，使 UE 可在收到数据前完成信道估计，降低处理时延</td>
+</tr>
+</tbody></table>
+<h3 id="1-3-NR-参考信号全景"><a href="#1-3-NR-参考信号全景" class="headerlink" title="1.3 NR 参考信号全景"></a>1.3 NR 参考信号全景</h3><p>NR 物理层参考信号体系可按方向与用途梳理如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">下行参考信号</span><br><span class="line">├── DMRS（Demodulation RS）    — 信道估计，用于 PDSCH / PDCCH / PBCH 解调</span><br><span class="line">├── CSI-RS（Channel State Info RS）— 信道测量、波束管理、移动性测量</span><br><span class="line">├── PTRS（Phase Tracking RS）  — 相位噪声估计与补偿（高频 mmWave 关键）</span><br><span class="line">└── TRS（Tracking RS）         — 精细时频跟踪（本质上是特定配置的 CSI-RS 集）</span><br><span class="line"></span><br><span class="line">上行参考信号</span><br><span class="line">├── DMRS                       — 上行信道估计（PUSCH / PUCCH）</span><br><span class="line">├── PTRS                       — 上行相位跟踪</span><br><span class="line">└── SRS（Sounding RS）         — 上行信道探测，支持调度、链路自适应、下行预编码互易（本篇不展开）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>协议规范索引</strong>：NR 参考信号的序列生成与资源映射主要定义于 <strong>TS 38.211</strong>；信道测量与 CSI 反馈流程见 <strong>TS 38.214</strong>；高层参数配置见 <strong>TS 38.331（RRC）</strong>。</p>
+</blockquote>
+<hr>
+<h1 id="2-DMRS（解调参考信号）"><a href="#2-DMRS（解调参考信号）" class="headerlink" title="2. DMRS（解调参考信号）"></a>2. DMRS（解调参考信号）</h1><h3 id="2-1-设计目标与基本原理"><a href="#2-1-设计目标与基本原理" class="headerlink" title="2.1 设计目标与基本原理"></a>2.1 设计目标与基本原理</h3><p>DMRS（Demodulation Reference Signal）是 NR 中最核心的参考信号，其唯一使命是<strong>为数据信道（PDSCH&#x2F;PUSCH）及控制信道（PDCCH&#x2F;PUCCH）提供信道估计</strong>，使接收端能够进行相干解调。</p>
+<p><strong>与 LTE CRS 的根本区别</strong>：</p>
+<ul>
+<li>DMRS 仅在调度了数据传输的资源块内发送（资源感知，resource-aware）；</li>
+<li>DMRS 与数据经过相同的预编码矩阵，因此信道估计结果直接对应预编码信道，无需额外转换；</li>
+<li>支持多端口（Multi-port）传输，配合 CDM（Code Division Multiplexing）实现 MU-MIMO 端口正交。</li>
+</ul>
+<h3 id="2-2-下行-PDSCH-DMRS（TS-38-211-§7-4-1-1）"><a href="#2-2-下行-PDSCH-DMRS（TS-38-211-§7-4-1-1）" class="headerlink" title="2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1）"></a>2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1）</h3><h4 id="2-2-1-映射类型（Mapping-Type）"><a href="#2-2-1-映射类型（Mapping-Type）" class="headerlink" title="2.2.1 映射类型（Mapping Type）"></a>2.2.1 映射类型（Mapping Type）</h4><p>PDSCH DMRS 的时域位置与 PDSCH 的映射类型密切相关：</p>
+<table>
+<thead>
+<tr>
+<th>映射类型</th>
+<th>适用场景</th>
+<th>DMRS 起始符号（l₀）</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Type A（时隙映射）</strong></td>
+<td>常规全时隙调度</td>
+<td>符号 2 或 3（由高层参数 <code>dmrs-TypeA-Position</code> 配置）</td>
+<td>适合中低速信道，DMRS 固定在 slot 前部</td>
+</tr>
+<tr>
+<td><strong>Type B（非时隙映射）</strong></td>
+<td>Mini-slot &#x2F; 低时延 URLLC</td>
+<td>总是在 PDSCH 分配的第一个符号</td>
+<td>前置加载，适合 2~7 符号的短帧结构</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：<code>dmrs-TypeA-Position</code> 通过 MIB 或 RRC 信令配置，取值为 <code>pos2</code>（符号 2）或 <code>pos3</code>（符号 3）。在多径时延较大时选 <code>pos3</code> 可改善信道估计精度。</p>
+</blockquote>
+<h4 id="2-2-2-配置类型（Configuration-Type）"><a href="#2-2-2-配置类型（Configuration-Type）" class="headerlink" title="2.2.2 配置类型（Configuration Type）"></a>2.2.2 配置类型（Configuration Type）</h4><p>NR 定义了两种频域 DMRS 映射方案（见 TS 38.211 表 7.4.1.1.2-1 &#x2F; 7.4.1.1.2-2）：</p>
+<p><strong>Type 1</strong>：</p>
+<ul>
+<li>每隔一个子载波放置一个 DMRS（梳状，Comb-2）；</li>
+<li>单符号支持最多 4 个正交端口（2 个 CDM 组 × 2 个频域 OCC）；</li>
+<li>双符号支持最多 8 个正交端口。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">频率 →</span><br><span class="line">| D | R | D | R | D | R | D | R | D | R | D | R |</span><br><span class="line">  0   1   2   3   4   5   6   7   8   9  10  11   (子载波索引)</span><br><span class="line">R = DMRS RE（port 0/1 via CDM group 0）</span><br></pre></td></tr></table></figure>
+
+<p><strong>Type 2</strong>：</p>
+<ul>
+<li>每组 2 个连续子载波分配给同一 CDM 组（共 3 组），间隔为 4 个子载波；</li>
+<li>单符号支持最多 6 个正交端口（3 个 CDM 组 × 2 个 FD-OCC）；</li>
+<li>双符号支持最多 12 个正交端口；</li>
+<li>适合高阶 MU-MIMO（如 32 端口天线阵列）场景。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">频率 →</span><br><span class="line">| R0 | R0 | D | D | R1 | R1 | D | D | R2 | R2 | D | D |</span><br><span class="line">  0    1    2   3   4    5   6    7   8    9   10  11</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>选择依据</strong>：系统天线端口数与并发 MU-MIMO 层数决定 DMRS 配置类型。Type 1 开销低，Type 2 支持更多正交端口，两者通过 RRC 参数 <code>dmrs-Type</code> 配置。</p>
+</blockquote>
+<h4 id="2-2-3-附加-DMRS-符号（Additional-DMRS）"><a href="#2-2-3-附加-DMRS-符号（Additional-DMRS）" class="headerlink" title="2.2.3 附加 DMRS 符号（Additional DMRS）"></a>2.2.3 附加 DMRS 符号（Additional DMRS）</h4><p>对于高速信道（如高铁、快速移动场景），单一前置 DMRS 可能无法追踪时变信道。NR 支持在时域配置额外的 DMRS 符号：</p>
+<ul>
+<li>由高层参数 <strong><code>dmrs-AdditionalPosition</code></strong> 控制，取值 <code>pos0</code>（无额外）&#x2F; <code>pos1</code> &#x2F; <code>pos2</code> &#x2F; <code>pos3</code>；</li>
+<li>附加 DMRS 符号的具体位置由 TS 38.211 表 7.4.1.1.2-3（单符号）和表 7.4.1.1.2-4（双符号）定义；</li>
+<li>例如，对于 14 符号 slot + Type A + <code>dmrs-AdditionalPosition = pos1</code>，DMRS 出现在符号 2 和符号 11。</li>
+</ul>
+<p><strong>单符号 vs 双符号 DMRS</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>符号数</th>
+<th>最大端口数（Type 1 &#x2F; Type 2）</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Single-symbol DMRS</td>
+<td>1</td>
+<td>4 &#x2F; 6</td>
+<td>轻负载、低移动性</td>
+</tr>
+<tr>
+<td>Double-symbol DMRS</td>
+<td>2（连续）</td>
+<td>8 &#x2F; 12</td>
+<td>重度 MU-MIMO、高阶调制</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-上行-PUSCH-DMRS（TS-38-211-§6-4-1-1）"><a href="#2-3-上行-PUSCH-DMRS（TS-38-211-§6-4-1-1）" class="headerlink" title="2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1）"></a>2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1）</h3><p>上行 PUSCH DMRS 设计与下行基本对称，关键差异如下：</p>
+<ul>
+<li><strong>波形适配</strong>：CP-OFDM 上行与下行设计一致；DFT-s-OFDM（SC-FDMA 类）上行时，DMRS 使用低 PAPR 的 Zadoff-Chu（ZC）序列，以维持单载波特性、控制峰均比；</li>
+<li><strong>跳频场景</strong>：使能 <code>intra-slot frequency hopping</code> 时，每个跳频段内均需放置 DMRS，<code>dmrs-AdditionalPosition</code> 最大取 <code>pos1</code>；</li>
+<li><strong>符号位置</strong>：PUSCH Mapping Type A 的 DMRS 起始位置同样由 <code>dmrs-TypeA-Position</code> 决定（符号 2 或 3）；Type B 则从分配首符号开始。</li>
+</ul>
+<blockquote>
+<p><strong>协议参考</strong>：PUSCH DMRS 序列生成见 TS 38.211 §6.4.1.1.1；资源映射见 §6.4.1.1.3。</p>
+</blockquote>
+<h3 id="2-4-控制信道-PDCCH-PUCCH-DMRS"><a href="#2-4-控制信道-PDCCH-PUCCH-DMRS" class="headerlink" title="2.4 控制信道 PDCCH&#x2F;PUCCH DMRS"></a>2.4 控制信道 PDCCH&#x2F;PUCCH DMRS</h3><p><strong>PDCCH DMRS</strong>（TS 38.211 §7.4.1.3）：</p>
+<ul>
+<li>每个控制资源集（CORESET）使用独立的 DMRS，端口 2000；</li>
+<li>使用伪随机序列（Gold 序列）生成，初始化参数依赖 CORESET 的小区 ID 及 <code>scramblingID</code>；</li>
+<li>支持 UE 专用波束赋形：PDCCH 的 DMRS 与数据经过同一预编码，使得 UE 可利用 PDCCH DMRS 进行精确的定向接收。</li>
+</ul>
+<p><strong>PUCCH DMRS</strong>（TS 38.211 §6.4.1.3）：</p>
+<ul>
+<li>不同 PUCCH 格式（Format 0&#x2F;1&#x2F;2&#x2F;3&#x2F;4）对应不同的 DMRS 设计；</li>
+<li>Format 1&#x2F;3&#x2F;4 使用序列跳频（sequence hopping）增强频率分集；</li>
+<li>Format 0&#x2F;2 较短，不包含独立 DMRS，而是通过序列本身进行隐式参考（sequence-based detection）。</li>
+</ul>
+<h3 id="2-5-CDM-复用与天线端口容量"><a href="#2-5-CDM-复用与天线端口容量" class="headerlink" title="2.5 CDM 复用与天线端口容量"></a>2.5 CDM 复用与天线端口容量</h3><p>NR DMRS 通过 <strong>CDM（Code Division Multiplexing）</strong> 实现多端口正交：</p>
+<ul>
+<li><strong>时域 OCC（TD-OCC）</strong>：在相同时频位置，不同端口使用正交覆盖码（Orthogonal Cover Code）区分，长度为 2（双符号 DMRS 时）；</li>
+<li><strong>频域 OCC（FD-OCC）</strong>：在同一 CDM 组内的相邻频域 RE 上，使用频域正交码区分两个端口。</li>
+</ul>
+<p>以 PDSCH DMRS Type 1 单符号为例，端口分配如下：</p>
+<table>
+<thead>
+<tr>
+<th>CDM 组</th>
+<th>RE（偶数子载波）</th>
+<th>端口 0</th>
+<th>端口 1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CDM group 0</td>
+<td>k &#x3D; 0, 2, 4…</td>
+<td>w_f &#x3D; [+1, +1]</td>
+<td>w_f &#x3D; [+1, −1]</td>
+</tr>
+<tr>
+<td>CDM group 1</td>
+<td>k &#x3D; 1, 3, 5…</td>
+<td>w_f &#x3D; [+1, +1]</td>
+<td>w_f &#x3D; [+1, −1]</td>
+</tr>
+</tbody></table>
+<p>最终，Type 1 单符号可支持端口 1000<del>1003（共 4 端口），Type 1 双符号可支持端口 1000</del>1007（共 8 端口）。</p>
+<h3 id="2-6-准共址（QCL）关系"><a href="#2-6-准共址（QCL）关系" class="headerlink" title="2.6 准共址（QCL）关系"></a>2.6 准共址（QCL）关系</h3><p>DMRS 是 NR QCL（Quasi-Co-Location）框架的参考基准。根据 TS 38.214 §5.1.5，QCL 分为 4 类：</p>
+<table>
+<thead>
+<tr>
+<th>QCL 类型</th>
+<th>共址参数</th>
+<th>典型应用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QCL-TypeA</td>
+<td>多普勒频移、多普勒扩展、平均时延、时延扩展</td>
+<td>大尺度信道统计</td>
+</tr>
+<tr>
+<td>QCL-TypeB</td>
+<td>多普勒频移、多普勒扩展</td>
+<td>频率跟踪</td>
+</tr>
+<tr>
+<td>QCL-TypeC</td>
+<td>多普勒频移、平均时延</td>
+<td>TA 估计</td>
+</tr>
+<tr>
+<td>QCL-TypeD</td>
+<td>空间接收参数（波束）</td>
+<td>波束管理（FR2 必需）</td>
+</tr>
+</tbody></table>
+<p>PDSCH DMRS 通常与 SSB 或 CSI-RS 通过 <code>TCI-State</code>（Transmission Configuration Indicator State）建立 QCL 关系，网络通过 DCI 指示当前激活的 TCI 状态，UE 据此确定最优接收波束。</p>
+<hr>
+<h1 id="3-CSI-RS（信道状态信息参考信号）"><a href="#3-CSI-RS（信道状态信息参考信号）" class="headerlink" title="3. CSI-RS（信道状态信息参考信号）"></a>3. CSI-RS（信道状态信息参考信号）</h1><h3 id="3-1-功能定位与分类"><a href="#3-1-功能定位与分类" class="headerlink" title="3.1 功能定位与分类"></a>3.1 功能定位与分类</h3><p>CSI-RS（Channel State Information Reference Signal）是 NR 下行专用的多功能参考信号，定义于 TS 38.211 §7.4.1.5。其主要用途包括：</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>信道测量（Channel Measurement）</strong></td>
+<td>UE 测量信道质量，上报 CQI&#x2F;PMI&#x2F;RI</td>
+</tr>
+<tr>
+<td><strong>干扰测量（Interference Measurement）</strong></td>
+<td>配合 CSI-IM 测量小区间干扰</td>
+</tr>
+<tr>
+<td><strong>波束管理（Beam Management）</strong></td>
+<td>P1&#x2F;P2&#x2F;P3 过程中的波束测量与上报</td>
+</tr>
+<tr>
+<td><strong>连接态移动性（Mobility）</strong></td>
+<td>作为 RRM 测量的参考，替代 LTE 的 CRS-based 测量</td>
+</tr>
+<tr>
+<td><strong>时频跟踪（TRS）</strong></td>
+<td>特殊配置的 CSI-RS 集用于精细时频同步</td>
+</tr>
+</tbody></table>
+<p>CSI-RS 按功率分为两类：</p>
+<ul>
+<li><strong>NZP-CSI-RS（Non-Zero-Power CSI-RS）</strong>：实际发送已知导频序列，UE 可用于信道估计与测量；</li>
+<li><strong>ZP-CSI-RS（Zero-Power CSI-RS）</strong>：对应 RE 不发送任何信号，用于速率匹配（使 PDSCH 避开这些 RE）或干扰测量。</li>
+</ul>
+<h3 id="3-2-NZP-CSI-RS-资源配置（TS-38-211-§7-4-1-5）"><a href="#3-2-NZP-CSI-RS-资源配置（TS-38-211-§7-4-1-5）" class="headerlink" title="3.2 NZP-CSI-RS 资源配置（TS 38.211 §7.4.1.5）"></a>3.2 NZP-CSI-RS 资源配置（TS 38.211 §7.4.1.5）</h3><h4 id="3-2-1-天线端口数"><a href="#3-2-1-天线端口数" class="headerlink" title="3.2.1 天线端口数"></a>3.2.1 天线端口数</h4><p>NZP-CSI-RS 支持 <strong>1、2、4、8、12、16、24、32 个天线端口</strong>（对应端口编号 3000 起）。端口数越多，可精确表征的下行信道维度越高，但资源开销也相应增加。</p>
+<h4 id="3-2-2-频域密度（Density）"><a href="#3-2-2-频域密度（Density）" class="headerlink" title="3.2.2 频域密度（Density）"></a>3.2.2 频域密度（Density）</h4><p>TS 38.211 表 7.4.1.5.3-1 定义了不同端口数下的频域密度选项：</p>
+<table>
+<thead>
+<tr>
+<th>密度（D）</th>
+<th>含义</th>
+<th>每 RB 占用 RE 数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3</td>
+<td>每 RB 3 个 RE&#x2F;端口</td>
+<td>密集测量</td>
+</tr>
+<tr>
+<td>1</td>
+<td>每 RB 1 个 RE&#x2F;端口（梳状间隔 &#x3D; 1）</td>
+<td>标准配置</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>每 2 个 RB 1 个 RE&#x2F;端口（奇 RB 或偶 RB）</td>
+<td>低开销</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：密度 0.5 时，资源集可配置为 <code>dot5odd</code>（奇数 RB 组）或 <code>dot5even</code>（偶数 RB 组），两组互补可拼接成密度 1。</p>
+</blockquote>
+<h4 id="3-2-3-时域配置"><a href="#3-2-3-时域配置" class="headerlink" title="3.2.3 时域配置"></a>3.2.3 时域配置</h4><p>NZP-CSI-RS 的时域配置由以下参数决定：</p>
+<ul>
+<li><strong><code>firstOFDMSymbolInTimeDomain</code>（l₀）</strong>：资源集内第一个 OFDM 符号索引（0-based）；</li>
+<li><strong><code>firstOFDMSymbolInTimeDomain2</code>（l₁）</strong>：部分双符号资源的第二个符号索引；</li>
+<li><strong>周期（<code>periodicityAndOffset</code>）</strong>：支持 <code>T_CSI-RS ∈ &#123;4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640&#125;</code> 个 slot；相应偏移量范围为 <code>[0, T-1]</code>。</li>
+</ul>
+<h4 id="3-2-4-CDM-类型"><a href="#3-2-4-CDM-类型" class="headerlink" title="3.2.4 CDM 类型"></a>3.2.4 CDM 类型</h4><p>CSI-RS 同样使用 CDM 实现多端口正交，CDM 类型包括：</p>
+<table>
+<thead>
+<tr>
+<th>CDM 类型</th>
+<th>描述</th>
+<th>适用端口数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>noCDM</code></td>
+<td>无 CDM，1 端口</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>fd-CDM2</code></td>
+<td>频域 2 点 OCC</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>cdm4-FD2-TD2</code></td>
+<td>频域 × 时域各 2 点，共 4 点 CDM</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>cdm8-FD2-TD4</code></td>
+<td>频域 2 点 × 时域 4 点 CDM</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-ZP-CSI-RS：干扰测量与速率匹配"><a href="#3-3-ZP-CSI-RS：干扰测量与速率匹配" class="headerlink" title="3.3 ZP-CSI-RS：干扰测量与速率匹配"></a>3.3 ZP-CSI-RS：干扰测量与速率匹配</h3><p>ZP-CSI-RS 在指定 RE 上不发送任何信号，其作用有二：</p>
+<p><strong>速率匹配（Rate Matching）</strong>：<br>PDSCH 调度时，调度器可配置 ZP-CSI-RS，要求 UE 在速率匹配时跳过这些 RE，从而避免 PDSCH 数据与相邻小区的 NZP-CSI-RS 产生冲突（常用于协调多点传输 CoMP 场景）。通过 RRC 参数 <code>zp-CSI-RS-ResourceToAddModList</code> 配置，并可通过 DCI 中的 <code>ZP CSI-RS trigger</code> 进行非周期触发。</p>
+<p><strong>干扰测量（Interference Measurement）</strong>：<br>配合 <code>CSI-IM</code>（CSI Interference Measurement）资源使用。CSI-IM 资源与 ZP-CSI-RS 共享相同的时频位置，该位置在本小区不发送信号，UE 在此 RE 上测量到的能量即为来自其他小区的干扰加噪声（IN, Interference + Noise），用于计算 SINR 并上报 CQI。</p>
+<h3 id="3-4-CSI-RS-触发机制：周期-半持续-非周期"><a href="#3-4-CSI-RS-触发机制：周期-半持续-非周期" class="headerlink" title="3.4 CSI-RS 触发机制：周期 &#x2F; 半持续 &#x2F; 非周期"></a>3.4 CSI-RS 触发机制：周期 &#x2F; 半持续 &#x2F; 非周期</h3><p>NR 提供灵活的 CSI-RS 调度机制（定义于 TS 38.214 §5.2.2.3）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│                CSI-RS 触发机制                           │</span><br><span class="line">├───────────────┬──────────────────┬──────────────────────┤</span><br><span class="line">│   周期         │   半持续          │   非周期              │</span><br><span class="line">│  Periodic     │  Semi-Persistent │  Aperiodic           │</span><br><span class="line">├───────────────┼──────────────────┼──────────────────────┤</span><br><span class="line">│ RRC 配置后     │ RRC 配置资源，     │ RRC 配置资源集，       │</span><br><span class="line">│ 按固定周期      │ DCI 激活/去激活    │ DCI 或 MAC-CE 触发   │</span><br><span class="line">│ 自动发送       │ 后按周期发送       │ 单次发送               │</span><br><span class="line">├───────────────┼──────────────────┼──────────────────────┤</span><br><span class="line">│ 信道统计、     │ 周期性波束训练      │ 低时延 CSI 获取、      │</span><br><span class="line">│ RRM 测量      │                   │ 按需精确测量           │</span><br><span class="line">└───────────────┴──────────────────┴──────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>每个 BWP 最多可配置：</p>
+<ul>
+<li>周期 NZP-CSI-RS 资源集：最多 64 个资源，每集最多 8 个资源；</li>
+<li>非周期 NZP-CSI-RS 资源集：每 BWP 最多 16 个，每集最多 8 个，DCI 触发字段最多 2 bit。</li>
+</ul>
+<h3 id="3-5-CSI-RS-在波束管理中的应用"><a href="#3-5-CSI-RS-在波束管理中的应用" class="headerlink" title="3.5 CSI-RS 在波束管理中的应用"></a>3.5 CSI-RS 在波束管理中的应用</h3><p>在 FR2（mmWave，&gt;6GHz）场景下，每个物理波束方向均需配置独立的 CSI-RS 资源以支持波束扫描。3GPP 将波束管理流程分为三个子过程（详细流程见本系列第 17 篇《Massive MIMO 与波束管理》）：</p>
+<table>
+<thead>
+<tr>
+<th>过程</th>
+<th>描述</th>
+<th>使用信号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>P1（Beam Sweeping）</strong></td>
+<td>gNB 侧发送端波束选择</td>
+<td>SSB 或 CSI-RS（周期）</td>
+</tr>
+<tr>
+<td><strong>P2（Beam Refinement）</strong></td>
+<td>gNB 侧精细波束调整</td>
+<td>CSI-RS（周期&#x2F;非周期）</td>
+</tr>
+<tr>
+<td><strong>P3（UE Beam Sweeping）</strong></td>
+<td>UE 侧接收波束选择</td>
+<td>CSI-RS</td>
+</tr>
+</tbody></table>
+<p>实际部署中，网络可配置多个 CSI-RS 资源分别对应不同波束，UE 通过测量各资源的 CSI-RSRP（L1-RSRP）选出最优波束并上报，gNB 据此完成波束切换或波束精化。</p>
+<p>NZP-CSI-RS 与 ZP-CSI-RS 可交替配置实现波束区分：在某个时间点，仅一个方向的 CSI-RS 为 NZP，其余为 ZP，UE 可由此判断当前活跃波束。</p>
+<h3 id="3-6-CSI-反馈框架"><a href="#3-6-CSI-反馈框架" class="headerlink" title="3.6 CSI 反馈框架"></a>3.6 CSI 反馈框架</h3><p>UE 基于 CSI-RS 测量结果，通过 PUCCH 或 PUSCH 向 gNB 上报以下 CSI 内容（TS 38.214 §5.2）：</p>
+<ul>
+<li><strong>CQI（Channel Quality Indicator）</strong>：4 bit，反映信道质量，映射到 MCS 表；</li>
+<li><strong>PMI（Precoding Matrix Indicator）</strong>：指示推荐的预编码矩阵，分为 Type I（单面板）和 Type II（增强精度）码本；</li>
+<li><strong>RI（Rank Indicator）</strong>：推荐的传输层数（空间复用层数）；</li>
+<li><strong>LI（Layer Indicator）</strong>：指示最强的层（配合 Type II PMI）；</li>
+<li><strong>L1-RSRP &#x2F; L1-SINR</strong>：波束测量结果，用于波束上报（Beam Report）。</li>
+</ul>
+<hr>
+<h1 id="4-PTRS（相位跟踪参考信号）"><a href="#4-PTRS（相位跟踪参考信号）" class="headerlink" title="4. PTRS（相位跟踪参考信号）"></a>4. PTRS（相位跟踪参考信号）</h1><h3 id="4-1-相位噪声问题与-PTRS-的诞生"><a href="#4-1-相位噪声问题与-PTRS-的诞生" class="headerlink" title="4.1 相位噪声问题与 PTRS 的诞生"></a>4.1 相位噪声问题与 PTRS 的诞生</h3><h4 id="4-1-1-相位噪声的物理根源"><a href="#4-1-1-相位噪声的物理根源" class="headerlink" title="4.1.1 相位噪声的物理根源"></a>4.1.1 相位噪声的物理根源</h4><p>OFDM 系统的本地振荡器（Local Oscillator, LO）在实际工程中并非理想，其相位会随时间随机抖动，产生<strong>相位噪声（Phase Noise, PN）</strong>。在频域，相位噪声表现为两种效应：</p>
+<ul>
+<li><strong>CPE（Common Phase Error，公共相位误差）</strong>：同一 OFDM 符号内所有子载波产生相同的旋转角，等价于一个常数相位偏转；</li>
+<li><strong>ICI（Inter-Carrier Interference，子载波间干扰）</strong>：快速相位变化导致子载波间正交性破坏。</li>
+</ul>
+<p>相位噪声对系统性能的影响随载波频率的升高而急剧增加——<strong>频率每翻倍，相位噪声增加约 6 dB</strong>（功率谱密度）。在 FR2（24.25 GHz~52.6 GHz）频段，即使使用高质量振荡器，CPE 也可能造成超过 3° 的符号旋转，对 256QAM 调制下的误码率产生显著影响。</p>
+<h4 id="4-1-2-PTRS-的解决方案"><a href="#4-1-2-PTRS-的解决方案" class="headerlink" title="4.1.2 PTRS 的解决方案"></a>4.1.2 PTRS 的解决方案</h4><p>3GPP R15 引入 PTRS（Phase Tracking Reference Signal，TS 38.211 §7.4.1.2），其核心思想是：</p>
+<blockquote>
+<p>在 OFDM 符号内插入已知导频，接收端通过比对实际接收值与理论值，估计出当前 CPE，并对所有子载波进行统一相位补偿。</p>
+</blockquote>
+<p>PTRS 的关键特性与相位噪声的统计特性完美匹配：</p>
+<ul>
+<li><strong>时域高密度</strong>：相位噪声在时间维度具有强相关性（缓变），因此 PTRS 每符号（或每 2&#x2F;4 符号）发送，以精细跟踪相位变化；</li>
+<li><strong>频域低密度</strong>：CPE 对所有子载波影响相同，因此 PTRS 无需在每个子载波上都出现，只需稀疏插入即可。</li>
+</ul>
+<h3 id="4-2-PTRS-资源配置（TS-38-211-§7-4-1-2-§6-4-1-2）"><a href="#4-2-PTRS-资源配置（TS-38-211-§7-4-1-2-§6-4-1-2）" class="headerlink" title="4.2 PTRS 资源配置（TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2）"></a>4.2 PTRS 资源配置（TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2）</h3><p>PTRS 的存在性由以下条件共同决定：</p>
+<ol>
+<li><strong>高层参数配置</strong>：<code>PTRS-DownlinkConfig</code>（下行）或 <code>PTRS-UplinkConfig</code>（上行）必须在 RRC 中配置；</li>
+<li><strong>调度条件满足</strong>：调度的 MCS 和带宽须超过门限（见下表），否则 PTRS 被禁止发送；</li>
+<li><strong>SCS 与频率</strong>：低 SCS（如 15 kHz）及低频（FR1）通常不需要 PTRS；高 SCS（60&#x2F;120 kHz）且 FR2 时 PTRS 收益最大。</li>
+</ol>
+<h3 id="4-3-时域密度与频域密度"><a href="#4-3-时域密度与频域密度" class="headerlink" title="4.3 时域密度与频域密度"></a>4.3 时域密度与频域密度</h3><p>PTRS 的密度由调度参数动态决定（TS 38.214 §5.1.6.3 &#x2F; §6.2.3.1）：</p>
+<h4 id="时域密度（L-PT-RS）"><a href="#时域密度（L-PT-RS）" class="headerlink" title="时域密度（L_PT-RS）"></a>时域密度（L_PT-RS）</h4><p>时域密度 &#x3D; 每隔多少个 OFDM 符号放置一次 PTRS，取值为 <code>&#123;1, 2, 4&#125;</code>，由调度 MCS 决定：</p>
+<table>
+<thead>
+<tr>
+<th>MCS 索引（IMCS）</th>
+<th>时域密度 L_PT-RS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IMCS &lt; ptrs-MCS1</td>
+<td>PTRS 不存在（Disabled）</td>
+</tr>
+<tr>
+<td>ptrs-MCS1 ≤ IMCS &lt; ptrs-MCS2</td>
+<td>4（每 4 个符号一个）</td>
+</tr>
+<tr>
+<td>ptrs-MCS2 ≤ IMCS &lt; ptrs-MCS3</td>
+<td>2（每 2 个符号一个）</td>
+</tr>
+<tr>
+<td>IMCS ≥ ptrs-MCS3</td>
+<td>1（每个符号一个）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>逻辑</strong>：MCS 越高（调制阶数越高），对相位偏转越敏感，需要更密集的 PTRS 追踪。</p>
+</blockquote>
+<h4 id="频域密度（K-PT-RS）"><a href="#频域密度（K-PT-RS）" class="headerlink" title="频域密度（K_PT-RS）"></a>频域密度（K_PT-RS）</h4><p>频域密度 &#x3D; 每隔多少个 RB 放置一个 PTRS RE，取值为 <code>&#123;2, 4&#125;</code>，由调度带宽（NRB）决定：</p>
+<table>
+<thead>
+<tr>
+<th>调度 RB 数（NRB）</th>
+<th>频域密度 K_PT-RS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NRB &lt; nRB0</td>
+<td>PTRS 不存在</td>
+</tr>
+<tr>
+<td>nRB0 ≤ NRB &lt; nRB1</td>
+<td>2（每 2 个 RB 一个）</td>
+</tr>
+<tr>
+<td>NRB ≥ nRB1</td>
+<td>4（每 4 个 RB 一个）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>逻辑</strong>：调度带宽越宽，CPE 对频谱边缘的影响越大，但由于 CPE 特性一致，稀疏插入即可推断全带相位，因此带宽越大反而密度可更低（K 更大表示更稀疏）。</p>
+</blockquote>
+<h4 id="频域位置"><a href="#频域位置" class="headerlink" title="频域位置"></a>频域位置</h4><p>PTRS 的精确子载波偏移由 <code>resourceElementOffset</code>（取值 <code>&#123;00, 01, 10, 11&#125;</code>）与调度起始 RB 共同决定（TS 38.211 表 7.4.1.2.2-1），确保在 MU-MIMO 多用户场景下不同用户的 PTRS 避免冲突。</p>
+<h3 id="4-4-PTRS-端口关联与-DFT-s-OFDM-上行"><a href="#4-4-PTRS-端口关联与-DFT-s-OFDM-上行" class="headerlink" title="4.4 PTRS 端口关联与 DFT-s-OFDM 上行"></a>4.4 PTRS 端口关联与 DFT-s-OFDM 上行</h3><p><strong>端口关联</strong>：PTRS 端口始终与一个 DMRS 端口绑定（关联关系由 DCI 指示）。接收端在完成 DMRS 信道估计后，再利用 PTRS 进行相位跟踪——这是一种”信道估计 + 相位细化”的两级处理流程。</p>
+<p><strong>DFT-s-OFDM 上行 PTRS</strong>：<br>当 PUSCH 使用 DFT-s-OFDM（Transform Precoding Enabled，单载波波形）时，PTRS 的处理方式完全不同：</p>
+<ul>
+<li>PTRS 不插入频域资源块，而是在时域中插入特定的已知样本（time-domain PTRS）；</li>
+<li>这些样本在 DFT 之前插入，随 DFT 扩展至全带宽，接收端在频域提取后进行相位估计；</li>
+<li>每个 PTRS 组（PT-RS group）由 2 个连续 PTRS 样本构成，组数由 <code>timeDensityTransformPrecoding</code> 参数配置。</li>
+</ul>
+<hr>
+<h1 id="5-TRS（时频跟踪参考信号）"><a href="#5-TRS（时频跟踪参考信号）" class="headerlink" title="5. TRS（时频跟踪参考信号）"></a>5. TRS（时频跟踪参考信号）</h1><h3 id="5-1-为什么需要-TRS"><a href="#5-1-为什么需要-TRS" class="headerlink" title="5.1 为什么需要 TRS"></a>5.1 为什么需要 TRS</h3><p>NR 删除了 LTE 中始终在线的 CRS，UE 在 DRX（非连续接收）睡眠结束后唤醒时，面临时间同步和频率同步丢失的问题：</p>
+<ul>
+<li><strong>时间同步</strong>：需重新估计最佳采样时刻（Timing Advance 的微调）；</li>
+<li><strong>频率同步</strong>：本地振荡器在睡眠期间产生频率漂移，需恢复精细频率偏差（Fine Frequency Offset）估计。</li>
+</ul>
+<p>SSB 虽然提供粗略同步，但其周期长（最短 5 ms，通常 20 ms）、频域稀疏，无法满足精细跟踪需求。因此，NR 设计了 TRS——一种<strong>专门用于精细时频跟踪的 CSI-RS 配置</strong>。</p>
+<h3 id="5-2-TRS-的本质：特殊配置的-NZP-CSI-RS-资源集"><a href="#5-2-TRS-的本质：特殊配置的-NZP-CSI-RS-资源集" class="headerlink" title="5.2 TRS 的本质：特殊配置的 NZP-CSI-RS 资源集"></a>5.2 TRS 的本质：特殊配置的 NZP-CSI-RS 资源集</h3><p><strong>TRS 没有独立的物理层实体</strong>，它是 NZP-CSI-RS 的一种特殊配置。在 RRC 信令中，通过在 <code>NZP-CSI-RS-ResourceSet</code> 中设置 <code>trs-Info = true</code> 来标识该资源集用于时频跟踪。</p>
+<p>协议要求（TS 38.211 结合 TS 38.214 §5.1.6.1）：</p>
+<ul>
+<li>TRS 资源集必须包含<strong>至少 2 个</strong>单端口（1 port）NZP-CSI-RS 资源；</li>
+<li>这些资源在时域上分布于<strong>2 个连续 slot</strong> 内（FR1）或 <strong>4 个连续 slot</strong> 内（FR2）；</li>
+<li>每个 slot 内，TRS 在<strong>2 个不同 OFDM 符号</strong>上发送（时域交错分布）；</li>
+<li>频域密度通常为 <strong>3 个 RE&#x2F;RB</strong>（每 4 个子载波一个），覆盖全部调度带宽。</li>
+</ul>
+<h3 id="5-3-TRS-时频图案与跟踪原理"><a href="#5-3-TRS-时频图案与跟踪原理" class="headerlink" title="5.3 TRS 时频图案与跟踪原理"></a>5.3 TRS 时频图案与跟踪原理</h3><p>以 FR1 典型 TRS 配置为例（SCS &#x3D; 30 kHz，每 slot &#x3D; 14 符号）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Slot n                    Slot n+1</span><br><span class="line">符号: 0 1 2 3 4 5 6 7 8 9 10 11 12 13    |  0 1 2 3 4 5 6 7 8 9 10 11 12 13</span><br><span class="line">        ↑           ↑                   |       ↑           ↑</span><br><span class="line">       l=5         l=9                  |      l=5          l=9</span><br><span class="line">    (TRS RE)    (TRS RE)                |   (TRS RE)    (TRS RE)</span><br><span class="line"></span><br><span class="line">频率: 每 4 个子载波插入一个 TRS（密度 = 3/RB）</span><br></pre></td></tr></table></figure>
+
+<p><strong>跟踪原理</strong>：</p>
+<ul>
+<li><strong>时域跟踪（Timing）</strong>：利用同一 slot 内两个 TRS 符号的相位差，结合频域密度，通过相关算法（如互相关）估计定时偏差；</li>
+<li><strong>频域跟踪（Frequency）</strong>：利用两个相邻 slot 的对应位置 TRS，计算符号间相位旋转，进而推算频率偏差。</li>
+</ul>
+<p>两个 slot 间隔 × 4 个 TRS RE，提供了足够的时间分集和频率分集，实现精细的时域（<del>ns 级）和频域（</del>Hz 级）跟踪。</p>
+<h3 id="5-4-TRS-与-DRX-的协作"><a href="#5-4-TRS-与-DRX-的协作" class="headerlink" title="5.4 TRS 与 DRX 的协作"></a>5.4 TRS 与 DRX 的协作</h3><p>TRS 的典型工作场景是 DRX 唤醒流程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DRX Sleep → UE 唤醒 → 接收 TRS Burst → 精细时频校准 → 监听 PDCCH → 接收 PDSCH</span><br></pre></td></tr></table></figure>
+
+<p>具体步骤：</p>
+<ol>
+<li>gNB 以固定周期（常见配置为每 20 ms 或 40 ms 一个 TRS burst）发送 TRS 资源集；</li>
+<li>UE 在 DRX ON 开始时，先接收 TRS burst 完成本地振荡器校准；</li>
+<li>校准完成后开始监听 PDCCH，从而避免因时频偏差导致控制信道检测失败。</li>
+</ol>
+<p>TRS 的周期由 <code>periodicityAndOffset</code> 参数配置，常见取值为 10、20、40、80 slot，对应 0.5<del>4 ms（SCS&#x3D;30kHz 时）或 10</del>80 ms（SCS&#x3D;15kHz 时）。</p>
+<hr>
+<h1 id="6-四大参考信号横向对比"><a href="#6-四大参考信号横向对比" class="headerlink" title="6. 四大参考信号横向对比"></a>6. 四大参考信号横向对比</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>DMRS</th>
+<th>CSI-RS</th>
+<th>PTRS</th>
+<th>TRS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>主要用途</strong></td>
+<td>信道估计（解调）</td>
+<td>信道&#x2F;干扰测量、波束管理</td>
+<td>相位噪声估计补偿</td>
+<td>精细时频跟踪</td>
+</tr>
+<tr>
+<td><strong>方向</strong></td>
+<td>DL + UL</td>
+<td>仅 DL</td>
+<td>DL + UL</td>
+<td>仅 DL</td>
+</tr>
+<tr>
+<td><strong>专用性</strong></td>
+<td>UE 专用</td>
+<td>小区级（可 UE 专用）</td>
+<td>UE 专用</td>
+<td>小区级（通常）</td>
+</tr>
+<tr>
+<td><strong>触发方式</strong></td>
+<td>随数据调度触发</td>
+<td>周期&#x2F;半持续&#x2F;非周期</td>
+<td>随调度条件动态触发</td>
+<td>周期（通常）</td>
+</tr>
+<tr>
+<td><strong>时域密度</strong></td>
+<td>前置 + 按需附加</td>
+<td>按配置</td>
+<td>高密度（每 1~4 符号）</td>
+<td>每 slot 2 符号</td>
+</tr>
+<tr>
+<td><strong>频域密度</strong></td>
+<td>每 2 或每 3 子载波</td>
+<td>灵活（0.5~3&#x2F;RB）</td>
+<td>低密度（每 2~4 RB）</td>
+<td>每 4 子载波</td>
+</tr>
+<tr>
+<td><strong>协议定义</strong></td>
+<td>TS 38.211 §7.4.1.1 &#x2F; §6.4.1.1</td>
+<td>TS 38.211 §7.4.1.5</td>
+<td>TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2</td>
+<td>TS 38.211 §7.4.1.5（CSI-RS 子集）</td>
+</tr>
+<tr>
+<td><strong>RRC 配置</strong></td>
+<td><code>dmrs-DownlinkConfig</code> &#x2F; <code>dmrs-UplinkConfig</code></td>
+<td><code>NZP-CSI-RS-Resource</code></td>
+<td><code>PTRS-DownlinkConfig</code></td>
+<td><code>NZP-CSI-RS-ResourceSet (trs-Info)</code></td>
+</tr>
+<tr>
+<td><strong>频段关联</strong></td>
+<td>FR1 + FR2</td>
+<td>FR1 + FR2</td>
+<td><strong>主要 FR2</strong>（mmWave）</td>
+<td>FR1 + FR2</td>
+</tr>
+<tr>
+<td><strong>对应 LTE 信号</strong></td>
+<td>CRS &#x2F; DMRS（局部）</td>
+<td>CSI-RS</td>
+<td>无对应（NR 新增）</td>
+<td>无对应（NR 新增）</td>
+</tr>
+<tr>
+<td><strong>开销特点</strong></td>
+<td>中等，按需</td>
+<td>灵活配置</td>
+<td>极低（稀疏频域）</td>
+<td>低，突发模式</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="7-NR-vs-LTE-参考信号架构演进对比"><a href="#7-NR-vs-LTE-参考信号架构演进对比" class="headerlink" title="7. NR vs LTE 参考信号架构演进对比"></a>7. NR vs LTE 参考信号架构演进对比</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">LTE 参考信号体系（始终在线）</span><br><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│  CRS  ─────── 每子帧固定发送，小区级，端口 0~3                  │</span><br><span class="line">│  CSI-RS ───── 可选，UE 专用，信道测量                          │</span><br><span class="line">│  DMRS ──────  PDSCH/PUSCH 可选（主要依赖 CRS）                │</span><br><span class="line">│  SRS ───────  上行探测                                       │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br><span class="line"></span><br><span class="line">                          │演进</span><br><span class="line">                          ▼</span><br><span class="line"></span><br><span class="line">NR 参考信号体系（按需发送）</span><br><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│  CRS ✗（已废弃）                                             │</span><br><span class="line">│  DMRS ──── UE 专用，与数据同预编码，前置加载，按调度触发           │</span><br><span class="line">│  CSI-RS ── 多用途，周期/半持续/非周期，最多 32 端口               │</span><br><span class="line">│  PTRS ──── NR 新增，mmWave 相位噪声补偿，极低频域开销            │</span><br><span class="line">│  TRS ───── NR 新增，精细时频跟踪，DRX 唤醒同步                   │</span><br><span class="line">│  SRS ───── 增强，UE 专用，支持 TDD 互易预编码                   │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>核心演进逻辑：</p>
+<ol>
+<li><strong>去 CRS 化</strong>：消除小区级常开参考信号，为超密集网络和节能奠定基础；</li>
+<li><strong>UE 专用化</strong>：DMRS&#x2F;PTRS 与数据同预编码，使 Massive MIMO 波束赋形无缝集成；</li>
+<li><strong>多功能 CSI-RS</strong>：一种信号框架支撑信道测量、波束管理、移动性、时频跟踪多个场景；</li>
+<li><strong>按需动态化</strong>：从”始终在线”到”事件驱动”，最小化参考信号开销。</li>
+</ol>
+<hr>
+<h1 id="8-RRC-信令配置速览"><a href="#8-RRC-信令配置速览" class="headerlink" title="8. RRC 信令配置速览"></a>8. RRC 信令配置速览</h1><h3 id="8-1-DMRS-配置（下行示例，TS-38-331）"><a href="#8-1-DMRS-配置（下行示例，TS-38-331）" class="headerlink" title="8.1 DMRS 配置（下行示例，TS 38.331）"></a>8.1 DMRS 配置（下行示例，TS 38.331）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 在 PDSCH-Config 中</span><br><span class="line">dmrs-DownlinkForPDSCH-MappingTypeA CHOICE &#123;</span><br><span class="line">  setup DMRS-DownlinkConfig &#123;</span><br><span class="line">    dmrs-Type          enumerated &#123;type2&#125;,         -- Type 1 (默认) / Type 2</span><br><span class="line">    dmrs-AdditionalPosition enumerated &#123;pos0, pos1, pos2, pos3&#125;,</span><br><span class="line">    maxLength          enumerated &#123;len2&#125;,           -- 单符号(默认) / 双符号</span><br><span class="line">    scramblingID0      INTEGER (0..65535) OPTIONAL, -- 加扰 ID</span><br><span class="line">    scramblingID1      INTEGER (0..65535) OPTIONAL</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">dmrs-TypeA-Position enumerated &#123;pos2, pos3&#125;        -- 在 MIB/ServingCellConfig 中</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-NZP-CSI-RS-资源配置（TS-38-331）"><a href="#8-2-NZP-CSI-RS-资源配置（TS-38-331）" class="headerlink" title="8.2 NZP-CSI-RS 资源配置（TS 38.331）"></a>8.2 NZP-CSI-RS 资源配置（TS 38.331）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">NZP-CSI-RS-Resource ::= SEQUENCE &#123;</span><br><span class="line">  nzp-CSI-RS-ResourceId    NZP-CSI-RS-ResourceId,</span><br><span class="line">  resourceMapping           CSI-RS-ResourceMapping &#123;</span><br><span class="line">    frequencyDomainAllocation  CHOICE &#123; row1 BIT STRING(SIZE(4))</span><br><span class="line">                                        row2 BIT STRING(SIZE(12))</span><br><span class="line">                                        ... &#125;,</span><br><span class="line">    nrofPorts                  ENUMERATED &#123;p1, p2, p4, p8, p12, p16, p24, p32&#125;,</span><br><span class="line">    firstOFDMSymbolInTimeDomain INTEGER (0..13),</span><br><span class="line">    cdm-Type                   ENUMERATED &#123;noCDM, fd-CDM2, cdm4-FD2-TD2, cdm8-FD2-TD4&#125;,</span><br><span class="line">    density                    CHOICE &#123;dot5 ENUMERATED&#123;evenPRBs, oddPRBs&#125;,</span><br><span class="line">                                       one NULL,</span><br><span class="line">                                       three NULL&#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  powerControlOffset           INTEGER (-8..15),    -- dB</span><br><span class="line">  scramblingID                 INTEGER (0..1023),</span><br><span class="line">  periodicityAndOffset         CSI-ResourcePeriodicityAndOffset OPTIONAL,</span><br><span class="line">  qcl-InfoPeriodicCSI-RS       TCI-StateId OPTIONAL -- QCL 关联</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-PTRS-配置（下行，TS-38-331）"><a href="#8-3-PTRS-配置（下行，TS-38-331）" class="headerlink" title="8.3 PTRS 配置（下行，TS 38.331）"></a>8.3 PTRS 配置（下行，TS 38.331）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PTRS-DownlinkConfig ::= SEQUENCE &#123;</span><br><span class="line">  frequencyDensity SEQUENCE (SIZE(2)) OF INTEGER (1..276) OPTIONAL,</span><br><span class="line">  -- [nRB0, nRB1]：频域密度门限（RB数）</span><br><span class="line">  timeDensity      SEQUENCE (SIZE(3)) OF INTEGER (0..29) OPTIONAL,</span><br><span class="line">  -- [ptrs-MCS1, ptrs-MCS2, ptrs-MCS3]：时域密度门限（MCS索引）</span><br><span class="line">  epre-Ratio       ENUMERATED &#123;r0, r1&#125; OPTIONAL,</span><br><span class="line">  -- PTRS/PDSCH 功率比</span><br><span class="line">  resourceElementOffset ENUMERATED &#123;offset00, offset01, offset10, offset11&#125; OPTIONAL</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-TRS-配置（TS-38-331，NZP-CSI-RS-ResourceSet-中标识）"><a href="#8-4-TRS-配置（TS-38-331，NZP-CSI-RS-ResourceSet-中标识）" class="headerlink" title="8.4 TRS 配置（TS 38.331，NZP-CSI-RS-ResourceSet 中标识）"></a>8.4 TRS 配置（TS 38.331，NZP-CSI-RS-ResourceSet 中标识）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">NZP-CSI-RS-ResourceSet ::= SEQUENCE &#123;</span><br><span class="line">  nzp-CSI-ResourceSetId    NZP-CSI-RS-ResourceSetId,</span><br><span class="line">  nzp-CSI-RS-Resources     SEQUENCE (SIZE(1..64)) OF NZP-CSI-RS-ResourceId,</span><br><span class="line">  repetition               ENUMERATED &#123;on, off&#125; OPTIONAL,</span><br><span class="line">  aperiodicTriggeringOffset INTEGER (0..6) OPTIONAL,</span><br><span class="line">  trs-Info                 ENUMERATED &#123;true&#125; OPTIONAL  -- ← 标识为 TRS 资源集</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="9-小结"><a href="#9-小结" class="headerlink" title="9. 小结"></a>9. 小结</h1><p>本文系统梳理了 5G NR 四大参考信号体系，要点总结如下：</p>
+<p><strong>DMRS</strong> 是 NR 最基础的参考信号，实现 UE 专用信道估计。核心设计包括：两种配置类型（Type 1&#x2F;2）控制频域密度与端口正交能力；Mapping Type A&#x2F;B 对应不同时延需求；附加 DMRS 符号应对高速移动场景；CDM 与 OCC 实现多端口 MU-MIMO 复用。</p>
+<p><strong>CSI-RS</strong> 是 NR 的多功能下行参考信号，涵盖信道测量、干扰测量、波束管理和移动性测量。NZP-CSI-RS 支持 1~32 天线端口，三种触发模式（周期&#x2F;半持续&#x2F;非周期）提供灵活的测量调度能力。ZP-CSI-RS 用于速率匹配和干扰测量辅助。</p>
+<p><strong>PTRS</strong> 是专为 mmWave 高频场景设计的相位噪声补偿参考信号。时域高密度、频域低密度，密度由 MCS 和调度带宽动态调整。PTRS 与 DMRS 端口绑定，实现两级信道估计与相位精化。</p>
+<p><strong>TRS</strong> 是 NR 替代 LTE CRS 的精细时频跟踪参考信号，本质是特殊配置的 NZP-CSI-RS 资源集（<code>trs-Info = true</code>），以突发方式发送，专门服务于 DRX 唤醒同步和连续时频偏差跟踪。</p>
+<p>四大参考信号共同构成 NR 物理层”感知网络”，是 Massive MIMO、波束赋形、低时延传输和节能设计的共同基石。</p>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><table>
+<thead>
+<tr>
+<th>文档</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 38.211</strong> V17.x</td>
+<td>NR; Physical channels and modulation（参考信号序列与资源映射）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.212</strong> V17.x</td>
+<td>NR; Multiplexing and channel coding（DCI 中 DMRS&#x2F;PTRS 指示字段）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.213</strong> V17.x</td>
+<td>NR; Physical layer procedures for control（波束上报、TCI 激活）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.214</strong> V17.x</td>
+<td>NR; Physical layer procedures for data（CSI 测量、PTRS 密度决策）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.331</strong> V17.x</td>
+<td>NR; Radio Resource Control (RRC) protocol（参考信号 RRC 配置 IE）</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 38.912</strong></td>
+<td>Study on New Radio Access Technology（NR 设计原则，含参考信号框架）</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 38.802</strong></td>
+<td>Study on New Radio Access Technology Physical Layer Aspects</td>
+</tr>
+</tbody></table>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-NR-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%80%BB%E8%A7%88%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">2.</span> <span class="toc-text">1. NR 参考信号总览与设计哲学</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-LTE-%E7%9A%84%E2%80%9D%E5%B8%B8%E4%BA%AE%E8%B7%AF%E7%81%AF%E2%80%9D%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 LTE 的”常亮路灯”模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-NR-%E7%9A%84%E2%80%9D%E6%8C%89%E9%9C%80%E7%82%B9%E7%81%AF%E2%80%9D%E5%93%B2%E5%AD%A6"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 NR 的”按需点灯”哲学</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-NR-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E5%85%A8%E6%99%AF"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 NR 参考信号全景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-DMRS%EF%BC%88%E8%A7%A3%E8%B0%83%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">2. DMRS（解调参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%AE%BE%E8%AE%A1%E7%9B%AE%E6%A0%87%E4%B8%8E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 设计目标与基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%8B%E8%A1%8C-PDSCH-DMRS%EF%BC%88TS-38-211-%C2%A77-4-1-1%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 下行 PDSCH DMRS（TS 38.211 §7.4.1.1）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-%E6%98%A0%E5%B0%84%E7%B1%BB%E5%9E%8B%EF%BC%88Mapping-Type%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">2.2.1 映射类型（Mapping Type）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E9%85%8D%E7%BD%AE%E7%B1%BB%E5%9E%8B%EF%BC%88Configuration-Type%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">2.2.2 配置类型（Configuration Type）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E9%99%84%E5%8A%A0-DMRS-%E7%AC%A6%E5%8F%B7%EF%BC%88Additional-DMRS%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">2.2.3 附加 DMRS 符号（Additional DMRS）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%8A%E8%A1%8C-PUSCH-DMRS%EF%BC%88TS-38-211-%C2%A76-4-1-1%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 上行 PUSCH DMRS（TS 38.211 §6.4.1.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93-PDCCH-PUCCH-DMRS"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 控制信道 PDCCH&#x2F;PUCCH DMRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-CDM-%E5%A4%8D%E7%94%A8%E4%B8%8E%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E5%AE%B9%E9%87%8F"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 CDM 复用与天线端口容量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E5%87%86%E5%85%B1%E5%9D%80%EF%BC%88QCL%EF%BC%89%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 准共址（QCL）关系</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-CSI-RS%EF%BC%88%E4%BF%A1%E9%81%93%E7%8A%B6%E6%80%81%E4%BF%A1%E6%81%AF%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">3. CSI-RS（信道状态信息参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8A%9F%E8%83%BD%E5%AE%9A%E4%BD%8D%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 功能定位与分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-211-%C2%A77-4-1-5%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 NZP-CSI-RS 资源配置（TS 38.211 §7.4.1.5）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-1-%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E6%95%B0"><span class="toc-number">4.0.2.1.</span> <span class="toc-text">3.2.1 天线端口数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-2-%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88Density%EF%BC%89"><span class="toc-number">4.0.2.2.</span> <span class="toc-text">3.2.2 频域密度（Density）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-3-%E6%97%B6%E5%9F%9F%E9%85%8D%E7%BD%AE"><span class="toc-number">4.0.2.3.</span> <span class="toc-text">3.2.3 时域配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-4-CDM-%E7%B1%BB%E5%9E%8B"><span class="toc-number">4.0.2.4.</span> <span class="toc-text">3.2.4 CDM 类型</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-ZP-CSI-RS%EF%BC%9A%E5%B9%B2%E6%89%B0%E6%B5%8B%E9%87%8F%E4%B8%8E%E9%80%9F%E7%8E%87%E5%8C%B9%E9%85%8D"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 ZP-CSI-RS：干扰测量与速率匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-CSI-RS-%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%91%A8%E6%9C%9F-%E5%8D%8A%E6%8C%81%E7%BB%AD-%E9%9D%9E%E5%91%A8%E6%9C%9F"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 CSI-RS 触发机制：周期 &#x2F; 半持续 &#x2F; 非周期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-CSI-RS-%E5%9C%A8%E6%B3%A2%E6%9D%9F%E7%AE%A1%E7%90%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 CSI-RS 在波束管理中的应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-CSI-%E5%8F%8D%E9%A6%88%E6%A1%86%E6%9E%B6"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 CSI 反馈框架</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-PTRS%EF%BC%88%E7%9B%B8%E4%BD%8D%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. PTRS（相位跟踪参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%9B%B8%E4%BD%8D%E5%99%AA%E5%A3%B0%E9%97%AE%E9%A2%98%E4%B8%8E-PTRS-%E7%9A%84%E8%AF%9E%E7%94%9F"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 相位噪声问题与 PTRS 的诞生</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-%E7%9B%B8%E4%BD%8D%E5%99%AA%E5%A3%B0%E7%9A%84%E7%89%A9%E7%90%86%E6%A0%B9%E6%BA%90"><span class="toc-number">5.0.1.1.</span> <span class="toc-text">4.1.1 相位噪声的物理根源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-PTRS-%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">5.0.1.2.</span> <span class="toc-text">4.1.2 PTRS 的解决方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-PTRS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-211-%C2%A77-4-1-2-%C2%A76-4-1-2%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 PTRS 资源配置（TS 38.211 §7.4.1.2 &#x2F; §6.4.1.2）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%97%B6%E5%9F%9F%E5%AF%86%E5%BA%A6%E4%B8%8E%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 时域密度与频域密度</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88L-PT-RS%EF%BC%89"><span class="toc-number">5.0.3.1.</span> <span class="toc-text">时域密度（L_PT-RS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E5%9F%9F%E5%AF%86%E5%BA%A6%EF%BC%88K-PT-RS%EF%BC%89"><span class="toc-number">5.0.3.2.</span> <span class="toc-text">频域密度（K_PT-RS）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A2%91%E5%9F%9F%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.0.3.3.</span> <span class="toc-text">频域位置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-PTRS-%E7%AB%AF%E5%8F%A3%E5%85%B3%E8%81%94%E4%B8%8E-DFT-s-OFDM-%E4%B8%8A%E8%A1%8C"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 PTRS 端口关联与 DFT-s-OFDM 上行</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TRS%EF%BC%88%E6%97%B6%E9%A2%91%E8%B7%9F%E8%B8%AA%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">5. TRS（时频跟踪参考信号）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-TRS"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 为什么需要 TRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TRS-%E7%9A%84%E6%9C%AC%E8%B4%A8%EF%BC%9A%E7%89%B9%E6%AE%8A%E9%85%8D%E7%BD%AE%E7%9A%84-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%9B%86"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TRS 的本质：特殊配置的 NZP-CSI-RS 资源集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-TRS-%E6%97%B6%E9%A2%91%E5%9B%BE%E6%A1%88%E4%B8%8E%E8%B7%9F%E8%B8%AA%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 TRS 时频图案与跟踪原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-TRS-%E4%B8%8E-DRX-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 TRS 与 DRX 的协作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E5%9B%9B%E5%A4%A7%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%A8%AA%E5%90%91%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">6. 四大参考信号横向对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-NR-vs-LTE-%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%E6%9E%B6%E6%9E%84%E6%BC%94%E8%BF%9B%E5%AF%B9%E6%AF%94"><span class="toc-number">8.</span> <span class="toc-text">7. NR vs LTE 参考信号架构演进对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-RRC-%E4%BF%A1%E4%BB%A4%E9%85%8D%E7%BD%AE%E9%80%9F%E8%A7%88"><span class="toc-number">9.</span> <span class="toc-text">8. RRC 信令配置速览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-DMRS-%E9%85%8D%E7%BD%AE%EF%BC%88%E4%B8%8B%E8%A1%8C%E7%A4%BA%E4%BE%8B%EF%BC%8CTS-38-331%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 DMRS 配置（下行示例，TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-NZP-CSI-RS-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-331%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 NZP-CSI-RS 资源配置（TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-PTRS-%E9%85%8D%E7%BD%AE%EF%BC%88%E4%B8%8B%E8%A1%8C%EF%BC%8CTS-38-331%EF%BC%89"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 PTRS 配置（下行，TS 38.331）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-TRS-%E9%85%8D%E7%BD%AE%EF%BC%88TS-38-331%EF%BC%8CNZP-CSI-RS-ResourceSet-%E4%B8%AD%E6%A0%87%E8%AF%86%EF%BC%89"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 TRS 配置（TS 38.331，NZP-CSI-RS-ResourceSet 中标识）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%B0%8F%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">11.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/05/29/3gpp/14-reference-signals/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&text=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&is_video=false&description=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=参考信号体系——DMRS / CSI-RS / PTRS / TRS&body=Check out this article: http://example.com/2016/05/29/3gpp/14-reference-signals/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&title=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/05/29/3gpp/14-reference-signals/&name=参考信号体系——DMRS / CSI-RS / PTRS / TRS&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/05/29/3gpp/14-reference-signals/&t=参考信号体系——DMRS / CSI-RS / PTRS / TRS"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

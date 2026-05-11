@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 物理信道概览 PDSCH — 物理下行共享信道 PDCCH — 物理下行控制信道 PBCH — 物理广播信道与 SS&#x2F;PBCH Block PUSCH — 物理上行共享信道 PUCCH — 物理上行控制信道 PRACH — 物理随机接入信道 SRS — 探测参考信号 下行与上行信道对比总结 参考规范   一、物理信道概览3GPP TS 38.211 将 5G NR 物理信道划分为下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="下行物理信道与上行物理信道">
+<meta property="og:url" content="http://example.com/2016/05/14/3gpp/13_Physical_Channels/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 物理信道概览 PDSCH — 物理下行共享信道 PDCCH — 物理下行控制信道 PBCH — 物理广播信道与 SS&#x2F;PBCH Block PUSCH — 物理上行共享信道 PUCCH — 物理上行控制信道 PRACH — 物理随机接入信道 SRS — 探测参考信号 下行与上行信道对比总结 参考规范   一、物理信道概览3GPP TS 38.211 将 5G NR 物理信道划分为下">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-05-14T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-10T23:02:23.492Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>下行物理信道与上行物理信道</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/05/29/3gpp/14-reference-signals/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/05/14/3gpp/13_Physical_Channels/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&text=下行物理信道与上行物理信道"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&is_video=false&description=下行物理信道与上行物理信道"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=下行物理信道与上行物理信道&body=Check out this article: http://example.com/2016/05/14/3gpp/13_Physical_Channels/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&name=下行物理信道与上行物理信道&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&t=下行物理信道与上行物理信道"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%A6%82%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">一、物理信道概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%EF%BC%88gNB-%E2%86%92-UE%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">下行物理信道（gNB → UE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%EF%BC%88UE-%E2%86%92-gNB%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">上行物理信道（UE → gNB）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81PDSCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93"><span class="toc-number">3.</span> <span class="toc-text">二、PDSCH — 物理下行共享信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 时频资源分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 信道处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-DMRS%EF%BC%88%E8%A7%A3%E8%B0%83%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 DMRS（解调参考信号）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-TCI-State-%E4%B8%8E-QCL"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 TCI State 与 QCL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E8%B0%83%E5%88%B6%E7%BC%96%E7%A0%81%E6%96%B9%E6%A1%88%EF%BC%88MCS%EF%BC%89"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 调制编码方案（MCS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81PDCCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93"><span class="toc-number">4.</span> <span class="toc-text">三、PDCCH — 物理下行控制信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DCI-Format-%E4%BD%93%E7%B3%BB"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 DCI Format 体系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-CORESET%EF%BC%88%E6%8E%A7%E5%88%B6%E8%B5%84%E6%BA%90%E9%9B%86%E5%90%88%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 CORESET（控制资源集合）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%90%9C%E7%B4%A2%E7%A9%BA%E9%97%B4%EF%BC%88Search-Space%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 搜索空间（Search Space）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-PDCCH-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 PDCCH 信道处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-PDCCH-%E5%A2%9E%E5%BC%BA%EF%BC%88R16-%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 PDCCH 增强（R16+）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81PBCH-%E2%80%94-%E7%89%A9%E7%90%86%E5%B9%BF%E6%92%AD%E4%BF%A1%E9%81%93%E4%B8%8E-SS-PBCH-Block"><span class="toc-number">5.</span> <span class="toc-text">四、PBCH — 物理广播信道与 SS&#x2F;PBCH Block</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-SS-PBCH-Block%EF%BC%88SSB%EF%BC%89%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 SS&#x2F;PBCH Block（SSB）结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-SSB-%E7%AA%81%E5%8F%91%E9%9B%86%E5%90%88%EF%BC%88SS-Burst-Set%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 SSB 突发集合（SS Burst Set）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-PBCH-Payload-%E4%B8%8E-MIB"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 PBCH Payload 与 MIB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-PBCH-%E4%B8%8E-LTE-PSS-SSS-PBCH-%E5%AF%B9%E6%AF%94"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 PBCH 与 LTE PSS&#x2F;SSS&#x2F;PBCH 对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81PUSCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93"><span class="toc-number">6.</span> <span class="toc-text">五、PUSCH — 物理上行共享信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%B3%A2%E5%BD%A2%E9%80%89%E6%8B%A9%EF%BC%9ACP-OFDM-vs-DFT-s-OFDM"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 波形选择：CP-OFDM vs DFT-s-OFDM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 时频资源分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 信道处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-PUSCH-DMRS"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 PUSCH DMRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-PUSCH-%E9%87%8D%E4%BC%A0%E4%B8%8E-HARQ"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 PUSCH 重传与 HARQ</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81PUCCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93"><span class="toc-number">7.</span> <span class="toc-text">六、PUCCH — 物理上行控制信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8A%9F%E8%83%BD%E4%B8%8E-UCI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 功能与 UCI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%BA%94%E7%A7%8D-PUCCH-Format"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 五种 PUCCH Format</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Format-0-%E8%AF%A6%E8%A7%A3%EF%BC%88%E5%BA%8F%E5%88%97%E9%80%89%E6%8B%A9%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Format 0 详解（序列选择机制）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 资源配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%A2%91%E7%8E%87%E8%B7%B3%E5%8F%98"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 频率跳变</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81PRACH-%E2%80%94-%E7%89%A9%E7%90%86%E9%9A%8F%E6%9C%BA%E6%8E%A5%E5%85%A5%E4%BF%A1%E9%81%93"><span class="toc-number">8.</span> <span class="toc-text">七、PRACH — 物理随机接入信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%8A%9F%E8%83%BD"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%89%8D%E5%AF%BC%E7%A0%81%E5%BA%8F%E5%88%97%EF%BC%9AZadoff-Chu-%E5%BA%8F%E5%88%97"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 前导码序列：Zadoff-Chu 序列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%89%8D%E5%AF%BC%E7%A0%81%E6%A0%BC%E5%BC%8F"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 前导码格式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#7-3-1-%E9%95%BF%E5%89%8D%E5%AF%BC%E7%A0%81%EF%BC%88Long-Preamble%EF%BC%8CFR1-%E4%B8%BB%E7%94%A8%EF%BC%89"><span class="toc-number">8.0.3.1.</span> <span class="toc-text">7.3.1 长前导码（Long Preamble，FR1 主用）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-3-2-%E7%9F%AD%E5%89%8D%E5%AF%BC%E7%A0%81%EF%BC%88Short-Preamble%EF%BC%8CFR1-FR2-%E9%80%9A%E7%94%A8%EF%BC%89"><span class="toc-number">8.0.3.2.</span> <span class="toc-text">7.3.2 短前导码（Short Preamble，FR1&#x2F;FR2 通用）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-PRACH-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 PRACH 时频资源配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-64-%E4%B8%AA%E5%89%8D%E5%AF%BC%E7%A0%81%E7%9A%84%E5%88%86%E7%BB%84"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 64 个前导码的分组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-RA-RNTI-%E8%AE%A1%E7%AE%97"><span class="toc-number">8.0.6.</span> <span class="toc-text">7.6 RA-RNTI 计算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81SRS-%E2%80%94-%E6%8E%A2%E6%B5%8B%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7"><span class="toc-number">9.</span> <span class="toc-text">八、SRS — 探测参考信号</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8A%9F%E8%83%BD"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-SRS-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E7%BB%93%E6%9E%84"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 SRS 时频资源结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%A7%A6%E5%8F%91%E7%B1%BB%E5%9E%8B"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 触发类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-SRS-%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E4%B8%8E%E5%A4%9A%E7%94%A8%E6%88%B7%E6%AD%A3%E4%BA%A4"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 SRS 天线端口与多用户正交</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-SRS-%E4%B8%8E-CSI-RS-%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 SRS 与 CSI-RS 对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8B%E8%A1%8C%E4%B8%8E%E4%B8%8A%E8%A1%8C%E4%BF%A1%E9%81%93%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">九、下行与上行信道对比总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%8B%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%80%BB%E8%A7%88"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 下行物理信道总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E4%B8%8A%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%80%BB%E8%A7%88"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 上行物理信道总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E5%AF%B9%E6%AF%94"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 信道处理关键参数对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">11.</span> <span class="toc-text">十、参考规范</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        下行物理信道与上行物理信道
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-05-14T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-05-14</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#%E4%B8%80%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%A6%82%E8%A7%88">物理信道概览</a></li>
+<li><a href="#%E4%BA%8Cpdsch--%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93">PDSCH — 物理下行共享信道</a></li>
+<li><a href="#%E4%B8%89pdcch--%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93">PDCCH — 物理下行控制信道</a></li>
+<li><a href="#%E5%9B%9Bpbch--%E7%89%A9%E7%90%86%E5%B9%BF%E6%92%AD%E4%BF%A1%E9%81%93%E4%B8%8E-sspbch-block">PBCH — 物理广播信道与 SS&#x2F;PBCH Block</a></li>
+<li><a href="#%E4%BA%94pusch--%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93">PUSCH — 物理上行共享信道</a></li>
+<li><a href="#%E5%85%ADpucch--%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93">PUCCH — 物理上行控制信道</a></li>
+<li><a href="#%E4%B8%83prach--%E7%89%A9%E7%90%86%E9%9A%8F%E6%9C%BA%E6%8E%A5%E5%85%A5%E4%BF%A1%E9%81%93">PRACH — 物理随机接入信道</a></li>
+<li><a href="#%E5%85%ABsrs--%E6%8E%A2%E6%B5%8B%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7">SRS — 探测参考信号</a></li>
+<li><a href="#%E4%B9%9D%E4%B8%8B%E8%A1%8C%E4%B8%8E%E4%B8%8A%E8%A1%8C%E4%BF%A1%E9%81%93%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93">下行与上行信道对比总结</a></li>
+<li><a href="#%E5%8D%81%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83">参考规范</a></li>
+</ol>
+<hr>
+<h1 id="一、物理信道概览"><a href="#一、物理信道概览" class="headerlink" title="一、物理信道概览"></a>一、物理信道概览</h1><p>3GPP TS 38.211 将 5G NR 物理信道划分为<strong>下行（Downlink）</strong>和<strong>上行（Uplink）</strong> 两大方向。</p>
+<h3 id="下行物理信道（gNB-→-UE）"><a href="#下行物理信道（gNB-→-UE）" class="headerlink" title="下行物理信道（gNB → UE）"></a>下行物理信道（gNB → UE）</h3><table>
+<thead>
+<tr>
+<th>信道</th>
+<th>全称</th>
+<th>承载内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PDSCH</strong></td>
+<td>Physical Downlink Shared Channel</td>
+<td>用户数据、寻呼、系统信息（SIB）</td>
+</tr>
+<tr>
+<td><strong>PDCCH</strong></td>
+<td>Physical Downlink Control Channel</td>
+<td>下行控制信息（DCI），调度 UL&#x2F;DL 资源</td>
+</tr>
+<tr>
+<td><strong>PBCH</strong></td>
+<td>Physical Broadcast Channel</td>
+<td>主系统信息（MIB），随 SSB 一起发送</td>
+</tr>
+</tbody></table>
+<h3 id="上行物理信道（UE-→-gNB）"><a href="#上行物理信道（UE-→-gNB）" class="headerlink" title="上行物理信道（UE → gNB）"></a>上行物理信道（UE → gNB）</h3><table>
+<thead>
+<tr>
+<th>信道</th>
+<th>全称</th>
+<th>承载内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PUSCH</strong></td>
+<td>Physical Uplink Shared Channel</td>
+<td>上行用户数据与 UCI 复用</td>
+</tr>
+<tr>
+<td><strong>PUCCH</strong></td>
+<td>Physical Uplink Control Channel</td>
+<td>上行控制信息（UCI）：HARQ-ACK、SR、CSI</td>
+</tr>
+<tr>
+<td><strong>PRACH</strong></td>
+<td>Physical Random Access Channel</td>
+<td>随机接入前导码（Preamble）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>说明</strong>：SRS（Sounding Reference Signal）在标准中属于上行物理<strong>信号</strong>（Physical Signal），但因其在调度、波束管理中与物理信道密切协作，本文一并详述。</p>
+</blockquote>
+<hr>
+<h1 id="二、PDSCH-—-物理下行共享信道"><a href="#二、PDSCH-—-物理下行共享信道" class="headerlink" title="二、PDSCH — 物理下行共享信道"></a>二、PDSCH — 物理下行共享信道</h1><h3 id="2-1-功能与作用"><a href="#2-1-功能与作用" class="headerlink" title="2.1 功能与作用"></a>2.1 功能与作用</h3><p>PDSCH（Physical Downlink Shared Channel）是 5G NR 下行<strong>数据承载</strong>的核心信道，其主要功能包括：</p>
+<ul>
+<li>承载 DL-SCH（Downlink Shared Channel）传输块，即用户面 IP 数据包；</li>
+<li>传输寻呼消息（PCH）；</li>
+<li>传输广播系统信息（BCH 之外的 SIB）；</li>
+<li>支持单播、组播（MBS，R17 引入）。</li>
+</ul>
+<h3 id="2-2-时频资源分配"><a href="#2-2-时频资源分配" class="headerlink" title="2.2 时频资源分配"></a>2.2 时频资源分配</h3><p><strong>频域资源分配</strong>有两种类型（TS 38.214, Section 5.1.2.2）：</p>
+<ul>
+<li><strong>Type 0</strong>：基于 RBG（Resource Block Group）的位图方式，支持非连续资源分配，适用于灵活调度；</li>
+<li><strong>Type 1</strong>：起始 VRB（Virtual Resource Block）+ 连续 RB 数量，用 RIV（Resource Indicator Value）编码后在 DCI 中携带，适合连续分配。</li>
+</ul>
+<p><strong>时域资源分配</strong>由 DCI 中的”Time domain resource assignment”字段（SLIV 表索引）决定，包含（TS 38.214, Section 5.1.2.1）：</p>
+<ul>
+<li><strong>K0</strong>：调度时隙相对于 PDCCH 时隙的偏移；</li>
+<li><strong>S</strong>：起始符号位置（0~12）；</li>
+<li><strong>L</strong>：持续符号数（1~14）。</li>
+</ul>
+<p><strong>PDSCH 映射类型</strong>（TS 38.211, Section 7.4.1.1.2）：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>起始符号</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Type A</strong>（slot-based）</td>
+<td>相对于时隙起始，DMRS 在 symbol 2 或 3</td>
+<td>常规调度，覆盖整个时隙</td>
+</tr>
+<tr>
+<td><strong>Type B</strong>（mini-slot）</td>
+<td>调度的起始符号开始，DMRS 紧贴第一个符号</td>
+<td>低时延 URLLC，1~7 符号 mini-slot</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-信道处理流程"><a href="#2-3-信道处理流程" class="headerlink" title="2.3 信道处理流程"></a>2.3 信道处理流程</h3><p>PDSCH 的物理层处理流程如下（TS 38.212 Section 7.2 + TS 38.211 Section 7.3.1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">传输块（TB）</span><br><span class="line">  ↓ CRC 附加（24 bit，gCRC24A）</span><br><span class="line">  ↓ 码块分割（CBS）+ 码块 CRC（24 bit，gCRC24B）</span><br><span class="line">  ↓ LDPC 编码（Base Graph 1 或 Base Graph 2）</span><br><span class="line">  ↓ 速率匹配与 HARQ 合并</span><br><span class="line">  ↓ 码块级联</span><br><span class="line">  ↓ 加扰（C-RNTI / CS-RNTI 等 RNTI 初始化伪随机序列）</span><br><span class="line">  ↓ 调制（QPSK / 16QAM / 64QAM / 256QAM）</span><br><span class="line">  ↓ 层映射（最多 8 层）</span><br><span class="line">  ↓ 天线端口映射 + 预编码</span><br><span class="line">  ↓ 资源单元（RE）映射</span><br><span class="line">  ↓ OFDM 调制（CP-OFDM）</span><br></pre></td></tr></table></figure>
+
+<p><strong>LDPC Base Graph 选择规则</strong>（TS 38.212, Section 7.2.2）：</p>
+<ul>
+<li><strong>BG1</strong>：适用于较大传输块（TBS &gt; 292 bits）和较高码率（R &gt; 0.25），最高支持码率约 8&#x2F;9；</li>
+<li><strong>BG2</strong>：适用于较小传输块（TBS ≤ 292 bits）或较低码率场景，适合 URLLC 重传。</li>
+</ul>
+<h3 id="2-4-DMRS（解调参考信号）"><a href="#2-4-DMRS（解调参考信号）" class="headerlink" title="2.4 DMRS（解调参考信号）"></a>2.4 DMRS（解调参考信号）</h3><p>PDSCH DMRS 用于 UE 侧相干解调时的信道估计（TS 38.211, Section 7.4.1.1）。</p>
+<p><strong>配置类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>Type 1</th>
+<th>Type 2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>频域间隔</td>
+<td>每隔 1 个子载波</td>
+<td>每隔 2 个子载波</td>
+</tr>
+<tr>
+<td>最大正交端口数</td>
+<td>4 端口</td>
+<td>6 端口</td>
+</tr>
+<tr>
+<td>CDM 组数</td>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>常规 MIMO（≤4 层）</td>
+<td>大规模 MIMO（≤6 层）</td>
+</tr>
+</tbody></table>
+<p><strong>符号数配置</strong>（TS 38.214, Section 5.1.6.2）：</p>
+<ul>
+<li><strong>Single-symbol DMRS</strong>：DMRS 占 1 个 OFDM symbol，可通过 <code>dmrs-AdditionalPosition</code> 配置 0~3 个额外位置；</li>
+<li><strong>Double-symbol DMRS</strong>（front-loaded 增强）：DMRS 占连续 2 个 OFDM symbol，支持高速移动场景下更精确的信道估计。</li>
+</ul>
+<h3 id="2-5-TCI-State-与-QCL"><a href="#2-5-TCI-State-与-QCL" class="headerlink" title="2.5 TCI State 与 QCL"></a>2.5 TCI State 与 QCL</h3><p>PDSCH 接收时，UE 通过 <strong>TCI State（Transmission Configuration Indicator State）</strong> 确定解调所用参考信号的准同址（QCL）关系（TS 38.214, Section 5.1.5）。</p>
+<p>QCL 类型包括：</p>
+<table>
+<thead>
+<tr>
+<th>QCL 类型</th>
+<th>准同址参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QCL-TypeA</td>
+<td>多普勒频移、多普勒扩展、平均时延、时延扩展</td>
+</tr>
+<tr>
+<td>QCL-TypeB</td>
+<td>多普勒频移、多普勒扩展</td>
+</tr>
+<tr>
+<td>QCL-TypeC</td>
+<td>多普勒频移、平均时延</td>
+</tr>
+<tr>
+<td>QCL-TypeD</td>
+<td>空域接收参数（Spatial Rx parameter），用于波束管理</td>
+</tr>
+</tbody></table>
+<h3 id="2-6-调制编码方案（MCS）"><a href="#2-6-调制编码方案（MCS）" class="headerlink" title="2.6 调制编码方案（MCS）"></a>2.6 调制编码方案（MCS）</h3><p>MCS 由 DCI 中的 5 bit 字段指示，映射到 MCS 表（TS 38.214, Table 5.1.3.1-1&#x2F;2&#x2F;3）：</p>
+<ul>
+<li><strong>MCS Table 1</strong>：最高支持 64QAM；</li>
+<li><strong>MCS Table 2</strong>：最高支持 256QAM（高峰值速率场景）；</li>
+<li><strong>MCS Table 3</strong>：低谱效&#x2F;高冗余，用于 URLLC 可靠性增强（最高 64QAM 但偏低 MCS 索引）。</li>
+</ul>
+<hr>
+<h1 id="三、PDCCH-—-物理下行控制信道"><a href="#三、PDCCH-—-物理下行控制信道" class="headerlink" title="三、PDCCH — 物理下行控制信道"></a>三、PDCCH — 物理下行控制信道</h1><h3 id="3-1-功能与作用"><a href="#3-1-功能与作用" class="headerlink" title="3.1 功能与作用"></a>3.1 功能与作用</h3><p>PDCCH（Physical Downlink Control Channel）承载 <strong>DCI（Downlink Control Information）</strong>，核心功能包括：</p>
+<ul>
+<li>调度 PDSCH 的时频资源（DCI Format 1_0 &#x2F; 1_1 &#x2F; 1_2）；</li>
+<li>授权 PUSCH 发送（DCI Format 0_0 &#x2F; 0_1 &#x2F; 0_2）；</li>
+<li>下行功率控制命令（DCI Format 2_0 ~ 2_6）；</li>
+<li>触发 SRS 发送（DCI Format 2_3）；</li>
+<li>随机接入响应（RAR）的调度。</li>
+</ul>
+<h3 id="3-2-DCI-Format-体系"><a href="#3-2-DCI-Format-体系" class="headerlink" title="3.2 DCI Format 体系"></a>3.2 DCI Format 体系</h3><table>
+<thead>
+<tr>
+<th>DCI Format</th>
+<th>用途</th>
+<th>典型 RNTI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0_0</td>
+<td>PUSCH 调度（回退格式）</td>
+<td>C-RNTI, CS-RNTI, MCS-C-RNTI</td>
+</tr>
+<tr>
+<td>0_1</td>
+<td>PUSCH 调度（增强格式）</td>
+<td>C-RNTI</td>
+</tr>
+<tr>
+<td>0_2</td>
+<td>PUSCH 调度（R16 URLLC 紧凑格式）</td>
+<td>C-RNTI</td>
+</tr>
+<tr>
+<td>1_0</td>
+<td>PDSCH 调度（回退格式）</td>
+<td>C-RNTI, P-RNTI, SI-RNTI, RA-RNTI</td>
+</tr>
+<tr>
+<td>1_1</td>
+<td>PDSCH 调度（增强格式）</td>
+<td>C-RNTI</td>
+</tr>
+<tr>
+<td>1_2</td>
+<td>PDSCH 调度（R16 URLLC 紧凑格式）</td>
+<td>C-RNTI</td>
+</tr>
+<tr>
+<td>2_0</td>
+<td>时隙格式指示（SFI）</td>
+<td>SFI-RNTI</td>
+</tr>
+<tr>
+<td>2_1</td>
+<td>预emption 指示（PI）</td>
+<td>INT-RNTI</td>
+</tr>
+<tr>
+<td>2_2</td>
+<td>PUSCH&#x2F;PUCCH 功率控制</td>
+<td>TPC-PUSCH-RNTI, TPC-PUCCH-RNTI</td>
+</tr>
+<tr>
+<td>2_3</td>
+<td>SRS 触发与功率控制</td>
+<td>TPC-SRS-RNTI</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-CORESET（控制资源集合）"><a href="#3-3-CORESET（控制资源集合）" class="headerlink" title="3.3 CORESET（控制资源集合）"></a>3.3 CORESET（控制资源集合）</h3><p>与 LTE 不同，NR 将 PDCCH 限制在 <strong>CORESET（Control Resource Set）</strong> 区域内传输，而非铺满整个系统带宽（TS 38.211, Section 7.3.2）。</p>
+<p><strong>CORESET 定义参数</strong>：</p>
+<ul>
+<li><strong>频域</strong>：通过 RB 级别的位图（最多 96 个 RB，以 6-RB 为粒度的 45 bit 位图）指定占用的 PRB 集合；</li>
+<li><strong>时域</strong>：1、2 或 3 个连续 OFDM symbols；</li>
+<li><strong>CCE-REG 映射方式</strong>：<ul>
+<li><strong>Non-interleaved</strong>：CCE 连续映射到 REG，频率局部化，适合波束赋形下的 SU 场景；</li>
+<li><strong>Interleaved</strong>：CCE 分散映射到 REG，频率分集增益，适合覆盖边缘 UE。</li>
+</ul>
+</li>
+</ul>
+<p><strong>资源层级关系</strong>（TS 38.211, Section 7.3.2.1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RE（Resource Element，12 × 1 个子载波×符号）</span><br><span class="line">  ↓ 6 RE/symbol（DMRS 外的可用 RE）</span><br><span class="line">REG（Resource Element Group）= 1 RB × 1 symbol = 12 RE</span><br><span class="line">  ↓ 6 REG</span><br><span class="line">CCE（Control Channel Element）= 6 REG = 72 RE（其中 18 RE 为 PDCCH DMRS，54 RE 为 PDCCH 数据）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-搜索空间（Search-Space）"><a href="#3-4-搜索空间（Search-Space）" class="headerlink" title="3.4 搜索空间（Search Space）"></a>3.4 搜索空间（Search Space）</h3><p>UE 通过盲检测（Blind Detection）在配置的<strong>搜索空间（Search Space）</strong>内找到属于自己的 PDCCH（TS 38.213, Section 10.1）。</p>
+<p><strong>搜索空间类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>子类型</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>公共搜索空间（CSS）</strong></td>
+<td>Type0-PDCCH CSS</td>
+<td>SIB1 调度（CORESET#0）</td>
+</tr>
+<tr>
+<td></td>
+<td>Type0A-PDCCH CSS</td>
+<td>其他 SI 调度</td>
+</tr>
+<tr>
+<td></td>
+<td>Type1-PDCCH CSS</td>
+<td>随机接入响应（RAR）</td>
+</tr>
+<tr>
+<td></td>
+<td>Type2-PDCCH CSS</td>
+<td>寻呼</td>
+</tr>
+<tr>
+<td></td>
+<td>Type3-PDCCH CSS</td>
+<td>PS-RNTI 节能信令</td>
+</tr>
+<tr>
+<td><strong>UE 专用搜索空间（USS）</strong></td>
+<td>—</td>
+<td>单播 UE 专属调度</td>
+</tr>
+</tbody></table>
+<p><strong>聚合级别（Aggregation Level）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>聚合级别 L</th>
+<th>CCE 数</th>
+<th>RE 数（PDCCH 部分）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>54</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>108</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4</td>
+<td>216</td>
+</tr>
+<tr>
+<td>8</td>
+<td>8</td>
+<td>432</td>
+</tr>
+<tr>
+<td>16</td>
+<td>16</td>
+<td>864</td>
+</tr>
+</tbody></table>
+<p>UE 在每个 PDCCH 监听时机（PDCCH Monitoring Occasion）内对配置的候选（PDCCH Candidates）逐一盲检，聚合级别越高，可靠性越好但占用资源越多。</p>
+<h3 id="3-5-PDCCH-信道处理"><a href="#3-5-PDCCH-信道处理" class="headerlink" title="3.5 PDCCH 信道处理"></a>3.5 PDCCH 信道处理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DCI Payload</span><br><span class="line">  ↓ CRC 附加（24 bit，用 RNTI 掩码进行加扰）</span><br><span class="line">  ↓ Polar 编码（TS 38.212, Section 7.3.2）</span><br><span class="line">  ↓ 速率匹配（到目标 CCE 数对应的比特数）</span><br><span class="line">  ↓ 加扰（序列由 CORESET ID + UE ID 等初始化）</span><br><span class="line">  ↓ QPSK 调制</span><br><span class="line">  ↓ 映射到 CCE → REG → RE</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>Polar Code 选择原因</strong>：Polar Code 在短码块上有逼近香农限的性能，完美匹配 DCI 这类 payload 较小（通常 40~150 bits）的控制信息编码需求。</p>
+</blockquote>
+<h3 id="3-6-PDCCH-增强（R16-）"><a href="#3-6-PDCCH-增强（R16-）" class="headerlink" title="3.6 PDCCH 增强（R16+）"></a>3.6 PDCCH 增强（R16+）</h3><ul>
+<li><strong>R16 URLLC 增强</strong>：引入 DCI Format 0_2 &#x2F; 1_2 以减小 DCI 开销，同时支持更频繁的 PDCCH 监听时机（间隔可低至 1 slot）；</li>
+<li><strong>R16 PDCCH 监听节能</strong>：引入 DCI Format 2_6（不连续接收唤醒信号，WUS）；</li>
+<li><strong>R17 AI&#x2F;ML 辅助</strong>：探索基于 AI 预测的 PDCCH 候选集减少方案（TR 38.843）。</li>
+</ul>
+<hr>
+<h1 id="四、PBCH-—-物理广播信道与-SS-PBCH-Block"><a href="#四、PBCH-—-物理广播信道与-SS-PBCH-Block" class="headerlink" title="四、PBCH — 物理广播信道与 SS&#x2F;PBCH Block"></a>四、PBCH — 物理广播信道与 SS&#x2F;PBCH Block</h1><h3 id="4-1-SS-PBCH-Block（SSB）结构"><a href="#4-1-SS-PBCH-Block（SSB）结构" class="headerlink" title="4.1 SS&#x2F;PBCH Block（SSB）结构"></a>4.1 SS&#x2F;PBCH Block（SSB）结构</h3><p>PBCH 不单独存在，而是与 PSS（主同步信号）、SSS（辅同步信号）构成 <strong>SS&#x2F;PBCH Block（SSB）</strong>（TS 38.211, Section 7.4.3）。</p>
+<p><strong>SSB 时频结构</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>symbol 0</td>
+<td>PSS（Primary Synchronization Signal），占用 127 个子载波（居中），两侧各填充 8 个零子载波</td>
+</tr>
+<tr>
+<td>symbol 1</td>
+<td>PBCH（子载波 0~239）+ PBCH DMRS</td>
+</tr>
+<tr>
+<td>symbol 2</td>
+<td>PBCH（子载波 0<del>47 及 192</del>239）+ SSS（子载波 56~182）</td>
+</tr>
+<tr>
+<td>symbol 3</td>
+<td>PBCH（子载波 0~239）+ PBCH DMRS</td>
+</tr>
+</tbody></table>
+<p>整个 SSB 占用 <strong>4 个 OFDM symbols × 240 个子载波（20 RBs）</strong>。</p>
+<p><strong>SSB 内 DMRS 的位置</strong>由物理小区 ID（PCI）决定，具体为 <code>v = N_ID^cell mod 4</code>，DMRS 子载波位置为 <code>&#123;0+v, 4+v, 8+v, ...&#125;</code>。</p>
+<h3 id="4-2-SSB-突发集合（SS-Burst-Set）"><a href="#4-2-SSB-突发集合（SS-Burst-Set）" class="headerlink" title="4.2 SSB 突发集合（SS Burst Set）"></a>4.2 SSB 突发集合（SS Burst Set）</h3><p>在 5 ms 半帧内，网络可以发送多个 SSB，以完成波束扫描（TS 38.213, Section 4.1）：</p>
+<table>
+<thead>
+<tr>
+<th>频率范围</th>
+<th>最大 SSB 数 L_max</th>
+<th>候选 SSB 时域位置规则（SCS&#x3D;15kHz 举例，Case A）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FR1，≤3 GHz</td>
+<td>4</td>
+<td>每半帧 2 个时隙，每时隙 symbol 2 和 8</td>
+</tr>
+<tr>
+<td>FR1，3~6 GHz</td>
+<td>8</td>
+<td>每半帧 4 个时隙，每时隙 symbol 2 和 8</td>
+</tr>
+<tr>
+<td>FR2，&gt;6 GHz</td>
+<td>64</td>
+<td>每半帧 8 个时隙，多候选位置（SCS&#x3D;120kHz）</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-PBCH-Payload-与-MIB"><a href="#4-3-PBCH-Payload-与-MIB" class="headerlink" title="4.3 PBCH Payload 与 MIB"></a>4.3 PBCH Payload 与 MIB</h3><p><strong>PBCH Payload 生成过程</strong>（TS 38.212, Section 7.1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">MIB（23 bit，RRC BCCH-BCH-Message 去掉 1 bit 消息类型标识位）</span><br><span class="line">  ↓ 附加 8 bit 时序信息位（SFN 低 4 bit + 半帧位 + SSB 索引相关位）</span><br><span class="line">  = 32 bit PBCH payload</span><br><span class="line">  ↓ 附加 24 bit CRC（Polar 码）</span><br><span class="line">  = 56 bit</span><br><span class="line">  ↓ Polar 编码 → 512 bit</span><br><span class="line">  ↓ 速率匹配 → 864 bit</span><br><span class="line">  ↓ QPSK 调制 → 432 个 QPSK 符号</span><br><span class="line">    （PBCH 区域共 576 RE，其中 432 RE 用于数据，144 RE 用于 DMRS）</span><br></pre></td></tr></table></figure>
+
+<p><strong>MIB 关键字段</strong>（TS 38.331, Section 6.2.2）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>systemFrameNumber</code></td>
+<td>SFN 高 6 bit（完整 SFN 10 bit，低 4 bit 在 PBCH payload 中携带）</td>
+</tr>
+<tr>
+<td><code>subCarrierSpacingCommon</code></td>
+<td>SIB1、Msg2&#x2F;4 等初始接入所用的子载波间隔</td>
+</tr>
+<tr>
+<td><code>ssb-SubcarrierOffset</code> (k_SSB)</td>
+<td>SSB 起始子载波相对于公共参考点的偏移</td>
+</tr>
+<tr>
+<td><code>dmrs-TypeA-Position</code></td>
+<td>PDSCH Type A DMRS 首符号位置（symbol 2 或 3）</td>
+</tr>
+<tr>
+<td><code>pdcch-ConfigSIB1</code></td>
+<td>CORESET#0 和 SIB1 搜索空间配置（指向 TS 38.213 Table 13-x 的索引）</td>
+</tr>
+<tr>
+<td><code>cellBarred</code></td>
+<td>小区是否禁止接入</td>
+</tr>
+<tr>
+<td><code>intraFreqReselection</code></td>
+<td>同频小区重选控制</td>
+</tr>
+</tbody></table>
+<h3 id="4-4-PBCH-与-LTE-PSS-SSS-PBCH-对比"><a href="#4-4-PBCH-与-LTE-PSS-SSS-PBCH-对比" class="headerlink" title="4.4 PBCH 与 LTE PSS&#x2F;SSS&#x2F;PBCH 对比"></a>4.4 PBCH 与 LTE PSS&#x2F;SSS&#x2F;PBCH 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>LTE</th>
+<th>5G NR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>广播信道位置</td>
+<td>固定在 DC 附近</td>
+<td>可灵活位于同步栅格（Synchronization Raster）上</td>
+</tr>
+<tr>
+<td>PCI 数量</td>
+<td>504</td>
+<td>1008</td>
+</tr>
+<tr>
+<td>广播信道编码</td>
+<td>卷积码</td>
+<td>Polar Code</td>
+</tr>
+<tr>
+<td>周期</td>
+<td>10 ms</td>
+<td>20 ms（SSB burst set 周期）</td>
+</tr>
+<tr>
+<td>波束扫描</td>
+<td>不支持</td>
+<td>支持（多 SSB 束）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="五、PUSCH-—-物理上行共享信道"><a href="#五、PUSCH-—-物理上行共享信道" class="headerlink" title="五、PUSCH — 物理上行共享信道"></a>五、PUSCH — 物理上行共享信道</h1><h3 id="5-1-功能与作用"><a href="#5-1-功能与作用" class="headerlink" title="5.1 功能与作用"></a>5.1 功能与作用</h3><p>PUSCH（Physical Uplink Shared Channel）是 5G NR 上行<strong>数据传输</strong>的核心信道，承载：</p>
+<ul>
+<li>UL-SCH 传输块（用户面上行 IP 数据）；</li>
+<li>UCI（Uplink Control Information）复用：在没有 PUCCH 资源时，HARQ-ACK、CSI、SR 可复用在 PUSCH 上（TS 38.212, Section 6.3.2）。</li>
+</ul>
+<h3 id="5-2-波形选择：CP-OFDM-vs-DFT-s-OFDM"><a href="#5-2-波形选择：CP-OFDM-vs-DFT-s-OFDM" class="headerlink" title="5.2 波形选择：CP-OFDM vs DFT-s-OFDM"></a>5.2 波形选择：CP-OFDM vs DFT-s-OFDM</h3><p>NR PUSCH 支持两种波形（TS 38.211, Section 6.3.1.4）：</p>
+<table>
+<thead>
+<tr>
+<th>波形</th>
+<th>全称</th>
+<th>特性</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CP-OFDM</strong></td>
+<td>Cyclic Prefix OFDM</td>
+<td>与下行一致，支持多层 MIMO</td>
+<td>高 SNR，峰值速率</td>
+</tr>
+<tr>
+<td><strong>DFT-s-OFDM</strong></td>
+<td>DFT-Spread OFDM（SC-FDMA 升级版）</td>
+<td>PAPR 更低，覆盖增益 3~4 dB</td>
+<td>覆盖受限 UE、边缘用户</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>R15 限制</strong>：DFT-s-OFDM 模式下最多支持 1 个传输层（单流），R16 对此有进一步研究。</p>
+</blockquote>
+<h3 id="5-3-时频资源分配"><a href="#5-3-时频资源分配" class="headerlink" title="5.3 时频资源分配"></a>5.3 时频资源分配</h3><p><strong>频域资源分配</strong>（TS 38.214, Section 6.1.2）：</p>
+<ul>
+<li><strong>Type 0</strong>：RBG 位图（同 PDSCH）；</li>
+<li><strong>Type 1</strong>：RIV 编码的连续 RB 分配。</li>
+</ul>
+<p><strong>时域资源分配</strong>：由 DCI 中 SLIV 表索引决定，参数 K2（PDCCH 时隙到 PUSCH 时隙的偏移）+ S + L。</p>
+<h3 id="5-4-信道处理流程"><a href="#5-4-信道处理流程" class="headerlink" title="5.4 信道处理流程"></a>5.4 信道处理流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">传输块（TB）</span><br><span class="line">  ↓ CRC 附加（gCRC24A）</span><br><span class="line">  ↓ 码块分割 + 码块 CRC（gCRC24B）</span><br><span class="line">  ↓ LDPC 编码（BG1 或 BG2）</span><br><span class="line">  ↓ 速率匹配与 HARQ 软缓冲管理</span><br><span class="line">  ↓ 码块级联</span><br><span class="line">  ↓（可选）UCI 复用插入</span><br><span class="line">  ↓ 加扰（C-RNTI 初始化）</span><br><span class="line">  ↓ 调制（π/2-BPSK / QPSK / 16QAM / 64QAM / 256QAM）</span><br><span class="line">  ↓ 层映射（CP-OFDM 最多 4 层；DFT-s-OFDM 仅 1 层）</span><br><span class="line">  ↓ 变换预编码（DFT-s-OFDM 模式）或直接预编码（CP-OFDM）</span><br><span class="line">  ↓ RE 映射</span><br><span class="line">  ↓ OFDM / SC-FDMA 调制</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注</strong>：π&#x2F;2-BPSK 是 NR 专为 DFT-s-OFDM 覆盖极限优化引入的调制方式，具有更低的 PAPR（TS 38.211, Section 6.3.1.2）。</p>
+</blockquote>
+<h3 id="5-5-PUSCH-DMRS"><a href="#5-5-PUSCH-DMRS" class="headerlink" title="5.5 PUSCH DMRS"></a>5.5 PUSCH DMRS</h3><p>PUSCH DMRS 配置与 PDSCH 类似（TS 38.211, Section 6.4.1.1）：</p>
+<ul>
+<li><strong>Type 1 &#x2F; Type 2</strong>：配置方式同下行；</li>
+<li><strong>映射类型 A &#x2F; B</strong>：同样适用；</li>
+<li><strong>频率跳变（Frequency Hopping）</strong>：PUSCH 支持时隙内或时隙间的频率跳变，增强频率分集，提升覆盖；</li>
+<li><strong>PT-RS</strong>（Phase Tracking Reference Signal）：主要用于 FR2（毫米波），补偿本地振荡器引入的相位噪声（CPE，Common Phase Error）。</li>
+</ul>
+<h3 id="5-6-PUSCH-重传与-HARQ"><a href="#5-6-PUSCH-重传与-HARQ" class="headerlink" title="5.6 PUSCH 重传与 HARQ"></a>5.6 PUSCH 重传与 HARQ</h3><p>NR PUSCH 支持<strong>异步 HARQ</strong>（与 LTE 的同步 HARQ 不同）：</p>
+<ul>
+<li>重传时机由 DCI 动态指示，灵活性更高；</li>
+<li>支持<strong>码块组（CBG，Code Block Group）级别重传</strong>（TS 38.212, Section 7.3.1.1.2），仅重传出错的 CBG，提升频谱效率；</li>
+<li>上行 HARQ 进程数最多 16 个（TS 38.321, Section 5.4.2.1）。</li>
+</ul>
+<hr>
+<h1 id="六、PUCCH-—-物理上行控制信道"><a href="#六、PUCCH-—-物理上行控制信道" class="headerlink" title="六、PUCCH — 物理上行控制信道"></a>六、PUCCH — 物理上行控制信道</h1><h3 id="6-1-功能与-UCI-类型"><a href="#6-1-功能与-UCI-类型" class="headerlink" title="6.1 功能与 UCI 类型"></a>6.1 功能与 UCI 类型</h3><p>PUCCH（Physical Uplink Control Channel）专用于传输<strong>上行控制信息（UCI）</strong>，包括三类（TS 38.213, Section 9）：</p>
+<ul>
+<li><strong>HARQ-ACK</strong>：对 PDSCH 解码结果的 ACK（1 bit）&#x2F; NACK（1 bit）反馈，多载波聚合时可达数十 bit；</li>
+<li><strong>SR（Scheduling Request）</strong>：UE 请求上行调度资源，通常为 1 bit（有资源请求&#x2F;无）；</li>
+<li><strong>CSI（Channel State Information）</strong>：信道质量指示（CQI）、预编码矩阵指示（PMI）、秩指示（RI）等，通常为 CSI Part 1 + Part 2 的多 bit 报告。</li>
+</ul>
+<h3 id="6-2-五种-PUCCH-Format"><a href="#6-2-五种-PUCCH-Format" class="headerlink" title="6.2 五种 PUCCH Format"></a>6.2 五种 PUCCH Format</h3><p>NR 设计了 5 种 PUCCH Format，兼顾时延和可靠性需求（TS 38.211, Section 6.3.2；TS 38.213, Section 9.2）：</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>类型</th>
+<th>符号数</th>
+<th>RB 数</th>
+<th>UCI 载荷</th>
+<th>编码方式</th>
+<th>典型使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0</strong></td>
+<td>短 PUCCH</td>
+<td>1~2</td>
+<td>1</td>
+<td>≤2 bit</td>
+<td>序列选择（无编码）</td>
+<td>快速 HARQ-ACK &#x2F; SR，低时延</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td>长 PUCCH</td>
+<td>4~14</td>
+<td>1</td>
+<td>≤2 bit</td>
+<td>OCC + 序列扩频</td>
+<td>覆盖受限场景的 HARQ-ACK</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>短 PUCCH</td>
+<td>1~2</td>
+<td>1~16</td>
+<td>&gt;2 bit</td>
+<td>Polar（UCI）+ DMRS FDM</td>
+<td>大 CSI 报告，低时延</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>长 PUCCH</td>
+<td>4~14</td>
+<td>1~16</td>
+<td>&gt;2 bit</td>
+<td>Polar（UCI）+ DMRS TDM</td>
+<td>大 UCI，高可靠</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>长 PUCCH</td>
+<td>4~14</td>
+<td>1</td>
+<td>&gt;2 bit</td>
+<td>OCC 扩频 + Polar</td>
+<td>资源受限的多用户复用</td>
+</tr>
+</tbody></table>
+<p><strong>短 PUCCH vs 长 PUCCH</strong>：</p>
+<ul>
+<li>短 PUCCH（Format 0&#x2F;2）：1~2 个 OFDM symbol，优先满足 URLLC 低时延要求；</li>
+<li>长 PUCCH（Format 1&#x2F;3&#x2F;4）：4~14 个 OFDM symbol，提供时间分集，适合覆盖受限 UE 或需要高可靠传输的场景。</li>
+</ul>
+<h3 id="6-3-Format-0-详解（序列选择机制）"><a href="#6-3-Format-0-详解（序列选择机制）" class="headerlink" title="6.3 Format 0 详解（序列选择机制）"></a>6.3 Format 0 详解（序列选择机制）</h3><p>Format 0 不使用传统的编码+调制，而是通过<strong>选择不同的 ZC（Zadoff-Chu）循环移位序列</strong>来隐式携带 1~2 bit UCI（TS 38.211, Section 6.3.2.3）：</p>
+<ul>
+<li>1 bit HARQ-ACK：ACK 用序列索引 0，NACK 用序列索引 1（通过 TS 38.213 Table 9.2.3-3 映射）；</li>
+<li>2 bit HARQ-ACK：4 种组合映射到 4 个不同循环移位（Table 9.2.3-4）；</li>
+<li>同一时频资源上不同 UE 可使用不同循环移位实现多用户复用（MU）。</li>
+</ul>
+<h3 id="6-4-资源配置"><a href="#6-4-资源配置" class="headerlink" title="6.4 资源配置"></a>6.4 资源配置</h3><p>UE 最多可配置 4 个 PUCCH 资源集合（TS 38.213, Section 9.2.1）：</p>
+<ul>
+<li><strong>资源集合 0</strong>：用于 ≤2 bit HARQ-ACK，最多 32 个 PUCCH 资源；</li>
+<li><strong>资源集合 1~3</strong>：用于 &gt;2 bit UCI，各最多 8 个 PUCCH 资源。</li>
+</ul>
+<p>UE 通过 DCI 中的 3 bit 字段指示使用哪个具体资源（<code>PUCCH resource indicator</code>）。</p>
+<h3 id="6-5-频率跳变"><a href="#6-5-频率跳变" class="headerlink" title="6.5 频率跳变"></a>6.5 频率跳变</h3><p>PUCCH 支持<strong>时隙内频率跳变（Intra-slot FH）</strong>和<strong>时隙间频率跳变（Inter-slot FH）</strong>，利用频率分集改善覆盖。时隙间跳变仅对长 PUCCH（Format 1&#x2F;3&#x2F;4）有效（TS 38.211, Section 6.3.2）。</p>
+<hr>
+<h1 id="七、PRACH-—-物理随机接入信道"><a href="#七、PRACH-—-物理随机接入信道" class="headerlink" title="七、PRACH — 物理随机接入信道"></a>七、PRACH — 物理随机接入信道</h1><h3 id="7-1-功能"><a href="#7-1-功能" class="headerlink" title="7.1 功能"></a>7.1 功能</h3><p>PRACH（Physical Random Access Channel）是 UE 向 gNB 发起<strong>随机接入</strong>的信道，用于：</p>
+<ul>
+<li>UE 在 RRC_IDLE&#x2F;INACTIVE 态发起初始接入；</li>
+<li>连接态的切换与重建；</li>
+<li>请求上行时间对齐（Timing Advance, TA）；</li>
+<li>波束失败恢复（BFR, Beam Failure Recovery）。</li>
+</ul>
+<p>每个时频 PRACH 机会（PRACH Occasion）内定义 <strong>64 个前导码（Preamble）</strong>。</p>
+<h3 id="7-2-前导码序列：Zadoff-Chu-序列"><a href="#7-2-前导码序列：Zadoff-Chu-序列" class="headerlink" title="7.2 前导码序列：Zadoff-Chu 序列"></a>7.2 前导码序列：Zadoff-Chu 序列</h3><p>PRACH 前导码基于 <strong>Zadoff-Chu（ZC）序列</strong>（TS 38.211, Section 6.3.3）：</p>
+<p>$$x_u(n) &#x3D; e^{-j\pi u n(n+1)&#x2F;L_{RA}}, \quad n &#x3D; 0, 1, …, L_{RA}-1$$</p>
+<p>其中 $u$ 为 ZC 根序列索引，$L_{RA}$ 为序列长度。</p>
+<p>ZC 序列的优良特性：</p>
+<ul>
+<li><strong>恒模性</strong>：时域幅度恒定，PAPR 极低；</li>
+<li><strong>理想循环自相关性</strong>：易于时延估计（TA 计算）；</li>
+<li><strong>零循环互相关性</strong>（同 $L_{RA}$ 的不同根序列之间）：支持多 UE 同时接入时的碰撞检测。</li>
+</ul>
+<h3 id="7-3-前导码格式"><a href="#7-3-前导码格式" class="headerlink" title="7.3 前导码格式"></a>7.3 前导码格式</h3><h4 id="7-3-1-长前导码（Long-Preamble，FR1-主用）"><a href="#7-3-1-长前导码（Long-Preamble，FR1-主用）" class="headerlink" title="7.3.1 长前导码（Long Preamble，FR1 主用）"></a>7.3.1 长前导码（Long Preamble，FR1 主用）</h4><table>
+<thead>
+<tr>
+<th>Format</th>
+<th>$L_{RA}$</th>
+<th>SCS（kHz）</th>
+<th>时域符号数</th>
+<th>CP 长度</th>
+<th>覆盖半径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>839</td>
+<td>1.25</td>
+<td>1×序列+GP</td>
+<td>3168 Ts</td>
+<td>~14 km</td>
+</tr>
+<tr>
+<td>1</td>
+<td>839</td>
+<td>1.25</td>
+<td>2×序列+GP</td>
+<td>21024 Ts</td>
+<td>~77 km（超大小区）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>839</td>
+<td>1.25</td>
+<td>4×序列+GP</td>
+<td>4688 Ts</td>
+<td>~29 km</td>
+</tr>
+<tr>
+<td>3</td>
+<td>839</td>
+<td>5</td>
+<td>4×序列+GP</td>
+<td>3168 Ts</td>
+<td>~10 km，高移动性</td>
+</tr>
+</tbody></table>
+<p>长前导码 SCS（1.25 kHz &#x2F; 5 kHz）与 NR 其他传输不同，使用独立的数字参数配置。</p>
+<h4 id="7-3-2-短前导码（Short-Preamble，FR1-FR2-通用）"><a href="#7-3-2-短前导码（Short-Preamble，FR1-FR2-通用）" class="headerlink" title="7.3.2 短前导码（Short Preamble，FR1&#x2F;FR2 通用）"></a>7.3.2 短前导码（Short Preamble，FR1&#x2F;FR2 通用）</h4><table>
+<thead>
+<tr>
+<th>Format</th>
+<th>$L_{RA}$</th>
+<th>时域符号数</th>
+<th>支持场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A1</td>
+<td>139</td>
+<td>2</td>
+<td>常规覆盖</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>139</td>
+<td>4</td>
+<td>常规覆盖</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>139</td>
+<td>6</td>
+<td>常规覆盖</td>
+</tr>
+<tr>
+<td>B1</td>
+<td>139</td>
+<td>2</td>
+<td>短 CP</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>139</td>
+<td>4</td>
+<td>短 CP</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>139</td>
+<td>6</td>
+<td>短 CP</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>139</td>
+<td>12</td>
+<td>大范围覆盖</td>
+</tr>
+<tr>
+<td>C0</td>
+<td>139</td>
+<td>1</td>
+<td>极低时延</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>139</td>
+<td>4</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<p>短前导码 SCS 与承载 PUSCH 的 SCS 相同（FR1 可用 15&#x2F;30&#x2F;60 kHz，FR2 可用 60&#x2F;120 kHz），支持<strong>波束扫描</strong>（同一前导码在不同接收波束下重复发送）。</p>
+<h3 id="7-4-PRACH-时频资源配置"><a href="#7-4-PRACH-时频资源配置" class="headerlink" title="7.4 PRACH 时频资源配置"></a>7.4 PRACH 时频资源配置</h3><p>PRACH 资源由 SIB1 中的 <code>RACH-ConfigCommon</code> 配置（TS 38.213, Section 8.1）：</p>
+<ul>
+<li>**<code>prach-ConfigurationIndex</code>**：映射到 TS 38.211 Table 6.3.3.2-2&#x2F;3&#x2F;4，确定 PRACH 格式、每帧 PRACH occasion 数量及时隙&#x2F;符号位置；</li>
+<li>**<code>msg1-FDM</code>**：每个时隙内频域 PRACH occasion 的数量（1&#x2F;2&#x2F;4&#x2F;8）；</li>
+<li>**<code>msg1-FrequencyStart</code>**：PRACH 起始 RB 偏移（相对于 UL BWP 起始 PRB）；</li>
+<li>**<code>ssb-perRACH-OccasionAndCB-PreamblesPerSSB</code>**：SSB 与 RACH Occasion 的映射关系，确定每个 SSB 波束对应的 CB 前导码数量。</li>
+</ul>
+<h3 id="7-5-64-个前导码的分组"><a href="#7-5-64-个前导码的分组" class="headerlink" title="7.5 64 个前导码的分组"></a>7.5 64 个前导码的分组</h3><p>每个 PRACH Occasion 的 64 个前导码分为（TS 38.213, Section 8.1）：</p>
+<ul>
+<li><strong>Group A</strong>（竞争型，Contention-Based，CB）：用于 Msg3 较小的 UE；</li>
+<li><strong>Group B</strong>（竞争型，CB）：用于 Msg3 较大的 UE（配置了 <code>messageSizeGroupA</code> 和 <code>messagePowerOffsetGroupB</code>）；</li>
+<li><strong>专用前导码</strong>（Contention-Free，CF）：由 gNB 通过 RRC 或 PDCCH order 专门分配，用于切换、波束失败恢复等，避免碰撞。</li>
+</ul>
+<h3 id="7-6-RA-RNTI-计算"><a href="#7-6-RA-RNTI-计算" class="headerlink" title="7.6 RA-RNTI 计算"></a>7.6 RA-RNTI 计算</h3><p>UE 发送 Msg1 后，用 <strong>RA-RNTI</strong> 监听 PDCCH 以接收 RAR（TS 38.213, Section 8.1）：</p>
+<p>$$\text{RA-RNTI} &#x3D; 1 + s_{id} + 14 \cdot t_{id} + 14 \cdot 80 \cdot f_{id} + 14 \cdot 80 \cdot 8 \cdot ul_{carrier_id}$$</p>
+<p>其中 $s_{id}$（OFDM 符号索引，0<del>13）、$t_{id}$（时隙索引，0</del>79）、$f_{id}$（频域 PRACH Occasion 索引，0~7）共同唯一标识一个 PRACH 传输机会。</p>
+<hr>
+<h1 id="八、SRS-—-探测参考信号"><a href="#八、SRS-—-探测参考信号" class="headerlink" title="八、SRS — 探测参考信号"></a>八、SRS — 探测参考信号</h1><h3 id="8-1-功能"><a href="#8-1-功能" class="headerlink" title="8.1 功能"></a>8.1 功能</h3><p>SRS（Sounding Reference Signal）是上行<strong>物理信号</strong>（非物理信道），UE 向 gNB 发送，用于（TS 38.211, Section 6.4.1.4）：</p>
+<ul>
+<li><strong>上行信道探测与调度</strong>：gNB 测量上行频率选择性信道，用于频域选择性调度；</li>
+<li><strong>链路自适应</strong>：估计上行 SINR，指导 MCS 和功率控制；</li>
+<li><strong>Massive MIMO 波束管理</strong>：结合信道互易性（TDD），gNB 利用上行 SRS 推断下行信道，生成下行预编码矩阵（PMI）；</li>
+<li><strong>UE 发送波束选择</strong>：gNB 评估不同 UE 发送波束下的信道质量，指示最优发送波束（SRS-based beam management）。</li>
+</ul>
+<h3 id="8-2-SRS-时频资源结构"><a href="#8-2-SRS-时频资源结构" class="headerlink" title="8.2 SRS 时频资源结构"></a>8.2 SRS 时频资源结构</h3><p><strong>时域</strong>（TS 38.211, Section 6.4.1.4.3）：</p>
+<ul>
+<li>SRS 位于时隙内最后 6 个符号中的 1&#x2F;2&#x2F;4 个连续符号；</li>
+<li>多符号 SRS 可提供更高的频率覆盖密度，用于覆盖扩展（Coverage Extension）。</li>
+</ul>
+<p><strong>频域</strong>（SRS 带宽配置，TS 38.211, Table 6.4.1.4.3-1）：</p>
+<ul>
+<li>SRS 带宽通过 <code>c_SRS</code>（0<del>63，带宽配置索引）和 <code>b_SRS</code>（0</del>3，带宽层）双参数确定；</li>
+<li>支持<strong>频率跳变（Frequency Hopping）</strong>：周期性 &#x2F; 半持续 SRS 可在不同子带间跳变，实现宽带信道探测。</li>
+</ul>
+<h3 id="8-3-触发类型"><a href="#8-3-触发类型" class="headerlink" title="8.3 触发类型"></a>8.3 触发类型</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>触发方式</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Periodic SRS</strong></td>
+<td>RRC 配置固定周期（$T_{SRS}$ ∈ {1,2,4,5,8,…,2560} slots）</td>
+<td>持续性上行信道跟踪</td>
+</tr>
+<tr>
+<td><strong>Semi-Persistent SRS（SP-SRS）</strong></td>
+<td>MAC CE 激活 &#x2F; 去激活</td>
+<td>灵活激活的周期性探测</td>
+</tr>
+<tr>
+<td><strong>Aperiodic SRS</strong></td>
+<td>DCI Format 2_3（TPC-SRS-RNTI）或 DCI 中的 SRS request 字段触发</td>
+<td>按需立即探测（切换前、波束失败恢复等）</td>
+</tr>
+</tbody></table>
+<h3 id="8-4-SRS-天线端口与多用户正交"><a href="#8-4-SRS-天线端口与多用户正交" class="headerlink" title="8.4 SRS 天线端口与多用户正交"></a>8.4 SRS 天线端口与多用户正交</h3><p>UE 可在 <strong>1 &#x2F; 2 &#x2F; 4 个天线端口</strong>上发送 SRS（端口编号 1000~1003）。</p>
+<p>多 UE 在相同时频资源上发送正交 SRS，通过以下机制实现正交（TS 38.211, Section 6.4.1.4.2）：</p>
+<ul>
+<li><strong>频率梳（Comb）结构</strong>：<code>KTC</code> ∈ {2, 4}，每 KTC 个子载波取一个，不同 UE 使用不同的梳齿偏移（comb offset）；</li>
+<li><strong>循环移位（Cyclic Shift）</strong>：序列循环移位提供额外正交维度（每个梳最多 8 个循环移位）。</li>
+</ul>
+<h3 id="8-5-SRS-与-CSI-RS-对比"><a href="#8-5-SRS-与-CSI-RS-对比" class="headerlink" title="8.5 SRS 与 CSI-RS 对比"></a>8.5 SRS 与 CSI-RS 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>SRS（上行）</th>
+<th>CSI-RS（下行）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方向</td>
+<td>UE → gNB</td>
+<td>gNB → UE</td>
+</tr>
+<tr>
+<td>主要用途</td>
+<td>上行信道探测，TDD 互易预编码</td>
+<td>下行信道测量（CQI&#x2F;PMI&#x2F;RI 上报）</td>
+</tr>
+<tr>
+<td>最大端口数</td>
+<td>4</td>
+<td>32</td>
+</tr>
+<tr>
+<td>触发类型</td>
+<td>周期 &#x2F; 半持续 &#x2F; 非周期</td>
+<td>周期 &#x2F; 半持续 &#x2F; 非周期</td>
+</tr>
+<tr>
+<td>规范章节</td>
+<td>TS 38.211 Section 6.4.1.4</td>
+<td>TS 38.211 Section 7.4.1.5</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="九、下行与上行信道对比总结"><a href="#九、下行与上行信道对比总结" class="headerlink" title="九、下行与上行信道对比总结"></a>九、下行与上行信道对比总结</h1><h3 id="9-1-下行物理信道总览"><a href="#9-1-下行物理信道总览" class="headerlink" title="9.1 下行物理信道总览"></a>9.1 下行物理信道总览</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">gNB 发送端</span><br><span class="line">  │</span><br><span class="line">  ├── PBCH（SSB 内，每 20 ms 发送一次 SSB Burst Set）</span><br><span class="line">  │     └── 携带 MIB，帮助 UE 完成小区搜索和初始系统信息获取</span><br><span class="line">  │</span><br><span class="line">  ├── PDCCH（CORESET 内，动态调度）</span><br><span class="line">  │     └── 携带 DCI，调度 PDSCH/PUSCH 的时频资源</span><br><span class="line">  │</span><br><span class="line">  └── PDSCH（BWP 内，动态调度）</span><br><span class="line">        └── 承载用户数据、SIB、Paging 等</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-上行物理信道总览"><a href="#9-2-上行物理信道总览" class="headerlink" title="9.2 上行物理信道总览"></a>9.2 上行物理信道总览</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">UE 发送端</span><br><span class="line">  │</span><br><span class="line">  ├── PRACH（RACH Occasion，随机接入触发）</span><br><span class="line">  │     └── 64 个 ZC 前导码，建立上行同步</span><br><span class="line">  │</span><br><span class="line">  ├── PUCCH（BWP 边缘，Format 0~4）</span><br><span class="line">  │     └── UCI（HARQ-ACK / SR / CSI），不携带用户数据</span><br><span class="line">  │</span><br><span class="line">  ├── PUSCH（BWP 内，动态调度）</span><br><span class="line">  │     └── 上行用户数据，可复用 UCI</span><br><span class="line">  │</span><br><span class="line">  └── SRS（时隙末尾，探测参考信号）</span><br><span class="line">        └── 上行信道质量测量，波束管理辅助</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-信道处理关键参数对比"><a href="#9-3-信道处理关键参数对比" class="headerlink" title="9.3 信道处理关键参数对比"></a>9.3 信道处理关键参数对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>PDSCH</th>
+<th>PUSCH</th>
+<th>PDCCH</th>
+<th>PUCCH</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>编码方案</td>
+<td>LDPC</td>
+<td>LDPC</td>
+<td>Polar</td>
+<td>Polar（Format 2&#x2F;3&#x2F;4）&#x2F; 无编码（Format 0&#x2F;1）</td>
+</tr>
+<tr>
+<td>调制阶数</td>
+<td>最高 256QAM</td>
+<td>最高 256QAM（含π&#x2F;2-BPSK）</td>
+<td>QPSK</td>
+<td>QPSK &#x2F; BPSK</td>
+</tr>
+<tr>
+<td>最大 MIMO 层数</td>
+<td>8 层</td>
+<td>4 层（CP-OFDM） &#x2F; 1 层（DFT-s-OFDM）</td>
+<td>1 层</td>
+<td>1 层</td>
+</tr>
+<tr>
+<td>资源分配粒度</td>
+<td>RB 级</td>
+<td>RB 级</td>
+<td>CCE&#x2F;REG 级（CORESET 内）</td>
+<td>格式相关（1~16 RB）</td>
+</tr>
+<tr>
+<td>参考信号</td>
+<td>DMRS（+ PT-RS）</td>
+<td>DMRS（+ PT-RS + SRS）</td>
+<td>DMRS</td>
+<td>DMRS</td>
+</tr>
+<tr>
+<td>HARQ</td>
+<td>异步 HARQ（最多 16 进程）</td>
+<td>异步 HARQ（最多 16 进程）</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="十、参考规范"><a href="#十、参考规范" class="headerlink" title="十、参考规范"></a>十、参考规范</h1><p>本文内容主要参考以下 3GPP 技术规范：</p>
+<table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>标题</th>
+<th>相关内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TS 38.211</strong></td>
+<td>NR; Physical channels and modulation</td>
+<td>PDSCH&#x2F;PDCCH&#x2F;PBCH&#x2F;PUSCH&#x2F;PUCCH&#x2F;PRACH&#x2F;SRS 的时频资源映射与信号生成</td>
+</tr>
+<tr>
+<td><strong>TS 38.212</strong></td>
+<td>NR; Multiplexing and channel coding</td>
+<td>DCI 格式定义；PDSCH&#x2F;PUSCH LDPC 编码；PDCCH&#x2F;PBCH Polar 编码；UCI 编码</td>
+</tr>
+<tr>
+<td><strong>TS 38.213</strong></td>
+<td>NR; Physical layer procedures for control</td>
+<td>PDCCH 搜索空间；随机接入流程；PUCCH 资源确定；SSB 时域位置</td>
+</tr>
+<tr>
+<td><strong>TS 38.214</strong></td>
+<td>NR; Physical layer procedures for data</td>
+<td>PDSCH&#x2F;PUSCH 资源分配；MCS 表；TBS 计算；DMRS 配置；TCI State</td>
+</tr>
+<tr>
+<td><strong>TS 38.300</strong></td>
+<td>NR; NR and NG-RAN Overall description</td>
+<td>整体架构与信道映射关系</td>
+</tr>
+<tr>
+<td><strong>TS 38.321</strong></td>
+<td>NR; MAC protocol specification</td>
+<td>HARQ 进程管理；随机接入 MAC 流程</td>
+</tr>
+<tr>
+<td><strong>TS 38.331</strong></td>
+<td>NR; Radio Resource Control (RRC)</td>
+<td>MIB &#x2F; SIB 消息格式；PUCCH &#x2F; PUSCH &#x2F; PRACH &#x2F; SRS RRC 配置 IE</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%A6%82%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">一、物理信道概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%EF%BC%88gNB-%E2%86%92-UE%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">下行物理信道（gNB → UE）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%EF%BC%88UE-%E2%86%92-gNB%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">上行物理信道（UE → gNB）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81PDSCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93"><span class="toc-number">3.</span> <span class="toc-text">二、PDSCH — 物理下行共享信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 时频资源分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 信道处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-DMRS%EF%BC%88%E8%A7%A3%E8%B0%83%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 DMRS（解调参考信号）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-TCI-State-%E4%B8%8E-QCL"><span class="toc-number">3.0.5.</span> <span class="toc-text">2.5 TCI State 与 QCL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E8%B0%83%E5%88%B6%E7%BC%96%E7%A0%81%E6%96%B9%E6%A1%88%EF%BC%88MCS%EF%BC%89"><span class="toc-number">3.0.6.</span> <span class="toc-text">2.6 调制编码方案（MCS）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81PDCCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8B%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93"><span class="toc-number">4.</span> <span class="toc-text">三、PDCCH — 物理下行控制信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DCI-Format-%E4%BD%93%E7%B3%BB"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 DCI Format 体系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-CORESET%EF%BC%88%E6%8E%A7%E5%88%B6%E8%B5%84%E6%BA%90%E9%9B%86%E5%90%88%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 CORESET（控制资源集合）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%90%9C%E7%B4%A2%E7%A9%BA%E9%97%B4%EF%BC%88Search-Space%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 搜索空间（Search Space）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-PDCCH-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86"><span class="toc-number">4.0.5.</span> <span class="toc-text">3.5 PDCCH 信道处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-PDCCH-%E5%A2%9E%E5%BC%BA%EF%BC%88R16-%EF%BC%89"><span class="toc-number">4.0.6.</span> <span class="toc-text">3.6 PDCCH 增强（R16+）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81PBCH-%E2%80%94-%E7%89%A9%E7%90%86%E5%B9%BF%E6%92%AD%E4%BF%A1%E9%81%93%E4%B8%8E-SS-PBCH-Block"><span class="toc-number">5.</span> <span class="toc-text">四、PBCH — 物理广播信道与 SS&#x2F;PBCH Block</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-SS-PBCH-Block%EF%BC%88SSB%EF%BC%89%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 SS&#x2F;PBCH Block（SSB）结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-SSB-%E7%AA%81%E5%8F%91%E9%9B%86%E5%90%88%EF%BC%88SS-Burst-Set%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 SSB 突发集合（SS Burst Set）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-PBCH-Payload-%E4%B8%8E-MIB"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 PBCH Payload 与 MIB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-PBCH-%E4%B8%8E-LTE-PSS-SSS-PBCH-%E5%AF%B9%E6%AF%94"><span class="toc-number">5.0.4.</span> <span class="toc-text">4.4 PBCH 与 LTE PSS&#x2F;SSS&#x2F;PBCH 对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81PUSCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E5%85%B1%E4%BA%AB%E4%BF%A1%E9%81%93"><span class="toc-number">6.</span> <span class="toc-text">五、PUSCH — 物理上行共享信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8A%9F%E8%83%BD%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 功能与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%B3%A2%E5%BD%A2%E9%80%89%E6%8B%A9%EF%BC%9ACP-OFDM-vs-DFT-s-OFDM"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 波形选择：CP-OFDM vs DFT-s-OFDM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 时频资源分配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 信道处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-PUSCH-DMRS"><span class="toc-number">6.0.5.</span> <span class="toc-text">5.5 PUSCH DMRS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-PUSCH-%E9%87%8D%E4%BC%A0%E4%B8%8E-HARQ"><span class="toc-number">6.0.6.</span> <span class="toc-text">5.6 PUSCH 重传与 HARQ</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81PUCCH-%E2%80%94-%E7%89%A9%E7%90%86%E4%B8%8A%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93"><span class="toc-number">7.</span> <span class="toc-text">六、PUCCH — 物理上行控制信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%8A%9F%E8%83%BD%E4%B8%8E-UCI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 功能与 UCI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%BA%94%E7%A7%8D-PUCCH-Format"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 五种 PUCCH Format</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Format-0-%E8%AF%A6%E8%A7%A3%EF%BC%88%E5%BA%8F%E5%88%97%E9%80%89%E6%8B%A9%E6%9C%BA%E5%88%B6%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Format 0 详解（序列选择机制）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE"><span class="toc-number">7.0.4.</span> <span class="toc-text">6.4 资源配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%A2%91%E7%8E%87%E8%B7%B3%E5%8F%98"><span class="toc-number">7.0.5.</span> <span class="toc-text">6.5 频率跳变</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81PRACH-%E2%80%94-%E7%89%A9%E7%90%86%E9%9A%8F%E6%9C%BA%E6%8E%A5%E5%85%A5%E4%BF%A1%E9%81%93"><span class="toc-number">8.</span> <span class="toc-text">七、PRACH — 物理随机接入信道</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E5%8A%9F%E8%83%BD"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%89%8D%E5%AF%BC%E7%A0%81%E5%BA%8F%E5%88%97%EF%BC%9AZadoff-Chu-%E5%BA%8F%E5%88%97"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 前导码序列：Zadoff-Chu 序列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%89%8D%E5%AF%BC%E7%A0%81%E6%A0%BC%E5%BC%8F"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 前导码格式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#7-3-1-%E9%95%BF%E5%89%8D%E5%AF%BC%E7%A0%81%EF%BC%88Long-Preamble%EF%BC%8CFR1-%E4%B8%BB%E7%94%A8%EF%BC%89"><span class="toc-number">8.0.3.1.</span> <span class="toc-text">7.3.1 长前导码（Long Preamble，FR1 主用）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-3-2-%E7%9F%AD%E5%89%8D%E5%AF%BC%E7%A0%81%EF%BC%88Short-Preamble%EF%BC%8CFR1-FR2-%E9%80%9A%E7%94%A8%EF%BC%89"><span class="toc-number">8.0.3.2.</span> <span class="toc-text">7.3.2 短前导码（Short Preamble，FR1&#x2F;FR2 通用）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-PRACH-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 PRACH 时频资源配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-64-%E4%B8%AA%E5%89%8D%E5%AF%BC%E7%A0%81%E7%9A%84%E5%88%86%E7%BB%84"><span class="toc-number">8.0.5.</span> <span class="toc-text">7.5 64 个前导码的分组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-RA-RNTI-%E8%AE%A1%E7%AE%97"><span class="toc-number">8.0.6.</span> <span class="toc-text">7.6 RA-RNTI 计算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81SRS-%E2%80%94-%E6%8E%A2%E6%B5%8B%E5%8F%82%E8%80%83%E4%BF%A1%E5%8F%B7"><span class="toc-number">9.</span> <span class="toc-text">八、SRS — 探测参考信号</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%8A%9F%E8%83%BD"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-SRS-%E6%97%B6%E9%A2%91%E8%B5%84%E6%BA%90%E7%BB%93%E6%9E%84"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 SRS 时频资源结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%A7%A6%E5%8F%91%E7%B1%BB%E5%9E%8B"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 触发类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-SRS-%E5%A4%A9%E7%BA%BF%E7%AB%AF%E5%8F%A3%E4%B8%8E%E5%A4%9A%E7%94%A8%E6%88%B7%E6%AD%A3%E4%BA%A4"><span class="toc-number">9.0.4.</span> <span class="toc-text">8.4 SRS 天线端口与多用户正交</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-SRS-%E4%B8%8E-CSI-RS-%E5%AF%B9%E6%AF%94"><span class="toc-number">9.0.5.</span> <span class="toc-text">8.5 SRS 与 CSI-RS 对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8B%E8%A1%8C%E4%B8%8E%E4%B8%8A%E8%A1%8C%E4%BF%A1%E9%81%93%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">九、下行与上行信道对比总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%8B%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%80%BB%E8%A7%88"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 下行物理信道总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E4%B8%8A%E8%A1%8C%E7%89%A9%E7%90%86%E4%BF%A1%E9%81%93%E6%80%BB%E8%A7%88"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 上行物理信道总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BF%A1%E9%81%93%E5%A4%84%E7%90%86%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E5%AF%B9%E6%AF%94"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 信道处理关键参数对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">11.</span> <span class="toc-text">十、参考规范</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/05/14/3gpp/13_Physical_Channels/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&text=下行物理信道与上行物理信道"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&is_video=false&description=下行物理信道与上行物理信道"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=下行物理信道与上行物理信道&body=Check out this article: http://example.com/2016/05/14/3gpp/13_Physical_Channels/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&title=下行物理信道与上行物理信道"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&name=下行物理信道与上行物理信道&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/05/14/3gpp/13_Physical_Channels/&t=下行物理信道与上行物理信道"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

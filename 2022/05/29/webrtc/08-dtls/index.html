@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 为什么 WebRTC 需要 DTLS DTLS 协议概览 DTLS 与 TLS 的关键差异 DTLS Record Layer（记录层） DTLS 握手协议详解 DTLS 在 WebRTC 中的角色协商 证书指纹与身份验证 DTLS-SRTP：密钥导出机制 DTLS 版本演进 安全考量 完整连接建立时序   1. 为什么 WebRTC 需要 DTLSWebRTC 的核心使命是实现浏览器间的实">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-29T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-29T00:13:37.528Z">
+<meta property="article:modified_time" content="2026-05-07T13:12:49.664Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -494,9 +494,6 @@
 <li><strong>精简密码套件</strong>：强制 AEAD，移除所有不安全的旧套件；</li>
 <li><strong>基于 TLS 1.3 的 ACK 机制</strong>：替代了部分重传逻辑。</li>
 </ul>
-<blockquote>
-<p><strong>注意</strong>：截至本文写作时（2025 年），主流浏览器对 DTLS 1.3 的支持仍在推进中，WebRTC 生产环境中 DTLS 1.2 仍是主流。</p>
-</blockquote>
 <h3 id="版本对比总结"><a href="#版本对比总结" class="headerlink" title="版本对比总结"></a>版本对比总结</h3><table>
 <thead>
 <tr>

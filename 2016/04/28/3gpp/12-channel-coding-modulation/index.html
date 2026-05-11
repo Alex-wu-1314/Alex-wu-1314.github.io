@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="概述信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
+<meta property="og:type" content="article">
+<meta property="og:title" content="信道编码与调制方式">
+<meta property="og:url" content="http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="概述信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-04-28T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-10T22:50:30.576Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>信道编码与调制方式</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/05/14/3gpp/13_Physical_Channels/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&text=信道编码与调制方式"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&is_video=false&description=信道编码与调制方式"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=信道编码与调制方式&body=Check out this article: http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&name=信道编码与调制方式&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&t=信道编码与调制方式"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E4%BF%A1%E9%81%93%E7%BC%96%E7%A0%81"><span class="toc-number">2.</span> <span class="toc-text">第一部分：信道编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%BC%96%E7%A0%81%E6%96%B9%E6%A1%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 编码方案总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-LDPC-%E7%A0%81%EF%BC%88%E6%95%B0%E6%8D%AE%E4%BF%A1%E9%81%93%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 LDPC 码（数据信道）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-LDPC%EF%BC%9F"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">1.2.1 为什么选择 LDPC？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-QC-LDPC-%E4%B8%8E%E5%87%86%E5%BE%AA%E7%8E%AF%E6%8F%90%E5%8D%87"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">1.2.2 QC-LDPC 与准循环提升</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-3-%E4%B8%A4%E7%A7%8D%E5%9F%BA%E5%9B%BE%EF%BC%9ABG1-%E4%B8%8E-BG2"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">1.2.3 两种基图：BG1 与 BG2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-4-%E6%8F%90%E5%8D%87%E5%B0%BA%E5%AF%B8-Zc-%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">1.2.4 提升尺寸 Zc 的选择</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-5-%E7%BC%96%E7%A0%81%E6%B5%81%E7%A8%8B%EF%BC%9A%E4%BB%8E%E4%BC%A0%E8%BE%93%E5%9D%97%E5%88%B0%E7%A0%81%E5%AD%97"><span class="toc-number">2.0.2.5.</span> <span class="toc-text">1.2.5 编码流程：从传输块到码字</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-6-%E9%80%9F%E7%8E%87%E5%8C%B9%E9%85%8D%E4%B8%8E%E5%86%97%E4%BD%99%E7%89%88%E6%9C%AC%EF%BC%88RV%EF%BC%89"><span class="toc-number">2.0.2.6.</span> <span class="toc-text">1.2.6 速率匹配与冗余版本（RV）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Polar-%E7%A0%81%EF%BC%88%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 Polar 码（控制信道）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-Polar-%E7%A0%81%EF%BC%9F"><span class="toc-number">2.0.3.1.</span> <span class="toc-text">1.3.1 为什么选择 Polar 码？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-2-Polar-%E7%A0%81%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">2.0.3.2.</span> <span class="toc-text">1.3.2 Polar 码基本原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-3-5G-NR-Polar-%E7%A0%81%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">2.0.3.3.</span> <span class="toc-text">1.3.3 5G NR Polar 码的应用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-4-%E5%88%86%E5%B8%83%E5%BC%8F-CRC%EF%BC%88Distributed-CRC%EF%BC%89"><span class="toc-number">2.0.3.4.</span> <span class="toc-text">1.3.4 分布式 CRC（Distributed CRC）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-5-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%BA%8F%E5%88%97%EF%BC%88Reliability-Sequence%EF%BC%89"><span class="toc-number">2.0.3.5.</span> <span class="toc-text">1.3.5 可靠性序列（Reliability Sequence）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-6-%E8%AF%91%E7%A0%81%EF%BC%9ASCL-CRC-%E8%BE%85%E5%8A%A9"><span class="toc-number">2.0.3.6.</span> <span class="toc-text">1.3.6 译码：SCL + CRC 辅助</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E8%B0%83%E5%88%B6%E6%96%B9%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">第二部分：调制方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%B0%83%E5%88%B6%E5%9F%BA%E7%A1%80"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 调制基础</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-QPSK"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">2.1.1 QPSK</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-2-16QAM"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">2.1.2 16QAM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-3-64QAM"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">2.1.3 64QAM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-4-256QAM"><span class="toc-number">3.0.1.4.</span> <span class="toc-text">2.1.4 256QAM</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-MCS-%E8%A1%A8%E6%A0%BC%EF%BC%88Modulation-and-Coding-Scheme%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 MCS 表格（Modulation and Coding Scheme）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-MCS-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">2.2.1 MCS 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-PDSCH-MCS-%E8%A1%A8%E6%A0%BC%EF%BC%88TS-38-214-%E7%AC%AC-5-1-3-1-%E8%8A%82%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">2.2.2 PDSCH MCS 表格（TS 38.214 第 5.1.3.1 节）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-MCS-%E8%A1%A8%E6%A0%BC%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">2.2.3 MCS 表格选择逻辑</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-CQI%EF%BC%88%E4%BF%A1%E9%81%93%E8%B4%A8%E9%87%8F%E6%8C%87%E7%A4%BA%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 CQI（信道质量指示）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-CQI-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">2.3.1 CQI 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-CQI-%E8%A1%A8%E6%A0%BC%EF%BC%88TS-38-214-%E7%AC%AC-5-2-2-1-%E8%8A%82%EF%BC%89"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">2.3.2 CQI 表格（TS 38.214 第 5.2.2.1 节）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-CQI-%E4%B8%8A%E6%8A%A5%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">2.3.3 CQI 上报机制</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%93%BE%E8%B7%AF%E8%87%AA%E9%80%82%E5%BA%94%EF%BC%88Link-Adaptation%EF%BC%89%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 链路自适应（Link Adaptation）全流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-1-%E5%A4%96%E7%8E%AF%E9%93%BE%E8%B7%AF%E8%87%AA%E9%80%82%E5%BA%94%EF%BC%88OLLA%EF%BC%89"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">2.4.1 外环链路自适应（OLLA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-2-TBS%EF%BC%88%E4%BC%A0%E8%BE%93%E5%9D%97%E5%A4%A7%E5%B0%8F%EF%BC%89%E8%AE%A1%E7%AE%97"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">2.4.2 TBS（传输块大小）计算</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86%EF%BC%9A%E7%BC%96%E7%A0%81%E4%B8%8E%E8%B0%83%E5%88%B6%E7%9A%84%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">第三部分：编码与调制的协同工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%8C%E6%95%B4%E5%8F%91%E9%80%81%E9%93%BE%E8%B7%AF"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 完整发送链路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-PDCCH-%E7%9A%84%E7%89%B9%E6%AE%8A%E6%80%A7"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 PDCCH 的特殊性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E7%A0%81%E5%A2%9E%E7%9B%8A%E5%AF%B9%E6%AF%94%EF%BC%88%E5%8F%82%E8%80%83%E5%80%BC%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 编码增益对比（参考值）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">6.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        信道编码与调制方式
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-04-28T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-04-28</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：<strong>数据信道采用 LDPC 码，控制信道采用 Polar 码</strong>。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面积的吞吐量、短块性能以及在极低 BLER 时的误帧率悬崖特性。</p>
+<p>本文涵盖的主要规范：</p>
+<table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 38.212</strong></td>
+<td>信道编码、速率匹配与信道映射（Multiplexing and Channel Coding）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.214</strong></td>
+<td>物理层过程，包含 MCS&#x2F;CQI 表格</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.211</strong></td>
+<td>物理信道与调制</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="第一部分：信道编码"><a href="#第一部分：信道编码" class="headerlink" title="第一部分：信道编码"></a>第一部分：信道编码</h1><h3 id="1-1-编码方案总览"><a href="#1-1-编码方案总览" class="headerlink" title="1.1 编码方案总览"></a>1.1 编码方案总览</h3><p>3GPP TS 38.212 第 5.1 节明确规定了各信道的编码方案：</p>
+<table>
+<thead>
+<tr>
+<th>信道&#x2F;信息类型</th>
+<th>编码方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DL-SCH（下行共享信道）</td>
+<td>LDPC</td>
+</tr>
+<tr>
+<td>UL-SCH（上行共享信道）</td>
+<td>LDPC</td>
+</tr>
+<tr>
+<td>PCH（寻呼信道）</td>
+<td>LDPC</td>
+</tr>
+<tr>
+<td>BCH（广播信道）</td>
+<td>Polar 码</td>
+</tr>
+<tr>
+<td>DCI（下行控制信息）</td>
+<td>Polar 码</td>
+</tr>
+<tr>
+<td>UCI（上行控制信息，≥12 bit）</td>
+<td>Polar 码</td>
+</tr>
+<tr>
+<td>UCI（上行控制信息，3~11 bit）</td>
+<td>分组码（Reed-Muller）</td>
+</tr>
+<tr>
+<td>UCI（HARQ-ACK，1~2 bit）</td>
+<td>重复码</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="1-2-LDPC-码（数据信道）"><a href="#1-2-LDPC-码（数据信道）" class="headerlink" title="1.2 LDPC 码（数据信道）"></a>1.2 LDPC 码（数据信道）</h3><h4 id="1-2-1-为什么选择-LDPC？"><a href="#1-2-1-为什么选择-LDPC？" class="headerlink" title="1.2.1 为什么选择 LDPC？"></a>1.2.1 为什么选择 LDPC？</h4><p>LDPC（Low-Density Parity-Check，低密度奇偶校验）码由 Gallager 在 1963 年提出，因其逼近香农极限的纠错性能和天然适合并行硬件实现的特点，在 5G eMBB 场景的数据信道编码竞争中胜出：</p>
+<ul>
+<li><strong>高吞吐量</strong>：基于置信传播（Belief Propagation）的迭代译码可在硬件上高度并行化，满足 5G 峰值速率（DL 20 Gbps）需求。</li>
+<li><strong>低错误平层</strong>：相比 Turbo 码，LDPC 在高 SNR 下没有明显的错误平层（error floor）。</li>
+<li><strong>灵活码率</strong>：通过循环缓冲区速率匹配，可灵活支持各种码率，并天然支持增量冗余 HARQ（IR-HARQ）。</li>
+</ul>
+<h4 id="1-2-2-QC-LDPC-与准循环提升"><a href="#1-2-2-QC-LDPC-与准循环提升" class="headerlink" title="1.2.2 QC-LDPC 与准循环提升"></a>1.2.2 QC-LDPC 与准循环提升</h4><p>5G NR 采用<strong>准循环 LDPC（QC-LDPC）</strong>，其核心思想是”基图 + 提升（Base Graph + Lifting）”。</p>
+<p><strong>基本概念</strong>：</p>
+<p>与其存储一个庞大的奇偶校验矩阵 <strong>H</strong>，标准只定义一个小规模的基图（Base Graph）。基图是一个整数矩阵，每个元素要么是 <code>-1</code>（无连接），要么是一个移位值 <code>v</code>。运行时，将基图中每个 <code>-1</code> 替换为 <code>Z×Z</code> 的全零矩阵，每个移位值 <code>v</code> 替换为循环移位 <code>v</code> 列的 <code>Z×Z</code> 单位矩阵，即可得到实际的 <strong>H</strong> 矩阵。<code>Z</code> 称为<strong>提升尺寸（Lifting Size）</strong>。</p>
+<p>通过选择不同的 <code>Z</code> 值，可以得到不同码长的 LDPC 码，而无需存储多个不同大小的奇偶校验矩阵，实现了硬件的高度复用。</p>
+<h4 id="1-2-3-两种基图：BG1-与-BG2"><a href="#1-2-3-两种基图：BG1-与-BG2" class="headerlink" title="1.2.3 两种基图：BG1 与 BG2"></a>1.2.3 两种基图：BG1 与 BG2</h4><p>3GPP TS 38.212 定义了两个基图，适用于不同的传输块大小（TBS）和码率场景（参见 TS 38.212 第 5.2.2 节和第 7.2.2 节）：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>BG1</th>
+<th>BG2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>基图尺寸</strong>（行 × 列）</td>
+<td>46 × 68</td>
+<td>42 × 52</td>
+</tr>
+<tr>
+<td><strong>系统位列数 Kb</strong></td>
+<td>22</td>
+<td>6 &#x2F; 8 &#x2F; 9 &#x2F; 10（依 K 而定）</td>
+</tr>
+<tr>
+<td><strong>母码长度</strong>（含提升）</td>
+<td>N &#x3D; 66 × Z</td>
+<td>N &#x3D; 50 × Z</td>
+</tr>
+<tr>
+<td><strong>最大码块大小</strong></td>
+<td>8448 bit</td>
+<td>3840 bit</td>
+</tr>
+<tr>
+<td><strong>支持码率范围</strong></td>
+<td>1&#x2F;3 ～ 22&#x2F;24（约 8.89）</td>
+<td>1&#x2F;5 ～ 2&#x2F;3</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>大 TBS、高码率、eMBB 高速传输</td>
+<td>小 TBS、低码率、初始传输或控制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：BG1 的前两列系统位在传输前被<strong>穿孔（punctured）</strong>，实际传输的母码为 N - 2Z 比特。这是 5G NR LDPC 的重要规则之一。</p>
+</blockquote>
+<p><strong>基图选择判决规则</strong>（TS 38.212 第 7.2.2 节）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">若 A ≤ 292，或</span><br><span class="line">若 A ≤ 3824 且 R ≤ 2/3，或</span><br><span class="line">若 R ≤ 1/4，</span><br><span class="line">则选择 BG2；</span><br><span class="line">否则选择 BG1。</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>A</code> 为传输块大小（bit），<code>R</code> 为目标码率。</p>
+<h4 id="1-2-4-提升尺寸-Zc-的选择"><a href="#1-2-4-提升尺寸-Zc-的选择" class="headerlink" title="1.2.4 提升尺寸 Zc 的选择"></a>1.2.4 提升尺寸 Zc 的选择</h4><p>确定基图后，还需选择提升尺寸 <code>Zc</code> 以确定码长。TS 38.212 表 5.3.2-1 定义了 <strong>51 个合法的 Zc 值</strong>，从 2 到 384，组织为 8 个集合（索引 iLS &#x3D; 0～7）：</p>
+<table>
+<thead>
+<tr>
+<th>iLS</th>
+<th>Zc 集合（部分）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>2, 4, 8, 16, 32, 64, 128, 256</td>
+</tr>
+<tr>
+<td>1</td>
+<td>3, 6, 12, 24, 48, 96, 192, 384</td>
+</tr>
+<tr>
+<td>2</td>
+<td>5, 10, 20, 40, 80, 160, 320</td>
+</tr>
+<tr>
+<td>3</td>
+<td>7, 14, 28, 56, 112, 224</td>
+</tr>
+<tr>
+<td>4</td>
+<td>9, 18, 36, 72, 144, 288</td>
+</tr>
+<tr>
+<td>5</td>
+<td>11, 22, 44, 88, 176, 352</td>
+</tr>
+<tr>
+<td>6</td>
+<td>13, 26, 52, 104, 208</td>
+</tr>
+<tr>
+<td>7</td>
+<td>15, 30, 60, 120, 240</td>
+</tr>
+</tbody></table>
+<p><strong>选取规则</strong>：从满足 <code>Kb × Zc ≥ K</code>（K 为码块信息位数）的合法 Zc 值中，选取最小值。</p>
+<h4 id="1-2-5-编码流程：从传输块到码字"><a href="#1-2-5-编码流程：从传输块到码字" class="headerlink" title="1.2.5 编码流程：从传输块到码字"></a>1.2.5 编码流程：从传输块到码字</h4><p>以 DL-SCH 为例，编码流程（TS 38.212 第 7.2 节）如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">传输块（TB）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">① TB-CRC 附加</span><br><span class="line">   CRC24A（TBS &gt; 3824 bit）或 CRC16（TBS ≤ 3824 bit）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">② LDPC 基图选择</span><br><span class="line">   根据 A 和 R 判断 BG1 / BG2</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">③ 码块分段（Code Block Segmentation）+ CB-CRC 附加</span><br><span class="line">   若 B&#x27; &gt; K_cb_max 则分段，每段附加 CRC24B</span><br><span class="line">   BG1 最大码块：K_cb = 8448 bit</span><br><span class="line">   BG2 最大码块：K_cb = 3840 bit</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">④ 每个码块独立 LDPC 编码</span><br><span class="line">   确定 Zc → 生成 H 矩阵 → 系统编码</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑤ 速率匹配（Rate Matching）</span><br><span class="line">   循环缓冲区 + 穿孔 / 重复 / 缩短</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑥ 码块拼接（Code Block Concatenation）</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-2-6-速率匹配与冗余版本（RV）"><a href="#1-2-6-速率匹配与冗余版本（RV）" class="headerlink" title="1.2.6 速率匹配与冗余版本（RV）"></a>1.2.6 速率匹配与冗余版本（RV）</h4><p>速率匹配的核心是<strong>循环缓冲区（Circular Buffer）</strong>机制，用于支持 HARQ 增量冗余（IR-HARQ）。</p>
+<p>编码后的码字被写入循环缓冲区，通过设置不同的<strong>起始读取位置</strong>定义四个冗余版本（RV0～RV3）。发射端每次传输从对应 RV 的起始位置连续读取所需数量的比特。</p>
+<table>
+<thead>
+<tr>
+<th>冗余版本</th>
+<th>起始位置（近似，相对 Zc）</th>
+<th>特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RV0</td>
+<td>0</td>
+<td><strong>自解码</strong>，首次传输，包含系统位</td>
+</tr>
+<tr>
+<td>RV1</td>
+<td>~17×Z</td>
+<td>增量冗余（主要为奇偶校验位）</td>
+</tr>
+<tr>
+<td>RV2</td>
+<td>~33×Z</td>
+<td>增量冗余</td>
+</tr>
+<tr>
+<td>RV3</td>
+<td>~56×Z</td>
+<td><strong>自解码</strong>，可单独解码</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>默认重传顺序：<strong>RV0 → RV2 → RV3 → RV1</strong>。RV0 和 RV3 均为自解码 RV，可在没有前序传输的情况下独立解码，这为 gNB 处理 NACK&#x2F;ACK 模糊提供了灵活性。</p>
+</blockquote>
+<p><strong>Limited Buffer Rate Matching（LBRM）</strong>：当 UE 的软缓冲区不足以容纳完整循环缓冲区时，激活 LBRM，限制写入循环缓冲区的码字长度，保证 UE 可以正常处理 HARQ 合并。</p>
+<hr>
+<h3 id="1-3-Polar-码（控制信道）"><a href="#1-3-Polar-码（控制信道）" class="headerlink" title="1.3 Polar 码（控制信道）"></a>1.3 Polar 码（控制信道）</h3><h4 id="1-3-1-为什么选择-Polar-码？"><a href="#1-3-1-为什么选择-Polar-码？" class="headerlink" title="1.3.1 为什么选择 Polar 码？"></a>1.3.1 为什么选择 Polar 码？</h4><p>Polar 码由 Arıkan 在 2008 年提出，是理论上<strong>第一个被严格证明能达到二进对称信道容量</strong>的线性码。5G NR 控制信道选择 Polar 码的核心原因：</p>
+<ul>
+<li><strong>短块性能优异</strong>：DCI 通常仅有几十到几百比特，Polar 码在短块场景下优于 Turbo 码和 LDPC。</li>
+<li><strong>与 CRC 的天然协同</strong>：Polar 码配合 SCL（Successive Cancellation List）译码 + CRC 辅助，可实现极低 BLER。</li>
+<li><strong>灵活速率适配</strong>：通过冻结位选择和速率匹配，可支持广泛的码率和码长。</li>
+</ul>
+<h4 id="1-3-2-Polar-码基本原理"><a href="#1-3-2-Polar-码基本原理" class="headerlink" title="1.3.2 Polar 码基本原理"></a>1.3.2 Polar 码基本原理</h4><p>Polar 码的核心是<strong>信道极化（Channel Polarization）</strong> 现象：</p>
+<p>将 N 个独立的信道 W 通过递归组合，经过大量使用后，这 N 个等效信道会发生分化（极化），一部分趋向于完全可靠（容量接近 1），另一部分趋向于完全不可靠（容量接近 0）。</p>
+<p><strong>编码策略</strong>：</p>
+<ul>
+<li>将信息位放置在<strong>可靠的子信道</strong>（较好的信道）上传输。</li>
+<li>将<strong>冻结位</strong>（frozen bits，通常为 0）放置在不可靠的子信道上。</li>
+<li>接收端利用已知的冻结位位置，通过 SC 或 SCL 算法逐步恢复信息位。</li>
+</ul>
+<p><strong>码长</strong>：Polar 码的母码长度为 2 的幂次，即 N &#x3D; 2^n。</p>
+<h4 id="1-3-3-5G-NR-Polar-码的应用"><a href="#1-3-3-5G-NR-Polar-码的应用" class="headerlink" title="1.3.3 5G NR Polar 码的应用"></a>1.3.3 5G NR Polar 码的应用</h4><p>3GPP TS 38.212 定义了 Polar 码用于 PDCCH、PUCCH、PUSCH UCI 和 BCH，各信道配置略有差异。以 <strong>PDCCH&#x2F;DCI</strong> 为例，编码流程如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">DCI 信息位（Payload）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">① 零填充（若 payload &lt; 12 bit，补零到 12 bit）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">② CRC 附加</span><br><span class="line">   CRC24C（24 bit）并用目标 UE 的 RNTI 加扰</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">③ CRC 交织（Distributed CRC Interleaving）</span><br><span class="line">   将 CRC 位分布插入信息位流中（非连续附加）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">④ Polar 编码</span><br><span class="line">   根据信息位数 K 和输出长度 E 确定 N = 2^n</span><br><span class="line">   按可靠性序列（Reliability Sequence）分配子信道</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑤ 子块交织（Sub-block Interleaving）</span><br><span class="line">   按 TS 38.212 规定的模式对编码位重排</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑥ 速率匹配</span><br><span class="line">   按 E 截取（缩短 Shortening）或重复（Repetition）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑦ 信道交织（Channel Interleaving，仅 PDCCH）</span><br><span class="line">   三角交织器，将比特分散至 QPSK 符号和 CCE</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-3-4-分布式-CRC（Distributed-CRC）"><a href="#1-3-4-分布式-CRC（Distributed-CRC）" class="headerlink" title="1.3.4 分布式 CRC（Distributed CRC）"></a>1.3.4 分布式 CRC（Distributed CRC）</h4><p>这是 5G NR Polar 码的一个重要创新。常规做法是将全部 CRC 位附加在信息位末尾；NR 则将 CRC 位<strong>交织插入信息位序列的内部</strong>。</p>
+<p><strong>优势</strong>：SCL 译码器在搜索候选路径时，可在译码中途（而非全部完成后）进行<strong>提前 CRC 验证</strong>，一旦某条候选路径的局部 CRC 不匹配即可剪枝，显著降低译码复杂度（减少无效路径的计算），同时提升译码性能。</p>
+<p>具体参数：</p>
+<ul>
+<li>PBCH：分布 3 个 CRC 位</li>
+<li>PDCCH（DCI）：分布 7 个 CRC 位，CRC 多项式为 CRC24C</li>
+</ul>
+<h4 id="1-3-5-可靠性序列（Reliability-Sequence）"><a href="#1-3-5-可靠性序列（Reliability-Sequence）" class="headerlink" title="1.3.5 可靠性序列（Reliability Sequence）"></a>1.3.5 可靠性序列（Reliability Sequence）</h4><p>TS 38.212 表 5.3.1-2 规定了长度为 1024 的<strong>全局可靠性序列</strong>，对所有信道通用。该序列是在大量仿真基础上确定的，按子信道容量从高到低排列。编码时，选择序列中前 K 个（可靠性最高的）子信道承载信息位，其余子信道为冻结位。</p>
+<h4 id="1-3-6-译码：SCL-CRC-辅助"><a href="#1-3-6-译码：SCL-CRC-辅助" class="headerlink" title="1.3.6 译码：SCL + CRC 辅助"></a>1.3.6 译码：SCL + CRC 辅助</h4><p>工业实现中的标准译码方案是 <strong>CRC-Aided SCL（CA-SCL）</strong>：</p>
+<ul>
+<li><strong>SC（Successive Cancellation）</strong>：从左到右逐位判决，复杂度低（O(N log N)），但短块性能有限。</li>
+<li><strong>SCL（List Decoding）</strong>：维持 L 条候选路径（通常 L&#x3D;8），在最后用 CRC 从 L 个候选中选择最佳，性能大幅提升。</li>
+<li><strong>分布式 CRC 辅助</strong>：结合分布式 CRC，SCL 可在中间节点提前剪枝，进一步降低复杂度。</li>
+</ul>
+<p>PDCCH 场景中，UE 需要对同一搜索空间内的所有 DCI 候选盲检测，每次盲检均运行 SCL-L8 译码器，分布式 CRC 的提前终止特性在此场景下尤为重要。</p>
+<hr>
+<h1 id="第二部分：调制方式"><a href="#第二部分：调制方式" class="headerlink" title="第二部分：调制方式"></a>第二部分：调制方式</h1><h3 id="2-1-调制基础"><a href="#2-1-调制基础" class="headerlink" title="2.1 调制基础"></a>2.1 调制基础</h3><p>数字调制将比特映射为复数符号（星座点），通过 OFDM 在频域上传输。5G NR 支持以下调制方式（TS 38.211 第 5.1 节）：</p>
+<table>
+<thead>
+<tr>
+<th>调制方式</th>
+<th>调制阶数 M</th>
+<th>每符号比特数</th>
+<th>信噪比要求（参考）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QPSK</td>
+<td>4</td>
+<td>2 bit&#x2F;符号</td>
+<td>较低，抗干扰强</td>
+</tr>
+<tr>
+<td>16QAM</td>
+<td>16</td>
+<td>4 bit&#x2F;符号</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>64QAM</td>
+<td>64</td>
+<td>6 bit&#x2F;符号</td>
+<td>较高</td>
+</tr>
+<tr>
+<td>256QAM</td>
+<td>256</td>
+<td>8 bit&#x2F;符号</td>
+<td>高，需优质信道</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注</strong>：TS 38.211 同时定义了 π&#x2F;2-BPSK（用于 PUSCH transform precoding 场景的上行，降低 PAPR），以及 Release 17 引入实验性 <strong>1024QAM</strong>（10 bit&#x2F;符号，TS 38.214 Table 5.1.3.1-4 和 CQI Table 5.2.2.1-5）。</p>
+</blockquote>
+<h4 id="2-1-1-QPSK"><a href="#2-1-1-QPSK" class="headerlink" title="2.1.1 QPSK"></a>2.1.1 QPSK</h4><p>每个符号携带 <strong>2 bit</strong>，星座图为 4 个等间距相位点，具有最强的抗噪声能力。主要用于：</p>
+<ul>
+<li>覆盖边缘 &#x2F; 弱信号场景</li>
+<li>PDCCH 控制信道（固定使用 QPSK）</li>
+<li>PRACH &#x2F; PUCCH 控制信道</li>
+</ul>
+<p>Gray 编码映射（TS 38.211 表 5.1.3.1-1）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bit [b0, b1] → 符号</span><br><span class="line">[0,0] → (+1+j)/√2</span><br><span class="line">[0,1] → (+1-j)/√2</span><br><span class="line">[1,0] → (-1+j)/√2</span><br><span class="line">[1,1] → (-1-j)/√2</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-1-2-16QAM"><a href="#2-1-2-16QAM" class="headerlink" title="2.1.2 16QAM"></a>2.1.2 16QAM</h4><p>每个符号携带 <strong>4 bit</strong>，16 个星座点排列为 4×4 矩阵。在中等 SNR（约 15～20 dB）下提供良好的频谱效率（4 bit&#x2F;符号）。</p>
+<h4 id="2-1-3-64QAM"><a href="#2-1-3-64QAM" class="headerlink" title="2.1.3 64QAM"></a>2.1.3 64QAM</h4><p>每个符号携带 <strong>6 bit</strong>，64 个星座点排列为 8×8 矩阵。LTE 最高支持 64QAM，5G NR 在 FR1（Sub-6GHz）中广泛使用，需要约 20～25 dB SNR。</p>
+<h4 id="2-1-4-256QAM"><a href="#2-1-4-256QAM" class="headerlink" title="2.1.4 256QAM"></a>2.1.4 256QAM</h4><p>每个符号携带 <strong>8 bit</strong>，256 个星座点排列为 16×16 矩阵。这是 5G NR eMBB 场景实现峰值速率的关键，但需要极高的信道质量（SNR &gt; 25 dB），通常仅在近距离、LOS（视距）或毫米波场景使用。</p>
+<hr>
+<h3 id="2-2-MCS-表格（Modulation-and-Coding-Scheme）"><a href="#2-2-MCS-表格（Modulation-and-Coding-Scheme）" class="headerlink" title="2.2 MCS 表格（Modulation and Coding Scheme）"></a>2.2 MCS 表格（Modulation and Coding Scheme）</h3><p>MCS 是调制阶数与信道编码码率的组合索引，由 gNB 通过 DCI 的 MCS 字段指示 UE。</p>
+<h4 id="2-2-1-MCS-的作用"><a href="#2-2-1-MCS-的作用" class="headerlink" title="2.2.1 MCS 的作用"></a>2.2.1 MCS 的作用</h4><p>MCS 索引（0～31）唯一确定：</p>
+<ol>
+<li><strong>调制阶数</strong>（Qm）：2 &#x2F; 4 &#x2F; 6 &#x2F; 8 对应 QPSK &#x2F; 16QAM &#x2F; 64QAM &#x2F; 256QAM</li>
+<li><strong>目标码率</strong>（R × 1024）：编码率归一化后的整数表示</li>
+<li><strong>频谱效率</strong>（SE &#x3D; Qm × R，单位 bit&#x2F;RE）</li>
+</ol>
+<p>MCS 索引 28～31 为保留或特殊用途（如重传标志）。</p>
+<h4 id="2-2-2-PDSCH-MCS-表格（TS-38-214-第-5-1-3-1-节）"><a href="#2-2-2-PDSCH-MCS-表格（TS-38-214-第-5-1-3-1-节）" class="headerlink" title="2.2.2 PDSCH MCS 表格（TS 38.214 第 5.1.3.1 节）"></a>2.2.2 PDSCH MCS 表格（TS 38.214 第 5.1.3.1 节）</h4><p>3GPP TS 38.214 为 PDSCH 定义了 <strong>3 张 MCS 表格</strong>，通过 RRC 参数 <code>mcs-Table</code> 配置：</p>
+<p><strong>表 1（Table 1 &#x2F; qam64）</strong>：默认表，支持 QPSK &#x2F; 16QAM &#x2F; 64QAM</p>
+<table>
+<thead>
+<tr>
+<th>MCS 索引</th>
+<th>调制方式</th>
+<th>码率 × 1024</th>
+<th>频谱效率（bit&#x2F;RE）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>QPSK</td>
+<td>120</td>
+<td>0.2344</td>
+</tr>
+<tr>
+<td>1</td>
+<td>QPSK</td>
+<td>157</td>
+<td>0.3066</td>
+</tr>
+<tr>
+<td>2</td>
+<td>QPSK</td>
+<td>193</td>
+<td>0.3770</td>
+</tr>
+<tr>
+<td>3</td>
+<td>QPSK</td>
+<td>251</td>
+<td>0.4902</td>
+</tr>
+<tr>
+<td>4</td>
+<td>QPSK</td>
+<td>308</td>
+<td>0.6016</td>
+</tr>
+<tr>
+<td>5</td>
+<td>QPSK</td>
+<td>379</td>
+<td>0.7402</td>
+</tr>
+<tr>
+<td>6</td>
+<td>QPSK</td>
+<td>449</td>
+<td>0.8770</td>
+</tr>
+<tr>
+<td>7</td>
+<td>QPSK</td>
+<td>526</td>
+<td>1.0273</td>
+</tr>
+<tr>
+<td>8</td>
+<td>QPSK</td>
+<td>602</td>
+<td>1.1758</td>
+</tr>
+<tr>
+<td>9</td>
+<td>QPSK</td>
+<td>679</td>
+<td>1.3262</td>
+</tr>
+<tr>
+<td>10</td>
+<td>16QAM</td>
+<td>340</td>
+<td>1.3281</td>
+</tr>
+<tr>
+<td>11</td>
+<td>16QAM</td>
+<td>378</td>
+<td>1.4766</td>
+</tr>
+<tr>
+<td>12</td>
+<td>16QAM</td>
+<td>434</td>
+<td>1.6953</td>
+</tr>
+<tr>
+<td>13</td>
+<td>16QAM</td>
+<td>490</td>
+<td>1.9141</td>
+</tr>
+<tr>
+<td>14</td>
+<td>16QAM</td>
+<td>553</td>
+<td>2.1602</td>
+</tr>
+<tr>
+<td>15</td>
+<td>16QAM</td>
+<td>616</td>
+<td>2.4063</td>
+</tr>
+<tr>
+<td>16</td>
+<td>16QAM</td>
+<td>658</td>
+<td>2.5703</td>
+</tr>
+<tr>
+<td>17</td>
+<td>64QAM</td>
+<td>438</td>
+<td>2.5664</td>
+</tr>
+<tr>
+<td>18</td>
+<td>64QAM</td>
+<td>466</td>
+<td>2.7305</td>
+</tr>
+<tr>
+<td>19</td>
+<td>64QAM</td>
+<td>517</td>
+<td>3.0293</td>
+</tr>
+<tr>
+<td>20</td>
+<td>64QAM</td>
+<td>567</td>
+<td>3.3223</td>
+</tr>
+<tr>
+<td>21</td>
+<td>64QAM</td>
+<td>616</td>
+<td>3.6094</td>
+</tr>
+<tr>
+<td>22</td>
+<td>64QAM</td>
+<td>666</td>
+<td>3.9023</td>
+</tr>
+<tr>
+<td>23</td>
+<td>64QAM</td>
+<td>719</td>
+<td>4.2129</td>
+</tr>
+<tr>
+<td>24</td>
+<td>64QAM</td>
+<td>772</td>
+<td>4.5234</td>
+</tr>
+<tr>
+<td>25</td>
+<td>64QAM</td>
+<td>822</td>
+<td>4.8164</td>
+</tr>
+<tr>
+<td>26</td>
+<td>64QAM</td>
+<td>873</td>
+<td>5.1152</td>
+</tr>
+<tr>
+<td>27</td>
+<td>64QAM</td>
+<td>910</td>
+<td>5.3320</td>
+</tr>
+<tr>
+<td>28</td>
+<td>64QAM</td>
+<td>948</td>
+<td>5.5547</td>
+</tr>
+<tr>
+<td>29～31</td>
+<td>—</td>
+<td>—</td>
+<td>保留（重传标识）</td>
+</tr>
+</tbody></table>
+<p><strong>表 2（Table 2 &#x2F; qam256）</strong>：支持 QPSK &#x2F; 16QAM &#x2F; 64QAM &#x2F; <strong>256QAM</strong>，用于极佳信道条件</p>
+<table>
+<thead>
+<tr>
+<th>MCS 索引</th>
+<th>调制方式</th>
+<th>码率 × 1024</th>
+<th>频谱效率（bit&#x2F;RE）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>QPSK</td>
+<td>120</td>
+<td>0.2344</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>17</td>
+<td>64QAM</td>
+<td>438</td>
+<td>2.5664</td>
+</tr>
+<tr>
+<td>18</td>
+<td>64QAM</td>
+<td>466</td>
+<td>2.7305</td>
+</tr>
+<tr>
+<td>19</td>
+<td>64QAM</td>
+<td>517</td>
+<td>3.0293</td>
+</tr>
+<tr>
+<td>20</td>
+<td>64QAM</td>
+<td>567</td>
+<td>3.3223</td>
+</tr>
+<tr>
+<td>21</td>
+<td>64QAM</td>
+<td>616</td>
+<td>3.6094</td>
+</tr>
+<tr>
+<td>22</td>
+<td>64QAM</td>
+<td>666</td>
+<td>3.9023</td>
+</tr>
+<tr>
+<td>23</td>
+<td>64QAM</td>
+<td>719</td>
+<td>4.2129</td>
+</tr>
+<tr>
+<td>24</td>
+<td>64QAM</td>
+<td>772</td>
+<td>4.5234</td>
+</tr>
+<tr>
+<td>25</td>
+<td>256QAM</td>
+<td>682</td>
+<td>5.3320</td>
+</tr>
+<tr>
+<td>26</td>
+<td>256QAM</td>
+<td>711</td>
+<td>5.5547</td>
+</tr>
+<tr>
+<td>27</td>
+<td>256QAM</td>
+<td>754</td>
+<td>5.8906</td>
+</tr>
+<tr>
+<td>28</td>
+<td>256QAM</td>
+<td>797</td>
+<td>6.2266</td>
+</tr>
+<tr>
+<td>29～31</td>
+<td>—</td>
+<td>—</td>
+<td>保留</td>
+</tr>
+</tbody></table>
+<p><strong>表 3（Table 3 &#x2F; qam64LowSE）</strong>：低频谱效率表，适合 <strong>URLLC</strong> 场景（需要极低 BLER）</p>
+<p>该表在相同调制阶数下使用更低的码率，增加冗余，换取更高的传输可靠性。</p>
+<h4 id="2-2-3-MCS-表格选择逻辑"><a href="#2-2-3-MCS-表格选择逻辑" class="headerlink" title="2.2.3 MCS 表格选择逻辑"></a>2.2.3 MCS 表格选择逻辑</h4><p>gNB 通过 RRC 信令与物理层联合指示 MCS 表格（TS 38.214 第 5.1.3.1 节）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Case 1：PDSCH-Config mcs-Table = qam256</span><br><span class="line">        且 DCI 1_1 用 C-RNTI 加扰</span><br><span class="line">        → 使用 256QAM 表格（表 2）</span><br><span class="line"></span><br><span class="line">Case 2：PDSCH-Config mcs-Table = qam64LowSE</span><br><span class="line">        且非 MCS-C-RNTI</span><br><span class="line">        → 使用低频谱效率表格（表 3）</span><br><span class="line"></span><br><span class="line">Case 3（MCS-C-RNTI 场景）：</span><br><span class="line">        单独的 RNTI，可独立指示低 SE 表格</span><br><span class="line"></span><br><span class="line">其他情况 → 使用默认 64QAM 表格（表 1）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-3-CQI（信道质量指示）"><a href="#2-3-CQI（信道质量指示）" class="headerlink" title="2.3 CQI（信道质量指示）"></a>2.3 CQI（信道质量指示）</h3><h4 id="2-3-1-CQI-的作用"><a href="#2-3-1-CQI-的作用" class="headerlink" title="2.3.1 CQI 的作用"></a>2.3.1 CQI 的作用</h4><p>UE 基于下行参考信号（CSI-RS 或 SSB）的测量，向 gNB 上报 <strong>CQI</strong>，反映当前下行信道质量。gNB 参考 CQI 选择合适的 MCS，形成<strong>闭环链路自适应</strong>。</p>
+<p>CQI 为 4 bit，取值 0～15（0 表示信道质量超出范围，无法解码任何 MCS）。</p>
+<h4 id="2-3-2-CQI-表格（TS-38-214-第-5-2-2-1-节）"><a href="#2-3-2-CQI-表格（TS-38-214-第-5-2-2-1-节）" class="headerlink" title="2.3.2 CQI 表格（TS 38.214 第 5.2.2.1 节）"></a>2.3.2 CQI 表格（TS 38.214 第 5.2.2.1 节）</h4><p>标准定义了 <strong>3 张 CQI 表格</strong>（分别对应不同的 BLER 目标）：</p>
+<p><strong>CQI 表 1</strong>（eMBB，目标 BLER ≤ 0.1）：</p>
+<table>
+<thead>
+<tr>
+<th>CQI 索引</th>
+<th>调制方式</th>
+<th>码率 × 1024</th>
+<th>频谱效率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>超出范围</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>1</td>
+<td>QPSK</td>
+<td>78</td>
+<td>0.1523</td>
+</tr>
+<tr>
+<td>2</td>
+<td>QPSK</td>
+<td>120</td>
+<td>0.2344</td>
+</tr>
+<tr>
+<td>3</td>
+<td>QPSK</td>
+<td>193</td>
+<td>0.3770</td>
+</tr>
+<tr>
+<td>4</td>
+<td>QPSK</td>
+<td>308</td>
+<td>0.6016</td>
+</tr>
+<tr>
+<td>5</td>
+<td>QPSK</td>
+<td>449</td>
+<td>0.8770</td>
+</tr>
+<tr>
+<td>6</td>
+<td>QPSK</td>
+<td>602</td>
+<td>1.1758</td>
+</tr>
+<tr>
+<td>7</td>
+<td>16QAM</td>
+<td>378</td>
+<td>1.4766</td>
+</tr>
+<tr>
+<td>8</td>
+<td>16QAM</td>
+<td>490</td>
+<td>1.9141</td>
+</tr>
+<tr>
+<td>9</td>
+<td>16QAM</td>
+<td>616</td>
+<td>2.4063</td>
+</tr>
+<tr>
+<td>10</td>
+<td>64QAM</td>
+<td>466</td>
+<td>2.7305</td>
+</tr>
+<tr>
+<td>11</td>
+<td>64QAM</td>
+<td>567</td>
+<td>3.3223</td>
+</tr>
+<tr>
+<td>12</td>
+<td>64QAM</td>
+<td>666</td>
+<td>3.9023</td>
+</tr>
+<tr>
+<td>13</td>
+<td>64QAM</td>
+<td>772</td>
+<td>4.5234</td>
+</tr>
+<tr>
+<td>14</td>
+<td>64QAM</td>
+<td>873</td>
+<td>5.1152</td>
+</tr>
+<tr>
+<td>15</td>
+<td>64QAM</td>
+<td>948</td>
+<td>5.5547</td>
+</tr>
+</tbody></table>
+<p><strong>CQI 表 2</strong>（支持 256QAM，eMBB 高速率场景）：CQI 9～15 对应 256QAM。</p>
+<p><strong>CQI 表 3</strong>（URLLC，目标 BLER ≤ 0.00001）：在同等信道条件下推荐更低的 MCS，保障极端可靠性。</p>
+<h4 id="2-3-3-CQI-上报机制"><a href="#2-3-3-CQI-上报机制" class="headerlink" title="2.3.3 CQI 上报机制"></a>2.3.3 CQI 上报机制</h4><ul>
+<li><strong>周期上报（Periodic CSI Reporting）</strong>：UE 按照 RRC 配置的周期在 PUCCH 上上报。</li>
+<li><strong>非周期上报（Aperiodic CSI Reporting）</strong>：gNB 通过 DCI 触发，UE 在 PUSCH 上携带完整 CSI 报告（包括 CQI、PMI、RI 等）。</li>
+<li><strong>半持久上报（SP-CSI）</strong>：R16 引入，平衡开销与时效性。</li>
+</ul>
+<hr>
+<h3 id="2-4-链路自适应（Link-Adaptation）全流程"><a href="#2-4-链路自适应（Link-Adaptation）全流程" class="headerlink" title="2.4 链路自适应（Link Adaptation）全流程"></a>2.4 链路自适应（Link Adaptation）全流程</h3><p>链路自适应是根据信道状态动态调整 MCS 的闭环机制，直接影响系统频谱效率：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">                  ┌─────────────────────────────────┐</span><br><span class="line">                  │          gNB 调度器              │</span><br><span class="line">                  │                                 │</span><br><span class="line">UE 上报 CQI ──→    │  CQI → 估算 SINR → 选择 MCS      │</span><br><span class="line">                  │  (参考 TS 38.214 CQI/MCS 表格)   │</span><br><span class="line">                  │              ↓                  │</span><br><span class="line">                  │  DCI 下发 MCS 索引               │</span><br><span class="line">                  └──────────────┬──────────────────┘</span><br><span class="line">                                 │</span><br><span class="line">                  ┌──────────────▼──────────────────┐</span><br><span class="line">                  │            UE                   │</span><br><span class="line">                  │  按 MCS 解调 → HARQ ACK/NACK     │</span><br><span class="line">                  │  测量 CSI-RS → 上报新 CQI         │</span><br><span class="line">                  └─────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-4-1-外环链路自适应（OLLA）"><a href="#2-4-1-外环链路自适应（OLLA）" class="headerlink" title="2.4.1 外环链路自适应（OLLA）"></a>2.4.1 外环链路自适应（OLLA）</h4><p>实际网络中，gNB 还运行<strong>外环链路自适应（Outer Loop Link Adaptation）</strong> 算法：</p>
+<ul>
+<li>当 UE 频繁 NACK（BLER 过高）→ 降低 MCS</li>
+<li>当 UE 持续 ACK（BLER 过低）→ 提高 MCS</li>
+<li>目标：将实际 BLER 维持在设计目标附近（eMBB 约 10%，URLLC 约 0.001%）</li>
+</ul>
+<p>OLLA 是协议实现的自由度，3GPP 标准不规定具体算法，但 TS 38.214 通过 CQI 偏移量（CQI offset）提供了框架。</p>
+<h4 id="2-4-2-TBS（传输块大小）计算"><a href="#2-4-2-TBS（传输块大小）计算" class="headerlink" title="2.4.2 TBS（传输块大小）计算"></a>2.4.2 TBS（传输块大小）计算</h4><p>确定 MCS 后，实际的传输块大小（TBS）通过 TS 38.214 第 5.1.3.2 节规定的详细步骤计算：</p>
+<ol>
+<li>根据分配的 PRB 数 <code>nPRB</code>、每 PRB 的 RE 数 <code>NRE</code>（扣除 DMRS 等参考信号开销）、调制阶数 <code>Qm</code> 和层数 <code>v</code>，计算中间值：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ninfo = NRE × R × Qm × v</span><br></pre></td></tr></table></figure></li>
+<li>根据 Ninfo 查表，找到最近的合法 TBS 值（TBS 表格规定了有限个合法值，以确保 LDPC 编码效率）。</li>
+</ol>
+<hr>
+<h1 id="第三部分：编码与调制的协同工作"><a href="#第三部分：编码与调制的协同工作" class="headerlink" title="第三部分：编码与调制的协同工作"></a>第三部分：编码与调制的协同工作</h1><h3 id="3-1-完整发送链路"><a href="#3-1-完整发送链路" class="headerlink" title="3.1 完整发送链路"></a>3.1 完整发送链路</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">应用层数据</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">传输块（TBS 由 MCS + PRB 决定）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">[信道编码]</span><br><span class="line">TB-CRC → 码块分段 → CB-CRC → LDPC 编码 → 速率匹配（RV）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">[调制]</span><br><span class="line">加扰（Scrambling，用小区 ID / RNTI）→ 星座映射（QPSK/16/64/256QAM）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">[多天线]</span><br><span class="line">层映射 → 预编码</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">[OFDM]</span><br><span class="line">资源单元映射 → IFFT → 加 CP → 射频发送</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-PDCCH-的特殊性"><a href="#3-2-PDCCH-的特殊性" class="headerlink" title="3.2 PDCCH 的特殊性"></a>3.2 PDCCH 的特殊性</h3><p>PDCCH 使用 Polar 码编码 + 固定 QPSK 调制，<strong>不进行链路自适应</strong>，调制方式和码率均为固定配置，通过聚合级别（Aggregation Level，AL &#x3D; 1&#x2F;2&#x2F;4&#x2F;8&#x2F;16 CCE）来适应信道质量。AL 越高，重复度越大，覆盖能力越强，但占用资源越多。</p>
+<h3 id="3-3-编码增益对比（参考值）"><a href="#3-3-编码增益对比（参考值）" class="headerlink" title="3.3 编码增益对比（参考值）"></a>3.3 编码增益对比（参考值）</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>LDPC（BG1&#x2F;64QAM）</th>
+<th>LDPC（BG2&#x2F;QPSK）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目标 BLER</td>
+<td>0.1</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>典型 SINR 门限</td>
+<td>~20 dB</td>
+<td>~0 dB</td>
+</tr>
+<tr>
+<td>频谱效率</td>
+<td>~3～5.5 bit&#x2F;RE</td>
+<td>~0.3～1.3 bit&#x2F;RE</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>LDPC（数据信道）</th>
+<th>Polar 码（控制信道）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>规范章节</strong></td>
+<td>TS 38.212 第 5.3 &#x2F; 7.2 节</td>
+<td>TS 38.212 第 5.1 &#x2F; 7.3 节</td>
+</tr>
+<tr>
+<td><strong>应用信道</strong></td>
+<td>PDSCH &#x2F; PUSCH &#x2F; PCH</td>
+<td>PDCCH &#x2F; PUCCH &#x2F; BCH</td>
+</tr>
+<tr>
+<td><strong>码结构</strong></td>
+<td>QC-LDPC，BG1 或 BG2</td>
+<td>极化码，N &#x3D; 2^n</td>
+</tr>
+<tr>
+<td><strong>关键参数</strong></td>
+<td>Zc（8 组，51 个值）</td>
+<td>可靠性序列（1024 位）</td>
+</tr>
+<tr>
+<td><strong>译码算法</strong></td>
+<td>置信传播（BP，Min-Sum）</td>
+<td>SCL（L&#x3D;8） + CRC</td>
+</tr>
+<tr>
+<td><strong>HARQ 支持</strong></td>
+<td>是，RV0&#x2F;1&#x2F;2&#x2F;3</td>
+<td>否（Polar 不做 IR-HARQ）</td>
+</tr>
+<tr>
+<td><strong>速率匹配</strong></td>
+<td>循环缓冲区 + 穿孔&#x2F;重复</td>
+<td>缩短（Shortening）或重复</td>
+</tr>
+<tr>
+<td><strong>CRC 类型</strong></td>
+<td>CRC24A &#x2F; CRC24B &#x2F; CRC16</td>
+<td>CRC24C（分布式插入）</td>
+</tr>
+</tbody></table>
+<p>调制方面，5G NR 在 LTE 的 QPSK&#x2F;16QAM&#x2F;64QAM 基础上新增了 <strong>256QAM</strong>，并通过三张 MCS 表格（TS 38.214）分别覆盖 eMBB、eMBB 高速率和 URLLC 场景。链路自适应闭环由 CQI 上报 → MCS 选择 → HARQ 反馈 → OLLA 调整构成，使系统能在复杂无线环境下持续接近理论容量上限。</p>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
+<li><strong>3GPP TS 38.212 V18.2.0</strong>：<em>NR; Multiplexing and channel coding</em>，2024-05</li>
+<li><strong>3GPP TS 38.214 V18.x.x</strong>：<em>NR; Physical layer procedures for data</em></li>
+<li><strong>3GPP TS 38.211 V18.x.x</strong>：<em>NR; Physical channels and modulation</em></li>
+<li><strong>3GPP TR 38.901</strong>：<em>Study on channel model for frequencies from 0.5 to 100 GHz</em></li>
+<li>E. Arikan, “Channel Polarization: A Method for Constructing Capacity-Achieving Codes,” <em>IEEE Trans. Inf. Theory</em>, 2009</li>
+<li>R. G. Gallager, <em>Low-Density Parity-Check Codes</em>, MIT Press, 1963</li>
+<li>3GPP RAN1 #87 Meeting Minutes, November 2016（LDPC&#x2F;Polar 标准化决策背景）</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E4%BF%A1%E9%81%93%E7%BC%96%E7%A0%81"><span class="toc-number">2.</span> <span class="toc-text">第一部分：信道编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%BC%96%E7%A0%81%E6%96%B9%E6%A1%88%E6%80%BB%E8%A7%88"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 编码方案总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-LDPC-%E7%A0%81%EF%BC%88%E6%95%B0%E6%8D%AE%E4%BF%A1%E9%81%93%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 LDPC 码（数据信道）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-LDPC%EF%BC%9F"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">1.2.1 为什么选择 LDPC？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-QC-LDPC-%E4%B8%8E%E5%87%86%E5%BE%AA%E7%8E%AF%E6%8F%90%E5%8D%87"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">1.2.2 QC-LDPC 与准循环提升</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-3-%E4%B8%A4%E7%A7%8D%E5%9F%BA%E5%9B%BE%EF%BC%9ABG1-%E4%B8%8E-BG2"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">1.2.3 两种基图：BG1 与 BG2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-4-%E6%8F%90%E5%8D%87%E5%B0%BA%E5%AF%B8-Zc-%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">1.2.4 提升尺寸 Zc 的选择</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-5-%E7%BC%96%E7%A0%81%E6%B5%81%E7%A8%8B%EF%BC%9A%E4%BB%8E%E4%BC%A0%E8%BE%93%E5%9D%97%E5%88%B0%E7%A0%81%E5%AD%97"><span class="toc-number">2.0.2.5.</span> <span class="toc-text">1.2.5 编码流程：从传输块到码字</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-6-%E9%80%9F%E7%8E%87%E5%8C%B9%E9%85%8D%E4%B8%8E%E5%86%97%E4%BD%99%E7%89%88%E6%9C%AC%EF%BC%88RV%EF%BC%89"><span class="toc-number">2.0.2.6.</span> <span class="toc-text">1.2.6 速率匹配与冗余版本（RV）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Polar-%E7%A0%81%EF%BC%88%E6%8E%A7%E5%88%B6%E4%BF%A1%E9%81%93%EF%BC%89"><span class="toc-number">2.0.3.</span> <span class="toc-text">1.3 Polar 码（控制信道）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-Polar-%E7%A0%81%EF%BC%9F"><span class="toc-number">2.0.3.1.</span> <span class="toc-text">1.3.1 为什么选择 Polar 码？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-2-Polar-%E7%A0%81%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">2.0.3.2.</span> <span class="toc-text">1.3.2 Polar 码基本原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-3-5G-NR-Polar-%E7%A0%81%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">2.0.3.3.</span> <span class="toc-text">1.3.3 5G NR Polar 码的应用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-4-%E5%88%86%E5%B8%83%E5%BC%8F-CRC%EF%BC%88Distributed-CRC%EF%BC%89"><span class="toc-number">2.0.3.4.</span> <span class="toc-text">1.3.4 分布式 CRC（Distributed CRC）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-5-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%BA%8F%E5%88%97%EF%BC%88Reliability-Sequence%EF%BC%89"><span class="toc-number">2.0.3.5.</span> <span class="toc-text">1.3.5 可靠性序列（Reliability Sequence）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-6-%E8%AF%91%E7%A0%81%EF%BC%9ASCL-CRC-%E8%BE%85%E5%8A%A9"><span class="toc-number">2.0.3.6.</span> <span class="toc-text">1.3.6 译码：SCL + CRC 辅助</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E8%B0%83%E5%88%B6%E6%96%B9%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">第二部分：调制方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%B0%83%E5%88%B6%E5%9F%BA%E7%A1%80"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 调制基础</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-1-QPSK"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">2.1.1 QPSK</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-2-16QAM"><span class="toc-number">3.0.1.2.</span> <span class="toc-text">2.1.2 16QAM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-3-64QAM"><span class="toc-number">3.0.1.3.</span> <span class="toc-text">2.1.3 64QAM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-4-256QAM"><span class="toc-number">3.0.1.4.</span> <span class="toc-text">2.1.4 256QAM</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-MCS-%E8%A1%A8%E6%A0%BC%EF%BC%88Modulation-and-Coding-Scheme%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 MCS 表格（Modulation and Coding Scheme）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-MCS-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">2.2.1 MCS 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-PDSCH-MCS-%E8%A1%A8%E6%A0%BC%EF%BC%88TS-38-214-%E7%AC%AC-5-1-3-1-%E8%8A%82%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">2.2.2 PDSCH MCS 表格（TS 38.214 第 5.1.3.1 节）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-MCS-%E8%A1%A8%E6%A0%BC%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">2.2.3 MCS 表格选择逻辑</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-CQI%EF%BC%88%E4%BF%A1%E9%81%93%E8%B4%A8%E9%87%8F%E6%8C%87%E7%A4%BA%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 CQI（信道质量指示）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-CQI-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">3.0.3.1.</span> <span class="toc-text">2.3.1 CQI 的作用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-CQI-%E8%A1%A8%E6%A0%BC%EF%BC%88TS-38-214-%E7%AC%AC-5-2-2-1-%E8%8A%82%EF%BC%89"><span class="toc-number">3.0.3.2.</span> <span class="toc-text">2.3.2 CQI 表格（TS 38.214 第 5.2.2.1 节）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-3-CQI-%E4%B8%8A%E6%8A%A5%E6%9C%BA%E5%88%B6"><span class="toc-number">3.0.3.3.</span> <span class="toc-text">2.3.3 CQI 上报机制</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E9%93%BE%E8%B7%AF%E8%87%AA%E9%80%82%E5%BA%94%EF%BC%88Link-Adaptation%EF%BC%89%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 链路自适应（Link Adaptation）全流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-1-%E5%A4%96%E7%8E%AF%E9%93%BE%E8%B7%AF%E8%87%AA%E9%80%82%E5%BA%94%EF%BC%88OLLA%EF%BC%89"><span class="toc-number">3.0.4.1.</span> <span class="toc-text">2.4.1 外环链路自适应（OLLA）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-2-TBS%EF%BC%88%E4%BC%A0%E8%BE%93%E5%9D%97%E5%A4%A7%E5%B0%8F%EF%BC%89%E8%AE%A1%E7%AE%97"><span class="toc-number">3.0.4.2.</span> <span class="toc-text">2.4.2 TBS（传输块大小）计算</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86%EF%BC%9A%E7%BC%96%E7%A0%81%E4%B8%8E%E8%B0%83%E5%88%B6%E7%9A%84%E5%8D%8F%E5%90%8C%E5%B7%A5%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">第三部分：编码与调制的协同工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%8C%E6%95%B4%E5%8F%91%E9%80%81%E9%93%BE%E8%B7%AF"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 完整发送链路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-PDCCH-%E7%9A%84%E7%89%B9%E6%AE%8A%E6%80%A7"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 PDCCH 的特殊性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E7%A0%81%E5%A2%9E%E7%9B%8A%E5%AF%B9%E6%AF%94%EF%BC%88%E5%8F%82%E8%80%83%E5%80%BC%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 编码增益对比（参考值）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">6.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&text=信道编码与调制方式"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&is_video=false&description=信道编码与调制方式"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=信道编码与调制方式&body=Check out this article: http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&title=信道编码与调制方式"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&name=信道编码与调制方式&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/28/3gpp/12-channel-coding-modulation/&t=信道编码与调制方式"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

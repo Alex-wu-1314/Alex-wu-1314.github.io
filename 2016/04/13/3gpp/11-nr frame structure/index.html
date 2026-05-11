@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 为什么需要可扩展 Numerology？ Numerology 基本定义（TS 38.211 表 4.2-1） 帧层次结构：帧 → 子帧 → 时隙 → 符号 循环前缀（Cyclic Prefix） Mini-Slot 与非时隙调度 TDD 时隙格式与 DL&#x2F;UL 配置 资源块（RB）与资源单元（RE）定义 资源栅格（Resource Grid） 带宽部分（BWP）与点 A（Poin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NR 帧结构：Numerology、时隙与资源粒度">
+<meta property="og:url" content="http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 为什么需要可扩展 Numerology？ Numerology 基本定义（TS 38.211 表 4.2-1） 帧层次结构：帧 → 子帧 → 时隙 → 符号 循环前缀（Cyclic Prefix） Mini-Slot 与非时隙调度 TDD 时隙格式与 DL&#x2F;UL 配置 资源块（RB）与资源单元（RE）定义 资源栅格（Resource Grid） 带宽部分（BWP）与点 A（Poin">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-04-13T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-10T09:27:29.794Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>NR 帧结构：Numerology、时隙与资源粒度</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2016/04/20/3gpp/11.5_G_NR_Waveform/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/03/30/3gpp/10_MAC%E5%B1%82%E5%8D%8F%E8%AE%AE%E8%A7%A3%E6%9E%90/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&text=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&is_video=false&description=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NR 帧结构：Numerology、时隙与资源粒度&body=Check out this article: http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&name=NR 帧结构：Numerology、时隙与资源粒度&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&t=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%AF%E6%89%A9%E5%B1%95-Numerology%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要可扩展 Numerology？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Numerology-%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">2. Numerology 基本定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AD%90%E8%BD%BD%E6%B3%A2%E9%97%B4%E8%B7%9D%E5%85%AC%E5%BC%8F"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 子载波间距公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%94%AF%E6%8C%81%E7%9A%84-Numerology-%E6%B1%87%E6%80%BB%E8%A1%A8"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 支持的 Numerology 汇总表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%90%84-Numerology-%E7%9A%84%E6%97%B6%E5%9F%9F%E5%8F%82%E6%95%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 各 Numerology 的时域参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%B8%A7%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. 帧层次结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%97%A0%E7%BA%BF%E5%B8%A7%EF%BC%88Radio-Frame%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 无线帧（Radio Frame）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AD%90%E5%B8%A7%EF%BC%88Subframe%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 子帧（Subframe）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%97%B6%E9%9A%99%EF%BC%88Slot%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 时隙（Slot）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-OFDM-%E7%AC%A6%E5%8F%B7%EF%BC%88Symbol%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 OFDM 符号（Symbol）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88Cyclic-Prefix%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 循环前缀（Cyclic Prefix）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-CP-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 CP 的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Normal-CP"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 Normal CP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Extended-CP%EF%BC%88%CE%BC-2-%E4%B8%93%E5%B1%9E%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 Extended CP（μ &#x3D; 2 专属）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Mini-Slot-%E4%B8%8E%E9%9D%9E%E6%97%B6%E9%9A%99%E8%B0%83%E5%BA%A6"><span class="toc-number">6.</span> <span class="toc-text">5. Mini-Slot 与非时隙调度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%83%8C%E6%99%AF"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Mini-Slot-%E5%AE%9A%E4%B9%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Mini-Slot 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Mini-Slot-%E7%9A%84%E5%85%B3%E9%94%AE%E4%BC%98%E5%8A%BF"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 Mini-Slot 的关键优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Type-A-vs-Type-B-%E8%B0%83%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 Type A vs Type B 调度对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-TDD-%E6%97%B6%E9%9A%99%E6%A0%BC%E5%BC%8F%E4%B8%8E-DL-UL-%E9%85%8D%E7%BD%AE"><span class="toc-number">7.</span> <span class="toc-text">6. TDD 时隙格式与 DL&#x2F;UL 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%97%B6%E9%9A%99%E7%AC%A6%E5%8F%B7%E7%B1%BB%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 时隙符号类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E5%AE%9A%E4%B9%89%E6%97%B6%E9%9A%99%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 预定义时隙格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-TDD-%E5%91%A8%E6%9C%9F%E9%85%8D%E7%BD%AE"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 TDD 周期配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%89%E4%B8%8E%E8%B5%84%E6%BA%90%E5%8D%95%E5%85%83%EF%BC%88RE%EF%BC%89%E5%AE%9A%E4%B9%89"><span class="toc-number">8.</span> <span class="toc-text">7. 资源块（RB）与资源单元（RE）定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E8%B5%84%E6%BA%90%E5%8D%95%E5%85%83%EF%BC%88RE%EF%BC%8CResource-Element%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 资源单元（RE，Resource Element）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%8CResource-Block%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 资源块（RB，Resource Block）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%AC%E5%85%B1%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88CRB%EF%BC%89%E4%B8%8E%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88PRB%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 公共资源块（CRB）与物理资源块（PRB）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%9C%80%E5%A4%A7-RB-%E6%95%B0%EF%BC%88NRB%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 最大 RB 数（NRB）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC"><span class="toc-number">9.</span> <span class="toc-text">8. 资源栅格</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC%E5%AE%9A%E4%B9%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 资源栅格定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC%E7%A4%BA%E6%84%8F%EF%BC%88%CE%BC-1%EF%BC%8CSCS-30-kHz%EF%BC%8C1-ms-%E5%AD%90%E5%B8%A7%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 资源栅格示意（μ&#x3D;1，SCS&#x3D;30 kHz，1 ms 子帧）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-DC-%E5%AD%90%E8%BD%BD%E6%B3%A2"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 DC 子载波</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%B8%A6%E5%AE%BD%E9%83%A8%E5%88%86%EF%BC%88BWP%EF%BC%89%E4%B8%8E%E7%82%B9-A"><span class="toc-number">10.</span> <span class="toc-text">9. 带宽部分（BWP）与点 A</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-Point-A"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 Point A</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-BWP-%E6%A6%82%E5%BF%B5"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 BWP 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-BWP-%E5%8F%82%E6%95%B0"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 BWP 参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E4%B8%8E-LTE-%E5%B8%A7%E7%BB%93%E6%9E%84%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">11.</span> <span class="toc-text">10. 与 LTE 帧结构的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%84%8F%E4%B9%89"><span class="toc-number">12.</span> <span class="toc-text">11. 设计取舍与工程意义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-Numerology-%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 Numerology 选择原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E6%B7%B7%E5%90%88-Numerology-%E7%9A%84%E5%B9%B2%E6%89%B0%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 混合 Numerology 的干扰问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E6%97%B6%E5%9F%9F%E5%AF%B9%E9%BD%90%E8%A7%84%E5%88%99"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 时域对齐规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-RB-%E6%95%B0%E9%87%8F%E4%B8%8E%E5%B3%B0%E5%80%BC%E5%AE%B9%E9%87%8F%E4%BC%B0%E7%AE%97"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 RB 数量与峰值容量估算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">13.1.</span> <span class="toc-text">参考规范</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        NR 帧结构：Numerology、时隙与资源粒度
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-04-13T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-04-13</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%AF%E6%89%A9%E5%B1%95-numerology">为什么需要可扩展 Numerology？</a></li>
+<li><a href="#2-numerology-%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89">Numerology 基本定义（TS 38.211 表 4.2-1）</a></li>
+<li><a href="#3-%E5%B8%A7%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84">帧层次结构：帧 → 子帧 → 时隙 → 符号</a></li>
+<li><a href="#4-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80">循环前缀（Cyclic Prefix）</a></li>
+<li><a href="#5-mini-slot-%E4%B8%8E%E9%9D%9E%E6%97%B6%E9%9A%99%E8%B0%83%E5%BA%A6">Mini-Slot 与非时隙调度</a></li>
+<li><a href="#6-tdd-%E6%97%B6%E9%9A%99%E6%A0%BC%E5%BC%8F%E4%B8%8E-dlul-%E9%85%8D%E7%BD%AE">TDD 时隙格式与 DL&#x2F;UL 配置</a></li>
+<li><a href="#7-%E8%B5%84%E6%BA%90%E5%9D%97rb%E4%B8%8E%E8%B5%84%E6%BA%90%E5%8D%95%E5%85%83re%E5%AE%9A%E4%B9%89">资源块（RB）与资源单元（RE）定义</a></li>
+<li><a href="#8-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC">资源栅格（Resource Grid）</a></li>
+<li><a href="#9-%E5%B8%A6%E5%AE%BD%E9%83%A8%E5%88%86bwp%E4%B8%8E%E7%82%B9-a">带宽部分（BWP）与点 A（Point A）</a></li>
+<li><a href="#10-%E4%B8%8E-lte-%E5%B8%A7%E7%BB%93%E6%9E%84%E7%9A%84%E5%AF%B9%E6%AF%94">与 LTE 帧结构的对比</a></li>
+<li><a href="#11-%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%84%8F%E4%B9%89">设计取舍与工程意义</a></li>
+<li><a href="#12-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-为什么需要可扩展-Numerology？"><a href="#1-为什么需要可扩展-Numerology？" class="headerlink" title="1. 为什么需要可扩展 Numerology？"></a>1. 为什么需要可扩展 Numerology？</h1><p>LTE 物理层采用固定的 <strong>15 kHz 子载波间距（SCS）</strong>，整个系统只有一种时频粒度。这在 4G 时代运行良好，但 5G NR 必须同时支持三大场景：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>典型频段</th>
+<th>核心需求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>eMBB（增强移动宽带）</td>
+<td>FR1 Sub-6 GHz、FR2 毫米波</td>
+<td>极高吞吐量，大带宽</td>
+</tr>
+<tr>
+<td>URLLC（超可靠低时延）</td>
+<td>FR1</td>
+<td>亚毫秒级时延，短时隙</td>
+</tr>
+<tr>
+<td>mMTC（海量物联）</td>
+<td>FR1 低频段</td>
+<td>覆盖延伸，低功耗</td>
+</tr>
+</tbody></table>
+<p>这些场景面临的挑战截然不同：</p>
+<ul>
+<li><strong>低频大小区</strong>（如 700 MHz）：多径时延扩展大，需要更长的循环前缀 → 更小的 SCS；</li>
+<li><strong>毫米波（mmWave）</strong>：相位噪声大，需要更宽的子载波来抵抗相噪 → 更大的 SCS；</li>
+<li><strong>URLLC</strong>：需要在更短时间内完成调度，时隙长度越短越好 → 更大的 SCS。</li>
+</ul>
+<p>因此，3GPP 在 NR 设计之初就引入了<strong>可扩展 Numerology（参数集）</strong>，用一个参数 <strong>μ（mu）</strong> 统一描述不同的子载波间距，形成”一个框架，多种时频粒度”的灵活体系。</p>
+<hr>
+<h1 id="2-Numerology-基本定义"><a href="#2-Numerology-基本定义" class="headerlink" title="2. Numerology 基本定义"></a>2. Numerology 基本定义</h1><h3 id="2-1-子载波间距公式"><a href="#2-1-子载波间距公式" class="headerlink" title="2.1 子载波间距公式"></a>2.1 子载波间距公式</h3><p>NR 的子载波间距（SCS，Subcarrier Spacing）由以下公式确定（见 TS 38.211 §4.2）：</p>
+<p>$$\Delta f &#x3D; 2^\mu \times 15 \text{ kHz}$$</p>
+<p>其中 μ ∈ {0, 1, 2, 3, 4}（R15&#x2F;R16 部署主力；R17 新增 μ &#x3D; 5&#x2F;6 用于 FR2-2 极高频）。</p>
+<h3 id="2-2-支持的-Numerology-汇总表"><a href="#2-2-支持的-Numerology-汇总表" class="headerlink" title="2.2 支持的 Numerology 汇总表"></a>2.2 支持的 Numerology 汇总表</h3><p>根据 <strong>3GPP TS 38.211 表 4.2-1</strong>，各 Numerology 参数如下：</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>SCS (kHz)</th>
+<th>循环前缀类型</th>
+<th>典型应用场景</th>
+<th>频段适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>15</td>
+<td>Normal CP</td>
+<td>Sub-6 GHz 覆盖、与 LTE 共存</td>
+<td>FR1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>30</td>
+<td>Normal CP</td>
+<td>Sub-6 GHz 容量、主流部署</td>
+<td>FR1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60</td>
+<td>Normal CP <strong>或</strong> Extended CP</td>
+<td>Sub-6 GHz 高密度、FR2 低时延</td>
+<td>FR1 &#x2F; FR2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>120</td>
+<td>Normal CP</td>
+<td>毫米波 eMBB &#x2F; URLLC</td>
+<td>FR2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>240</td>
+<td>Normal CP</td>
+<td>毫米波 SSB（仅同步信号块）</td>
+<td>FR2</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：μ &#x3D; 4（240 kHz）<strong>仅</strong>用于下行同步信号（SS&#x2F;PBCH Block），不用于数据信道调度。Extended CP 仅在 μ &#x3D; 2 时支持，主要用于多播&#x2F;广播（MBS）或特殊覆盖场景。</p>
+</blockquote>
+<h3 id="2-3-各-Numerology-的时域参数"><a href="#2-3-各-Numerology-的时域参数" class="headerlink" title="2.3 各 Numerology 的时域参数"></a>2.3 各 Numerology 的时域参数</h3><table>
+<thead>
+<tr>
+<th>μ</th>
+<th>SCS (kHz)</th>
+<th>时隙时长 (ms)</th>
+<th>每子帧时隙数</th>
+<th>每帧时隙数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>15</td>
+<td>1</td>
+<td>1</td>
+<td>10</td>
+</tr>
+<tr>
+<td>1</td>
+<td>30</td>
+<td>0.5</td>
+<td>2</td>
+<td>20</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60</td>
+<td>0.25</td>
+<td>4</td>
+<td>40</td>
+</tr>
+<tr>
+<td>3</td>
+<td>120</td>
+<td>0.125</td>
+<td>8</td>
+<td>80</td>
+</tr>
+<tr>
+<td>4</td>
+<td>240</td>
+<td>0.0625</td>
+<td>16</td>
+<td>160</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-帧层次结构"><a href="#3-帧层次结构" class="headerlink" title="3. 帧层次结构"></a>3. 帧层次结构</h1><p>NR 帧结构采用严格的层次嵌套关系：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">一个无线帧（Radio Frame）= 10 ms</span><br><span class="line">│</span><br><span class="line">├─ 10 个子帧（Subframe），每个 1 ms</span><br><span class="line">│   │</span><br><span class="line">│   └─ 2^μ 个时隙（Slot），每个时隙时长 = 1 ms / 2^μ</span><br><span class="line">│       │</span><br><span class="line">│       └─ 14 个 OFDM 符号（Normal CP）或 12 个（Extended CP）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-1-无线帧（Radio-Frame）"><a href="#3-1-无线帧（Radio-Frame）" class="headerlink" title="3.1 无线帧（Radio Frame）"></a>3.1 无线帧（Radio Frame）</h3><ul>
+<li><strong>时长</strong>：固定 <strong>10 ms</strong>，与 LTE 完全相同。</li>
+<li><strong>系统帧号（SFN）</strong>：范围 0~1023，循环周期约 10.24 秒。</li>
+<li><strong>半帧（Half-Frame）</strong>：每帧分为两个半帧，各 5 ms：<ul>
+<li>半帧 0：子帧 0~4</li>
+<li>半帧 1：子帧 5~9</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-2-子帧（Subframe）"><a href="#3-2-子帧（Subframe）" class="headerlink" title="3.2 子帧（Subframe）"></a>3.2 子帧（Subframe）</h3><ul>
+<li><strong>时长</strong>：固定 <strong>1 ms</strong>，不随 μ 变化。</li>
+<li><strong>作用</strong>：作为不同 Numerology 之间的公共时间参考对齐单元。在 NR 中，子帧不再是调度的基本单位（LTE 中以子帧调度），但仍是系统同步和定时的基础。</li>
+</ul>
+<h3 id="3-3-时隙（Slot）"><a href="#3-3-时隙（Slot）" class="headerlink" title="3.3 时隙（Slot）"></a>3.3 时隙（Slot）</h3><p>时隙是 NR 的<strong>基本调度单位（slot-based scheduling）</strong>。</p>
+<ul>
+<li>每个时隙包含 <strong>14 个 OFDM 符号</strong>（Normal CP）或 <strong>12 个</strong>（Extended CP）。</li>
+<li>时隙时长随 μ 增大而缩短：μ&#x3D;0 时为 1 ms，μ&#x3D;3 时仅 0.125 ms（125 μs）。</li>
+<li>每子帧的时隙数 &#x3D; <strong>2^μ</strong>。</li>
+</ul>
+<p><strong>时隙编号</strong>：时隙在帧内有全局编号 $n_s^{\mu}$（范围 0 到 $10 \times 2^\mu - 1$），同时有子帧内本地编号（0 到 $2^\mu - 1$）。</p>
+<p>根据 <strong>TS 38.211 表 4.3.2-1</strong>，Normal CP 时域参数汇总：</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>每时隙符号数</th>
+<th>每子帧时隙数</th>
+<th>每帧时隙数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>14</td>
+<td>1</td>
+<td>10</td>
+</tr>
+<tr>
+<td>1</td>
+<td>14</td>
+<td>2</td>
+<td>20</td>
+</tr>
+<tr>
+<td>2</td>
+<td>14</td>
+<td>4</td>
+<td>40</td>
+</tr>
+<tr>
+<td>3</td>
+<td>14</td>
+<td>8</td>
+<td>80</td>
+</tr>
+<tr>
+<td>4</td>
+<td>14</td>
+<td>16</td>
+<td>160</td>
+</tr>
+</tbody></table>
+<h3 id="3-4-OFDM-符号（Symbol）"><a href="#3-4-OFDM-符号（Symbol）" class="headerlink" title="3.4 OFDM 符号（Symbol）"></a>3.4 OFDM 符号（Symbol）</h3><p>OFDM 符号是时域的最小时间粒度，其净时长（不含 CP）为：</p>
+<p>$$T_{sym} &#x3D; \frac{1}{\Delta f} &#x3D; \frac{1}{2^\mu \times 15000} \text{ 秒}$$</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>SCS (kHz)</th>
+<th>OFDM 符号净时长</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>15</td>
+<td>66.67 μs</td>
+</tr>
+<tr>
+<td>1</td>
+<td>30</td>
+<td>33.33 μs</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60</td>
+<td>16.67 μs</td>
+</tr>
+<tr>
+<td>3</td>
+<td>120</td>
+<td>8.33 μs</td>
+</tr>
+<tr>
+<td>4</td>
+<td>240</td>
+<td>4.17 μs</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="4-循环前缀（Cyclic-Prefix）"><a href="#4-循环前缀（Cyclic-Prefix）" class="headerlink" title="4. 循环前缀（Cyclic Prefix）"></a>4. 循环前缀（Cyclic Prefix）</h1><h3 id="4-1-CP-的作用"><a href="#4-1-CP-的作用" class="headerlink" title="4.1 CP 的作用"></a>4.1 CP 的作用</h3><p>循环前缀（CP）是每个 OFDM 符号前附加的保护间隔，其长度必须大于无线信道的最大多径时延扩展，以消除符号间干扰（ISI）和子载波间干扰（ICI）。</p>
+<p><strong>CP 长度与 SCS 成反比</strong>：SCS 越大，符号越短，CP 也越短。这是 NR Numerology 设计的核心约束，高频段（毫米波）通常视距传播，时延扩展小，因此可以承受更短的 CP。</p>
+<h3 id="4-2-Normal-CP"><a href="#4-2-Normal-CP" class="headerlink" title="4.2 Normal CP"></a>4.2 Normal CP</h3><p>在 Normal CP 模式下，每个 0.5 ms 周期内有一个 CP 略长的符号（每半时隙的第一个符号），确保每个 0.5 ms 的总时长精确对齐。</p>
+<table>
+<thead>
+<tr>
+<th>μ</th>
+<th>SCS (kHz)</th>
+<th>Normal CP 长度（近似）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>15</td>
+<td>~4.76 μs（第 0&#x2F;7 符号略长 ~5.21 μs）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>30</td>
+<td>~2.38 μs</td>
+</tr>
+<tr>
+<td>2</td>
+<td>60</td>
+<td>~1.19 μs</td>
+</tr>
+<tr>
+<td>3</td>
+<td>120</td>
+<td>~0.59 μs</td>
+</tr>
+</tbody></table>
+<p>规范精确值（以基准时间单位 $T_c$ 表达）：μ&#x3D;0 时，普通符号 CP &#x3D; 512 $T_c$，第 0 和第 7 符号 CP &#x3D; 544 $T_c$（多 32 个 $T_c$，约 0.521 μs），用于 0.5 ms 对齐补偿。所有 Numerology 下 CP 开销占比约 **6.7%**。</p>
+<h3 id="4-3-Extended-CP（μ-2-专属）"><a href="#4-3-Extended-CP（μ-2-专属）" class="headerlink" title="4.3 Extended CP（μ &#x3D; 2 专属）"></a>4.3 Extended CP（μ &#x3D; 2 专属）</h3><p>仅在 μ &#x3D; 2（60 kHz）时可选，CP 长度约为 Normal CP 的 4 倍（≈ 4.17 μs），每时隙仅 12 个符号。主要应用于：</p>
+<ul>
+<li>超大小区（时延扩展较大的场景）</li>
+<li>多播&#x2F;广播服务（MBS，Multicast&#x2F;Broadcast Service）</li>
+</ul>
+<hr>
+<h1 id="5-Mini-Slot-与非时隙调度"><a href="#5-Mini-Slot-与非时隙调度" class="headerlink" title="5. Mini-Slot 与非时隙调度"></a>5. Mini-Slot 与非时隙调度</h1><h3 id="5-1-背景"><a href="#5-1-背景" class="headerlink" title="5.1 背景"></a>5.1 背景</h3><p>标准 slot-based 调度以整个时隙（14 符号）为单位。对于 URLLC 业务，即便使用 μ&#x3D;3（时隙 0.125 ms），在某些场景下时延仍不够短。NR 引入了 <strong>Mini-Slot</strong> 解决此问题。</p>
+<h3 id="5-2-Mini-Slot-定义"><a href="#5-2-Mini-Slot-定义" class="headerlink" title="5.2 Mini-Slot 定义"></a>5.2 Mini-Slot 定义</h3><p>Mini-Slot 是<strong>非时隙调度（Non-Slot Based Scheduling，Type B 调度）</strong> 的基本单位（见 TS 38.214 §5.1.2.1），支持以下长度：</p>
+<ul>
+<li><strong>2 个 OFDM 符号</strong></li>
+<li><strong>4 个 OFDM 符号</strong></li>
+<li><strong>7 个 OFDM 符号</strong></li>
+</ul>
+<p>Mini-Slot 的起始符号<strong>不限于时隙边界</strong>，可在时隙内任意符号位置开始，使调度器可以立即抢占正在进行的传输，实现<strong>抢占式调度（Preemption）</strong>。</p>
+<h3 id="5-3-Mini-Slot-的关键优势"><a href="#5-3-Mini-Slot-的关键优势" class="headerlink" title="5.3 Mini-Slot 的关键优势"></a>5.3 Mini-Slot 的关键优势</h3><ol>
+<li><strong>极低时延</strong>：结合 μ&#x3D;3（SCS&#x3D;120 kHz），2 符号 Mini-Slot 时长仅约 <strong>17.86 μs</strong>，满足 URLLC 严苛要求。</li>
+<li><strong>抢占传输</strong>：URLLC 数据包到达时，可”打断”正在进行的 eMBB 传输，利用部分符号立即发送；通过 DCI format 2_1 通知 eMBB UE 哪些符号被抢占，便于丢弃受污染数据并请求重传。</li>
+<li><strong>灵活填充</strong>：在 FDD 上行中，Mini-Slot 可用于更精细的资源利用。</li>
+</ol>
+<h3 id="5-4-Type-A-vs-Type-B-调度对比"><a href="#5-4-Type-A-vs-Type-B-调度对比" class="headerlink" title="5.4 Type A vs Type B 调度对比"></a>5.4 Type A vs Type B 调度对比</h3><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>Type A（Slot-based）</th>
+<th>Type B（Non-slot &#x2F; Mini-Slot）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>调度单位</td>
+<td>整个时隙（14&#x2F;12 符号）</td>
+<td>2、4 或 7 个符号</td>
+</tr>
+<tr>
+<td>起始符号</td>
+<td>时隙第 0、1、2、3 符号之一</td>
+<td>时隙内任意符号</td>
+</tr>
+<tr>
+<td>DMRS 位置</td>
+<td>固定（符号 2 或 3）</td>
+<td>更灵活（通常在分配起始符号）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>eMBB 正常数据调度</td>
+<td>URLLC、低时延传输</td>
+</tr>
+<tr>
+<td>DCI 格式</td>
+<td>DCI 1_1 &#x2F; 0_1 等</td>
+<td>DCI 1_1 &#x2F; 0_1（时域 SLIV 字段指定）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="6-TDD-时隙格式与-DL-UL-配置"><a href="#6-TDD-时隙格式与-DL-UL-配置" class="headerlink" title="6. TDD 时隙格式与 DL&#x2F;UL 配置"></a>6. TDD 时隙格式与 DL&#x2F;UL 配置</h1><h3 id="6-1-时隙符号类型"><a href="#6-1-时隙符号类型" class="headerlink" title="6.1 时隙符号类型"></a>6.1 时隙符号类型</h3><p>NR 时隙中的每个 OFDM 符号可被标记为三种类型之一（TS 38.211 §4.3.2，TS 38.213 §11.1）：</p>
+<ul>
+<li><strong>D（Downlink）</strong>：下行符号，仅用于基站发送。</li>
+<li><strong>U（Uplink）</strong>：上行符号，仅用于 UE 发送。</li>
+<li><strong>F（Flexible）</strong>：灵活符号，可动态指定为 DL 或 UL，也可用作保护间隔（GP）。</li>
+</ul>
+<h3 id="6-2-预定义时隙格式"><a href="#6-2-预定义时隙格式" class="headerlink" title="6.2 预定义时隙格式"></a>6.2 预定义时隙格式</h3><p>TS 38.213 表 11.1.1-1 共定义了 <strong>56 种预设时隙格式（Format 0~55）</strong>，示例如下：</p>
+<table>
+<thead>
+<tr>
+<th>格式编号</th>
+<th>符号 0~13 分配</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>D D D D D D D D D D D D D D</td>
+<td>全下行</td>
+</tr>
+<tr>
+<td>1</td>
+<td>U U U U U U U U U U U U U U</td>
+<td>全上行</td>
+</tr>
+<tr>
+<td>2</td>
+<td>F F F F F F F F F F F F F F</td>
+<td>全 Flexible</td>
+</tr>
+<tr>
+<td>28</td>
+<td>D D D D D D D D D D D F U U</td>
+<td>11 DL + 1 F&#x2F;GP + 2 UL</td>
+</tr>
+<tr>
+<td>34</td>
+<td>D D D D D D D D D D F F F F</td>
+<td>10 DL + 4 F</td>
+</tr>
+</tbody></table>
+<h3 id="6-3-TDD-周期配置"><a href="#6-3-TDD-周期配置" class="headerlink" title="6.3 TDD 周期配置"></a>6.3 TDD 周期配置</h3><p>NR TDD 不再使用 LTE 的 7 种固定上下行配置，而是采用<strong>灵活的周期性模式</strong>，通过 RRC 参数 <code>tdd-UL-DL-ConfigurationCommon</code> 广播（可选 <code>tdd-UL-DL-ConfigurationDedicated</code> 做专用配置）。</p>
+<p>典型 TDD 配置示例（SCS&#x3D;30 kHz，5 ms 周期 DDDSU 模式）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Slot #0: D D D D D D D D D D D D D D  (全 DL)</span><br><span class="line">Slot #1: D D D D D D D D D D D D D D  (全 DL)</span><br><span class="line">Slot #2: D D D D D D D D D D D D D D  (全 DL)</span><br><span class="line">Slot #3: D D D D D D D D D D D F U U  (特殊 Slot: 11 DL + 1 F/GP + 2 UL)</span><br><span class="line">Slot #4: U U U U U U U U U U U U U U  (全 UL)</span><br></pre></td></tr></table></figure>
+
+<p>特殊 Slot 中的 F 符号用作保护间隔（Guard Period），防止 DL 信号干扰 UL 接收。</p>
+<hr>
+<h1 id="7-资源块（RB）与资源单元（RE）定义"><a href="#7-资源块（RB）与资源单元（RE）定义" class="headerlink" title="7. 资源块（RB）与资源单元（RE）定义"></a>7. 资源块（RB）与资源单元（RE）定义</h1><h3 id="7-1-资源单元（RE，Resource-Element）"><a href="#7-1-资源单元（RE，Resource-Element）" class="headerlink" title="7.1 资源单元（RE，Resource Element）"></a>7.1 资源单元（RE，Resource Element）</h3><p><strong>资源单元（RE）是 NR 中最小的时频资源粒度</strong>（TS 38.211 §4.4.1），定义为：</p>
+<blockquote>
+<p><strong>1 个子载波（频域）× 1 个 OFDM 符号（时域）</strong></p>
+</blockquote>
+<p>每个 RE 承载一个调制符号，其信息比特数取决于调制阶数：</p>
+<table>
+<thead>
+<tr>
+<th>调制方式</th>
+<th>比特&#x2F;RE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>QPSK</td>
+<td>2</td>
+</tr>
+<tr>
+<td>16QAM</td>
+<td>4</td>
+</tr>
+<tr>
+<td>64QAM</td>
+<td>6</td>
+</tr>
+<tr>
+<td>256QAM</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<p>RE 由二元组 <strong>(k, l)</strong> 唯一标识：</p>
+<ul>
+<li><strong>k</strong>：频域子载波索引</li>
+<li><strong>l</strong>：时域符号索引（相对于某参考点）</li>
+</ul>
+<p>完整标识还包括天线端口 p 和 SCS 配置 μ，即 RE(k, l)^(p,μ)（见 TS 38.211 §4.4.1）。</p>
+<h3 id="7-2-资源块（RB，Resource-Block）"><a href="#7-2-资源块（RB，Resource-Block）" class="headerlink" title="7.2 资源块（RB，Resource Block）"></a>7.2 资源块（RB，Resource Block）</h3><p>根据 <strong>TS 38.211 §4.4.4.1</strong>，NR 资源块定义为：</p>
+<blockquote>
+<p><strong>频域上连续的 12 个子载波</strong></p>
+</blockquote>
+<p>与 LTE 不同，<strong>NR 的 RB 是纯频域概念</strong>，不包含时域维度：</p>
+<table>
+<thead>
+<tr>
+<th>系统</th>
+<th>RB 定义</th>
+<th>频域</th>
+<th>时域</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LTE</td>
+<td>时频二维</td>
+<td>12 子载波</td>
+<td>1 时隙（7 符号）</td>
+</tr>
+<tr>
+<td>NR</td>
+<td>纯频域</td>
+<td>12 子载波</td>
+<td>不包括</td>
+</tr>
+</tbody></table>
+<p>因此，常说的”1 个 RB 占用 1 个时隙”对应 12 × 14 &#x3D; <strong>168 个 RE</strong>（Normal CP），但严格定义时 RB 仅指频域的 12 个子载波。</p>
+<h3 id="7-3-公共资源块（CRB）与物理资源块（PRB）"><a href="#7-3-公共资源块（CRB）与物理资源块（PRB）" class="headerlink" title="7.3 公共资源块（CRB）与物理资源块（PRB）"></a>7.3 公共资源块（CRB）与物理资源块（PRB）</h3><p>NR 引入了两层 RB 编号体系：</p>
+<p><strong>公共资源块（CRB，Common Resource Block）</strong>：</p>
+<ul>
+<li>相对于 <strong>Point A</strong>（公共参考频率点）定义，编号从 0 向上增大。</li>
+<li>CRB 0 的子载波 0 中心频率 &#x3D; Point A 频率。</li>
+<li>用于跨载波、跨 BWP 的频域坐标参考。</li>
+</ul>
+<p><strong>物理资源块（PRB，Physical Resource Block）</strong>：</p>
+<ul>
+<li>在某个<strong>带宽部分（BWP）</strong> 内从 0 开始编号。</li>
+<li>PRB 0 是 BWP 的最低 RB，与 CRB 的偏移由 <code>startingPRB</code> 给出。</li>
+<li>调度 DCI 中的频域资源分配字段使用 PRB 编号。</li>
+</ul>
+<h3 id="7-4-最大-RB-数（NRB）"><a href="#7-4-最大-RB-数（NRB）" class="headerlink" title="7.4 最大 RB 数（NRB）"></a>7.4 最大 RB 数（NRB）</h3><p>单个载波的最大传输带宽配置（NRB）由 <strong>TS 38.101-1（FR1）</strong> 和 <strong>TS 38.101-2（FR2）</strong> 定义，任何 SCS 下 <strong>NRB ≤ 275</strong>。</p>
+<p><strong>FR1（Sub-6 GHz）NRB 部分表格</strong>（摘自 38.101-1 表 5.3.2-1）：</p>
+<table>
+<thead>
+<tr>
+<th>信道带宽 (MHz)</th>
+<th>SCS&#x3D;15 kHz</th>
+<th>SCS&#x3D;30 kHz</th>
+<th>SCS&#x3D;60 kHz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>5</td>
+<td>25</td>
+<td>11</td>
+<td>—</td>
+</tr>
+<tr>
+<td>10</td>
+<td>52</td>
+<td>24</td>
+<td>11</td>
+</tr>
+<tr>
+<td>20</td>
+<td>106</td>
+<td>51</td>
+<td>24</td>
+</tr>
+<tr>
+<td>40</td>
+<td>216</td>
+<td>106</td>
+<td>51</td>
+</tr>
+<tr>
+<td>50</td>
+<td>270</td>
+<td>133</td>
+<td>65</td>
+</tr>
+<tr>
+<td>80</td>
+<td>—</td>
+<td>217</td>
+<td>107</td>
+</tr>
+<tr>
+<td>100</td>
+<td>—</td>
+<td>275</td>
+<td>135</td>
+</tr>
+</tbody></table>
+<p><strong>FR2（毫米波）NRB 部分表格</strong>（摘自 38.101-2 表 5.3.2-1）：</p>
+<table>
+<thead>
+<tr>
+<th>信道带宽 (MHz)</th>
+<th>SCS&#x3D;60 kHz</th>
+<th>SCS&#x3D;120 kHz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>50</td>
+<td>66</td>
+<td>32</td>
+</tr>
+<tr>
+<td>100</td>
+<td>132</td>
+<td>66</td>
+</tr>
+<tr>
+<td>200</td>
+<td>264</td>
+<td>132</td>
+</tr>
+<tr>
+<td>400</td>
+<td>—</td>
+<td>264</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：由于保护带（Guardband）随 SCS 增大而增大，实际可用 RB 数略少于按带宽简单计算的值。保护带的存在是为了满足带外辐射（ACLR）要求，避免过陡峭的滤波器。</p>
+</blockquote>
+<hr>
+<h1 id="8-资源栅格"><a href="#8-资源栅格" class="headerlink" title="8. 资源栅格"></a>8. 资源栅格</h1><h3 id="8-1-资源栅格定义"><a href="#8-1-资源栅格定义" class="headerlink" title="8.1 资源栅格定义"></a>8.1 资源栅格定义</h3><p>资源栅格（Resource Grid）是 NR 物理层的时频坐标系（TS 38.211 §4.4.2），由以下维度构成：</p>
+<ul>
+<li><strong>频域</strong>：$N_{grid,x}^{size,\mu} \times N_{RB}^{sc}$ 个子载波（最大 275 × 12 &#x3D; 3300 个）</li>
+<li><strong>时域</strong>：$N_{slot}^{frame,\mu} \times N_{symb}^{slot}$ 个符号（每帧）</li>
+</ul>
+<p>每个天线端口 p、每种 SCS 配置 μ、每个传输方向（DL&#x2F;UL&#x2F;Sidelink），各有<strong>独立的资源栅格</strong>。</p>
+<h3 id="8-2-资源栅格示意（μ-1，SCS-30-kHz，1-ms-子帧）"><a href="#8-2-资源栅格示意（μ-1，SCS-30-kHz，1-ms-子帧）" class="headerlink" title="8.2 资源栅格示意（μ&#x3D;1，SCS&#x3D;30 kHz，1 ms 子帧）"></a>8.2 资源栅格示意（μ&#x3D;1，SCS&#x3D;30 kHz，1 ms 子帧）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">频域 ↑</span><br><span class="line">│  子载波 11 ── [RE] [RE] ... [RE]  ← 共 14 个符号</span><br><span class="line">│  子载波 10 ── [RE] [RE] ... [RE]</span><br><span class="line">│  ...                               ← 1 个 RB = 12 子载波</span><br><span class="line">│  子载波  0 ── [RE] [RE] ... [RE]</span><br><span class="line">│  子载波 23 ── [RE] [RE] ... [RE]  ← 第 2 个 RB 起始</span><br><span class="line">│  ...</span><br><span class="line">└──────────────────────────────────→ 时域（OFDM 符号）</span><br><span class="line">|←── Slot 0 ──→||←── Slot 1 ──→|</span><br><span class="line">|←────── 1 ms 子帧（2 slots，μ=1）──────→|</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-DC-子载波"><a href="#8-3-DC-子载波" class="headerlink" title="8.3 DC 子载波"></a>8.3 DC 子载波</h3><p>NR 下行有一个 DC（直流）子载波，由高层参数 <code>txDirectCurrentLocation</code> 指示其位置（值 0~3299 表示具体子载波号，3300 表示位于资源栅格之外）。DC 子载波通常不承载数据，但其位置信息对 UE 接收处理有影响。</p>
+<hr>
+<h1 id="9-带宽部分（BWP）与点-A"><a href="#9-带宽部分（BWP）与点-A" class="headerlink" title="9. 带宽部分（BWP）与点 A"></a>9. 带宽部分（BWP）与点 A</h1><h3 id="9-1-Point-A"><a href="#9-1-Point-A" class="headerlink" title="9.1 Point A"></a>9.1 Point A</h3><p><strong>Point A</strong> 是 NR 频域坐标系的公共参考点（TS 38.211 §4.4.4.2），定义为 CRB 0 的子载波 0 的中心频率。相关参数：</p>
+<ul>
+<li>**<code>offsetToPointA</code>**（广播于 SIB1）：Point A 与 SS&#x2F;PBCH Block 最低可用子载波的频率偏移（FR1 以 15 kHz SCS 的 RB 数表示，FR2 以 60 kHz SCS 的 RB 数表示）。</li>
+<li>**<code>absoluteFrequencyPointA</code>**（RRC）：Point A 的绝对频率（以 NR-ARFCN 表示）。</li>
+</ul>
+<h3 id="9-2-BWP-概念"><a href="#9-2-BWP-概念" class="headerlink" title="9.2 BWP 概念"></a>9.2 BWP 概念</h3><p><strong>带宽部分（BWP，Bandwidth Part）</strong> 是 NR 引入的重要新机制（TS 38.211 §4.4.5），是在单个载波内定义的<strong>连续频域资源子集</strong>，具有固定的 SCS 和 CP 类型。</p>
+<p>引入 BWP 的主要动机：</p>
+<ol>
+<li><strong>省电</strong>：UE 无数据时可工作在较窄 BWP，降低 RF 和基带功耗；</li>
+<li><strong>兼容性</strong>：同一 NR 载波上共存不同能力 UE（如 RedCap UE 仅支持 20 MHz，eMBB UE 支持 100 MHz）；</li>
+<li><strong>多 Numerology 共存</strong>：不同 BWP 可配置不同 SCS，实现同一载波内多 Numerology 操作（某时刻每 UE 每方向只有 1 个激活 BWP）。</li>
+</ol>
+<h3 id="9-3-BWP-参数"><a href="#9-3-BWP-参数" class="headerlink" title="9.3 BWP 参数"></a>9.3 BWP 参数</h3><p>每个 BWP 由以下参数描述：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>locationAndBandwidth</code></td>
+<td>相对于 CRB 0 的起始 RB 和 RB 数（RIV 编码）</td>
+</tr>
+<tr>
+<td><code>subcarrierSpacing</code></td>
+<td>该 BWP 的 SCS（μ 值）</td>
+</tr>
+<tr>
+<td><code>cyclicPrefix</code></td>
+<td>Normal 或 Extended</td>
+</tr>
+</tbody></table>
+<p>每个 UE 最多可配置 <strong>4 个下行 BWP</strong> 和 <strong>4 个上行 BWP</strong>，任意时刻每方向只有 1 个<strong>激活 BWP（Active BWP）</strong>。BWP 切换通过 DCI 或 RRC 触发，切换时延为 1~3 个时隙（取决于实现）。</p>
+<hr>
+<h1 id="10-与-LTE-帧结构的对比"><a href="#10-与-LTE-帧结构的对比" class="headerlink" title="10. 与 LTE 帧结构的对比"></a>10. 与 LTE 帧结构的对比</h1><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>LTE</th>
+<th>NR (μ&#x3D;0)</th>
+<th>NR (μ&#x3D;1)</th>
+<th>NR (μ&#x3D;3)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>帧时长</td>
+<td>10 ms</td>
+<td>10 ms</td>
+<td>10 ms</td>
+<td>10 ms</td>
+</tr>
+<tr>
+<td>子帧时长</td>
+<td>1 ms</td>
+<td>1 ms</td>
+<td>1 ms</td>
+<td>1 ms</td>
+</tr>
+<tr>
+<td>SCS</td>
+<td>15 kHz（固定）</td>
+<td>15 kHz</td>
+<td>30 kHz</td>
+<td>120 kHz</td>
+</tr>
+<tr>
+<td>时隙时长</td>
+<td>0.5 ms</td>
+<td>1 ms</td>
+<td>0.5 ms</td>
+<td>0.125 ms</td>
+</tr>
+<tr>
+<td>每时隙符号数</td>
+<td>7（Normal CP）</td>
+<td>14</td>
+<td>14</td>
+<td>14</td>
+</tr>
+<tr>
+<td>每子帧时隙数</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>8</td>
+</tr>
+<tr>
+<td>调度最小单位</td>
+<td>子帧（1 ms）</td>
+<td>时隙 or mini-slot</td>
+<td>时隙 or mini-slot</td>
+<td>时隙 or mini-slot</td>
+</tr>
+<tr>
+<td>Mini-Slot 支持</td>
+<td>否</td>
+<td>是（2&#x2F;4&#x2F;7 符号）</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>RB 定义</td>
+<td>12 SC × 7 sym（时频）</td>
+<td>12 SC（纯频域）</td>
+<td>12 SC</td>
+<td>12 SC</td>
+</tr>
+<tr>
+<td>最大 RB 数</td>
+<td>110（20 MHz）</td>
+<td>270（50 MHz）</td>
+<td>275（100 MHz）</td>
+<td>66（100 MHz FR2）</td>
+</tr>
+<tr>
+<td>TDD 配置</td>
+<td>固定 7 种模式</td>
+<td>灵活周期，符号级配置</td>
+<td>同左</td>
+<td>同左</td>
+</tr>
+<tr>
+<td>BWP 机制</td>
+<td>无</td>
+<td>有（最多 4 个 DL&#x2F;UL）</td>
+<td>同左</td>
+<td>同左</td>
+</tr>
+</tbody></table>
+<p><strong>关键差异总结</strong>：</p>
+<ol>
+<li>LTE 以<strong>子帧</strong>为调度粒度，NR 以<strong>时隙</strong>（甚至 Mini-Slot）为粒度，灵活性大幅提升；</li>
+<li>NR 支持<strong>多 Numerology</strong>，LTE 只有固定 15 kHz SCS；</li>
+<li>NR 的 RB 是<strong>纯频域</strong>定义，LTE 的 RB 包含时域；</li>
+<li>NR 引入 <strong>BWP</strong> 机制，支持动态带宽调整和省电优化；</li>
+<li>NR 支持<strong>动态 TDD</strong>，每个时隙乃至每个符号可灵活配置方向。</li>
+</ol>
+<hr>
+<h1 id="11-设计取舍与工程意义"><a href="#11-设计取舍与工程意义" class="headerlink" title="11. 设计取舍与工程意义"></a>11. 设计取舍与工程意义</h1><h3 id="11-1-Numerology-选择原则"><a href="#11-1-Numerology-选择原则" class="headerlink" title="11.1 Numerology 选择原则"></a>11.1 Numerology 选择原则</h3><table>
+<thead>
+<tr>
+<th>考虑因素</th>
+<th>推荐较小 SCS（μ&#x3D;0&#x2F;1）</th>
+<th>推荐较大 SCS（μ&#x3D;2&#x2F;3）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>小区覆盖范围</td>
+<td>大小区（时延扩展大）</td>
+<td>小小区、mmWave</td>
+</tr>
+<tr>
+<td>相位噪声敏感度</td>
+<td>低频（相噪小）</td>
+<td>高频&#x2F;毫米波（相噪大）</td>
+</tr>
+<tr>
+<td>时延要求</td>
+<td>宽松（eMBB）</td>
+<td>严格（URLLC）</td>
+</tr>
+<tr>
+<td>多普勒频移</td>
+<td>低速 UE</td>
+<td>高速 UE（SCS 宽，容限大）</td>
+</tr>
+</tbody></table>
+<h3 id="11-2-混合-Numerology-的干扰问题"><a href="#11-2-混合-Numerology-的干扰问题" class="headerlink" title="11.2 混合 Numerology 的干扰问题"></a>11.2 混合 Numerology 的干扰问题</h3><p>同一载波上可存在不同 SCS 的 BWP（不同 UE 使用不同 Numerology），但不同 SCS 的子载波在频域不正交，子载波边界不对齐会产生<strong>子载波间干扰（ICI）</strong>。NR 通过以下方式缓解：</p>
+<ul>
+<li>要求不同 Numerology 的时隙边界在 0.5 ms 处对齐；</li>
+<li>通过频域保护带（Guard Band）在不同 Numerology 的 BWP 之间保留间隔。</li>
+</ul>
+<h3 id="11-3-时域对齐规则"><a href="#11-3-时域对齐规则" class="headerlink" title="11.3 时域对齐规则"></a>11.3 时域对齐规则</h3><p>NR 规定，无论使用哪种 Numerology，每个子帧起始时刻必须对齐。每个 0.5 ms 内有一个 CP 略长的符号（补偿约 0.521 μs），保证所有 Numerology 的 0.5 ms 边界精确对齐，便于基站为不同 UE 切换 Numerology。</p>
+<h3 id="11-4-RB-数量与峰值容量估算"><a href="#11-4-RB-数量与峰值容量估算" class="headerlink" title="11.4 RB 数量与峰值容量估算"></a>11.4 RB 数量与峰值容量估算</h3><p>以 100 MHz 信道带宽、SCS&#x3D;30 kHz 为例：</p>
+<ul>
+<li>NRB &#x3D; 275 个 RB，每 RB &#x3D; 12 子载波，每时隙 &#x3D; 14 符号</li>
+<li>采用 256QAM（8 bit&#x2F;RE），满配 MIMO 8 层，时隙时长 0.5 ms：</li>
+</ul>
+<p>$$\text{峰值速率（近似）} &#x3D; \frac{275 \times 12 \times 14 \times 8 \times 8}{0.5 \times 10^{-3}} \approx 5.9 \text{ Gbps}$$</p>
+<p>（实际需扣除参考信号、控制信道开销及编码率，有效效率约 60%~80%）</p>
+<hr>
+<h1 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h1><p>本文系统梳理了 5G NR 帧结构的核心概念：</p>
+<ol>
+<li><p><strong>Numerology（μ）</strong> 是 NR 时频体系的基石，通过 $\Delta f &#x3D; 2^\mu \times 15\text{ kHz}$ 统一定义子载波间距，并由此派生符号、时隙等所有时域参数。</p>
+</li>
+<li><p><strong>帧层次</strong>（帧 10 ms → 子帧 1 ms → 时隙 1&#x2F;2^μ ms → 符号）清晰分层，子帧作为不同 Numerology 的公共对齐基准，时隙作为调度基本单位。</p>
+</li>
+<li><p><strong>Mini-Slot</strong> 引入非时隙调度能力，支持 2&#x2F;4&#x2F;7 符号的灵活分配，配合大 SCS 可将单次传输时延压缩至数十微秒，是实现 URLLC 的关键。</p>
+</li>
+<li><p><strong>RB（12 子载波）</strong> 是频域资源分配的基本单位，<strong>RE（1 子载波 × 1 符号）</strong> 是最小时频粒度。NR 中 RB 为纯频域概念，不含时域。</p>
+</li>
+<li><p><strong>资源栅格</strong> 以 Point A 为参考，CRB&#x2F;PRB 双层编号体系支持跨 BWP 坐标管理；BWP 机制实现动态带宽适配与省电优化。</p>
+</li>
+<li><p>NR 相比 LTE 帧结构的核心改进：<strong>灵活多 Numerology、动态 TDD、Mini-Slot 低时延调度、BWP 省电机制</strong>，四者共同支撑了 5G 面向不同业务场景的差异化性能目标。</p>
+</li>
+</ol>
+<hr>
+<h2 id="参考规范"><a href="#参考规范" class="headerlink" title="参考规范"></a>参考规范</h2><table>
+<thead>
+<tr>
+<th>规范编号</th>
+<th>标题</th>
+<th>关键章节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>3GPP TS 38.211</strong></td>
+<td>NR; Physical Channels and Modulation</td>
+<td>§4.2（Numerology）、§4.3（Frame Structure）、§4.4（Resource Grid）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.213</strong></td>
+<td>NR; Physical Layer Procedures for Control</td>
+<td>§11.1（Slot Format Indication）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.214</strong></td>
+<td>NR; Physical Layer Procedures for Data</td>
+<td>§5.1&#x2F;§6.1（时域资源分配）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.101-1</strong></td>
+<td>NR; UE Radio Transmission and Reception; Part 1: Range 1 Standalone</td>
+<td>§5.3（FR1 NRB 表格）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.101-2</strong></td>
+<td>NR; UE Radio Transmission and Reception; Part 2: Range 2 Standalone</td>
+<td>§5.3（FR2 NRB 表格）</td>
+</tr>
+<tr>
+<td><strong>3GPP TS 38.300</strong></td>
+<td>NR; NR and NG-RAN Overall Description</td>
+<td>§5.4（Frame Structure Overview）</td>
+</tr>
+<tr>
+<td><strong>3GPP TR 38.912</strong></td>
+<td>Study on New Radio (NR) Access Technology</td>
+<td>§7.1（Numerology Candidates）</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8F%AF%E6%89%A9%E5%B1%95-Numerology%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要可扩展 Numerology？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-Numerology-%E5%9F%BA%E6%9C%AC%E5%AE%9A%E4%B9%89"><span class="toc-number">3.</span> <span class="toc-text">2. Numerology 基本定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AD%90%E8%BD%BD%E6%B3%A2%E9%97%B4%E8%B7%9D%E5%85%AC%E5%BC%8F"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 子载波间距公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%94%AF%E6%8C%81%E7%9A%84-Numerology-%E6%B1%87%E6%80%BB%E8%A1%A8"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 支持的 Numerology 汇总表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%90%84-Numerology-%E7%9A%84%E6%97%B6%E5%9F%9F%E5%8F%82%E6%95%B0"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 各 Numerology 的时域参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%B8%A7%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">3. 帧层次结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%97%A0%E7%BA%BF%E5%B8%A7%EF%BC%88Radio-Frame%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 无线帧（Radio Frame）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AD%90%E5%B8%A7%EF%BC%88Subframe%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 子帧（Subframe）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%97%B6%E9%9A%99%EF%BC%88Slot%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 时隙（Slot）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-OFDM-%E7%AC%A6%E5%8F%B7%EF%BC%88Symbol%EF%BC%89"><span class="toc-number">4.0.4.</span> <span class="toc-text">3.4 OFDM 符号（Symbol）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E5%BE%AA%E7%8E%AF%E5%89%8D%E7%BC%80%EF%BC%88Cyclic-Prefix%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 循环前缀（Cyclic Prefix）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-CP-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 CP 的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Normal-CP"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 Normal CP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Extended-CP%EF%BC%88%CE%BC-2-%E4%B8%93%E5%B1%9E%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 Extended CP（μ &#x3D; 2 专属）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-Mini-Slot-%E4%B8%8E%E9%9D%9E%E6%97%B6%E9%9A%99%E8%B0%83%E5%BA%A6"><span class="toc-number">6.</span> <span class="toc-text">5. Mini-Slot 与非时隙调度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E8%83%8C%E6%99%AF"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Mini-Slot-%E5%AE%9A%E4%B9%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 Mini-Slot 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Mini-Slot-%E7%9A%84%E5%85%B3%E9%94%AE%E4%BC%98%E5%8A%BF"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 Mini-Slot 的关键优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Type-A-vs-Type-B-%E8%B0%83%E5%BA%A6%E5%AF%B9%E6%AF%94"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 Type A vs Type B 调度对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-TDD-%E6%97%B6%E9%9A%99%E6%A0%BC%E5%BC%8F%E4%B8%8E-DL-UL-%E9%85%8D%E7%BD%AE"><span class="toc-number">7.</span> <span class="toc-text">6. TDD 时隙格式与 DL&#x2F;UL 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%97%B6%E9%9A%99%E7%AC%A6%E5%8F%B7%E7%B1%BB%E5%9E%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 时隙符号类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%A2%84%E5%AE%9A%E4%B9%89%E6%97%B6%E9%9A%99%E6%A0%BC%E5%BC%8F"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 预定义时隙格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-TDD-%E5%91%A8%E6%9C%9F%E9%85%8D%E7%BD%AE"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 TDD 周期配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%89%E4%B8%8E%E8%B5%84%E6%BA%90%E5%8D%95%E5%85%83%EF%BC%88RE%EF%BC%89%E5%AE%9A%E4%B9%89"><span class="toc-number">8.</span> <span class="toc-text">7. 资源块（RB）与资源单元（RE）定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E8%B5%84%E6%BA%90%E5%8D%95%E5%85%83%EF%BC%88RE%EF%BC%8CResource-Element%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 资源单元（RE，Resource Element）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88RB%EF%BC%8CResource-Block%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 资源块（RB，Resource Block）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%AC%E5%85%B1%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88CRB%EF%BC%89%E4%B8%8E%E7%89%A9%E7%90%86%E8%B5%84%E6%BA%90%E5%9D%97%EF%BC%88PRB%EF%BC%89"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 公共资源块（CRB）与物理资源块（PRB）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%9C%80%E5%A4%A7-RB-%E6%95%B0%EF%BC%88NRB%EF%BC%89"><span class="toc-number">8.0.4.</span> <span class="toc-text">7.4 最大 RB 数（NRB）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC"><span class="toc-number">9.</span> <span class="toc-text">8. 资源栅格</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC%E5%AE%9A%E4%B9%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 资源栅格定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%B5%84%E6%BA%90%E6%A0%85%E6%A0%BC%E7%A4%BA%E6%84%8F%EF%BC%88%CE%BC-1%EF%BC%8CSCS-30-kHz%EF%BC%8C1-ms-%E5%AD%90%E5%B8%A7%EF%BC%89"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 资源栅格示意（μ&#x3D;1，SCS&#x3D;30 kHz，1 ms 子帧）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-DC-%E5%AD%90%E8%BD%BD%E6%B3%A2"><span class="toc-number">9.0.3.</span> <span class="toc-text">8.3 DC 子载波</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E5%B8%A6%E5%AE%BD%E9%83%A8%E5%88%86%EF%BC%88BWP%EF%BC%89%E4%B8%8E%E7%82%B9-A"><span class="toc-number">10.</span> <span class="toc-text">9. 带宽部分（BWP）与点 A</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-Point-A"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 Point A</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-BWP-%E6%A6%82%E5%BF%B5"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 BWP 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-BWP-%E5%8F%82%E6%95%B0"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 BWP 参数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E4%B8%8E-LTE-%E5%B8%A7%E7%BB%93%E6%9E%84%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">11.</span> <span class="toc-text">10. 与 LTE 帧结构的对比</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E8%AE%BE%E8%AE%A1%E5%8F%96%E8%88%8D%E4%B8%8E%E5%B7%A5%E7%A8%8B%E6%84%8F%E4%B9%89"><span class="toc-number">12.</span> <span class="toc-text">11. 设计取舍与工程意义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-Numerology-%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 Numerology 选择原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E6%B7%B7%E5%90%88-Numerology-%E7%9A%84%E5%B9%B2%E6%89%B0%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 混合 Numerology 的干扰问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E6%97%B6%E5%9F%9F%E5%AF%B9%E9%BD%90%E8%A7%84%E5%88%99"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 时域对齐规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-RB-%E6%95%B0%E9%87%8F%E4%B8%8E%E5%B3%B0%E5%80%BC%E5%AE%B9%E9%87%8F%E4%BC%B0%E7%AE%97"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 RB 数量与峰值容量估算</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%A7%84%E8%8C%83"><span class="toc-number">13.1.</span> <span class="toc-text">参考规范</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&text=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&is_video=false&description=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=NR 帧结构：Numerology、时隙与资源粒度&body=Check out this article: http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&title=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&name=NR 帧结构：Numerology、时隙与资源粒度&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/04/13/3gpp/11-nr%20frame%20structure/&t=NR 帧结构：Numerology、时隙与资源粒度"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
