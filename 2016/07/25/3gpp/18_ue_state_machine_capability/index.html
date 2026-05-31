@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="目录 UE RRC 状态机概述 RRC_IDLE 状态详解 RRC_INACTIVE 状态详解 RRC_CONNECTED 状态详解 状态转换流程与信令 三态对比总结 UE 能力上报概述 UECapabilityEnquiry 消息详解 UECapabilityInformation 消息详解 Feature Sets 与 Feature Set Combinations UE 能力上报流程与时序">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UE 状态机与能力上报">
+<meta property="og:url" content="http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/index.html">
+<meta property="og:site_name" content="Alex&#39;s Tech Blog">
+<meta property="og:description" content="目录 UE RRC 状态机概述 RRC_IDLE 状态详解 RRC_INACTIVE 状态详解 RRC_CONNECTED 状态详解 状态转换流程与信令 三态对比总结 UE 能力上报概述 UECapabilityEnquiry 消息详解 UECapabilityInformation 消息详解 Feature Sets 与 Feature Set Combinations UE 能力上报流程与时序">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-07-25T02:44:19.000Z">
+<meta property="article:modified_time" content="2026-05-31T08:08:17.148Z">
+<meta property="article:author" content="Alex Wu">
+<meta property="article:tag" content="3gpp">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>UE 状态机与能力上报</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2019/01/09/memory%20model/1.memory-model-instruction-reordering/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2016/07/10/3gpp/17_UE_Identity_System/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&text=UE 状态机与能力上报"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&is_video=false&description=UE 状态机与能力上报"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=UE 状态机与能力上报&body=Check out this article: http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&name=UE 状态机与能力上报&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&t=UE 状态机与能力上报"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-UE-RRC-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. UE RRC 状态机概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%A4%9A%E4%B8%AA-RRC-%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 为什么需要多个 RRC 状态？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%89%E6%80%81%E5%85%A8%E6%99%AF"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 三态全景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RRC-IDLE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">2. RRC_IDLE 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 状态定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-IDLE-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 进入与离开 IDLE 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RRC-INACTIVE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. RRC_INACTIVE 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA%E4%B8%8E%E4%BC%98%E5%8A%BF"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 设计动机与优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-INACTIVE-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 进入与离开 INACTIVE 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RRC-CONNECTED-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. RRC_CONNECTED 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 状态定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-CONNECTED-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 进入与离开 CONNECTED 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E6%B5%81%E7%A8%8B%E4%B8%8E%E4%BF%A1%E4%BB%A4"><span class="toc-number">6.</span> <span class="toc-text">5. 状态转换流程与信令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-IDLE-%E2%86%92-CONNECTED%EF%BC%9ARRC-%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 IDLE → CONNECTED：RRC 建立流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-CONNECTED-%E2%86%92-INACTIVE%EF%BC%9A%E8%BF%9E%E6%8E%A5%E6%8C%82%E8%B5%B7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 CONNECTED → INACTIVE：连接挂起</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-INACTIVE-%E2%86%92-CONNECTED%EF%BC%9A%E8%BF%9E%E6%8E%A5%E6%81%A2%E5%A4%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 INACTIVE → CONNECTED：连接恢复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-INACTIVE-%E2%86%92-INACTIVE%EF%BC%9ARNA-%E6%9B%B4%E6%96%B0%EF%BC%88RNAU%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 INACTIVE → INACTIVE：RNA 更新（RNAU）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%89%E6%80%81%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6. 三态对比总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%A6%82%E8%BF%B0"><span class="toc-number">8.</span> <span class="toc-text">7. UE 能力上报概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%EF%BC%9F"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 为什么需要能力上报？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%9B%B8%E5%85%B3%E8%A7%84%E8%8C%83"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 相关规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 能力上报的时机</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-UECapabilityEnquiry-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3"><span class="toc-number">9.</span> <span class="toc-text">8. UECapabilityEnquiry 消息详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%EF%BC%88%E7%AE%80%E5%8C%96%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 消息结构（简化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%85%B3%E9%94%AE-IE-%E8%AF%B4%E6%98%8E"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 关键 IE 说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-UECapabilityInformation-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3"><span class="toc-number">10.</span> <span class="toc-text">9. UECapabilityInformation 消息详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%EF%BC%88%E7%AE%80%E5%8C%96%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 消息结构（简化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E8%83%BD%E5%8A%9B%E5%AE%B9%E5%99%A8%E5%B1%82%E7%BA%A7"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 能力容器层级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%B8%BB%E8%A6%81%E8%83%BD%E5%8A%9B%E5%8F%82%E6%95%B0%E7%B1%BB%E5%88%AB"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 主要能力参数类别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Feature-Sets-%E4%B8%8E-Feature-Set-Combinations"><span class="toc-number">11.</span> <span class="toc-text">10. Feature Sets 与 Feature Set Combinations</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E8%AE%BE%E8%AE%A1%E8%83%8C%E6%99%AF"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 设计背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E4%B8%89%E5%B1%82%E7%BB%93%E6%9E%84"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 三层结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%8F%8C%E9%A2%91-CA-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 示例：双频 CA 能力上报</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%B5%81%E7%A8%8B%E4%B8%8E%E6%97%B6%E5%BA%8F"><span class="toc-number">12.</span> <span class="toc-text">11. UE 能力上报流程与时序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%A0%87%E5%87%86%E6%B5%81%E7%A8%8B%EF%BC%88TS-38-331-%C2%A75-6-1%EF%BC%89"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 标准流程（TS 38.331 §5.6.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E6%B6%88%E6%81%AF%E5%88%86%E6%AE%B5%E4%BC%A0%E8%BE%93%EF%BC%88RRC-Message-Segmentation%EF%BC%89"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 消息分段传输（RRC Message Segmentation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E8%83%BD%E5%8A%9B%E7%9A%84%E8%B7%A8-RAT-%E4%B8%80%E8%87%B4%E6%80%A7%E8%A6%81%E6%B1%82"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 能力的跨 RAT 一致性要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E8%83%BD%E5%8A%9B%E5%AD%98%E5%82%A8%E4%B8%8E%E5%A4%8D%E7%94%A8"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 能力存储与复用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UE-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">13.0.1.</span> <span class="toc-text">UE 状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">13.0.2.</span> <span class="toc-text">UE 能力上报</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">14.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        UE 状态机与能力上报
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Alex Wu</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2016-07-25T02:44:19.000Z" class="dt-published" itemprop="datePublished">2016-07-25</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/3gpp/" rel="tag">3gpp</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
+<li><a href="#1-ue-rrc-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A6%82%E8%BF%B0">UE RRC 状态机概述</a></li>
+<li><a href="#2-rrc_idle-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_IDLE 状态详解</a></li>
+<li><a href="#3-rrc_inactive-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_INACTIVE 状态详解</a></li>
+<li><a href="#4-rrc_connected-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_CONNECTED 状态详解</a></li>
+<li><a href="#5-%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E6%B5%81%E7%A8%8B%E4%B8%8E%E4%BF%A1%E4%BB%A4">状态转换流程与信令</a></li>
+<li><a href="#6-%E4%B8%89%E6%80%81%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93">三态对比总结</a></li>
+<li><a href="#7-ue-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%A6%82%E8%BF%B0">UE 能力上报概述</a></li>
+<li><a href="#8-uecapabilityenquiry-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityEnquiry 消息详解</a></li>
+<li><a href="#9-uecapabilityinformation-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityInformation 消息详解</a></li>
+<li><a href="#10-feature-sets-%E4%B8%8E-feature-set-combinations">Feature Sets 与 Feature Set Combinations</a></li>
+<li><a href="#11-ue-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%B5%81%E7%A8%8B%E4%B8%8E%E6%97%B6%E5%BA%8F">UE 能力上报流程与时序</a></li>
+<li><a href="#12-%E5%B0%8F%E7%BB%93">小结</a></li>
+</ol>
+<hr>
+<h1 id="1-UE-RRC-状态机概述"><a href="#1-UE-RRC-状态机概述" class="headerlink" title="1. UE RRC 状态机概述"></a>1. UE RRC 状态机概述</h1><p>Radio Resource Control（RRC）协议是 NR 接入层（AS）控制面的核心，由 <strong>3GPP TS 38.331</strong> 定义。RRC 层负责：</p>
+<ul>
+<li>广播系统信息（SIB）</li>
+<li>寻呼（Paging）管理</li>
+<li>UE 与网络之间的 RRC 连接建立、维护、释放</li>
+<li>安全性（密钥协商、完整性保护、加密）配置</li>
+<li>无线承载（Radio Bearer）管理</li>
+<li>移动性管理（切换、小区重选）</li>
+<li>UE 能力上报</li>
+</ul>
+<h3 id="1-1-为什么需要多个-RRC-状态？"><a href="#1-1-为什么需要多个-RRC-状态？" class="headerlink" title="1.1 为什么需要多个 RRC 状态？"></a>1.1 为什么需要多个 RRC 状态？</h3><p>在 4G LTE 中，UE 只有两种 RRC 状态：<strong>RRC_IDLE</strong> 和 <strong>RRC_CONNECTED</strong>。当网络在一段时间内检测不到上&#x2F;下行数据时，就会命令 UE 进入 IDLE 态以节省功耗。</p>
+<p>然而，现代智能手机的应用（即时通讯、推送通知、位置上报等）会非常频繁地发送少量数据，导致 UE 在 IDLE↔CONNECTED 之间高频切换，带来：</p>
+<ul>
+<li><strong>大量 RRC 信令开销</strong>（每次重新建连需要 Msg1~4 + RRC Setup + 安全激活等流程）</li>
+<li><strong>较高时延</strong>（从 IDLE 到可以发送用户数据通常需要 50~100 ms 甚至更多）</li>
+<li><strong>UE 功耗增加</strong></li>
+</ul>
+<p>为此，<strong>5G NR 在 R15 引入了第三种状态 RRC_INACTIVE</strong>，在 IDLE 与 CONNECTED 之间架起一座「桥梁」，在低功耗的同时保留 AS 上下文，使重新激活连接更快、信令更少。</p>
+<blockquote>
+<p><strong>注意</strong>：RRC_INACTIVE 仅适用于 SA（Standalone）模式，即 UE 连接到 5GC。在 NSA（Non-Standalone，EN-DC，Option 3x）模式下，NR 小区只涉及 RRC_CONNECTED 状态。</p>
+</blockquote>
+<h3 id="1-2-三态全景"><a href="#1-2-三态全景" class="headerlink" title="1.2 三态全景"></a>1.2 三态全景</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">         ┌─────────────────────────────────────────────────┐</span><br><span class="line">         │              UE RRC 状态机（SA 模式）              │</span><br><span class="line">         └─────────────────────────────────────────────────┘</span><br><span class="line"></span><br><span class="line">┌──────────────────┐      RRC建立/恢复       ┌──────────────────────┐</span><br><span class="line">│                  │ ─────────────────────► │                      │</span><br><span class="line">│   RRC_IDLE       │                        │   RRC_CONNECTED      │</span><br><span class="line">│                  │ ◄───────────────────── │                      │</span><br><span class="line">└────────┬─────────┘     RRCRelease         └──────────┬───────────┘</span><br><span class="line">         │               (无 suspendConfig)            │</span><br><span class="line">         │                                             │</span><br><span class="line">         │  小区重选/去注册                  RRCRelease  │</span><br><span class="line">         │                                (含suspendConfig)</span><br><span class="line">         │                                             │</span><br><span class="line">         │              RRC恢复/RNA更新                 │</span><br><span class="line">         └──────────────────────────────►┌─────────────▼──────────┐</span><br><span class="line">                                         │                        │</span><br><span class="line">         ◄────────────────────────────── │   RRC_INACTIVE         │</span><br><span class="line">           CN Paging → IDLE              │                        │</span><br><span class="line">                                         └────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><em>参考：3GPP TS 38.331 Figure 4.2.1-1 &#x2F; Figure 4.2.1-2</em></p>
+<hr>
+<h1 id="2-RRC-IDLE-状态详解"><a href="#2-RRC-IDLE-状态详解" class="headerlink" title="2. RRC_IDLE 状态详解"></a>2. RRC_IDLE 状态详解</h1><h3 id="2-1-状态定义"><a href="#2-1-状态定义" class="headerlink" title="2.1 状态定义"></a>2.1 状态定义</h3><p>当 UE 未建立 RRC 连接时，处于 <strong>RRC_IDLE</strong> 状态。此时：</p>
+<ul>
+<li>UE <strong>没有</strong> AS 上下文（即接入层配置信息）</li>
+<li><strong>无</strong> 专用无线资源分配</li>
+<li>UE 不属于任何特定小区（no cell-level registration）</li>
+<li>核心网侧，UE 处于 <strong>CM-IDLE</strong>（Connection Management IDLE）状态</li>
+</ul>
+<h3 id="2-2-UE-行为"><a href="#2-2-UE-行为" class="headerlink" title="2.2 UE 行为"></a>2.2 UE 行为</h3><p><strong>（1）PLMN 选择与小区驻留</strong></p>
+<p>UE 开机后由 NAS 层选择 PLMN，AS 层执行小区选择（Cell Selection），找到合适小区后”驻留（camp on）”该小区，开始监听控制信道。小区选择准则为 <strong>S 准则</strong>（TS 38.304 §5.2.3.2）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Srxlev = Qrxlevmeas – (Qrxlevmin + Qrxlevminoffset) – Pcompensation – Qoffsettemp &gt; 0</span><br><span class="line">Squal   = Qqualmeas  – (Qqualmin  + Qqualminoffset)  – Qoffsettemp                 &gt; 0</span><br></pre></td></tr></table></figure>
+
+<p><strong>（2）系统信息接收</strong></p>
+<p>UE 必须保持对以下系统信息的有效读取：</p>
+<table>
+<thead>
+<tr>
+<th>系统信息</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>MIB</strong></td>
+<td>通过 PBCH 广播，含基本系统信息（SFN、子载波间隔等）</td>
+</tr>
+<tr>
+<td><strong>SIB1</strong></td>
+<td>小区驻留相关参数、调度其他 SIB 的信息</td>
+</tr>
+<tr>
+<td><strong>SIB2</strong></td>
+<td>小区重选通用参数（如 Qrxlevmin、Threshserving 等）</td>
+</tr>
+<tr>
+<td><strong>SIB3</strong></td>
+<td>同频邻区重选参数</td>
+</tr>
+<tr>
+<td><strong>SIB4</strong></td>
+<td>异频邻区重选参数</td>
+</tr>
+<tr>
+<td><strong>SIB5</strong></td>
+<td>E-UTRA 邻区重选参数（若 UE 支持 E-UTRA）</td>
+</tr>
+</tbody></table>
+<p><strong>（3）寻呼监听</strong></p>
+<p>UE 以 <strong>DRX（Discontinuous Reception）</strong> 方式周期性唤醒，在 Paging Occasion（PO）时监听 PDCCH 上的 P-RNTI，以接收：</p>
+<ul>
+<li><strong>Paging 消息</strong>（承载于 PCCH）：来自核心网的寻呼（CN-initiated Paging），用 5G-S-TMSI 寻址</li>
+<li><strong>Short Message</strong>（直接在 PDCCH 上）：通知系统信息变更或 ETWS&#x2F;CMAS 公共告警</li>
+</ul>
+<p>DRX 周期由 NAS 层配置，TS 38.304 规定了 Paging DRX 周期（defaultPagingCycle）范围：32、64、128、256 个无线帧（即 320 ms ~ 2560 ms）。</p>
+<p><strong>（4）移动性管理</strong></p>
+<p>UE 自主执行 <strong>小区重选（Cell Reselection）</strong>，无需向网络发送任何信令。重选依赖 <strong>R 准则</strong>（Ranking Criterion）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rs = Qmeas,s + QHyst</span><br><span class="line">Rn = Qmeas,n – Qoffset</span><br></pre></td></tr></table></figure>
+
+<p>当邻区 Rn &gt; 服务小区 Rs 持续 Treselection 时间后，UE 重选至邻区。</p>
+<p><strong>（5）上行能力</strong></p>
+<p>在 RRC_IDLE 状态，UE <strong>只能</strong> 通过 PRACH 向网络发送信号（用于发起随机接入流程，建立 RRC 连接），不能在 PUSCH 或 PUCCH 上发送数据。</p>
+<h3 id="2-3-进入与离开-IDLE-的触发"><a href="#2-3-进入与离开-IDLE-的触发" class="headerlink" title="2.3 进入与离开 IDLE 的触发"></a>2.3 进入与离开 IDLE 的触发</h3><table>
+<thead>
+<tr>
+<th>转换方向</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CONNECTED → IDLE</td>
+<td>gNB 发送 <code>RRCRelease</code>（<strong>不含</strong> <code>suspendConfig</code>）</td>
+</tr>
+<tr>
+<td>INACTIVE → IDLE</td>
+<td>收到 CN-initiated Paging（UE 在 INACTIVE 态收到核心网寻呼后，先回到 IDLE，通知 NAS）</td>
+</tr>
+<tr>
+<td>IDLE → CONNECTED</td>
+<td>UE 发起随机接入（Msg1→Msg4），完成 <code>RRCSetup</code> 或 <code>RRCResume</code> 流程</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="3-RRC-INACTIVE-状态详解"><a href="#3-RRC-INACTIVE-状态详解" class="headerlink" title="3. RRC_INACTIVE 状态详解"></a>3. RRC_INACTIVE 状态详解</h1><h3 id="3-1-设计动机与优势"><a href="#3-1-设计动机与优势" class="headerlink" title="3.1 设计动机与优势"></a>3.1 设计动机与优势</h3><p>RRC_INACTIVE 是 5G NR 的核心创新之一，首次标准化于 <strong>R15（TS 38.331 v15.3.0）</strong>。其核心设计理念：</p>
+<ul>
+<li><strong>UE 侧</strong>：保存 AS 上下文（类似 IDLE 省电行为，但无需重建连接）</li>
+<li><strong>网络侧（gNB）</strong>：保存 UE 的 AS 上下文和最后服务小区信息</li>
+<li><strong>核心网侧</strong>：UE 保持 <strong>CM-CONNECTED</strong> 状态（与 IDLE 不同！），N2 和 N3 连接维持</li>
+</ul>
+<p>对比 LTE IDLE，<strong>RRC_INACTIVE</strong> 带来的提升（来自学术分析）：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>提升倍数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>恢复时延</td>
+<td>约 8× 优于 LTE IDLE</td>
+</tr>
+<tr>
+<td>功耗效率</td>
+<td>约 5× 优于 LTE IDLE</td>
+</tr>
+<tr>
+<td>信令开销</td>
+<td>约 3.5× 减少</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-UE-行为"><a href="#3-2-UE-行为" class="headerlink" title="3.2 UE 行为"></a>3.2 UE 行为</h3><p><strong>（1）AS 上下文保留</strong></p>
+<p>UE 在进入 INACTIVE 时保留：</p>
+<ul>
+<li>安全上下文（Security Context）：包括 K_gNB、加密&#x2F;完整性密钥</li>
+<li>无线承载配置（Radio Bearer Configuration）</li>
+<li>最后服务 gNB 的 UE 上下文标识（I-RNTI）</li>
+</ul>
+<p><strong>（2）标识符：I-RNTI</strong></p>
+<p>网络通过 <code>RRCRelease</code> 消息中的 <code>suspendConfig</code> 为 UE 分配 <strong>I-RNTI（Inactive RNTI）</strong>，用于在非激活态识别 UE 的挂起上下文：</p>
+<ul>
+<li><strong>fullI-RNTI</strong>（40 bit）：完整标识，用于寻呼消息寻址</li>
+<li><strong>shortI-RNTI</strong>（24 bit）：短标识，用于较少比特的场景</li>
+</ul>
+<p><strong>（3）寻呼监听</strong></p>
+<p>与 IDLE 态类似，UE 在 INACTIVE 态也以 DRX 方式监听 PO，但同时监听：</p>
+<ul>
+<li><strong>CN-initiated Paging</strong>（使用 5G-S-TMSI）→ UE 转回 RRC_IDLE，通知 NAS</li>
+<li><strong>RAN-initiated Paging</strong>（使用 fullI-RNTI）→ UE 发起 RRC 连接恢复流程（RRCResumeRequest）</li>
+</ul>
+<p><strong>（4）RNA（RAN Notification Area）管理</strong></p>
+<p>网络在 <code>suspendConfig</code> 中为 UE 配置 <strong>RAN 通知区域（RNA）</strong>，RNA 可以是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ran-NotificationAreaInfo:</span><br><span class="line">  ├── cellList          # 显式小区列表（一个或多个 CGI）</span><br><span class="line">  ├── ran-AreaConfigList  # RAN 区域配置列表</span><br><span class="line">  │     └── ran-AreaCode  # 由 TAC + RAN Area Code 构成</span><br><span class="line">  └── ...</span><br></pre></td></tr></table></figure>
+
+<p>RNA 规则：</p>
+<ul>
+<li>RNA 必须包含在 CN 注册区（Tracking Area）之内</li>
+<li>RNA 可以跨多个小区，也可以只有一个小区</li>
+</ul>
+<p><strong>（5）RNA 更新（RNAU）</strong></p>
+<p>UE 在以下情况必须发起 RAN-Based Notification Area Update（RNAU）：</p>
+<ul>
+<li><strong>周期性</strong>：<code>t380</code> 定时器超时（可配置范围：5~720 分钟，见 TS 38.331 suspendConfig）</li>
+<li><strong>位置变化</strong>：UE 重选到一个不在当前 RNA 范围内的小区</li>
+</ul>
+<p>RNAU 流程：UE 通过 PRACH 发送 <code>RRCResumeRequest</code>（resumeCause &#x3D; <em>rna-Update</em>），收到 <code>RRCRelease</code>（含新的 <code>suspendConfig</code>）后返回 INACTIVE，或收到 <code>RRCResume</code> 后转为 CONNECTED。</p>
+<p><strong>（6）<code>suspendConfig</code> IE 关键字段</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SuspendConfig ::= SEQUENCE &#123;</span><br><span class="line">    fullI-RNTI           I-RNTI-Value,         -- 40 bit</span><br><span class="line">    shortI-RNTI          ShortI-RNTI-Value,     -- 24 bit</span><br><span class="line">    ran-NotificationAreaInfo  RAN-NotificationAreaInfo,</span><br><span class="line">    t380                 PeriodicRNAU-TimerValue, -- 5~720 min</span><br><span class="line">    nextHopChainingCount INTEGER (0..7),         -- 安全密钥推导计数器</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-进入与离开-INACTIVE-的触发"><a href="#3-3-进入与离开-INACTIVE-的触发" class="headerlink" title="3.3 进入与离开 INACTIVE 的触发"></a>3.3 进入与离开 INACTIVE 的触发</h3><table>
+<thead>
+<tr>
+<th>转换方向</th>
+<th>触发消息&#x2F;条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CONNECTED → INACTIVE</td>
+<td><code>RRCRelease</code>（<strong>含</strong> <code>suspendConfig</code>）</td>
+</tr>
+<tr>
+<td>INACTIVE → CONNECTED</td>
+<td><code>RRCResumeRequest</code> → <code>RRCResume</code>（上层数据需求 &#x2F; RAN Paging）</td>
+</tr>
+<tr>
+<td>INACTIVE → IDLE</td>
+<td>收到 CN-initiated Paging；或 UE 选择新 PLMN；或 <code>RRCResume</code> 失败</td>
+</tr>
+<tr>
+<td>INACTIVE → INACTIVE</td>
+<td>RNAU 完成后网络重新下发 <code>RRCRelease</code>（含 suspendConfig）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="4-RRC-CONNECTED-状态详解"><a href="#4-RRC-CONNECTED-状态详解" class="headerlink" title="4. RRC_CONNECTED 状态详解"></a>4. RRC_CONNECTED 状态详解</h1><h3 id="4-1-状态定义"><a href="#4-1-状态定义" class="headerlink" title="4.1 状态定义"></a>4.1 状态定义</h3><p>当 UE 与 gNB 之间建立了 RRC 连接时，处于 <strong>RRC_CONNECTED</strong> 状态。此时：</p>
+<ul>
+<li>UE 有完整的 <strong>AS 上下文</strong>（安全配置、无线承载、测量配置等）</li>
+<li>核心网侧 UE 处于 <strong>CM-CONNECTED</strong> 状态</li>
+<li>存在 <strong>N2 信令连接</strong>（gNB ↔ AMF）和 <strong>N3 用户面连接</strong>（gNB ↔ UPF）</li>
+</ul>
+<h3 id="4-2-UE-行为"><a href="#4-2-UE-行为" class="headerlink" title="4.2 UE 行为"></a>4.2 UE 行为</h3><p><strong>（1）数据收发</strong></p>
+<p>UE 可以在分配的无线资源上进行数据传输：</p>
+<ul>
+<li>下行：在调度的 PDSCH 上接收数据</li>
+<li>上行：通过 SR（Scheduling Request）触发上行授权，在 PUSCH 发送数据</li>
+</ul>
+<p><strong>（2）网络控制移动性</strong></p>
+<p>连接态下，移动性由网络控制：</p>
+<ul>
+<li>gNB 配置 <strong>测量（Measurement）</strong>：A1~A6 事件、B1&#x2F;B2 事件</li>
+<li>UE 上报测量结果（MeasurementReport）</li>
+<li>gNB 根据报告决定是否发起 <strong>切换（Handover）</strong></li>
+</ul>
+<p><strong>（3）DRX（非连续接收）</strong></p>
+<p>为节省功耗，CONNECTED 态也支持 DRX（TS 38.321）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Connected-mode DRX Cycle = onDuration + inactivityTimer</span><br><span class="line">                         + drx-SlotOffset + drx-StartOffset</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onDuration</code></td>
+<td>每个 DRX 周期内 UE 激活监听的时隙数</td>
+</tr>
+<tr>
+<td><code>drx-InactivityTimer</code></td>
+<td>收到 PDCCH 后继续保持激活的计时</td>
+</tr>
+<tr>
+<td><code>drx-RetransmissionTimerDL/UL</code></td>
+<td>HARQ 重传等待时间</td>
+</tr>
+<tr>
+<td><code>drx-LongCycleStartOffset</code></td>
+<td>长 DRX 周期起始偏移</td>
+</tr>
+</tbody></table>
+<p><strong>（4）SRB 与 DRB</strong></p>
+<p>连接态下存在：</p>
+<ul>
+<li><strong>SRB0</strong>：使用 CCCH，承载 RRCSetupRequest 等初始消息</li>
+<li><strong>SRB1</strong>：使用 DCCH，承载 RRC 信令（PDCP 保护）</li>
+<li><strong>SRB2</strong>：使用 DCCH，承载 NAS 消息（低优先级，在安全激活后建立）</li>
+<li><strong>DRB1~N</strong>：承载用户平面数据（PDU Session 建立后创建）</li>
+</ul>
+<h3 id="4-3-进入与离开-CONNECTED-的触发"><a href="#4-3-进入与离开-CONNECTED-的触发" class="headerlink" title="4.3 进入与离开 CONNECTED 的触发"></a>4.3 进入与离开 CONNECTED 的触发</h3><table>
+<thead>
+<tr>
+<th>转换方向</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IDLE → CONNECTED</td>
+<td><code>RRCSetup</code> 完成（新建连接）</td>
+</tr>
+<tr>
+<td>INACTIVE → CONNECTED</td>
+<td><code>RRCResume</code> 完成（恢复连接）</td>
+</tr>
+<tr>
+<td>CONNECTED → IDLE</td>
+<td><code>RRCRelease</code>（无 suspendConfig）或 RLF（Radio Link Failure）后重建失败</td>
+</tr>
+<tr>
+<td>CONNECTED → INACTIVE</td>
+<td><code>RRCRelease</code>（含 suspendConfig）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="5-状态转换流程与信令"><a href="#5-状态转换流程与信令" class="headerlink" title="5. 状态转换流程与信令"></a>5. 状态转换流程与信令</h1><h3 id="5-1-IDLE-→-CONNECTED：RRC-建立流程"><a href="#5-1-IDLE-→-CONNECTED：RRC-建立流程" class="headerlink" title="5.1 IDLE → CONNECTED：RRC 建立流程"></a>5.1 IDLE → CONNECTED：RRC 建立流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">UE                    gNB                    AMF</span><br><span class="line"> │                      │                      │</span><br><span class="line"> │──── Msg1 (PRACH) ───►│                      │</span><br><span class="line"> │◄─── Msg2 (RAR)   ─── │                      │</span><br><span class="line"> │──── Msg3: RRCSetupRequest ──────────────►   │</span><br><span class="line"> │◄─── Msg4: RRCSetup ─────────────────────    │</span><br><span class="line"> │──── RRCSetupComplete (含 NAS RegisterRequest) ──►</span><br><span class="line"> │                      │──── Initial UE Message ──►</span><br><span class="line"> │                      │                      │</span><br><span class="line"> │◄─── SecurityModeCommand ─────────────────   │</span><br><span class="line"> │──── SecurityModeComplete ────────────────►  │</span><br><span class="line"> │◄─── RRCReconfiguration ──────────────────   │</span><br><span class="line"> │──── RRCReconfigurationComplete ──────────►  │</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-CONNECTED-→-INACTIVE：连接挂起"><a href="#5-2-CONNECTED-→-INACTIVE：连接挂起" class="headerlink" title="5.2 CONNECTED → INACTIVE：连接挂起"></a>5.2 CONNECTED → INACTIVE：连接挂起</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">gNB                                    UE</span><br><span class="line"> │──── RRCRelease (含 suspendConfig) ──►│</span><br><span class="line"> │     &#123;                                │</span><br><span class="line"> │       fullI-RNTI,                    │ UE 保存 AS 上下文</span><br><span class="line"> │       shortI-RNTI,                   │ 进入 RRC_INACTIVE</span><br><span class="line"> │       ran-NotificationAreaInfo,      │</span><br><span class="line"> │       t380,                          │</span><br><span class="line"> │       nextHopChainingCount           │</span><br><span class="line"> │     &#125;                                │</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-INACTIVE-→-CONNECTED：连接恢复"><a href="#5-3-INACTIVE-→-CONNECTED：连接恢复" class="headerlink" title="5.3 INACTIVE → CONNECTED：连接恢复"></a>5.3 INACTIVE → CONNECTED：连接恢复</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">UE                      Target gNB           Anchor gNB (Last Serving)</span><br><span class="line"> │                      │                           │</span><br><span class="line"> │──── PRACH ──────────►│                           │</span><br><span class="line"> │◄─── RAR ──────────── │                           │</span><br><span class="line"> │─── RRCResumeRequest ►│                           │</span><br><span class="line"> │   &#123;resumeIdentity=shortI-RNTI,                   │</span><br><span class="line"> │    resumeMAC-I,                                  │</span><br><span class="line"> │    resumeCause&#125;                                  │</span><br><span class="line"> │                     │──── Retrieve UE Context ──►│</span><br><span class="line"> │                     │◄─── UE Context Response ───│</span><br><span class="line"> │◄─── RRCResume ──────│                            │</span><br><span class="line"> │   &#123;radioBearerConfig,                            │</span><br><span class="line"> │    masterCellGroup,                              │</span><br><span class="line"> │    ...&#125;                                          │</span><br><span class="line"> │──── RRCResumeComplete ►│                         │</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-INACTIVE-→-INACTIVE：RNA-更新（RNAU）"><a href="#5-4-INACTIVE-→-INACTIVE：RNA-更新（RNAU）" class="headerlink" title="5.4 INACTIVE → INACTIVE：RNA 更新（RNAU）"></a>5.4 INACTIVE → INACTIVE：RNA 更新（RNAU）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">UE                    New gNB               Anchor gNB</span><br><span class="line"> │                      │                      │</span><br><span class="line"> │──── PRACH ──────────►│                      │</span><br><span class="line"> │◄─── RAR ──────────── │                      │</span><br><span class="line"> │─── RRCResumeRequest ►│  (resumeCause=rna-Update)</span><br><span class="line"> │                      │──── Retrieve UE Context ──►</span><br><span class="line"> │                      │◄─── UE Context Response ───</span><br><span class="line"> │◄─── RRCRelease ───── │ (含新的 suspendConfig)</span><br><span class="line"> │     (新 RNA/I-RNTI)  │</span><br><span class="line"> │  [返回 RRC_INACTIVE]  │</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="6-三态对比总结"><a href="#6-三态对比总结" class="headerlink" title="6. 三态对比总结"></a>6. 三态对比总结</h1><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>RRC_IDLE</th>
+<th>RRC_INACTIVE</th>
+<th>RRC_CONNECTED</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RRC 连接</strong></td>
+<td>无</td>
+<td>挂起（Suspended）</td>
+<td>建立（Established）</td>
+</tr>
+<tr>
+<td><strong>AS 上下文</strong></td>
+<td>无</td>
+<td>UE &amp; gNB 均保存</td>
+<td>完整保存</td>
+</tr>
+<tr>
+<td><strong>核心网状态</strong></td>
+<td>CM-IDLE</td>
+<td>CM-CONNECTED</td>
+<td>CM-CONNECTED</td>
+</tr>
+<tr>
+<td><strong>N2&#x2F;N3 连接</strong></td>
+<td>无</td>
+<td>维持</td>
+<td>维持</td>
+</tr>
+<tr>
+<td><strong>移动性管理</strong></td>
+<td>UE 自主重选</td>
+<td>UE 自主重选 + RNAU</td>
+<td>网络控制切换</td>
+</tr>
+<tr>
+<td><strong>寻呼类型</strong></td>
+<td>CN Paging only</td>
+<td>CN + RAN Paging</td>
+<td>不适用（已连接）</td>
+</tr>
+<tr>
+<td><strong>寻呼标识</strong></td>
+<td>5G-S-TMSI</td>
+<td>5G-S-TMSI &#x2F; fullI-RNTI</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>数据传输</strong></td>
+<td>不可</td>
+<td>不可</td>
+<td>可以</td>
+</tr>
+<tr>
+<td><strong>唤醒方式</strong></td>
+<td>DRX（Paging）</td>
+<td>DRX（Paging）</td>
+<td>DRX（PDCCH）</td>
+</tr>
+<tr>
+<td><strong>恢复到 CONNECTED</strong></td>
+<td>全新 RRC 建立</td>
+<td>快速恢复（Resume）</td>
+<td>已在连接态</td>
+</tr>
+<tr>
+<td><strong>适用模式</strong></td>
+<td>SA &#x2F; NSA</td>
+<td>仅 SA</td>
+<td>SA &#x2F; NSA</td>
+</tr>
+<tr>
+<td><strong>省电能力</strong></td>
+<td>高</td>
+<td>高</td>
+<td>低（取决于 DRX）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="7-UE-能力上报概述"><a href="#7-UE-能力上报概述" class="headerlink" title="7. UE 能力上报概述"></a>7. UE 能力上报概述</h1><h3 id="7-1-为什么需要能力上报？"><a href="#7-1-为什么需要能力上报？" class="headerlink" title="7.1 为什么需要能力上报？"></a>7.1 为什么需要能力上报？</h3><p>5G NR 的 UE 种类繁多——从入门级 RedCap 设备到高端旗舰手机，其支持的频段、天线数量、调制阶数、CA 组合、MIMO 层数、编解码能力等千差万别。网络需要了解 UE 的确切能力，才能：</p>
+<ul>
+<li>选择合适的调度策略（MCS、MIMO 层数、CA 配置）</li>
+<li>避免下发 UE 无法执行的配置（如 UE 不支持 4 层 MIMO 却下发 4 层配置）</li>
+<li>进行资源优化（如网络仅在 UE 支持 256QAM 时才使用高阶调制）</li>
+</ul>
+<h3 id="7-2-相关规范"><a href="#7-2-相关规范" class="headerlink" title="7.2 相关规范"></a>7.2 相关规范</h3><table>
+<thead>
+<tr>
+<th>规范</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>TS 38.331</strong></td>
+<td>UECapabilityEnquiry &#x2F; UECapabilityInformation 消息定义及 UE 过程</td>
+</tr>
+<tr>
+<td><strong>TS 38.306</strong></td>
+<td>NR UE 无线接入能力参数（capability parameters）详细定义</td>
+</tr>
+<tr>
+<td><strong>TS 36.331</strong></td>
+<td>E-UTRA UE 能力（NSA 场景下 EUTRA-NR 联合能力）</td>
+</tr>
+<tr>
+<td><strong>TS 38.101</strong></td>
+<td>NR UE 无线发射接收要求（Band 定义）</td>
+</tr>
+</tbody></table>
+<h3 id="7-3-能力上报的时机"><a href="#7-3-能力上报的时机" class="headerlink" title="7.3 能力上报的时机"></a>7.3 能力上报的时机</h3><p>网络通常在以下时机请求 UE 能力：</p>
+<ol>
+<li><strong>注册流程（Registration）</strong>：UE 首次注册时，AMF 可通过 NG 接口向 gNB 指示需要 UE 能力</li>
+<li><strong>RRC 建立&#x2F;恢复后</strong>：gNB 在 RRC_CONNECTED 状态下随时发送 <code>UECapabilityEnquiry</code></li>
+<li><strong>切换前</strong>：目标 gNB 可能通过源 gNB 传递 UE 能力，也可重新请求</li>
+<li><strong>能力变更</strong>：若 UE 的无线能力发生变化（如插入&#x2F;拔出外置天线），UE 通过 NAS 层 TAU&#x2F;Registration 流程通知网络（含 IE <code>ueRadioCapabilityForPaging</code>），网络随后重新请求能力</li>
+</ol>
+<blockquote>
+<p><strong>优化</strong>：网络在首次获取 UE 能力后会本地存储，后续连接不必每次重新请求（除非能力更新）。</p>
+</blockquote>
+<hr>
+<h1 id="8-UECapabilityEnquiry-消息详解"><a href="#8-UECapabilityEnquiry-消息详解" class="headerlink" title="8. UECapabilityEnquiry 消息详解"></a>8. UECapabilityEnquiry 消息详解</h1><p><code>UECapabilityEnquiry</code> 由 gNB 通过 SRB1 发送给 UE（参见 TS 38.331 §5.6.1.2），告知 UE 需要上报哪些 RAT（Radio Access Technology）的能力，以及过滤条件。</p>
+<h3 id="8-1-消息结构（简化）"><a href="#8-1-消息结构（简化）" class="headerlink" title="8.1 消息结构（简化）"></a>8.1 消息结构（简化）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">UECapabilityEnquiry ::= SEQUENCE &#123;</span><br><span class="line">    rrc-TransactionIdentifier    RRC-TransactionIdentifier,</span><br><span class="line">    criticalExtensions           CHOICE &#123;</span><br><span class="line">        ueCapabilityEnquiry      UECapabilityEnquiry-IEs,</span><br><span class="line">        criticalExtensionsFuture SEQUENCE &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UECapabilityEnquiry-IEs ::= SEQUENCE &#123;</span><br><span class="line">    ue-CapabilityRAT-RequestList    UE-CapabilityRAT-RequestList,</span><br><span class="line">    lateNonCriticalExtension        OCTET STRING OPTIONAL,</span><br><span class="line">    ue-CapabilityEnquiryExt-v1560  SEQUENCE &#123;</span><br><span class="line">        capabilityRequestFilterCommon  UE-CapabilityRequestFilterCommon OPTIONAL</span><br><span class="line">    &#125; OPTIONAL</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-关键-IE-说明"><a href="#8-2-关键-IE-说明" class="headerlink" title="8.2 关键 IE 说明"></a>8.2 关键 IE 说明</h3><p><strong>（1）UE-CapabilityRAT-RequestList</strong></p>
+<p>列出网络希望 UE 上报能力的 RAT 类型，每个条目包含：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">UE-CapabilityRAT-Request ::= SEQUENCE &#123;</span><br><span class="line">    rat-Type          RAT-Type,      -- nr | eutra-nr | eutra | utra-fdd</span><br><span class="line">    capabilityRequestFilter SEQUENCE &#123;</span><br><span class="line">        ue-CapabilityRequestFilterNR  UE-CapabilityRequestFilterNR OPTIONAL,</span><br><span class="line">        ...</span><br><span class="line">    &#125; OPTIONAL</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>rat-Type</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nr</code></td>
+<td>纯 NR 能力</td>
+</tr>
+<tr>
+<td><code>eutra-nr</code></td>
+<td>E-UTRA 与 NR 联合能力（NSA&#x2F;MR-DC 场景）</td>
+</tr>
+<tr>
+<td><code>eutra</code></td>
+<td>纯 LTE 能力</td>
+</tr>
+</tbody></table>
+<p><strong>（2）UE-CapabilityRequestFilterNR</strong></p>
+<p>这是网络对 UE 上报内容的<strong>过滤器</strong>，核心字段：</p>
+<table>
+<thead>
+<tr>
+<th>IE 字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>frequencyBandListFilter</code></td>
+<td>网络感兴趣的频段列表（<strong>强制</strong>包含，UE 只上报这些频段的能力）</td>
+</tr>
+<tr>
+<td><code>requestedMaxCCsDL</code></td>
+<td>网络需要了解的最大下行 CC 数（用于 CA 能力过滤）</td>
+</tr>
+<tr>
+<td><code>requestedMaxCCsUL</code></td>
+<td>网络需要了解的最大上行 CC 数</td>
+</tr>
+<tr>
+<td><code>requestedFreqBandsNR-MRDC</code></td>
+<td>针对 MR-DC 的 NR 频段列表</td>
+</tr>
+<tr>
+<td><code>requestedCapabilityCommon</code></td>
+<td>请求公共能力（如通用 UE 能力参数）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>重要</strong>：在 NR 中，<code>frequencyBandListFilter</code> 是<strong>强制（mandatory）</strong>字段，而在 LTE 中这是可选的。这是 NR 的一个关键优化——网络只请求自己感兴趣频段的能力，大幅减少消息体积。</p>
+</blockquote>
+<hr>
+<h1 id="9-UECapabilityInformation-消息详解"><a href="#9-UECapabilityInformation-消息详解" class="headerlink" title="9. UECapabilityInformation 消息详解"></a>9. UECapabilityInformation 消息详解</h1><p><code>UECapabilityInformation</code> 是 UE 对 <code>UECapabilityEnquiry</code> 的响应，包含所有被请求的 RAT 能力容器（参见 TS 38.331 §5.6.1.3）。</p>
+<h3 id="9-1-消息结构（简化）"><a href="#9-1-消息结构（简化）" class="headerlink" title="9.1 消息结构（简化）"></a>9.1 消息结构（简化）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">UECapabilityInformation ::= SEQUENCE &#123;</span><br><span class="line">    rrc-TransactionIdentifier  RRC-TransactionIdentifier,</span><br><span class="line">    criticalExtensions         CHOICE &#123;</span><br><span class="line">        ueCapabilityInformation  UECapabilityInformation-IEs,</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UECapabilityInformation-IEs ::= SEQUENCE &#123;</span><br><span class="line">    ue-CapabilityRAT-ContainerList  UE-CapabilityRAT-ContainerList OPTIONAL,</span><br><span class="line">    lateNonCriticalExtension        OCTET STRING OPTIONAL,</span><br><span class="line">    nonCriticalExtension            SEQUENCE &#123;...&#125; OPTIONAL</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-能力容器层级"><a href="#9-2-能力容器层级" class="headerlink" title="9.2 能力容器层级"></a>9.2 能力容器层级</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">UECapabilityInformation</span><br><span class="line">  └── UE-CapabilityRAT-ContainerList</span><br><span class="line">        ├── [0] rat-Type: nr</span><br><span class="line">        │         └── UE-NR-Capability</span><br><span class="line">        │               ├── accessStratumRelease (R15/R16/R17...)</span><br><span class="line">        │               ├── pdcp-Parameters</span><br><span class="line">        │               ├── rlc-Parameters</span><br><span class="line">        │               ├── mac-Parameters</span><br><span class="line">        │               ├── phy-Parameters (phy-ParametersCommon, phy-ParametersFR1, phy-ParametersFR2)</span><br><span class="line">        │               ├── rf-Parameters</span><br><span class="line">        │               │     └── supportedBandListNR</span><br><span class="line">        │               ├── measAndMobParameters</span><br><span class="line">        │               ├── featureSets (★关键)</span><br><span class="line">        │               ├── featureSetCombinations (★关键)</span><br><span class="line">        │               └── ...</span><br><span class="line">        │</span><br><span class="line">        └── [1] rat-Type: eutra-nr</span><br><span class="line">                  └── UE-MRDC-Capability</span><br><span class="line">                        ├── mrdc-Parameters</span><br><span class="line">                        ├── featureSets (MR-DC Feature Sets)</span><br><span class="line">                        └── featureSetCombinations</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-主要能力参数类别"><a href="#9-3-主要能力参数类别" class="headerlink" title="9.3 主要能力参数类别"></a>9.3 主要能力参数类别</h3><p><strong>（1）物理层能力（phy-Parameters）</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>supportedBandListNR</code></td>
+<td>支持的 NR 频段列表</td>
+</tr>
+<tr>
+<td><code>supportedModulationOrderDL</code></td>
+<td>下行最高调制阶数（256QAM 等）</td>
+</tr>
+<tr>
+<td><code>supportedModulationOrderUL</code></td>
+<td>上行最高调制阶数</td>
+</tr>
+<tr>
+<td><code>maxNumberMIMO-LayersPDSCH</code></td>
+<td>PDSCH 最大 MIMO 层数（2&#x2F;4&#x2F;8）</td>
+</tr>
+<tr>
+<td><code>maxNumberMIMO-LayersCB-PUSCH</code></td>
+<td>CodeBook PUSCH 最大 MIMO 层数</td>
+</tr>
+<tr>
+<td><code>pusch-TransCoherence</code></td>
+<td>PUSCH 传输相干性（nonCoherent &#x2F; partialCoherent &#x2F; fullCoherent）</td>
+</tr>
+<tr>
+<td><code>beamManagementSSB-CSI-RS</code></td>
+<td>SSB&#x2F;CSI-RS 波束管理支持能力</td>
+</tr>
+<tr>
+<td><code>supportedBandwidthsDL</code></td>
+<td>支持的下行带宽（5&#x2F;10&#x2F;20&#x2F;40&#x2F;50&#x2F;80&#x2F;100 MHz）</td>
+</tr>
+<tr>
+<td><code>crossCarrierScheduling</code></td>
+<td>是否支持跨载波调度</td>
+</tr>
+<tr>
+<td><code>multiDCI-MultiTRP</code></td>
+<td>是否支持 Multi-TRP（R16+）</td>
+</tr>
+</tbody></table>
+<p><strong>（2）PDCP 能力（pdcp-Parameters）</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>supportedROHC-Profiles</code></td>
+<td>支持的 ROHC 头压缩 Profile 列表</td>
+</tr>
+<tr>
+<td><code>maxNumberROHC-ContextSessions</code></td>
+<td>最大 ROHC 上下文会话数</td>
+</tr>
+<tr>
+<td><code>outOfOrderDelivery</code></td>
+<td>是否支持乱序交付（PDCP SDU 乱序递交给上层）</td>
+</tr>
+<tr>
+<td><code>shortSN</code></td>
+<td>是否支持 12 bit PDCP SN</td>
+</tr>
+<tr>
+<td><code>pdcp-SN-Size-DL</code> &#x2F; <code>pdcp-SN-Size-UL</code></td>
+<td>支持的 PDCP SN 长度（12 或 18 bit）</td>
+</tr>
+</tbody></table>
+<p><strong>（3）RLC 能力（rlc-Parameters）</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>am-WithShortSN</code></td>
+<td>AM 模式是否支持 12 bit RLC SN</td>
+</tr>
+<tr>
+<td><code>um-WithShortSN</code></td>
+<td>UM 模式是否支持 6 bit RLC SN</td>
+</tr>
+<tr>
+<td><code>um-WithLongSN</code></td>
+<td>UM 模式是否支持 12 bit RLC SN</td>
+</tr>
+</tbody></table>
+<p><strong>（4）测量与移动性能力（measAndMobParameters）</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>supportedGapPattern</code></td>
+<td>支持的测量 Gap 模式</td>
+</tr>
+<tr>
+<td><code>ssb-RLM</code></td>
+<td>是否支持基于 SSB 的 RLM</td>
+</tr>
+<tr>
+<td><code>nr-CGI-Reporting</code></td>
+<td>是否支持 NR 小区 CGI 上报</td>
+</tr>
+<tr>
+<td><code>handoverInterF</code></td>
+<td>是否支持异频切换</td>
+</tr>
+<tr>
+<td><code>rrc-SCell-StateSwitching</code></td>
+<td>是否支持 RRC SCell 状态切换</td>
+</tr>
+</tbody></table>
+<p><strong>（5）其他重要能力</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rrc-InactiveNeed</code></td>
+<td>是否支持 RRC_INACTIVE（TS 38.306）</td>
+</tr>
+<tr>
+<td><code>imsVoiceOverNR</code></td>
+<td>是否支持 IMS VoNR（NR PDCP MCG 承载）</td>
+</tr>
+<tr>
+<td><code>tdd-PCellChange</code></td>
+<td>是否支持 TDD PCell 变更</td>
+</tr>
+<tr>
+<td><code>cca-MCG-SCG</code></td>
+<td>是否支持跨 Carrier CA（MCG+SCG）</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="10-Feature-Sets-与-Feature-Set-Combinations"><a href="#10-Feature-Sets-与-Feature-Set-Combinations" class="headerlink" title="10. Feature Sets 与 Feature Set Combinations"></a>10. Feature Sets 与 Feature Set Combinations</h1><h3 id="10-1-设计背景"><a href="#10-1-设计背景" class="headerlink" title="10.1 设计背景"></a>10.1 设计背景</h3><p>随着 CA（载波聚合）和 EN-DC（LTE-NR 双连接）的引入，UE 需要上报大量频段组合（Band Combination）下的能力。若对每个频段组合、每个频段分别列出能力参数，消息体积会指数级膨胀（在 LTE-Advanced 时代，部分设备 UE 能力消息已超过 100 KB）。</p>
+<p><strong>Feature Sets</strong> 机制从 LTE R15 和 NR R15 开始引入，通过<strong>复用</strong>解决这一问题。</p>
+<h3 id="10-2-三层结构"><a href="#10-2-三层结构" class="headerlink" title="10.2 三层结构"></a>10.2 三层结构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Band Combination List</span><br><span class="line">  └── BandCombination[i]</span><br><span class="line">        ├── Band Entry [0]: NR Band n78</span><br><span class="line">        ├── Band Entry [1]: NR Band n41</span><br><span class="line">        └── featureSetCombinationId = X  ──────────────────────┐</span><br><span class="line">                                                               │</span><br><span class="line">Feature Set Combinations                                       │</span><br><span class="line">  └── FeatureSetCombination[X]  ◄──────────────────────────────┘</span><br><span class="line">        ├── FeatureSetsPerBand[0]  (对应 Band Entry [0])</span><br><span class="line">        │     └── featureSetDownlinkId = A  ───────────────────┐</span><br><span class="line">        │                                                      │</span><br><span class="line">        └── FeatureSetsPerBand[1]  (对应 Band Entry [1])        │</span><br><span class="line">              └── featureSetDownlinkId = B                     │</span><br><span class="line">                                                               │</span><br><span class="line">Feature Sets                                                   │</span><br><span class="line">  └── featureSetsDownlink[A]  ◄────────────────────────────────┘</span><br><span class="line">        ├── featureSetListPerDownlinkCC[0]</span><br><span class="line">        │     ├── supportedSubcarrierSpacingDL: kHz15</span><br><span class="line">        │     ├── supportedBandwidthsDL: fr1-100</span><br><span class="line">        │     ├── maxNumberMIMO-Layers-PDSCH: 4</span><br><span class="line">        │     └── supportedModulationOrderDL: qam256</span><br><span class="line">        └── ...</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键规则：</strong></p>
+<ul>
+<li>一个 <code>FeatureSet</code> 代表一组 UE 在对应载波上支持的能力</li>
+<li>同一个 <code>FeatureSet</code>（由 ID 标识）可以被多个频段组合复用</li>
+<li>上行（UL）和下行（DL）Feature Set 分别定义（<code>FeatureSetDownlink</code> &#x2F; <code>FeatureSetUplink</code>）</li>
+<li>每个 CC 的能力进一步细化为 <code>FeatureSetDownlinkPerCC</code></li>
+</ul>
+<h3 id="10-3-示例：双频-CA-能力上报"><a href="#10-3-示例：双频-CA-能力上报" class="headerlink" title="10.3 示例：双频 CA 能力上报"></a>10.3 示例：双频 CA 能力上报</h3><p>假设 UE 支持 Band n78 + Band n41 的 CA，每个频段都支持相同的能力（100 MHz 带宽、4 层 MIMO、256QAM）：</p>
+<p><strong>不使用 Feature Sets（旧方式）：</strong> 需要为每个频段单独列出完整能力参数 × 每个组合 → 大量重复</p>
+<p><strong>使用 Feature Sets（新方式）：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Step 1: 定义一个 FeatureSetDownlink（ID=1）</span><br><span class="line">  → &#123;100MHz, 4-layer MIMO, 256QAM, ...&#125;</span><br><span class="line"></span><br><span class="line">Step 2: 定义 FeatureSetCombination（ID=1）</span><br><span class="line">  → [[FSDownlink=1, FSUplink=1],   ← Band n78</span><br><span class="line">     [FSDownlink=1, FSUplink=1]]   ← Band n41</span><br><span class="line"></span><br><span class="line">Step 3: BandCombination</span><br><span class="line">  → &#123;Band n78, Band n41, featureSetCombinationId=1&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同一个 FeatureSet（ID&#x3D;1）被两个频段复用，消息体积大幅减少。</p>
+<hr>
+<h1 id="11-UE-能力上报流程与时序"><a href="#11-UE-能力上报流程与时序" class="headerlink" title="11. UE 能力上报流程与时序"></a>11. UE 能力上报流程与时序</h1><h3 id="11-1-标准流程（TS-38-331-§5-6-1）"><a href="#11-1-标准流程（TS-38-331-§5-6-1）" class="headerlink" title="11.1 标准流程（TS 38.331 §5.6.1）"></a>11.1 标准流程（TS 38.331 §5.6.1）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">UE                            gNB</span><br><span class="line"> │                             │</span><br><span class="line"> │◄─── UECapabilityEnquiry ─── │</span><br><span class="line"> │     &#123;                       │</span><br><span class="line"> │       ue-CapabilityRAT-     │</span><br><span class="line"> │       RequestList: [        │</span><br><span class="line"> │         &#123;rat-Type: nr,      │</span><br><span class="line"> │          filter: &#123;bands=    │</span><br><span class="line"> │           [n78, n41, ...]&#125;&#125;,│</span><br><span class="line"> │         &#123;rat-Type: eutra-nr&#125;│</span><br><span class="line"> │       ]                     │</span><br><span class="line"> │     &#125;                       │</span><br><span class="line"> │                             │</span><br><span class="line"> │─── UECapabilityInformation ►│</span><br><span class="line"> │     &#123;                       │</span><br><span class="line"> │       ue-CapabilityRAT-     │</span><br><span class="line"> │       ContainerList: [      │</span><br><span class="line"> │         &#123;rat-Type: nr,      │</span><br><span class="line"> │          ue-Capability:     │</span><br><span class="line"> │           UE-NR-Capability&#125;,│</span><br><span class="line"> │         &#123;rat-Type: eutra-nr,│</span><br><span class="line"> │          ue-Capability:     │</span><br><span class="line"> │          UE-MRDC-Capability&#125;│</span><br><span class="line"> │       ]                     │</span><br><span class="line"> │     &#125;                       │</span><br><span class="line"> │                             │</span><br><span class="line"> │              gNB 存储 UE 能力，据此配置无线资源</span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-消息分段传输（RRC-Message-Segmentation）"><a href="#11-2-消息分段传输（RRC-Message-Segmentation）" class="headerlink" title="11.2 消息分段传输（RRC Message Segmentation）"></a>11.2 消息分段传输（RRC Message Segmentation）</h3><p>当 <code>UECapabilityInformation</code> 消息体积过大（超过 PDCP SDU 最大尺寸，由 TS 38.323 定义）时，UE 必须启用 <strong>RRC 消息分段（UL Message Segmentation）</strong> 传输（TS 38.331 §5.7.7）：</p>
+<ul>
+<li>gNB 在 <code>UECapabilityEnquiry</code> 中通过 IE <code>rrc-SegAllowed</code> 允许分段</li>
+<li>UE 将 <code>UECapabilityInformation</code> 拆分为多个 RLC SDU，通过 SRB1 上的 AM RLC 模式分段发送</li>
+<li>gNB 重组后完整解析 UE 能力</li>
+</ul>
+<h3 id="11-3-能力的跨-RAT-一致性要求"><a href="#11-3-能力的跨-RAT-一致性要求" class="headerlink" title="11.3 能力的跨 RAT 一致性要求"></a>11.3 能力的跨 RAT 一致性要求</h3><p>当 UE 同时上报 <code>nr</code>、<code>eutra-nr</code> 等多个 RAT 容器时，TS 38.331 要求：</p>
+<blockquote>
+<p>UE 应确保所有能力容器中的 Feature Set ID 保持一致性——即以相同 <code>frequencyBandListFilter</code>、<code>requestedMaxCCsDL/UL</code> 等过滤条件查询时，各容器中的 Feature Set 定义应互相对应。</p>
+</blockquote>
+<h3 id="11-4-能力存储与复用"><a href="#11-4-能力存储与复用" class="headerlink" title="11.4 能力存储与复用"></a>11.4 能力存储与复用</h3><ul>
+<li>gNB 可将获取到的 UE 能力通过 <strong>UE Context</strong> 在 Xn 切换时传递给目标 gNB</li>
+<li>AMF 也可将 UE 能力（以 <code>UERadioCapability</code> IE 形式）存储并在 UE 重连时下发给 gNB，避免重复请求</li>
+</ul>
+<hr>
+<h1 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h1><h3 id="UE-状态机"><a href="#UE-状态机" class="headerlink" title="UE 状态机"></a>UE 状态机</h3><p>5G NR 定义了三种 RRC 状态，形成了一个功耗与响应时延的最优折衷：</p>
+<ul>
+<li><strong>RRC_IDLE</strong>：最省电，无 AS 上下文，移动性完全由 UE 自主控制，重建连接开销最大</li>
+<li><strong>RRC_INACTIVE</strong>：兼顾省电与快速恢复，AS 上下文双端保留，核心网连接不中断，是 5G NR 相对 LTE 的核心创新点之一</li>
+<li><strong>RRC_CONNECTED</strong>：完整数据收发能力，网络控制移动性，功耗最高但时延最低</li>
+</ul>
+<p>RRC_INACTIVE 状态的引入，对于频繁发送少量数据的物联网和移动互联网应用场景，相比 LTE 可带来约 8 倍的时延改善和约 5 倍的功耗改善。</p>
+<h3 id="UE-能力上报"><a href="#UE-能力上报" class="headerlink" title="UE 能力上报"></a>UE 能力上报</h3><p>UE 能力上报机制（TS 38.331 + TS 38.306）解决了多样化终端与网络配置之间的协商问题：</p>
+<ul>
+<li><code>UECapabilityEnquiry</code> 通过 <code>frequencyBandListFilter</code> 等过滤器精准请求，减少冗余信息</li>
+<li><code>UECapabilityInformation</code> 通过 <strong>Feature Sets + Feature Set Combinations</strong> 的三层结构避免重复，大幅压缩消息体积</li>
+<li>能力信息可在 gNB 和 AMF 侧缓存，避免每次连接都重新请求</li>
+</ul>
+<hr>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><table>
+<thead>
+<tr>
+<th>文档编号</th>
+<th>标题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3GPP TS 38.331</td>
+<td>NR; Radio Resource Control (RRC); Protocol specification</td>
+</tr>
+<tr>
+<td>3GPP TS 38.304</td>
+<td>NR; User Equipment (UE) procedures in idle mode and in RRC Inactive state</td>
+</tr>
+<tr>
+<td>3GPP TS 38.300</td>
+<td>NR; NR and NG-RAN Overall description; Stage-2</td>
+</tr>
+<tr>
+<td>3GPP TS 38.306</td>
+<td>NR; User Equipment (UE) radio access capability parameters</td>
+</tr>
+<tr>
+<td>3GPP TS 38.321</td>
+<td>NR; Medium Access Control (MAC) protocol specification</td>
+</tr>
+<tr>
+<td>3GPP TS 38.323</td>
+<td>NR; Packet Data Convergence Protocol (PDCP) specification</td>
+</tr>
+<tr>
+<td>3GPP TR 38.912</td>
+<td>Study on New Radio (NR) access technology</td>
+</tr>
+<tr>
+<td>3GPP TS 36.331</td>
+<td>LTE; Radio Resource Control (RRC); Protocol specification</td>
+</tr>
+<tr>
+<td>3GPP TS 36.306</td>
+<td>LTE; User Equipment (UE) radio access capability parameters</td>
+</tr>
+</tbody></table>
+<hr>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/">Projects</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-UE-RRC-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A6%82%E8%BF%B0"><span class="toc-number">2.</span> <span class="toc-text">1. UE RRC 状态机概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%A4%9A%E4%B8%AA-RRC-%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 为什么需要多个 RRC 状态？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%89%E6%80%81%E5%85%A8%E6%99%AF"><span class="toc-number">2.0.2.</span> <span class="toc-text">1.2 三态全景</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-RRC-IDLE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">2. RRC_IDLE 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 状态定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-IDLE-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 进入与离开 IDLE 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-RRC-INACTIVE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">3. RRC_INACTIVE 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA%E4%B8%8E%E4%BC%98%E5%8A%BF"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 设计动机与优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">4.0.2.</span> <span class="toc-text">3.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-INACTIVE-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.3 进入与离开 INACTIVE 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-RRC-CONNECTED-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">5.</span> <span class="toc-text">4. RRC_CONNECTED 状态详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 状态定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-UE-%E8%A1%8C%E4%B8%BA"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 UE 行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BF%9B%E5%85%A5%E4%B8%8E%E7%A6%BB%E5%BC%80-CONNECTED-%E7%9A%84%E8%A7%A6%E5%8F%91"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 进入与离开 CONNECTED 的触发</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E6%B5%81%E7%A8%8B%E4%B8%8E%E4%BF%A1%E4%BB%A4"><span class="toc-number">6.</span> <span class="toc-text">5. 状态转换流程与信令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-IDLE-%E2%86%92-CONNECTED%EF%BC%9ARRC-%E5%BB%BA%E7%AB%8B%E6%B5%81%E7%A8%8B"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 IDLE → CONNECTED：RRC 建立流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-CONNECTED-%E2%86%92-INACTIVE%EF%BC%9A%E8%BF%9E%E6%8E%A5%E6%8C%82%E8%B5%B7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 CONNECTED → INACTIVE：连接挂起</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-INACTIVE-%E2%86%92-CONNECTED%EF%BC%9A%E8%BF%9E%E6%8E%A5%E6%81%A2%E5%A4%8D"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 INACTIVE → CONNECTED：连接恢复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-INACTIVE-%E2%86%92-INACTIVE%EF%BC%9ARNA-%E6%9B%B4%E6%96%B0%EF%BC%88RNAU%EF%BC%89"><span class="toc-number">6.0.4.</span> <span class="toc-text">5.4 INACTIVE → INACTIVE：RNA 更新（RNAU）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E4%B8%89%E6%80%81%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">6. 三态对比总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%A6%82%E8%BF%B0"><span class="toc-number">8.</span> <span class="toc-text">7. UE 能力上报概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%EF%BC%9F"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 为什么需要能力上报？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E7%9B%B8%E5%85%B3%E8%A7%84%E8%8C%83"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 相关规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-number">8.0.3.</span> <span class="toc-text">7.3 能力上报的时机</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-UECapabilityEnquiry-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3"><span class="toc-number">9.</span> <span class="toc-text">8. UECapabilityEnquiry 消息详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%EF%BC%88%E7%AE%80%E5%8C%96%EF%BC%89"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 消息结构（简化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%85%B3%E9%94%AE-IE-%E8%AF%B4%E6%98%8E"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 关键 IE 说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-UECapabilityInformation-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3"><span class="toc-number">10.</span> <span class="toc-text">9. UECapabilityInformation 消息详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%B6%88%E6%81%AF%E7%BB%93%E6%9E%84%EF%BC%88%E7%AE%80%E5%8C%96%EF%BC%89"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 消息结构（简化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E8%83%BD%E5%8A%9B%E5%AE%B9%E5%99%A8%E5%B1%82%E7%BA%A7"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 能力容器层级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%B8%BB%E8%A6%81%E8%83%BD%E5%8A%9B%E5%8F%82%E6%95%B0%E7%B1%BB%E5%88%AB"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 主要能力参数类别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-Feature-Sets-%E4%B8%8E-Feature-Set-Combinations"><span class="toc-number">11.</span> <span class="toc-text">10. Feature Sets 与 Feature Set Combinations</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E8%AE%BE%E8%AE%A1%E8%83%8C%E6%99%AF"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 设计背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E4%B8%89%E5%B1%82%E7%BB%93%E6%9E%84"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 三层结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%8F%8C%E9%A2%91-CA-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 示例：双频 CA 能力上报</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%B5%81%E7%A8%8B%E4%B8%8E%E6%97%B6%E5%BA%8F"><span class="toc-number">12.</span> <span class="toc-text">11. UE 能力上报流程与时序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%A0%87%E5%87%86%E6%B5%81%E7%A8%8B%EF%BC%88TS-38-331-%C2%A75-6-1%EF%BC%89"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 标准流程（TS 38.331 §5.6.1）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E6%B6%88%E6%81%AF%E5%88%86%E6%AE%B5%E4%BC%A0%E8%BE%93%EF%BC%88RRC-Message-Segmentation%EF%BC%89"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 消息分段传输（RRC Message Segmentation）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E8%83%BD%E5%8A%9B%E7%9A%84%E8%B7%A8-RAT-%E4%B8%80%E8%87%B4%E6%80%A7%E8%A6%81%E6%B1%82"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 能力的跨 RAT 一致性要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E8%83%BD%E5%8A%9B%E5%AD%98%E5%82%A8%E4%B8%8E%E5%A4%8D%E7%94%A8"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 能力存储与复用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%B0%8F%E7%BB%93"><span class="toc-number">13.</span> <span class="toc-text">12. 小结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UE-%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="toc-number">13.0.1.</span> <span class="toc-text">UE 状态机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5"><span class="toc-number">13.0.2.</span> <span class="toc-text">UE 能力上报</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">14.</span> <span class="toc-text">参考文献</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&text=UE 状态机与能力上报"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&is_video=false&description=UE 状态机与能力上报"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=UE 状态机与能力上报&body=Check out this article: http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&title=UE 状态机与能力上报"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&name=UE 状态机与能力上报&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2016/07/25/3gpp/18_ue_state_machine_capability/&t=UE 状态机与能力上报"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2026
+    Alex Wu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/">Projects</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
