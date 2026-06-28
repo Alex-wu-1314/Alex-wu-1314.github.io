@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="目录 为什么需要上下行定时控制 5G NR 基本时间单元 Tc 与 Ts Timing Advance（TA）机制 3.1 TA 的物理含义与公式 3.2 NTA,offset 说明 3.3 初始 TA：随机接入响应（RAR） 3.4 TA 维护：MAC CE 命令 3.5 TA 的调整时延与精度要求 3.6 TAG（Timing Advance Group） 3.7 TA 计时器（timeAli">
 <meta property="og:type" content="article">
-<meta property="og:title" content="17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）">
+<meta property="og:title" content="17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）">
 <meta property="og:url" content="http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 为什么需要上下行定时控制 5G NR 基本时间单元 Tc 与 Ts Timing Advance（TA）机制 3.1 TA 的物理含义与公式 3.2 NTA,offset 说明 3.3 初始 TA：随机接入响应（RAR） 3.4 TA 维护：MAC CE 命令 3.5 TA 的调整时延与精度要求 3.6 TAG（Timing Advance Group） 3.7 TA 计时器（timeAli">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-10-07T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-06-11T04:02:12.516Z">
+<meta property="article:modified_time" content="2026-06-11T04:30:42.406Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）</title>
+    <title>17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -111,16 +111,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&text=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&is_video=false&description=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）&body=Check out this article: http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&name=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&t=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&text=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&is_video=false&description=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）&body=Check out this article: http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&name=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&t=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -140,7 +140,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）
+        17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）
     </h1>
 
 
@@ -533,7 +533,7 @@
 <li>约束：$n_{DL} + n_{GP} + n_{UL} &#x3D; 14$</li>
 </ul>
 <p>根据 GSMA 5G TDD 同步指南建议，对于 DDDSU 配置（30 kHz SCS），S-slot 推荐配置为 <strong>10:2:2</strong>，在需要更大覆盖范围（更长 GP）时可调整为 <strong>10:4:0</strong> 等。</p>
-<h3 id="5-3-Guard-Period-的作用"><a href="#5-3-Guard-Period-的作用" class="headerlink" title="5.3 Guard Period 的作用"></a>5.3 Guard Period 的作用</h3><p>Guard Period（GP）是 TDD 系统中 DL→UL 切换时的**”沉默时段”**，其大小需满足两个约束：</p>
+<h3 id="5-3-Guard-Period-的作用"><a href="#5-3-Guard-Period-的作用" class="headerlink" title="5.3 Guard Period 的作用"></a>5.3 Guard Period 的作用</h3><p>Guard Period（GP）是 TDD 系统中 DL→UL 切换时的 **”沉默时段”**，其大小需满足两个约束：</p>
 <p><strong>约束 1：覆盖最大小区半径</strong></p>
 <p>$$T_{GP} \geq 2 \times \tau_{p,max} + T_{switch}$$</p>
 <p>其中：</p>
@@ -631,7 +631,7 @@
 
 <hr>
 <h1 id="7-常见-TDD-帧结构部署模式"><a href="#7-常见-TDD-帧结构部署模式" class="headerlink" title="7. 常见 TDD 帧结构部署模式"></a>7. 常见 TDD 帧结构部署模式</h1><h3 id="7-1-DDDSU（5-ms-周期，30-kHz-SCS）"><a href="#7-1-DDDSU（5-ms-周期，30-kHz-SCS）" class="headerlink" title="7.1 DDDSU（5 ms 周期，30 kHz SCS）"></a>7.1 DDDSU（5 ms 周期，30 kHz SCS）</h3><p><strong>时隙结构（共 10 个时隙&#x2F;5 ms）：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">时隙:  0    1    2    3    4    5    6    7    8    9</span><br><span class="line">类型:  D    D    D    D    D    D    D    S    U    U</span><br><span class="line">       ←────────── 7 个全DL ──────────→ ↑SSF ←2UL→</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">时隙:  0    1    2    3    4    5    6    7    8    9</span><br><span class="line">类型:  D    D    D    D    D    D    D    S    U    U</span><br><span class="line">       ←────────── 7 个全DL ──────────→  ↑SSF ←─2UL─→</span><br></pre></td></tr></table></figure>
 
 <p>S-slot（时隙 7）典型配置：10D + 2X(GP) + 2U</p>
 <p><strong>DL:UL 比例：</strong> 7.85 : 2.15（约 78.5% DL，21.5% UL）</p>
@@ -640,7 +640,7 @@
 
 <p><strong>适用场景：</strong> 5G 独立组网早期部署，下行流量为主的 eMBB 场景（视频、直播）</p>
 <h3 id="7-2-DDDDDDDSUU（10-ms-周期，30-kHz-SCS）"><a href="#7-2-DDDDDDDSUU（10-ms-周期，30-kHz-SCS）" class="headerlink" title="7.2 DDDDDDDSUU（10 ms 周期，30 kHz SCS）"></a>7.2 DDDDDDDSUU（10 ms 周期，30 kHz SCS）</h3><p><strong>时隙结构（共 20 个时隙&#x2F;10 ms）：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">时隙:  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19</span><br><span class="line">类型:  D  D  D  D  D  D  D  S  U  U  D  D  D  D  D  D  D  S  U  U</span><br><span class="line">       ←──── 7D ────→↑S↑←2U  ←──── 7D ────→↑S↑←2U</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">时隙:  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19</span><br><span class="line">类型:  D  D  D  D  D  D  D  S  U  U  D  D  D  D  D  D  D  S  U  U</span><br><span class="line">       ←──────── 7D ─────→↑S↑ ←2U→  ←──────── 7D ──────→↑S↑ ←2U→</span><br></pre></td></tr></table></figure>
 
 <p>等价写成：[DDDDDDDSUUDDDDDDDSUU]，周期 10 ms</p>
 <p><strong>DL:UL 比例：</strong> 与 DDDSU 相同，但周期更长（更接近 LTE TDD Config 2）</p>
@@ -651,7 +651,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Pattern1: dl-UL-TransmissionPeriodicity = ms2p5</span><br><span class="line">          nrofDownlinkSlots = 3, nrofDownlinkSymbols = 10</span><br><span class="line">          nrofUplinkSlots = 1, nrofUplinkSymbols = 2</span><br><span class="line"></span><br><span class="line">Pattern2: dl-UL-TransmissionPeriodicity = ms2p5</span><br><span class="line">          nrofDownlinkSlots = 2, nrofDownlinkSymbols = 0</span><br><span class="line">          nrofUplinkSlots = 2, nrofUplinkSymbols = 0</span><br></pre></td></tr></table></figure>
 
 <p><strong>整体时隙序列（30 kHz，5 ms &#x3D; 10 个时隙）：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">时隙: 0    1    2    3    4    5    6    7    8    9</span><br><span class="line">P1:   D    D    D    S    U</span><br><span class="line">P2:                       D    D    U    U    X    X</span><br><span class="line">       ←── Pattern 1 ──→  ←────── Pattern 2 ────→</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">时隙: 0    1    2    3    4    5    6    7    8    9</span><br><span class="line">P1:  D    D    D    S    U</span><br><span class="line">P2:                      D    D    U    U    X    X</span><br><span class="line">     ←─── Pattern 1 ───→  ←───── Pattern 2 ──────→</span><br></pre></td></tr></table></figure>
 
 <p>其中时隙 8、9 为 Flexible，可通过 Dedicated 或 DCI 进一步分配。</p>
 <h3 id="7-4-mmWave（FR2）帧结构特点"><a href="#7-4-mmWave（FR2）帧结构特点" class="headerlink" title="7.4 mmWave（FR2）帧结构特点"></a>7.4 mmWave（FR2）帧结构特点</h3><p>FR2（mmWave，&gt; 24.25 GHz）通常使用 <strong>μ&#x3D;3（120 kHz SCS）</strong>，时隙长度仅 0.125 ms，因此：</p>
@@ -796,16 +796,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&text=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&is_video=false&description=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）&body=Check out this article: http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&name=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&t=17 - 上下行定时——TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&text=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&is_video=false&description=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）&body=Check out this article: http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&title=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&name=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/10/07/3gpp/19-ul-dl-timing-ta-tdd-slot/&t=17 - 上下行定时：TA 机制与 TDD 时隙配置（SSF 格式）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

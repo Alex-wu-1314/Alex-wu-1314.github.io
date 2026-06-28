@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="目录 控制面协议栈总览 NAS 层（非接入层） 2.1 NAS 在 5G 架构中的位置 2.2 NAS 的两大子层：5GMM 与 5GSM 2.3 5GMM：移动性管理 2.4 5GSM：会话管理 2.5 NAS 消息结构与安全保护 2.6 NAS 传输机制：消息透传与封装   RRC 层（无线资源控制层） 3.1 RRC 在协议栈中的位置 3.2 RRC 核心功能全景 3.3 系统信息广播（SI">
 <meta property="og:type" content="article">
-<meta property="og:title" content="08 - 控制面协议栈——NAS &#x2F; RRC 层功能概述">
+<meta property="og:title" content="08 - 控制面协议栈：NAS &#x2F; RRC 层功能概述">
 <meta property="og:url" content="http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 控制面协议栈总览 NAS 层（非接入层） 2.1 NAS 在 5G 架构中的位置 2.2 NAS 的两大子层：5GMM 与 5GSM 2.3 5GMM：移动性管理 2.4 5GSM：会话管理 2.5 NAS 消息结构与安全保护 2.6 NAS 传输机制：消息透传与封装   RRC 层（无线资源控制层） 3.1 RRC 在协议栈中的位置 3.2 RRC 核心功能全景 3.3 系统信息广播（SI">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-01-10T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-06-11T04:00:38.466Z">
+<meta property="article:modified_time" content="2026-06-11T04:09:18.315Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>08 - 控制面协议栈——NAS / RRC 层功能概述</title>
+    <title>08 - 控制面协议栈：NAS / RRC 层功能概述</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -111,16 +111,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&text=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&is_video=false&description=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=08 - 控制面协议栈——NAS / RRC 层功能概述&body=Check out this article: http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&name=08 - 控制面协议栈——NAS / RRC 层功能概述&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&t=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&text=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&is_video=false&description=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=08 - 控制面协议栈：NAS / RRC 层功能概述&body=Check out this article: http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&name=08 - 控制面协议栈：NAS / RRC 层功能概述&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&t=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -140,7 +140,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        08 - 控制面协议栈——NAS / RRC 层功能概述
+        08 - 控制面协议栈：NAS / RRC 层功能概述
     </h1>
 
 
@@ -891,16 +891,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&text=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&is_video=false&description=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=08 - 控制面协议栈——NAS / RRC 层功能概述&body=Check out this article: http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&name=08 - 控制面协议栈——NAS / RRC 层功能概述&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&t=08 - 控制面协议栈——NAS / RRC 层功能概述"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&text=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&is_video=false&description=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=08 - 控制面协议栈：NAS / RRC 层功能概述&body=Check out this article: http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&title=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&name=08 - 控制面协议栈：NAS / RRC 层功能概述&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2018/01/10/3gpp/08-control-plane-nas-rrc/&t=08 - 控制面协议栈：NAS / RRC 层功能概述"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
