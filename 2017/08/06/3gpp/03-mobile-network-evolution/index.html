@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 1. 移动通信代际划分概述 2. 2G：GSM 与数字蜂窝的奠基 2.1 GSM 的诞生背景 2.2 GSM 网络架构 2.3 GSM 关键技术 2.4 2.5G：GPRS 与分组交换的引入 2.5 2.75G：EDGE 的增强   3. 3G：UMTS&#x2F;WCDMA 与宽带移动互联网 3.1 3G 标准化背景与 IMT-2000 3.2 UMTS 网络架构（Release 99）">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2017-08-06T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-06-11T03:59:56.150Z">
+<meta property="article:modified_time" content="2026-07-13T07:45:08.150Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -174,31 +176,31 @@
   <div class="content e-content" itemprop="articleBody">
     <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ul>
 <li><a href="#1-%E7%A7%BB%E5%8A%A8%E9%80%9A%E4%BF%A1%E4%BB%A3%E9%99%85%E5%88%92%E5%88%86%E6%A6%82%E8%BF%B0">1. 移动通信代际划分概述</a></li>
-<li><a href="#2-2g-gsm-%E4%B8%8E%E6%95%B0%E5%AD%97%E8%9C%82%E7%AA%9D%E7%9A%84%E5%A5%A0%E5%9F%BA">2. 2G：GSM 与数字蜂窝的奠基</a><ul>
-<li><a href="#21-gsm-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF">2.1 GSM 的诞生背景</a></li>
-<li><a href="#22-gsm-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84">2.2 GSM 网络架构</a></li>
-<li><a href="#23-gsm-%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF">2.3 GSM 关键技术</a></li>
-<li><a href="#24-25g-gprs-%E4%B8%8E%E5%88%86%E7%BB%84%E4%BA%A4%E6%8D%A2%E7%9A%84%E5%BC%95%E5%85%A5">2.4 2.5G：GPRS 与分组交换的引入</a></li>
-<li><a href="#25-275g-edge-%E7%9A%84%E5%A2%9E%E5%BC%BA">2.5 2.75G：EDGE 的增强</a></li>
+<li><a href="#2-2G%EF%BC%9AGSM-%E4%B8%8E%E6%95%B0%E5%AD%97%E8%9C%82%E7%AA%9D%E7%9A%84%E5%A5%A0%E5%9F%BA">2. 2G：GSM 与数字蜂窝的奠基</a><ul>
+<li><a href="#2-1-GSM-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF">2.1 GSM 的诞生背景</a></li>
+<li><a href="#2-2-GSM-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84">2.2 GSM 网络架构</a></li>
+<li><a href="#2-3-GSM-%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF">2.3 GSM 关键技术</a></li>
+<li><a href="#2-4-2-5G%EF%BC%9AGPRS-%E4%B8%8E%E5%88%86%E7%BB%84%E4%BA%A4%E6%8D%A2%E7%9A%84%E5%BC%95%E5%85%A5">2.4 2.5G：GPRS 与分组交换的引入</a></li>
+<li><a href="#2-5-2-75G%EF%BC%9AEDGE-%E7%9A%84%E5%A2%9E%E5%BC%BA">2.5 2.75G：EDGE 的增强</a></li>
 </ul>
 </li>
-<li><a href="#3-3g-umtswcdma-%E4%B8%8E%E5%AE%BD%E5%B8%A6%E7%A7%BB%E5%8A%A8%E4%BA%92%E8%81%94%E7%BD%91">3. 3G：UMTS&#x2F;WCDMA 与宽带移动互联网</a><ul>
-<li><a href="#31-3g-%E6%A0%87%E5%87%86%E5%8C%96%E8%83%8C%E6%99%AF%E4%B8%8E-imt-2000">3.1 3G 标准化背景与 IMT-2000</a></li>
-<li><a href="#32-umts-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84release-99">3.2 UMTS 网络架构（Release 99）</a></li>
-<li><a href="#33-wcdma-%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF">3.3 WCDMA 核心技术</a></li>
-<li><a href="#34-35g-hsdpa--hsupaHspa">3.4 3.5G：HSDPA &#x2F; HSUPA（HSPA）</a></li>
-<li><a href="#35-375ghspa">3.5 3.75G：HSPA+</a></li>
-<li><a href="#36-ims-%E7%9A%84%E5%BC%95%E5%85%A5release-5">3.6 IMS 的引入（Release 5）</a></li>
+<li><a href="#3-3G%EF%BC%9AUMTS-WCDMA-%E4%B8%8E%E5%AE%BD%E5%B8%A6%E7%A7%BB%E5%8A%A8%E4%BA%92%E8%81%94%E7%BD%91">3. 3G：UMTS&#x2F;WCDMA 与宽带移动互联网</a><ul>
+<li><a href="#3-1-3G-%E6%A0%87%E5%87%86%E5%8C%96%E8%83%8C%E6%99%AF%E4%B8%8E-IMT-2000">3.1 3G 标准化背景与 IMT-2000</a></li>
+<li><a href="#3-2-UMTS-%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%EF%BC%88Release-99%EF%BC%89">3.2 UMTS 网络架构（Release 99）</a></li>
+<li><a href="#3-3-WCDMA-%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF">3.3 WCDMA 核心技术</a></li>
+<li><a href="#3-4-3-5G%EF%BC%9AHSDPA-HSUPA%EF%BC%88HSPA%EF%BC%89">3.4 3.5G：HSDPA &#x2F; HSUPA（HSPA）</a></li>
+<li><a href="#3-5-3-75G%EF%BC%9AHSPA">3.5 3.75G：HSPA+</a></li>
+<li><a href="#3-6-IMS-%E7%9A%84%E5%BC%95%E5%85%A5%EF%BC%88Release-5%EF%BC%89">3.6 IMS 的引入（Release 5）</a></li>
 </ul>
 </li>
-<li><a href="#4-4g-lte-%E4%B8%8E%E5%85%A8-ip-%E6%97%B6%E4%BB%A3">4. 4G：LTE 与全 IP 时代</a><ul>
-<li><a href="#41-lte-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF%E4%B8%8E-3gpp-release-8">4.1 LTE 的诞生背景与 3GPP Release 8</a></li>
-<li><a href="#42-lte-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84eps">4.2 LTE 系统架构（EPS）</a></li>
-<li><a href="#43-e-utran-enodeb-%E7%9A%84%E6%89%81%E5%B9%B3%E5%8C%96">4.3 E-UTRAN：eNodeB 的扁平化</a></li>
-<li><a href="#44-epc-%E6%A0%B8%E5%BF%83%E7%BD%91%E5%85%83%E8%AF%A6%E8%A7%A3">4.4 EPC 核心网元详解</a></li>
-<li><a href="#45-lte-%E7%A9%BA%E5%8F%A3%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF">4.5 LTE 空口核心技术</a></li>
-<li><a href="#46-lte-advancedrelease-10">4.6 LTE-Advanced（Release 10）</a></li>
-<li><a href="#47-lte-advanced-prorelease-1314">4.7 LTE-Advanced Pro（Release 13&#x2F;14）</a></li>
+<li><a href="#4-4G%EF%BC%9ALTE-%E4%B8%8E%E5%85%A8-IP-%E6%97%B6%E4%BB%A3">4. 4G：LTE 与全 IP 时代</a><ul>
+<li><a href="#4-1-LTE-%E7%9A%84%E8%AF%9E%E7%94%9F%E8%83%8C%E6%99%AF%E4%B8%8E-3GPP-Release-8">4.1 LTE 的诞生背景与 3GPP Release 8</a></li>
+<li><a href="#4-2-LTE-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%EF%BC%88EPS%EF%BC%89">4.2 LTE 系统架构（EPS）</a></li>
+<li><a href="#4-3-E-UTRAN%EF%BC%9AeNodeB-%E7%9A%84%E6%89%81%E5%B9%B3%E5%8C%96">4.3 E-UTRAN：eNodeB 的扁平化</a></li>
+<li><a href="#4-4-EPC-%E6%A0%B8%E5%BF%83%E7%BD%91%E5%85%83%E8%AF%A6%E8%A7%A3">4.4 EPC 核心网元详解</a></li>
+<li><a href="#4-5-LTE-%E7%A9%BA%E5%8F%A3%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF">4.5 LTE 空口核心技术</a></li>
+<li><a href="#4-6-LTE-Advanced%EF%BC%88Release-10%EF%BC%89">4.6 LTE-Advanced（Release 10）</a></li>
+<li><a href="#4-7-LTE-Advanced-Pro%EF%BC%88Release-13-14%EF%BC%89">4.7 LTE-Advanced Pro（Release 13&#x2F;14）</a></li>
 </ul>
 </li>
 <li><a href="#5-%E5%90%84%E4%BB%A3%E9%99%85%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%AF%94%E6%80%BB%E8%A1%A8">5. 各代际核心技术对比总表</a></li>
@@ -360,7 +362,7 @@
 <li>每个用户占用一个时隙，即同一载波最多支持 8 路通话。</li>
 </ul>
 <p><strong>双工方式：FDD</strong></p>
-<p>上行（UL）与下行（DL）使用不同频段，典型频段如 GSM-900（上行 890–915 MHz，下行 935–960 MHz），收发频率间隔 45 MHz。</p>
+<p>上行（UL）与下行（DL）使用不同频段，典型频段如 GSM-900（上行 890-915 MHz，下行 935-960 MHz），收发频率间隔 45 MHz。</p>
 <p><strong>信道编码</strong></p>
 <p>语音编码使用 <strong>RPE-LTP（Regular Pulse Excitation - Long Term Prediction）</strong> 编解码器，速率 13 kbps（后期引入 AMR 自适应多速率编码）。信道编码采用卷积码，并结合交织（Interleaving）提升抗突发误码能力。</p>
 <p><strong>安全机制</strong></p>
@@ -457,7 +459,7 @@
 <td>DECT</td>
 <td>ETSI</td>
 <td>欧洲（主要室内）</td>
-<td>—</td>
+<td>-</td>
 </tr>
 <tr>
 <td>WiMAX（后期）</td>
@@ -609,7 +611,7 @@
 </ul>
 <p>IMS 的设计超前于其时代，在 LTE 的 VoLTE 和 5G 的 VoNR 中才真正大规模落地，但其架构理念贯穿 4G&#x2F;5G 始终。</p>
 <hr>
-<h1 id="4-4G：LTE-与全-IP-时代"><a href="#4-4G：LTE-与全-IP-时代" class="headerlink" title="4. 4G：LTE 与全 IP 时代"></a>4. 4G：LTE 与全 IP 时代</h1><h3 id="4-1-LTE-的诞生背景与-3GPP-Release-8"><a href="#4-1-LTE-的诞生背景与-3GPP-Release-8" class="headerlink" title="4.1 LTE 的诞生背景与 3GPP Release 8"></a>4.1 LTE 的诞生背景与 3GPP Release 8</h3><p>2004 年，3GPP 启动了 UMTS 的”长期演进（Long Term Evolution，LTE）”研究项目，核心目标是应对无线业务爆炸式增长（彼时 YouTube、iPhone 即将改变互联网格局），并克服 WCDMA 在频谱效率和时延上的固有局限。</p>
+<h1 id="4-4G：LTE-与全-IP-时代"><a href="#4-4G：LTE-与全-IP-时代" class="headerlink" title="4. 4G：LTE 与全 IP 时代"></a>4. 4G：LTE 与全 IP 时代</h1><h3 id="4-1-LTE-的诞生背景与-3GPP-Release-8"><a href="#4-1-LTE-的诞生背景与-3GPP-Release-8" class="headerlink" title="4.1 LTE 的诞生背景与 3GPP Release 8"></a>4.1 LTE 的诞生背景与 3GPP Release 8</h3><p>2004 年，3GPP 启动了 UMTS 的”长期演进（Long Term Evolution，LTE）”研究项目，目标是应对无线业务爆炸式增长（彼时 YouTube、iPhone 即将改变互联网格局），并克服 WCDMA 在频谱效率和时延上的固有局限。</p>
 <p>ITU 的 <strong>IMT-Advanced</strong> 要求（对应 4G 官方标准）需满足：</p>
 <ul>
 <li>低移动性（步行）：1 Gbps 峰值速率</li>
@@ -745,7 +747,7 @@
 <li>添加 <strong>CP（Cyclic Prefix，循环前缀）</strong> 消除符号间干扰（ISI），正常 CP 长 4.7 μs，扩展 CP 长 16.7 μs</li>
 <li>频域调度：调度器可灵活将不同 RB（Resource Block）分配给不同 UE，实现多用户分集</li>
 </ul>
-<p><strong>SC-FDMA 用于上行</strong>：SC-FDMA 本质是对 OFDMA 的预处理——先对时域信号做 DFT 扩展，再映射到子载波上，保持 OFDM 的频域调度灵活性，同时降低 <strong>PAPR（Peak-to-Average Power Ratio）</strong>，节省 UE 发射功率消耗，延长电池寿命。</p>
+<p><strong>SC-FDMA 用于上行</strong>：SC-FDMA 本质是对 OFDMA 的预处理，先对时域信号做 DFT 扩展，再映射到子载波上，保持 OFDM 的频域调度灵活性，同时降低 <strong>PAPR（Peak-to-Average Power Ratio）</strong>，节省 UE 发射功率消耗，延长电池寿命。</p>
 <p><strong>LTE 支持的信道带宽</strong>：1.4 &#x2F; 3 &#x2F; 5 &#x2F; 10 &#x2F; 15 &#x2F; 20 MHz，对应资源块（RB）数量：6 &#x2F; 15 &#x2F; 25 &#x2F; 50 &#x2F; 75 &#x2F; 100 个。</p>
 <h4 id="资源块（Resource-Block）"><a href="#资源块（Resource-Block）" class="headerlink" title="资源块（Resource Block）"></a>资源块（Resource Block）</h4><p>LTE 的最小调度单元是 <strong>RB（Resource Block）</strong>：</p>
 <ul>
@@ -893,7 +895,7 @@
 <td>默认承载（一般上网）</td>
 </tr>
 </tbody></table>
-<h3 id="4-6-LTE-Advanced（Release-10）"><a href="#4-6-LTE-Advanced（Release-10）" class="headerlink" title="4.6 LTE-Advanced（Release 10）"></a>4.6 LTE-Advanced（Release 10）</h3><p><strong>Release 10</strong>（2011 年冻结）是首个满足 ITU IMT-Advanced 需求的版本，正式称为 <strong>4G</strong>，核心增强如下：</p>
+<h3 id="4-6-LTE-Advanced（Release-10）"><a href="#4-6-LTE-Advanced（Release-10）" class="headerlink" title="4.6 LTE-Advanced（Release 10）"></a>4.6 LTE-Advanced（Release 10）</h3><p><strong>Release 10</strong>（2011 年冻结）是首个满足 ITU IMT-Advanced 需求的版本，正式称为 <strong>4G</strong>，主要增强如下：</p>
 <p><strong>载波聚合（Carrier Aggregation, CA）</strong></p>
 <p>CA 允许 UE 同时在多个载波（Component Carrier, CC）上收发数据，每个 CC 最大 20 MHz，最多聚合 5 个 CC，总带宽可达 <strong>100 MHz</strong>，峰值速率理论上达 <strong>1 Gbps</strong>（DL）。</p>
 <p>载波类型：</p>
@@ -1000,7 +1002,7 @@
 <tr>
 <td><strong>空口 TTI</strong></td>
 <td>4.615 ms帧&#x2F;时隙</td>
-<td>—</td>
+<td>-</td>
 <td>10&#x2F;20&#x2F;40&#x2F;80 ms</td>
 <td>2 ms</td>
 <td><strong>1 ms</strong></td>
@@ -1084,7 +1086,7 @@
 <h3 id="主线一：多址接入技术的代际革命"><a href="#主线一：多址接入技术的代际革命" class="headerlink" title="主线一：多址接入技术的代际革命"></a>主线一：多址接入技术的代际革命</h3><ul>
 <li><strong>TDMA（2G）</strong> → <strong>CDMA（3G）</strong> → <strong>OFDMA（4G）</strong></li>
 </ul>
-<p>每一代的多址接入技术变革都是底层能力的跃升：TDMA 简单但频谱效率有限；CDMA 通过扩频实现频率复用系数为 1，但受干扰限制容量上限，且 PAPR 和功率控制复杂；OFDMA 利用正交子载波和 CP 从根本上解决了多径干扰，支持灵活的频域调度，为 MIMO 提供了理想的信道估计框架，成为 4G&#x2F;5G 的基石。</p>
+<p>每一代的多址接入技术变革都是底层能力的跃升：TDMA 简单但频谱效率有限；CDMA 通过扩频实现频率复用系数为 1，但受干扰限制容量上限，且 PAPR 和功率控制复杂；OFDMA 利用正交子载波和 CP 从根本上解决了多径干扰，支持灵活的频域调度，为 MIMO 提供了理想的信道估计框架，成为 4G&#x2F;5G 的基础。</p>
 <h3 id="主线二：调度与重传的下移趋势"><a href="#主线二：调度与重传的下移趋势" class="headerlink" title="主线二：调度与重传的下移趋势"></a>主线二：调度与重传的下移趋势</h3><ul>
 <li><strong>RNC&#x2F;BSC（3G）</strong> → <strong>Node-B（3.5G HSDPA）</strong> → <strong>eNB（4G）</strong></li>
 </ul>
@@ -1092,11 +1094,11 @@
 <h3 id="主线三：核心网从电路到全-IP-的演变"><a href="#主线三：核心网从电路到全-IP-的演变" class="headerlink" title="主线三：核心网从电路到全 IP 的演变"></a>主线三：核心网从电路到全 IP 的演变</h3><ul>
 <li><strong>纯电路交换（2G）</strong> → <strong>CS+PS 共存（3G）</strong> → <strong>全 IP（4G EPS）</strong></li>
 </ul>
-<p>GPRS 的引入开启了 PS 域与 CS 域并存的时代，但双域架构的运营维护成本高昂。LTE 彻底废除 CS 域，语音通过 VoLTE（Voice over LTE）在 IMS 架构上承载，实现真正的全 IP 网络。控制面与用户面的解耦（CUPS）也为后续 5G 的服务化架构奠定了基础。</p>
+<p>GPRS 的引入开启了 PS 域与 CS 域并存的时代，但双域架构的运营维护成本高昂。LTE 彻底废除 CS 域，语音通过 VoLTE（Voice over LTE）在 IMS 架构上承载，实现真正的全 IP 网络。控制面与用户面的解耦（CUPS）也为后续 5G 的服务化架构提供了基础。</p>
 <h3 id="主线四：天线技术从单天线到-MIMO"><a href="#主线四：天线技术从单天线到-MIMO" class="headerlink" title="主线四：天线技术从单天线到 MIMO"></a>主线四：天线技术从单天线到 MIMO</h3><ul>
 <li><strong>单天线（2G&#x2F;3G）</strong> → <strong>2×2 MIMO（4G R8）</strong> → <strong>8×8 MIMO（4G R10）</strong> → <strong>Massive MIMO（5G）</strong></li>
 </ul>
-<p>MIMO 技术通过空间复用（提速）和分集（提可靠性）成为提升频谱效率的最重要手段。LTE 标准化了完整的 MIMO 框架（SU-MIMO&#x2F;MU-MIMO），并通过 CSI-RS 机制实现精确的信道状态反馈，为 5G 的 Massive MIMO（32T32R、64T64R 等）铺平了道路。</p>
+<p>MIMO 技术通过空间复用（提速）和分集（提可靠性）成为提升频谱效率的主要手段。LTE 标准化了完整的 MIMO 框架（SU-MIMO&#x2F;MU-MIMO），并通过 CSI-RS 机制实现精确的信道状态反馈，为 5G 的 Massive MIMO（32T32R、64T64R 等）提供了基础。</p>
 <h3 id="主线五：标准化节奏与-Release-版本驱动"><a href="#主线五：标准化节奏与-Release-版本驱动" class="headerlink" title="主线五：标准化节奏与 Release 版本驱动"></a>主线五：标准化节奏与 Release 版本驱动</h3><p>3GPP 的 Release 机制保证了标准的持续演进与后向兼容：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">R99(2000) → R4(2001) → R5(2002) → R6(2004) → R7(2007) → R8(2008) → R9(2009)</span><br><span class="line">                                                        LTE首版 ────────────────</span><br><span class="line">→ R10(2011) → R11(2012) → R12(2015) → R13(2016) → R14(2017) → R15(2018,5G首版)</span><br><span class="line">  LTE-A ───────────────────────────── LTE-A Pro ────────────────────────────────</span><br></pre></td></tr></table></figure>
 
@@ -1105,9 +1107,9 @@
 <ul>
 <li><strong>2G</strong> 解决了”能通话”的问题，建立了数字蜂窝的基础架构和安全体系；</li>
 <li><strong>2.5G&#x2F;2.75G</strong> 通过 GPRS&#x2F;EDGE 初步引入分组数据能力；</li>
-<li><strong>3G UMTS</strong> 通过 WCDMA 实现了真正的移动宽带，软切换和 AMC 等技术奠定了现代无线系统的设计范式；</li>
+<li><strong>3G UMTS</strong> 通过 WCDMA 实现了真正的移动宽带，软切换和 AMC 等技术成为现代无线系统设计的基础；</li>
 <li><strong>HSPA&#x2F;HSPA+</strong> 通过 Node-B 侧的调度革新将 3G 的实际体验大幅提升；</li>
-<li><strong>4G LTE</strong> 以 OFDMA + 全 IP + 扁平化架构重构了移动通信系统，将时延压缩至个位数毫秒、峰值速率提升至 Gbps 量级，真正开启了移动互联网时代。</li>
+<li><strong>4G LTE</strong> 以 OFDMA + 全 IP + 扁平化架构重构了移动通信系统，将时延压缩至个位数毫秒、峰值速率提升至 Gbps 量级，使移动通信进入移动互联网时代。</li>
 </ul>
 <p>理解这条演进脉络，是深入理解 <strong>5G NR</strong> 技术选择的前提：5G 的 Numerology（多种子载波间隔）、Massive MIMO、服务化核心网（SBA）、URLLC 低时延等设计，无不是在 LTE 的基础上针对新需求的进一步突破。</p>
 <hr>
@@ -1212,9 +1214,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -1274,9 +1278,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

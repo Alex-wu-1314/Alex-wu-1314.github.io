@@ -14,7 +14,7 @@
 <meta property="og:description" content="本文探讨了决定网络性能的两大核心要素：延迟与带宽。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-03-01T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-16T07:24:29.991Z">
+<meta property="article:modified_time" content="2026-07-13T13:52:03.046Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="高性能网络">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -97,7 +99,7 @@
         <li><a class="icon" aria-label="Previous post" href="/2020/03/14/HPN/2.tcp-building-blocks/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2020/01/14/gcc/3.gcc_return_addr_builtin_func/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2020/02/14/gcc/3.gcc_return_addr_builtin_func/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -172,13 +174,13 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <p>本文探讨了决定网络性能的两大核心要素：<strong>延迟与带宽</strong>。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以满足用户对高速交互的迫切需求。</p>
-<h1 id="1-速度是一种核心特性"><a href="#1-速度是一种核心特性" class="headerlink" title="1. 速度是一种核心特性"></a>1. 速度是一种核心特性</h1><p>在现代 <strong>Web 性能优化（WPO）</strong> 领域，速度不再仅仅是一个技术参数，它被视为一项核心的产品特性。互联网业务的成败往往取决于毫秒间的差异。</p>
+    <p>本文探讨了决定网络性能的两大核心要素：延迟与带宽。延迟受限于物理规律，尤其是光速在不同介质中的传播限制，使其成为提升网页性能的主要瓶颈。相比之下，带宽虽然在网络核心地带极为充裕，但在最后三公里的边缘接入端却往往受到技术限制。由于物理局限使得大幅缩短传输时间变得极其困难，提升用户体验的关键在于减少往返次数和利用内容分发网络（CDN）将数据部署在离用户更近的地方。开发者必须在设计中明确考量网络延迟，以满足用户对高速交互的迫切需求。</p>
+<h1 id="1-速度是一种核心特性"><a href="#1-速度是一种核心特性" class="headerlink" title="1. 速度是一种核心特性"></a>1. 速度是一种核心特性</h1><p>在现代 Web 性能优化（WPO） 领域，速度不再仅仅是一个技术参数，它被视为一项核心的产品特性。互联网业务的成败往往取决于毫秒间的差异。</p>
 <p>根据行业实证研究，更快的站点会直接带来以下收益：</p>
 <ul>
-<li><strong>更高的参与度 (Engagement)</strong> ： 响应敏捷的界面能留住用户的注意力。</li>
-<li><strong>更强的留存率 (Retention)</strong> ： 减少等待感是培养用户忠诚度的基石。</li>
-<li><strong>更出色的转化率 (Conversions)</strong> ： 极速的体验能显著消除用户下单时的心理摩擦。</li>
+<li>更高的参与度 (Engagement) ： 响应敏捷的界面能留住用户的注意力。</li>
+<li>更强的留存率 (Retention) ： 减少等待感是培养用户忠诚度的基石。</li>
+<li>更出色的转化率 (Conversions) ： 极速的体验能显著消除用户下单时的心理摩擦。</li>
 </ul>
 <p>要构建这种“快”，我们必须关注网络性能的两个支柱：带宽 (Bandwidth) 与 延迟 (Latency)。</p>
 <p>想象一根水管，带宽是水管的直径，决定了单位时间内能流过多少水；而延迟是水滴从进入水管到从另一头流出所需的时间。即便你换了一根巨大的“工业级水管”，如果水管跨越了半个地球，第一滴水流出的时间依然无法缩减。</p>
@@ -236,24 +238,24 @@
 <td>400 ms</td>
 </tr>
 </tbody></table>
-<p><strong>延迟的价值</strong>： 这种物理极限带来的每一毫秒都价值连城。2015 年推出的 Hibernia Express 海底光缆项目耗资超过 3 亿美元，其核心目的仅是为了通过优化路径，将纽约与伦敦之间的往返延迟降低约 5 毫秒。在金融高频交易领域，这意味着每节省一毫秒，就对应着超过 6000 万美元的投资价值。</p>
+<p>延迟的价值： 这种物理极限带来的每一毫秒都价值连城。2015 年推出的 Hibernia Express 海底光缆项目耗资超过 3 亿美元，其核心目的仅是为了通过优化路径，将纽约与伦敦之间的往返延迟降低约 5 毫秒。在金融高频交易领域，这意味着每节省一毫秒，就对应着超过 6000 万美元的投资价值。</p>
 <hr>
 <h1 id="4-延迟的四个成分"><a href="#4-延迟的四个成分" class="headerlink" title="4. 延迟的四个成分"></a>4. 延迟的四个成分</h1><p>数据包的“旅程时间”是由以下四种相互独立的延迟累加而成的：</p>
 <ol>
-<li><strong>传播延迟 (Propagation delay)</strong> ：信号在介质中穿行的时间。<ul>
+<li>传播延迟 (Propagation delay) ：信号在介质中穿行的时间。<ul>
 <li>优化潜力： 极低。除非缩短物理距离或改变介质，否则无法突破光速极限。</li>
 </ul>
 </li>
-<li><strong>传输延迟 (Transmission delay)</strong> ：将数据包的所有比特流推入链路所需的时间。<ul>
+<li>传输延迟 (Transmission delay) ：将数据包的所有比特流推入链路所需的时间。<ul>
 <li>优化潜力： 高。增加带宽可以直接缩短这个过程。</li>
 </ul>
 </li>
-<li><strong>处理延迟 (Processing delay)</strong> ：路由器检查包头、校验错误及决定转发路径的时间。<ul>
+<li>处理延迟 (Processing delay) ：路由器检查包头、校验错误及决定转发路径的时间。<ul>
 <li>优化潜力： 中。随着现代路由器硬件化处理，该项延迟已显著降低。</li>
 </ul>
 </li>
-<li><strong>排队延迟 (Queuing delay)</strong> ：流量拥塞时，数据包在缓冲区等待的时间。<ul>
-<li>优化潜力： 变数极大。需警惕 <strong>缓存膨胀 (Bufferbloat)</strong> 现象，某些路由器配置过大缓冲区，虽减少了丢包，却让 TCP 拥塞控制失效，引入了巨大的不确定延迟。</li>
+<li>排队延迟 (Queuing delay) ：流量拥塞时，数据包在缓冲区等待的时间。<ul>
+<li>优化潜力： 变数极大。需警惕 缓存膨胀 (Bufferbloat) 现象，某些路由器配置过大缓冲区，虽减少了丢包，却让 TCP 拥塞控制失效，引入了巨大的不确定延迟。</li>
 </ul>
 </li>
 </ol>
@@ -285,7 +287,7 @@
 <h1 id="7-超越带宽的性能思维"><a href="#7-超越带宽的性能思维" class="headerlink" title="7. 超越带宽的性能思维"></a>7. 超越带宽的性能思维</h1><p>在带宽日益廉价的今天，我们要清醒地认识到：延迟而非带宽，才是当前大多数网站的性能瓶颈。</p>
 <p>带宽的增加受经济学和工程学驱动，可以通过砸钱、堆硬件实现线性增长；而延迟的缩减受制于物理定律，存在不可逾越的鸿沟。理解了“带宽是经济，延迟是物理”，才能真正掌握 Web 性能优化的核心。</p>
 <blockquote>
-<p><strong>参考来源：</strong> <a target="_blank" rel="noopener" href="https://hpbn.co/primer-on-latency-and-bandwidth/">Primer on Latency and Bandwidth</a>  </p>
+<p>参考来源： <a target="_blank" rel="noopener" href="https://hpbn.co/primer-on-latency-and-bandwidth/">Primer on Latency and Bandwidth</a>  </p>
 </blockquote>
 
   </div>
@@ -306,9 +308,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -368,9 +372,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

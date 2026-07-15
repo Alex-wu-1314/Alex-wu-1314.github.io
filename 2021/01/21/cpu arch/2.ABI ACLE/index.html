@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="1. ARM ABI（Application Binary Interface）1.1 定义与作用ARM ABI 是一套二进制接口规范，定义了在 ARM 架构上程序模块之间如何交互的底层规则，包括：  函数调用约定（参数传递、返回值处理） 寄存器使用规则 栈帧布局 数据对齐要求 异常处理机制  1.2 常见 ARM ABI 类型 32位架构： armeabi：基础 ARM EABI（Embedde">
+    <meta name="description" content="1. ARM ABI（Application Binary Interface）1.1 定义与作用ARM ABI 是一套二进制接口规范，定义了在 ARM 架构上程序模块之间如何交互的底层规则，包括：  函数调用约定（参数传递、返回值处理） 寄存器使用规则 栈帧布局 数据对齐要求 异常处理机制  1.2 常见 ARM ABI 类型32 位架构：  armeabi：基础 ARM EABI（Embedd">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ABI、ACLE 与 原子操作">
 <meta property="og:url" content="http://example.com/2021/01/21/cpu%20arch/2.ABI%20ACLE/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
-<meta property="og:description" content="1. ARM ABI（Application Binary Interface）1.1 定义与作用ARM ABI 是一套二进制接口规范，定义了在 ARM 架构上程序模块之间如何交互的底层规则，包括：  函数调用约定（参数传递、返回值处理） 寄存器使用规则 栈帧布局 数据对齐要求 异常处理机制  1.2 常见 ARM ABI 类型 32位架构： armeabi：基础 ARM EABI（Embedde">
+<meta property="og:description" content="1. ARM ABI（Application Binary Interface）1.1 定义与作用ARM ABI 是一套二进制接口规范，定义了在 ARM 架构上程序模块之间如何交互的底层规则，包括：  函数调用约定（参数传递、返回值处理） 寄存器使用规则 栈帧布局 数据对齐要求 异常处理机制  1.2 常见 ARM ABI 类型32 位架构：  armeabi：基础 ARM EABI（Embedd">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-01-21T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-20T13:05:46.221Z">
+<meta property="article:modified_time" content="2026-07-13T09:32:31.580Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="CPU Arch">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -97,7 +99,7 @@
         <li><a class="icon" aria-label="Previous post" href="/2021/02/02/cpu%20arch/3.ARM32%20VS%20ARM64/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2021/01/09/cpu%20arch/1.A55%20%E5%BE%AE%E6%9E%B6%E6%9E%84%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%8C%87%E6%A0%87/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2020/11/09/cpu%20arch/1.A55%20%E5%BE%AE%E6%9E%B6%E6%9E%84%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%8C%87%E6%A0%87/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -127,7 +129,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-ARM-ABI%EF%BC%88Application-Binary-Interface%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">1. ARM ABI（Application Binary Interface）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 定义与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%B8%B8%E8%A7%81-ARM-ABI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 常见 ARM ABI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ABI-%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 ABI 的重要性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ACLE%EF%BC%88ARM-C-Language-Extensions%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. ACLE（ARM C Language Extensions）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E7%9B%AE%E7%9A%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 定义与目的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ACLE-%E7%9A%84%E6%A0%B8%E5%BF%83%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 ACLE 的核心组成部分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-Intrinsics%EF%BC%88%E5%86%85%E5%BB%BA%E5%87%BD%E6%95%B0%EF%BC%89"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">2.2.1 Intrinsics（内建函数）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">2.2.2 系统级操作函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E4%B8%93%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">2.2.3 专用数据类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-4-%E7%89%B9%E6%80%A7%E6%A3%80%E6%B5%8B%E5%AE%8F"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">2.2.4 特性检测宏</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E9%93%BE%E6%94%AF%E6%8C%81"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.3 工具链支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%9A%E6%A0%87%E5%87%86%E5%BA%93-vs-%E5%BA%95%E5%B1%82%E5%8E%9F%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">3. 原子操作：标准库 vs 底层原语</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 两种实现方式的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 使用建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88C11-C-11%EF%BC%89%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">优先使用标准原子操作（C11&#x2F;C++11）当：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8-ARM-ACLE-%E5%8E%9F%E8%AF%AD%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">考虑使用 ARM ACLE 原语当：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 关键区别对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">5. 参考资料</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-ARM-ABI%EF%BC%88Application-Binary-Interface%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">1. ARM ABI（Application Binary Interface）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 定义与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%B8%B8%E8%A7%81-ARM-ABI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 常见 ARM ABI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ABI-%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 ABI 的重要性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ACLE%EF%BC%88ARM-C-Language-Extensions%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. ACLE（ARM C Language Extensions）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E7%9B%AE%E7%9A%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 定义与目的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ACLE-%E7%9A%84%E4%B8%BB%E8%A6%81%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 ACLE 的主要组成部分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-Intrinsics%EF%BC%88%E5%86%85%E5%BB%BA%E5%87%BD%E6%95%B0%EF%BC%89"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">2.2.1 Intrinsics（内建函数）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">2.2.2 系统级操作函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E4%B8%93%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">2.2.3 专用数据类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-4-%E7%89%B9%E6%80%A7%E6%A3%80%E6%B5%8B%E5%AE%8F"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">2.2.4 特性检测宏</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E9%93%BE%E6%94%AF%E6%8C%81"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.3 工具链支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%9A%E6%A0%87%E5%87%86%E5%BA%93-vs-%E5%BA%95%E5%B1%82%E5%8E%9F%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">3. 原子操作：标准库 vs 底层原语</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 两种实现方式的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 使用建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88C11-C-11%EF%BC%89%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">优先使用标准原子操作（C11&#x2F;C++11）当：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8-ARM-ACLE-%E5%8E%9F%E8%AF%AD%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">考虑使用 ARM ACLE 原语当：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 关键区别对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">5. 参考资料</span></a></li></ol>
       </div>
     
   </span>
@@ -180,33 +182,31 @@
 <li>数据对齐要求</li>
 <li>异常处理机制</li>
 </ul>
-<h3 id="1-2-常见-ARM-ABI-类型"><a href="#1-2-常见-ARM-ABI-类型" class="headerlink" title="1.2 常见 ARM ABI 类型"></a>1.2 常见 ARM ABI 类型</h3><ul>
-<li><strong>32位架构</strong>：<ul>
+<h3 id="1-2-常见-ARM-ABI-类型"><a href="#1-2-常见-ARM-ABI-类型" class="headerlink" title="1.2 常见 ARM ABI 类型"></a>1.2 常见 ARM ABI 类型</h3><p>32 位架构：</p>
+<ul>
 <li><code>armeabi</code>：基础 ARM EABI（Embedded ABI）</li>
 <li><code>armeabi-v7a</code>：支持 ARMv7 指令集，包含 Thumb-2 和 VFP</li>
 </ul>
-</li>
-<li><strong>64位架构</strong>：<ul>
+<p>64 位架构：</p>
+<ul>
 <li><code>arm64-v8a</code>：AArch64 架构的标准 ABI</li>
 </ul>
-</li>
-<li><strong>浮点处理</strong>：<ul>
+<p>浮点处理：</p>
+<ul>
 <li><code>gnueabi</code>：软浮点（软件模拟浮点运算）</li>
 <li><code>gnueabihf</code>：硬浮点（硬件浮点单元）</li>
 </ul>
-</li>
-</ul>
-<h3 id="1-3-ABI-的重要性"><a href="#1-3-ABI-的重要性" class="headerlink" title="1.3 ABI 的重要性"></a>1.3 ABI 的重要性</h3><p>ABI 确保了不同编译单元、库和可执行文件之间的二进制兼容性，是链接和运行时正确执行的基础。</p>
-<h1 id="2-ACLE（ARM-C-Language-Extensions）"><a href="#2-ACLE（ARM-C-Language-Extensions）" class="headerlink" title="2. ACLE（ARM C Language Extensions）"></a>2. ACLE（ARM C Language Extensions）</h1><h3 id="2-1-定义与目的"><a href="#2-1-定义与目的" class="headerlink" title="2.1 定义与目的"></a>2.1 定义与目的</h3><p>ACLE 是由 ARM 公司制定的一套 C&#x2F;C++ 语言扩展规范（文档编号 IHI0053），旨在让开发者能够：</p>
+<h3 id="1-3-ABI-的重要性"><a href="#1-3-ABI-的重要性" class="headerlink" title="1.3 ABI 的重要性"></a>1.3 ABI 的重要性</h3><p>ABI 保证不同编译单元、库和可执行文件之间的二进制兼容性，链接和运行时正确执行都依赖它。</p>
+<h1 id="2-ACLE（ARM-C-Language-Extensions）"><a href="#2-ACLE（ARM-C-Language-Extensions）" class="headerlink" title="2. ACLE（ARM C Language Extensions）"></a>2. ACLE（ARM C Language Extensions）</h1><h3 id="2-1-定义与目的"><a href="#2-1-定义与目的" class="headerlink" title="2.1 定义与目的"></a>2.1 定义与目的</h3><p>ACLE 是 ARM 制定的 C&#x2F;C++ 语言扩展规范（文档编号 IHI0053），目的是让开发者能：</p>
 <ul>
 <li>安全、可移植地访问 ARM 特有硬件功能</li>
 <li>避免手写内联汇编</li>
 <li>在保持代码可读性的同时获得接近汇编的性能</li>
 </ul>
-<h3 id="2-2-ACLE-的核心组成部分"><a href="#2-2-ACLE-的核心组成部分" class="headerlink" title="2.2 ACLE 的核心组成部分"></a>2.2 ACLE 的核心组成部分</h3><h4 id="2-2-1-Intrinsics（内建函数）"><a href="#2-2-1-Intrinsics（内建函数）" class="headerlink" title="2.2.1 Intrinsics（内建函数）"></a>2.2.1 Intrinsics（内建函数）</h4><ul>
-<li><strong>NEON&#x2F;SIMD Intrinsics</strong>：<code>&lt;arm_neon.h&gt;</code>，用于向量化计算</li>
-<li><strong>SVE Intrinsics</strong>：<code>&lt;arm_sve.h&gt;</code>，用于可伸缩向量扩展</li>
-<li><strong>Crypto Intrinsics</strong>：硬件加速的加密操作</li>
+<h3 id="2-2-ACLE-的主要组成部分"><a href="#2-2-ACLE-的主要组成部分" class="headerlink" title="2.2 ACLE 的主要组成部分"></a>2.2 ACLE 的主要组成部分</h3><h4 id="2-2-1-Intrinsics（内建函数）"><a href="#2-2-1-Intrinsics（内建函数）" class="headerlink" title="2.2.1 Intrinsics（内建函数）"></a>2.2.1 Intrinsics（内建函数）</h4><ul>
+<li>NEON&#x2F;SIMD Intrinsics：<code>&lt;arm_neon.h&gt;</code>，用于向量化计算</li>
+<li>SVE Intrinsics：<code>&lt;arm_sve.h&gt;</code>，用于可伸缩向量扩展</li>
+<li>Crypto Intrinsics：硬件加速的加密操作</li>
 </ul>
 <h4 id="2-2-2-系统级操作函数"><a href="#2-2-2-系统级操作函数" class="headerlink" title="2.2.2 系统级操作函数"></a>2.2.2 系统级操作函数</h4><p>定义在 <code>&lt;arm_acle.h&gt;</code> 中：</p>
 <ul>
@@ -225,16 +225,16 @@
 <li><code>__ARM_FEATURE_CRYPTO</code></li>
 <li><code>__ARM_FEATURE_CRC32</code></li>
 </ul>
-<h3 id="2-3-工具链支持"><a href="#2-3-工具链支持" class="headerlink" title="2.3 工具链支持"></a>2.3 工具链支持</h3><p>ACLE 被主流编译器广泛支持：</p>
+<h3 id="2-3-工具链支持"><a href="#2-3-工具链支持" class="headerlink" title="2.3 工具链支持"></a>2.3 工具链支持</h3><p>主流编译器都支持 ACLE：</p>
 <ul>
-<li><strong>GCC</strong>：通过 <code>-march</code>&#x2F;<code>-mfpu</code>&#x2F;<code>-mcpu</code> 选项控制功能启用</li>
-<li><strong>Clang</strong>：完全兼容 GCC 的 ACLE 实现，Android NDK 默认使用</li>
-<li><strong>ARM Compiler</strong>：ARM 官方编译器，支持最完整及时</li>
+<li>GCC：通过 <code>-march</code>&#x2F;<code>-mfpu</code>&#x2F;<code>-mcpu</code> 选项控制功能启用</li>
+<li>Clang：兼容 GCC 的 ACLE 实现，Android NDK 默认使用</li>
+<li>ARM Compiler：ARM 官方编译器，支持最完整</li>
 </ul>
 <h1 id="3-原子操作：标准库-vs-底层原语"><a href="#3-原子操作：标准库-vs-底层原语" class="headerlink" title="3. 原子操作：标准库 vs 底层原语"></a>3. 原子操作：标准库 vs 底层原语</h1><h3 id="3-1-两种实现方式的关系"><a href="#3-1-两种实现方式的关系" class="headerlink" title="3.1 两种实现方式的关系"></a>3.1 两种实现方式的关系</h3><ul>
-<li><strong>C11&#x2F;C++11 标准原子操作</strong>：高层抽象，跨平台</li>
-<li><strong>ARM ACLE 原子原语</strong>：底层实现，特定于 ARM 架构</li>
-<li><strong>关系</strong>：标准原子操作在 ARM 平台上底层就是通过 <code>LDREX</code>&#x2F;<code>STREX</code> + 内存屏障实现的</li>
+<li>C11&#x2F;C++11 标准原子操作：高层抽象，跨平台</li>
+<li>ARM ACLE 原子原语：底层实现，特定于 ARM 架构</li>
+<li>标准原子操作在 ARM 平台上底层就是通过 <code>LDREX</code>&#x2F;<code>STREX</code> + 内存屏障实现的</li>
 </ul>
 <h3 id="3-2-使用建议"><a href="#3-2-使用建议" class="headerlink" title="3.2 使用建议"></a>3.2 使用建议</h3><h4 id="优先使用标准原子操作（C11-C-11）当："><a href="#优先使用标准原子操作（C11-C-11）当：" class="headerlink" title="优先使用标准原子操作（C11&#x2F;C++11）当："></a>优先使用标准原子操作（C11&#x2F;C++11）当：</h4><ul>
 <li>开发用户态应用程序</li>
@@ -280,11 +280,11 @@
 </tr>
 </tbody></table>
 <h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h1><ol>
-<li><strong>理解分层</strong>：ABI 是二进制层面的规范，ACLE 是源代码层面的扩展</li>
-<li><strong>优先标准</strong>：在可能的情况下，优先使用 C11&#x2F;C++11 标准原子操作</li>
-<li><strong>条件编译</strong>：利用 ACLE 特性检测宏编写可移植的优化代码</li>
-<li><strong>工具链选择</strong>：根据项目需求选择合适的编译器，现代 GCC&#x2F;Clang 对 ACLE 支持良好</li>
-<li><strong>性能验证</strong>：不要假设手写底层代码一定更快，现代编译器优化能力很强</li>
+<li>ABI 是二进制层面的规范，ACLE 是源代码层面的扩展。</li>
+<li>在可能的情况下优先使用 C11&#x2F;C++11 标准原子操作。</li>
+<li>利用 ACLE 特性检测宏编写可移植的优化代码。</li>
+<li>根据项目需求选择编译器，现代 GCC&#x2F;Clang 对 ACLE 支持良好。</li>
+<li>不要假设手写底层代码一定更快，现代编译器优化能力很强。</li>
 </ol>
 <h1 id="5-参考资料"><a href="#5-参考资料" class="headerlink" title="5. 参考资料"></a>5. 参考资料</h1><ul>
 <li>ARM C Language Extensions (ACLE) Specification (IHI0053)</li>
@@ -311,9 +311,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -321,7 +323,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-ARM-ABI%EF%BC%88Application-Binary-Interface%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">1. ARM ABI（Application Binary Interface）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 定义与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%B8%B8%E8%A7%81-ARM-ABI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 常见 ARM ABI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ABI-%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 ABI 的重要性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ACLE%EF%BC%88ARM-C-Language-Extensions%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. ACLE（ARM C Language Extensions）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E7%9B%AE%E7%9A%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 定义与目的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ACLE-%E7%9A%84%E6%A0%B8%E5%BF%83%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 ACLE 的核心组成部分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-Intrinsics%EF%BC%88%E5%86%85%E5%BB%BA%E5%87%BD%E6%95%B0%EF%BC%89"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">2.2.1 Intrinsics（内建函数）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">2.2.2 系统级操作函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E4%B8%93%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">2.2.3 专用数据类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-4-%E7%89%B9%E6%80%A7%E6%A3%80%E6%B5%8B%E5%AE%8F"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">2.2.4 特性检测宏</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E9%93%BE%E6%94%AF%E6%8C%81"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.3 工具链支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%9A%E6%A0%87%E5%87%86%E5%BA%93-vs-%E5%BA%95%E5%B1%82%E5%8E%9F%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">3. 原子操作：标准库 vs 底层原语</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 两种实现方式的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 使用建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88C11-C-11%EF%BC%89%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">优先使用标准原子操作（C11&#x2F;C++11）当：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8-ARM-ACLE-%E5%8E%9F%E8%AF%AD%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">考虑使用 ARM ACLE 原语当：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 关键区别对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">5. 参考资料</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-ARM-ABI%EF%BC%88Application-Binary-Interface%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">1. ARM ABI（Application Binary Interface）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E4%BD%9C%E7%94%A8"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.1 定义与作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%B8%B8%E8%A7%81-ARM-ABI-%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.0.2.</span> <span class="toc-text">1.2 常见 ARM ABI 类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-ABI-%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">1.0.3.</span> <span class="toc-text">1.3 ABI 的重要性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ACLE%EF%BC%88ARM-C-Language-Extensions%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">2. ACLE（ARM C Language Extensions）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E7%9B%AE%E7%9A%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">2.1 定义与目的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ACLE-%E7%9A%84%E4%B8%BB%E8%A6%81%E7%BB%84%E6%88%90%E9%83%A8%E5%88%86"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 ACLE 的主要组成部分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-Intrinsics%EF%BC%88%E5%86%85%E5%BB%BA%E5%87%BD%E6%95%B0%EF%BC%89"><span class="toc-number">2.0.2.1.</span> <span class="toc-text">2.2.1 Intrinsics（内建函数）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E7%B3%BB%E7%BB%9F%E7%BA%A7%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-number">2.0.2.2.</span> <span class="toc-text">2.2.2 系统级操作函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-3-%E4%B8%93%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.0.2.3.</span> <span class="toc-text">2.2.3 专用数据类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-4-%E7%89%B9%E6%80%A7%E6%A3%80%E6%B5%8B%E5%AE%8F"><span class="toc-number">2.0.2.4.</span> <span class="toc-text">2.2.4 特性检测宏</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E9%93%BE%E6%94%AF%E6%8C%81"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.3 工具链支持</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%9A%E6%A0%87%E5%87%86%E5%BA%93-vs-%E5%BA%95%E5%B1%82%E5%8E%9F%E8%AF%AD"><span class="toc-number">3.</span> <span class="toc-text">3. 原子操作：标准库 vs 底层原语</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">3.1 两种实现方式的关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">3.0.2.</span> <span class="toc-text">3.2 使用建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%85%88%E4%BD%BF%E7%94%A8%E6%A0%87%E5%87%86%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%EF%BC%88C11-C-11%EF%BC%89%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">优先使用标准原子操作（C11&#x2F;C++11）当：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8-ARM-ACLE-%E5%8E%9F%E8%AF%AD%E5%BD%93%EF%BC%9A"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">考虑使用 ARM ACLE 原语当：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB%E5%AF%B9%E6%AF%94"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.3 关键区别对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">5. 参考资料</span></a></li></ol>
       </div>
     
 
@@ -373,9 +375,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="概述信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
+    <meta name="description" content="概述信道编码与调制是物理层的基础，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
 <meta property="og:type" content="article">
 <meta property="og:title" content="13 - 信道编码与调制方式">
 <meta property="og:url" content="http://example.com/2018/06/12/3gpp/14-channel-coding-modulation/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
-<meta property="og:description" content="概述信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
+<meta property="og:description" content="概述信道编码与调制是物理层的基础，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：数据信道采用 LDPC 码，控制信道采用 Polar 码。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-06-12T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-06-11T04:01:45.857Z">
+<meta property="article:modified_time" content="2026-07-13T04:23:09.457Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -172,7 +174,7 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>信道编码与调制是物理层的核心，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：<strong>数据信道采用 LDPC 码，控制信道采用 Polar 码</strong>。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面积的吞吐量、短块性能以及在极低 BLER 时的误帧率悬崖特性。</p>
+    <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>信道编码与调制是物理层的基础，决定了系统能在多嘈杂的无线信道上以多快的速度可靠地传输数据。4G LTE 采用 Turbo 码作为数据信道编码、咬尾卷积码（TBCC）作为控制信道编码。5G NR 在 2016 年 11 月的 3GPP RAN1 #87 次会议上做出了不同的选择：<strong>数据信道采用 LDPC 码，控制信道采用 Polar 码</strong>。这一决策的依据并非纯粹的数学美感，而是三个工程指标：单位硅面积的吞吐量、短块性能以及在极低 BLER 时的误帧率悬崖特性。</p>
 <p>本文涵盖的主要规范：</p>
 <table>
 <thead>
@@ -243,7 +245,7 @@
 <li><strong>低错误平层</strong>：相比 Turbo 码，LDPC 在高 SNR 下没有明显的错误平层（error floor）。</li>
 <li><strong>灵活码率</strong>：通过循环缓冲区速率匹配，可灵活支持各种码率，并天然支持增量冗余 HARQ（IR-HARQ）。</li>
 </ul>
-<h4 id="1-2-2-QC-LDPC-与准循环提升"><a href="#1-2-2-QC-LDPC-与准循环提升" class="headerlink" title="1.2.2 QC-LDPC 与准循环提升"></a>1.2.2 QC-LDPC 与准循环提升</h4><p>5G NR 采用<strong>准循环 LDPC（QC-LDPC）</strong>，其核心思想是”基图 + 提升（Base Graph + Lifting）”。</p>
+<h4 id="1-2-2-QC-LDPC-与准循环提升"><a href="#1-2-2-QC-LDPC-与准循环提升" class="headerlink" title="1.2.2 QC-LDPC 与准循环提升"></a>1.2.2 QC-LDPC 与准循环提升</h4><p>5G NR 采用<strong>准循环 LDPC（QC-LDPC）</strong>，其基本思想是”基图 + 提升（Base Graph + Lifting）”。</p>
 <p><strong>基本概念</strong>：</p>
 <p>与其存储一个庞大的奇偶校验矩阵 <strong>H</strong>，标准只定义一个小规模的基图（Base Graph）。基图是一个整数矩阵，每个元素要么是 <code>-1</code>（无连接），要么是一个移位值 <code>v</code>。运行时，将基图中每个 <code>-1</code> 替换为 <code>Z×Z</code> 的全零矩阵，每个移位值 <code>v</code> 替换为循环移位 <code>v</code> 列的 <code>Z×Z</code> 单位矩阵，即可得到实际的 <strong>H</strong> 矩阵。<code>Z</code> 称为<strong>提升尺寸（Lifting Size）</strong>。</p>
 <p>通过选择不同的 <code>Z</code> 值，可以得到不同码长的 LDPC 码，而无需存储多个不同大小的奇偶校验矩阵，实现了硬件的高度复用。</p>
@@ -288,7 +290,7 @@
 </tr>
 </tbody></table>
 <blockquote>
-<p><strong>注意</strong>：BG1 的前两列系统位在传输前被<strong>穿孔（punctured）</strong>，实际传输的母码为 N - 2Z 比特。这是 5G NR LDPC 的重要规则之一。</p>
+<p><strong>注意</strong>：BG1 的前两列系统位在传输前被<strong>穿孔（punctured）</strong>，实际传输的母码为 N - 2Z 比特。这是 5G NR LDPC 的规则之一。</p>
 </blockquote>
 <p><strong>基图选择判决规则</strong>（TS 38.212 第 7.2.2 节）：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">若 A ≤ 292，或</span><br><span class="line">若 A ≤ 3824 且 R ≤ 2/3，或</span><br><span class="line">若 R ≤ 1/4，</span><br><span class="line">则选择 BG2；</span><br><span class="line">否则选择 BG1。</span><br></pre></td></tr></table></figure>
@@ -339,7 +341,7 @@
 <h4 id="1-2-5-编码流程：从传输块到码字"><a href="#1-2-5-编码流程：从传输块到码字" class="headerlink" title="1.2.5 编码流程：从传输块到码字"></a>1.2.5 编码流程：从传输块到码字</h4><p>以 DL-SCH 为例，编码流程（TS 38.212 第 7.2 节）如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">传输块（TB）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">① TB-CRC 附加</span><br><span class="line">   CRC24A（TBS &gt; 3824 bit）或 CRC16（TBS ≤ 3824 bit）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">② LDPC 基图选择</span><br><span class="line">   根据 A 和 R 判断 BG1 / BG2</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">③ 码块分段（Code Block Segmentation）+ CB-CRC 附加</span><br><span class="line">   若 B&#x27; &gt; K_cb_max 则分段，每段附加 CRC24B</span><br><span class="line">   BG1 最大码块：K_cb = 8448 bit</span><br><span class="line">   BG2 最大码块：K_cb = 3840 bit</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">④ 每个码块独立 LDPC 编码</span><br><span class="line">   确定 Zc → 生成 H 矩阵 → 系统编码</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑤ 速率匹配（Rate Matching）</span><br><span class="line">   循环缓冲区 + 穿孔 / 重复 / 缩短</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑥ 码块拼接（Code Block Concatenation）</span><br></pre></td></tr></table></figure>
 
-<h4 id="1-2-6-速率匹配与冗余版本（RV）"><a href="#1-2-6-速率匹配与冗余版本（RV）" class="headerlink" title="1.2.6 速率匹配与冗余版本（RV）"></a>1.2.6 速率匹配与冗余版本（RV）</h4><p>速率匹配的核心是<strong>循环缓冲区（Circular Buffer）</strong>机制，用于支持 HARQ 增量冗余（IR-HARQ）。</p>
+<h4 id="1-2-6-速率匹配与冗余版本（RV）"><a href="#1-2-6-速率匹配与冗余版本（RV）" class="headerlink" title="1.2.6 速率匹配与冗余版本（RV）"></a>1.2.6 速率匹配与冗余版本（RV）</h4><p>速率匹配基于<strong>循环缓冲区（Circular Buffer）</strong>机制，用于支持 HARQ 增量冗余（IR-HARQ）。</p>
 <p>编码后的码字被写入循环缓冲区，通过设置不同的<strong>起始读取位置</strong>定义四个冗余版本（RV0～RV3）。发射端每次传输从对应 RV 的起始位置连续读取所需数量的比特。</p>
 <table>
 <thead>
@@ -375,13 +377,13 @@
 </blockquote>
 <p><strong>Limited Buffer Rate Matching（LBRM）</strong>：当 UE 的软缓冲区不足以容纳完整循环缓冲区时，激活 LBRM，限制写入循环缓冲区的码字长度，保证 UE 可以正常处理 HARQ 合并。</p>
 <hr>
-<h3 id="1-3-Polar-码（控制信道）"><a href="#1-3-Polar-码（控制信道）" class="headerlink" title="1.3 Polar 码（控制信道）"></a>1.3 Polar 码（控制信道）</h3><h4 id="1-3-1-为什么选择-Polar-码？"><a href="#1-3-1-为什么选择-Polar-码？" class="headerlink" title="1.3.1 为什么选择 Polar 码？"></a>1.3.1 为什么选择 Polar 码？</h4><p>Polar 码由 Arıkan 在 2008 年提出，是理论上<strong>第一个被严格证明能达到二进对称信道容量</strong>的线性码。5G NR 控制信道选择 Polar 码的核心原因：</p>
+<h3 id="1-3-Polar-码（控制信道）"><a href="#1-3-Polar-码（控制信道）" class="headerlink" title="1.3 Polar 码（控制信道）"></a>1.3 Polar 码（控制信道）</h3><h4 id="1-3-1-为什么选择-Polar-码？"><a href="#1-3-1-为什么选择-Polar-码？" class="headerlink" title="1.3.1 为什么选择 Polar 码？"></a>1.3.1 为什么选择 Polar 码？</h4><p>Polar 码由 Arıkan 在 2008 年提出，是理论上<strong>第一个被严格证明能达到二进对称信道容量</strong>的线性码。5G NR 控制信道选择 Polar 码的原因：</p>
 <ul>
 <li><strong>短块性能优异</strong>：DCI 通常仅有几十到几百比特，Polar 码在短块场景下优于 Turbo 码和 LDPC。</li>
 <li><strong>与 CRC 的天然协同</strong>：Polar 码配合 SCL（Successive Cancellation List）译码 + CRC 辅助，可实现极低 BLER。</li>
 <li><strong>灵活速率适配</strong>：通过冻结位选择和速率匹配，可支持广泛的码率和码长。</li>
 </ul>
-<h4 id="1-3-2-Polar-码基本原理"><a href="#1-3-2-Polar-码基本原理" class="headerlink" title="1.3.2 Polar 码基本原理"></a>1.3.2 Polar 码基本原理</h4><p>Polar 码的核心是<strong>信道极化（Channel Polarization）</strong> 现象：</p>
+<h4 id="1-3-2-Polar-码基本原理"><a href="#1-3-2-Polar-码基本原理" class="headerlink" title="1.3.2 Polar 码基本原理"></a>1.3.2 Polar 码基本原理</h4><p>Polar 码基于<strong>信道极化（Channel Polarization）</strong> 现象：</p>
 <p>将 N 个独立的信道 W 通过递归组合，经过大量使用后，这 N 个等效信道会发生分化（极化），一部分趋向于完全可靠（容量接近 1），另一部分趋向于完全不可靠（容量接近 0）。</p>
 <p><strong>编码策略</strong>：</p>
 <ul>
@@ -393,7 +395,7 @@
 <h4 id="1-3-3-5G-NR-Polar-码的应用"><a href="#1-3-3-5G-NR-Polar-码的应用" class="headerlink" title="1.3.3 5G NR Polar 码的应用"></a>1.3.3 5G NR Polar 码的应用</h4><p>3GPP TS 38.212 定义了 Polar 码用于 PDCCH、PUCCH、PUSCH UCI 和 BCH，各信道配置略有差异。以 <strong>PDCCH&#x2F;DCI</strong> 为例，编码流程如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">DCI 信息位（Payload）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">① 零填充（若 payload &lt; 12 bit，补零到 12 bit）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">② CRC 附加</span><br><span class="line">   CRC24C（24 bit）并用目标 UE 的 RNTI 加扰</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">③ CRC 交织（Distributed CRC Interleaving）</span><br><span class="line">   将 CRC 位分布插入信息位流中（非连续附加）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">④ Polar 编码</span><br><span class="line">   根据信息位数 K 和输出长度 E 确定 N = 2^n</span><br><span class="line">   按可靠性序列（Reliability Sequence）分配子信道</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑤ 子块交织（Sub-block Interleaving）</span><br><span class="line">   按 TS 38.212 规定的模式对编码位重排</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑥ 速率匹配</span><br><span class="line">   按 E 截取（缩短 Shortening）或重复（Repetition）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">⑦ 信道交织（Channel Interleaving，仅 PDCCH）</span><br><span class="line">   三角交织器，将比特分散至 QPSK 符号和 CCE</span><br></pre></td></tr></table></figure>
 
-<h4 id="1-3-4-分布式-CRC（Distributed-CRC）"><a href="#1-3-4-分布式-CRC（Distributed-CRC）" class="headerlink" title="1.3.4 分布式 CRC（Distributed CRC）"></a>1.3.4 分布式 CRC（Distributed CRC）</h4><p>这是 5G NR Polar 码的一个重要创新。常规做法是将全部 CRC 位附加在信息位末尾；NR 则将 CRC 位<strong>交织插入信息位序列的内部</strong>。</p>
+<h4 id="1-3-4-分布式-CRC（Distributed-CRC）"><a href="#1-3-4-分布式-CRC（Distributed-CRC）" class="headerlink" title="1.3.4 分布式 CRC（Distributed CRC）"></a>1.3.4 分布式 CRC（Distributed CRC）</h4><p>这是 5G NR Polar 码的一项创新。常规做法是将全部 CRC 位附加在信息位末尾；NR 则将 CRC 位<strong>交织插入信息位序列的内部</strong>。</p>
 <p><strong>优势</strong>：SCL 译码器在搜索候选路径时，可在译码中途（而非全部完成后）进行<strong>提前 CRC 验证</strong>，一旦某条候选路径的局部 CRC 不匹配即可剪枝，显著降低译码复杂度（减少无效路径的计算），同时提升译码性能。</p>
 <p>具体参数：</p>
 <ul>
@@ -407,7 +409,7 @@
 <li><strong>SCL（List Decoding）</strong>：维持 L 条候选路径（通常 L&#x3D;8），在最后用 CRC 从 L 个候选中选择最佳，性能大幅提升。</li>
 <li><strong>分布式 CRC 辅助</strong>：结合分布式 CRC，SCL 可在中间节点提前剪枝，进一步降低复杂度。</li>
 </ul>
-<p>PDCCH 场景中，UE 需要对同一搜索空间内的所有 DCI 候选盲检测，每次盲检均运行 SCL-L8 译码器，分布式 CRC 的提前终止特性在此场景下尤为重要。</p>
+<p>PDCCH 场景中，UE 需要对同一搜索空间内的所有 DCI 候选盲检测，每次盲检均运行 SCL-L8 译码器，分布式 CRC 的提前终止特性在此场景下作用明显。</p>
 <hr>
 <h1 id="第二部分：调制方式"><a href="#第二部分：调制方式" class="headerlink" title="第二部分：调制方式"></a>第二部分：调制方式</h1><h3 id="2-1-调制基础"><a href="#2-1-调制基础" class="headerlink" title="2.1 调制基础"></a>2.1 调制基础</h3><p>数字调制将比特映射为复数符号（星座点），通过 OFDM 在频域上传输。5G NR 支持以下调制方式（TS 38.211 第 5.1 节）：</p>
 <table>
@@ -655,8 +657,8 @@
 </tr>
 <tr>
 <td>29～31</td>
-<td>—</td>
-<td>—</td>
+<td>-</td>
+<td>-</td>
 <td>保留（重传标识）</td>
 </tr>
 </tbody></table>
@@ -756,8 +758,8 @@
 </tr>
 <tr>
 <td>29～31</td>
-<td>—</td>
-<td>—</td>
+<td>-</td>
+<td>-</td>
 <td>保留</td>
 </tr>
 </tbody></table>
@@ -783,8 +785,8 @@
 <tbody><tr>
 <td>0</td>
 <td>超出范围</td>
-<td>—</td>
-<td>—</td>
+<td>-</td>
+<td>-</td>
 </tr>
 <tr>
 <td>1</td>
@@ -1008,9 +1010,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -1070,9 +1074,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

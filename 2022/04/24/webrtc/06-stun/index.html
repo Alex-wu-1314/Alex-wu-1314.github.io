@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="目录 为什么需要 STUN NAT 基础与分类 STUN 的演进：RFC 3489 → RFC 5389 → RFC 8489 STUN 协议概述 报文结构详解 Binding 方法：获取公网地址 认证机制 FINGERPRINT 机制 传输协议支持 STUN 在 WebRTC&#x2F;ICE 中的角色 STUN 的局限性 安全考量 常用公共 STUN 服务器 小结   1. 为什么需要 STU">
 <meta property="og:type" content="article">
-<meta property="og:title" content="STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透">
+<meta property="og:title" content="STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透">
 <meta property="og:url" content="http://example.com/2022/04/24/webrtc/06-stun/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 为什么需要 STUN NAT 基础与分类 STUN 的演进：RFC 3489 → RFC 5389 → RFC 8489 STUN 协议概述 报文结构详解 Binding 方法：获取公网地址 认证机制 FINGERPRINT 机制 传输协议支持 STUN 在 WebRTC&#x2F;ICE 中的角色 STUN 的局限性 安全考量 常用公共 STUN 服务器 小结   1. 为什么需要 STU">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-04-24T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-29T00:13:20.204Z">
+<meta property="article:modified_time" content="2026-07-13T12:30:22.491Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透</title>
+    <title>STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -111,23 +113,23 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/webrtc/06-stun/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/webrtc/06-stun/&text=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/webrtc/06-stun/&is_video=false&description=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透&body=Check out this article: http://example.com/2022/04/24/webrtc/06-stun/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/webrtc/06-stun/&name=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/webrtc/06-stun/&t=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/webrtc/06-stun/&text=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/webrtc/06-stun/&is_video=false&description=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透&body=Check out this article: http://example.com/2022/04/24/webrtc/06-stun/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/webrtc/06-stun/&name=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/webrtc/06-stun/&t=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-STUN"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 STUN</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAT-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">2. NAT 基础与分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAT-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAT 的基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAT-%E7%9A%84%E5%88%86%E7%B1%BB%EF%BC%88RFC-3489-%E7%BB%8F%E5%85%B8%E5%88%86%E7%B1%BB%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAT 的分类（RFC 3489 经典分类）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Full-Cone-NAT%EF%BC%88%E5%85%A8%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">Full Cone NAT（全锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Restricted-Cone-NAT%EF%BC%88%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Restricted Cone NAT（受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Port-Restricted-Cone-NAT%EF%BC%88%E7%AB%AF%E5%8F%A3%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">Port Restricted Cone NAT（端口受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Symmetric-NAT%EF%BC%88%E5%AF%B9%E7%A7%B0%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">Symmetric NAT（对称型）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-4787-%E7%8E%B0%E4%BB%A3%E5%88%86%E7%B1%BB%EF%BC%88Endpoint-Independent-vs-Dependent%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-STUN-%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">4.</span> <span class="toc-text">3. STUN 的演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-3489-%E2%80%94-Classic-STUN%EF%BC%882003%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">RFC 3489 — Classic STUN（2003）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-5389-%E2%80%94-Session-Traversal-Utilities-for-NAT%EF%BC%882008%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">RFC 5389 — Session Traversal Utilities for NAT（2008）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-8489-%E2%80%94-%E7%8E%B0%E8%A1%8C%E6%A0%87%E5%87%86%EF%BC%882020%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">RFC 8489 — 现行标准（2020）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-STUN-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0"><span class="toc-number">5.</span> <span class="toc-text">4. STUN 协议概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Request-Response-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">Request&#x2F;Response 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Indication-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.2.</span> <span class="toc-text">Indication 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STUN-Usage"><span class="toc-number">5.0.3.</span> <span class="toc-text">STUN Usage</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-STUN-%E6%B6%88%E6%81%AF%E5%A4%B4%EF%BC%8820-%E5%AD%97%E8%8A%82%E5%9B%BA%E5%AE%9A%E5%A4%B4%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 STUN 消息头（20 字节固定头）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-STUN-%E5%B1%9E%E6%80%A7%EF%BC%88TLV-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 STUN 属性（TLV 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-XOR-MAPPED-ADDRESS-%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 XOR-MAPPED-ADDRESS 的编码方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Binding-%E6%96%B9%E6%B3%95%EF%BC%9A%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80"><span class="toc-number">7.</span> <span class="toc-text">6. Binding 方法：获取公网地址</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Binding-%E7%94%A8%E4%BA%8E-Keep-Alive"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Binding 用于 Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Binding-%E7%94%A8%E4%BA%8E%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88ICE-%E4%B8%93%E7%94%A8%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Binding 用于连接检查（ICE 专用）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 认证机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9F%AD%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Short-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 短期凭证机制（Short-Term Credential Mechanism）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%95%BF%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Long-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 长期凭证机制（Long-Term Credential Mechanism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FINGERPRINT-%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. FINGERPRINT 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%E6%94%AF%E6%8C%81"><span class="toc-number">10.</span> <span class="toc-text">9. 传输协议支持</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UDP-%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.1.</span> <span class="toc-text">UDP 重传机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-STUN-%E5%9C%A8-WebRTC-ICE-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">11.</span> <span class="toc-text">10. STUN 在 WebRTC&#x2F;ICE 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E6%94%B6%E9%9B%86%EF%BC%88Candidate-Gathering%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 候选地址收集（Candidate Gathering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88Connectivity-Checks%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 连接检查（Connectivity Checks）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-ICE-Keep-Alive"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 ICE Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-ICE-Restart"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 ICE Restart</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-STUN-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. STUN 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%97%A0%E6%B3%95%E7%A9%BF%E9%80%8F-Symmetric-NAT"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 无法穿透 Symmetric NAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E5%8F%8D%E5%B0%84%E5%9C%B0%E5%9D%80%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 反射地址的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%A4%9A%E5%B1%82-NAT-%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 多层 NAT 下的精度问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%97%A0%E6%B3%95%E7%8B%AC%E7%AB%8B%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 无法独立解决问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%A4%96%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 外部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%86%85%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 内部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%AF%86%E7%A0%81%E9%99%8D%E7%BA%A7%E6%94%BB%E5%87%BB%EF%BC%88Bid-Down-Attack%EF%BC%8CRFC-8489-%E6%96%B0%E5%A2%9E%E9%98%B2%E6%8A%A4%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 密码降级攻击（Bid-Down Attack，RFC 8489 新增防护）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E9%9A%90%E7%A7%81%E8%80%83%E9%87%8F"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 隐私考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-STUN-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 常用公共 STUN 服务器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-STUN"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 STUN</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAT-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">2. NAT 基础与分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAT-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAT 的基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAT-%E7%9A%84%E5%88%86%E7%B1%BB%EF%BC%88RFC-3489-%E7%BB%8F%E5%85%B8%E5%88%86%E7%B1%BB%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAT 的分类（RFC 3489 经典分类）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Full-Cone-NAT%EF%BC%88%E5%85%A8%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">Full Cone NAT（全锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Restricted-Cone-NAT%EF%BC%88%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Restricted Cone NAT（受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Port-Restricted-Cone-NAT%EF%BC%88%E7%AB%AF%E5%8F%A3%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">Port Restricted Cone NAT（端口受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Symmetric-NAT%EF%BC%88%E5%AF%B9%E7%A7%B0%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">Symmetric NAT（对称型）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-4787-%E7%8E%B0%E4%BB%A3%E5%88%86%E7%B1%BB%EF%BC%88Endpoint-Independent-vs-Dependent%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-STUN-%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">4.</span> <span class="toc-text">3. STUN 的演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-3489-Classic-STUN%EF%BC%882003%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">RFC 3489 - Classic STUN（2003）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-5389-Session-Traversal-Utilities-for-NAT%EF%BC%882008%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">RFC 5389 - Session Traversal Utilities for NAT（2008）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-8489-%E7%8E%B0%E8%A1%8C%E6%A0%87%E5%87%86%EF%BC%882020%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">RFC 8489 - 现行标准（2020）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-STUN-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0"><span class="toc-number">5.</span> <span class="toc-text">4. STUN 协议概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Request-Response-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">Request&#x2F;Response 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Indication-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.2.</span> <span class="toc-text">Indication 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STUN-Usage"><span class="toc-number">5.0.3.</span> <span class="toc-text">STUN Usage</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-STUN-%E6%B6%88%E6%81%AF%E5%A4%B4%EF%BC%8820-%E5%AD%97%E8%8A%82%E5%9B%BA%E5%AE%9A%E5%A4%B4%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 STUN 消息头（20 字节固定头）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-STUN-%E5%B1%9E%E6%80%A7%EF%BC%88TLV-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 STUN 属性（TLV 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-XOR-MAPPED-ADDRESS-%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 XOR-MAPPED-ADDRESS 的编码方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Binding-%E6%96%B9%E6%B3%95%EF%BC%9A%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80"><span class="toc-number">7.</span> <span class="toc-text">6. Binding 方法：获取公网地址</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Binding-%E7%94%A8%E4%BA%8E-Keep-Alive"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Binding 用于 Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Binding-%E7%94%A8%E4%BA%8E%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88ICE-%E4%B8%93%E7%94%A8%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Binding 用于连接检查（ICE 专用）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 认证机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9F%AD%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Short-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 短期凭证机制（Short-Term Credential Mechanism）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%95%BF%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Long-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 长期凭证机制（Long-Term Credential Mechanism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FINGERPRINT-%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. FINGERPRINT 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%E6%94%AF%E6%8C%81"><span class="toc-number">10.</span> <span class="toc-text">9. 传输协议支持</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UDP-%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.1.</span> <span class="toc-text">UDP 重传机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-STUN-%E5%9C%A8-WebRTC-ICE-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">11.</span> <span class="toc-text">10. STUN 在 WebRTC&#x2F;ICE 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E6%94%B6%E9%9B%86%EF%BC%88Candidate-Gathering%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 候选地址收集（Candidate Gathering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88Connectivity-Checks%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 连接检查（Connectivity Checks）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-ICE-Keep-Alive"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 ICE Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-ICE-Restart"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 ICE Restart</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-STUN-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. STUN 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%97%A0%E6%B3%95%E7%A9%BF%E9%80%8F-Symmetric-NAT"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 无法穿透 Symmetric NAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E5%8F%8D%E5%B0%84%E5%9C%B0%E5%9D%80%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 反射地址的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%A4%9A%E5%B1%82-NAT-%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 多层 NAT 下的精度问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%97%A0%E6%B3%95%E7%8B%AC%E7%AB%8B%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 无法独立解决问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%A4%96%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 外部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%86%85%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 内部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%AF%86%E7%A0%81%E9%99%8D%E7%BA%A7%E6%94%BB%E5%87%BB%EF%BC%88Bid-Down-Attack%EF%BC%8CRFC-8489-%E6%96%B0%E5%A2%9E%E9%98%B2%E6%8A%A4%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 密码降级攻击（Bid-Down Attack，RFC 8489 新增防护）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E9%9A%90%E7%A7%81%E8%80%83%E9%87%8F"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 隐私考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-STUN-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 常用公共 STUN 服务器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a></li></ol>
       </div>
     
   </span>
@@ -140,7 +142,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透
+        STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透
     </h1>
 
 
@@ -173,40 +175,40 @@
 
   <div class="content e-content" itemprop="articleBody">
     <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
-<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-stun">为什么需要 STUN</a></li>
-<li><a href="#2-nat-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB">NAT 基础与分类</a></li>
-<li><a href="#3-stun-%E7%9A%84%E6%BC%94%E8%BF%9B">STUN 的演进：RFC 3489 → RFC 5389 → RFC 8489</a></li>
-<li><a href="#4-stun-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0">STUN 协议概述</a></li>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-STUN">为什么需要 STUN</a></li>
+<li><a href="#2-NAT-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB">NAT 基础与分类</a></li>
+<li><a href="#3-STUN-%E7%9A%84%E6%BC%94%E8%BF%9B">STUN 的演进：RFC 3489 → RFC 5389 → RFC 8489</a></li>
+<li><a href="#4-STUN-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0">STUN 协议概述</a></li>
 <li><a href="#5-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3">报文结构详解</a></li>
-<li><a href="#6-binding-%E6%96%B9%E6%B3%95%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80">Binding 方法：获取公网地址</a></li>
+<li><a href="#6-Binding-%E6%96%B9%E6%B3%95%EF%BC%9A%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80">Binding 方法：获取公网地址</a></li>
 <li><a href="#7-%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6">认证机制</a></li>
-<li><a href="#8-fingerprint-%E6%9C%BA%E5%88%B6">FINGERPRINT 机制</a></li>
+<li><a href="#8-FINGERPRINT-%E6%9C%BA%E5%88%B6">FINGERPRINT 机制</a></li>
 <li><a href="#9-%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%E6%94%AF%E6%8C%81">传输协议支持</a></li>
-<li><a href="#10-stun-%E5%9C%A8-webrtcice-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2">STUN 在 WebRTC&#x2F;ICE 中的角色</a></li>
-<li><a href="#11-stun-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7">STUN 的局限性</a></li>
+<li><a href="#10-STUN-%E5%9C%A8-WebRTC-ICE-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2">STUN 在 WebRTC&#x2F;ICE 中的角色</a></li>
+<li><a href="#11-STUN-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7">STUN 的局限性</a></li>
 <li><a href="#12-%E5%AE%89%E5%85%A8%E8%80%83%E9%87%8F">安全考量</a></li>
-<li><a href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-stun-%E6%9C%8D%E5%8A%A1%E5%99%A8">常用公共 STUN 服务器</a></li>
+<li><a href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-STUN-%E6%9C%8D%E5%8A%A1%E5%99%A8">常用公共 STUN 服务器</a></li>
 <li><a href="#14-%E5%B0%8F%E7%BB%93">小结</a></li>
 </ol>
 <hr>
 <h1 id="1-为什么需要-STUN"><a href="#1-为什么需要-STUN" class="headerlink" title="1. 为什么需要 STUN"></a>1. 为什么需要 STUN</h1><p>互联网中绝大多数终端设备（手机、PC、浏览器）都处于 NAT（Network Address Translation）设备后方，持有的是私有 IP 地址（如 <code>192.168.x.x</code>、<code>10.x.x.x</code>）。当两个位于不同私有网络的端点想建立 P2P 通信时，它们各自无法直接知道对方（乃至自身）在公网上的地址与端口。</p>
-<p><strong>STUN 解决的核心问题</strong>：让处于 NAT 后方的端点，通过询问公网上的 STUN 服务器，<strong>发现自己被 NAT 分配的公网 IP 地址和端口</strong>，即 <em>reflexive transport address</em>（反射传输地址）。</p>
+<p>STUN 解决的核心问题：让处于 NAT 后方的端点，通过询问公网上的 STUN 服务器，发现自己被 NAT 分配的公网 IP 地址和端口，即 <em>reflexive transport address</em>（反射传输地址）。</p>
 <p>这一地址随后可以作为 ICE 候选（candidate）提交给对端，尝试建立直连通道。</p>
 <hr>
 <h1 id="2-NAT-基础与分类"><a href="#2-NAT-基础与分类" class="headerlink" title="2. NAT 基础与分类"></a>2. NAT 基础与分类</h1><p>理解 STUN 之前，必须先理解 NAT 的工作方式与分类，因为 NAT 的类型直接决定了 STUN 能否成功辅助打洞。</p>
-<h3 id="2-1-NAT-的基本原理"><a href="#2-1-NAT-的基本原理" class="headerlink" title="2.1 NAT 的基本原理"></a>2.1 NAT 的基本原理</h3><p>NAT 设备维护一张 <strong>映射表（binding table）</strong>，记录内网的 <code>(内部IP, 内部Port)</code> 与公网的 <code>(外部IP, 外部Port)</code> 之间的对应关系。当内网主机发出 UDP 包时，NAT 用公网地址替换源地址，并在映射表中记录这条规则；当公网侧的响应包到达时，NAT 按映射表将目标地址替换回内网地址并转发。</p>
+<h3 id="2-1-NAT-的基本原理"><a href="#2-1-NAT-的基本原理" class="headerlink" title="2.1 NAT 的基本原理"></a>2.1 NAT 的基本原理</h3><p>NAT 设备维护一张 映射表（binding table），记录内网的 <code>(内部IP, 内部Port)</code> 与公网的 <code>(外部IP, 外部Port)</code> 之间的对应关系。当内网主机发出 UDP 包时，NAT 用公网地址替换源地址，并在映射表中记录这条规则；当公网侧的响应包到达时，NAT 按映射表将目标地址替换回内网地址并转发。</p>
 <h3 id="2-2-NAT-的分类（RFC-3489-经典分类）"><a href="#2-2-NAT-的分类（RFC-3489-经典分类）" class="headerlink" title="2.2 NAT 的分类（RFC 3489 经典分类）"></a>2.2 NAT 的分类（RFC 3489 经典分类）</h3><p>RFC 3489 定义了四种 NAT 类型，按穿透难度从易到难排列：</p>
 <h4 id="Full-Cone-NAT（全锥型）"><a href="#Full-Cone-NAT（全锥型）" class="headerlink" title="Full Cone NAT（全锥型）"></a>Full Cone NAT（全锥型）</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">内网: 192.168.1.10:5000  →  NAT外网: 203.0.113.1:10000</span><br></pre></td></tr></table></figure>
 
-<p>一旦映射建立，<strong>任何外部主机</strong>都可以通过 <code>203.0.113.1:10000</code> 向内网主机发送数据。这是最容易穿透的类型，STUN 完全有效。</p>
-<h4 id="Restricted-Cone-NAT（受限锥型）"><a href="#Restricted-Cone-NAT（受限锥型）" class="headerlink" title="Restricted Cone NAT（受限锥型）"></a>Restricted Cone NAT（受限锥型）</h4><p>映射规则与 Full Cone 相同（同一内部地址始终映射到同一外部地址），但<strong>过滤规则</strong>限制：只有内网主机曾主动发送过数据包的外部 IP，才能向该映射端口发送数据（端口不限）。</p>
+<p>一旦映射建立，任何外部主机都可以通过 <code>203.0.113.1:10000</code> 向内网主机发送数据。这是最容易穿透的类型，STUN 完全有效。</p>
+<h4 id="Restricted-Cone-NAT（受限锥型）"><a href="#Restricted-Cone-NAT（受限锥型）" class="headerlink" title="Restricted Cone NAT（受限锥型）"></a>Restricted Cone NAT（受限锥型）</h4><p>映射规则与 Full Cone 相同（同一内部地址始终映射到同一外部地址），但过滤规则限制：只有内网主机曾主动发送过数据包的外部 IP，才能向该映射端口发送数据（端口不限）。</p>
 <p>STUN 有效，但双方需要先互相发一个探测包以”打孔”。</p>
-<h4 id="Port-Restricted-Cone-NAT（端口受限锥型）"><a href="#Port-Restricted-Cone-NAT（端口受限锥型）" class="headerlink" title="Port Restricted Cone NAT（端口受限锥型）"></a>Port Restricted Cone NAT（端口受限锥型）</h4><p>比 Restricted Cone 更严格：不仅 IP 需要匹配，<strong>外部来源的端口也必须匹配</strong>之前通信过的端口。</p>
+<h4 id="Port-Restricted-Cone-NAT（端口受限锥型）"><a href="#Port-Restricted-Cone-NAT（端口受限锥型）" class="headerlink" title="Port Restricted Cone NAT（端口受限锥型）"></a>Port Restricted Cone NAT（端口受限锥型）</h4><p>比 Restricted Cone 更严格：不仅 IP 需要匹配，外部来源的端口也必须匹配之前通信过的端口。</p>
 <p>STUN 有效，但对双方同步打洞的时序要求更高。</p>
-<h4 id="Symmetric-NAT（对称型）"><a href="#Symmetric-NAT（对称型）" class="headerlink" title="Symmetric NAT（对称型）"></a>Symmetric NAT（对称型）</h4><p>这是最难穿透的类型。NAT 会为<strong>每一个不同的目标 <code>(IP, Port)</code></strong> 分配不同的外部端口：</p>
+<h4 id="Symmetric-NAT（对称型）"><a href="#Symmetric-NAT（对称型）" class="headerlink" title="Symmetric NAT（对称型）"></a>Symmetric NAT（对称型）</h4><p>这是最难穿透的类型。NAT 会为每一个不同的目标 <code>(IP, Port)</code> 分配不同的外部端口：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">192.168.1.10:5000  →  STUN服务器(1.1.1.1:3478)    映射为  203.0.113.1:10001</span><br><span class="line">192.168.1.10:5000  →  对端Peer(2.2.2.2:50000)     映射为  203.0.113.1:10002  ← 不同！</span><br></pre></td></tr></table></figure>
 
-<p>由于 STUN 服务器观察到的地址（<code>10001</code>）与实际和 Peer 通信时 NAT 分配的地址（<code>10002</code>）不同，STUN 返回的 reflexive address 对 P2P 直连<strong>无效</strong>。此场景必须使用 TURN 中继。</p>
+<p>由于 STUN 服务器观察到的地址（<code>10001</code>）与实际和 Peer 通信时 NAT 分配的地址（<code>10002</code>）不同，STUN 返回的 reflexive address 对 P2P 直连无效。此场景必须使用 TURN 中继。</p>
 <h3 id="2-3-RFC-4787-现代分类（Endpoint-Independent-vs-Dependent）"><a href="#2-3-RFC-4787-现代分类（Endpoint-Independent-vs-Dependent）" class="headerlink" title="2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）"></a>2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）</h3><p>RFC 3489 的四分法在实践中被发现与真实 NAT 行为不完全对应。RFC 4787 引入了更精确的术语：</p>
 <table>
 <thead>
@@ -216,38 +218,38 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>Endpoint-Independent Mapping (EIM)</strong></td>
+<td>Endpoint-Independent Mapping (EIM)</td>
 <td>无论向谁发送，相同的内部地址映射到相同的外部地址。对应 Full&#x2F;Restricted&#x2F;Port-Restricted Cone</td>
 </tr>
 <tr>
-<td><strong>Address&#x2F;Port-Dependent Mapping (APDM)</strong></td>
+<td>Address&#x2F;Port-Dependent Mapping (APDM)</td>
 <td>每个不同的目标都有不同的映射。对应 Symmetric NAT</td>
 </tr>
 <tr>
-<td><strong>Endpoint-Independent Filtering (EIF)</strong></td>
+<td>Endpoint-Independent Filtering (EIF)</td>
 <td>任何外部主机都能发包进来。对应 Full Cone</td>
 </tr>
 <tr>
-<td><strong>Address-Dependent Filtering (ADF)</strong></td>
+<td>Address-Dependent Filtering (ADF)</td>
 <td>只有之前通信过的 IP 可以发包进来 。对应 Restricted Cone</td>
 </tr>
 <tr>
-<td><strong>Address and Port-Dependent Filtering (APDF)</strong></td>
+<td>Address and Port-Dependent Filtering (APDF)</td>
 <td>只有之前通信过的 IP+Port 可以发包进来。对应 Port-Restricted&#x2F;Symmetric NAT</td>
 </tr>
 </tbody></table>
 <blockquote>
-<p><strong>关键结论</strong>：STUN 只对 EIM（Endpoint-Independent Mapping）有效。具有 APDM 的 Symmetric NAT 必须回退到 TURN 中继。</p>
+<p>关键结论：STUN 只对 EIM（Endpoint-Independent Mapping）有效。具有 APDM 的 Symmetric NAT 必须回退到 TURN 中继。</p>
 </blockquote>
 <hr>
-<h1 id="3-STUN-的演进"><a href="#3-STUN-的演进" class="headerlink" title="3. STUN 的演进"></a>3. STUN 的演进</h1><h3 id="RFC-3489-—-Classic-STUN（2003）"><a href="#RFC-3489-—-Classic-STUN（2003）" class="headerlink" title="RFC 3489 — Classic STUN（2003）"></a>RFC 3489 — Classic STUN（2003）</h3><p>最初版本将 STUN 定位为<strong>完整的 NAT 穿透解决方案</strong>。客户端通过一系列 STUN 查询来判断自身的 NAT 类型，并据此决定向对方声明哪个地址。</p>
+<h1 id="3-STUN-的演进"><a href="#3-STUN-的演进" class="headerlink" title="3. STUN 的演进"></a>3. STUN 的演进</h1><h3 id="RFC-3489-Classic-STUN（2003）"><a href="#RFC-3489-Classic-STUN（2003）" class="headerlink" title="RFC 3489 - Classic STUN（2003）"></a>RFC 3489 - Classic STUN（2003）</h3><p>最初版本将 STUN 定位为完整的 NAT 穿透解决方案。客户端通过一系列 STUN 查询来判断自身的 NAT 类型，并据此决定向对方声明哪个地址。</p>
 <p>然而实践证明这种方法存在根本性缺陷：</p>
 <ul>
 <li>现实中 NAT 的行为远比四种类型复杂，大量 NAT 无法被干净地归类；</li>
 <li>该方法无法验证学到的地址是否真正对 P2P 通信有效；</li>
 <li>存在安全漏洞：攻击者可以向客户端返回错误的 Mapped Address。</li>
 </ul>
-<h3 id="RFC-5389-—-Session-Traversal-Utilities-for-NAT（2008）"><a href="#RFC-5389-—-Session-Traversal-Utilities-for-NAT（2008）" class="headerlink" title="RFC 5389 — Session Traversal Utilities for NAT（2008）"></a>RFC 5389 — Session Traversal Utilities for NAT（2008）</h3><p>将 STUN 重新定位为<strong>工具性协议（tool）</strong>，而非完整解决方案。主要变化：</p>
+<h3 id="RFC-5389-Session-Traversal-Utilities-for-NAT（2008）"><a href="#RFC-5389-Session-Traversal-Utilities-for-NAT（2008）" class="headerlink" title="RFC 5389 - Session Traversal Utilities for NAT（2008）"></a>RFC 5389 - Session Traversal Utilities for NAT（2008）</h3><p>将 STUN 重新定位为工具性协议（tool），而非完整解决方案。主要变化：</p>
 <ul>
 <li>支持 TCP（原来只支持 UDP）；</li>
 <li>新增 <code>Magic Cookie</code> 字段（固定值 <code>0x2112A442</code>），用于与其他协议的多路复用解复用，同时保持对旧版的向后兼容；</li>
@@ -255,7 +257,7 @@
 <li>重命名：STUN 全称从 “Simple Traversal of UDP through NAT” 更改为 “Session Traversal Utilities for NAT”；</li>
 <li>改进了可扩展性框架（新 Method、新 Attribute、新错误码）。</li>
 </ul>
-<h3 id="RFC-8489-—-现行标准（2020）"><a href="#RFC-8489-—-现行标准（2020）" class="headerlink" title="RFC 8489 — 现行标准（2020）"></a>RFC 8489 — 现行标准（2020）</h3><p>RFC 5389 的更新版本，主要增强了安全性：</p>
+<h3 id="RFC-8489-现行标准（2020）"><a href="#RFC-8489-现行标准（2020）" class="headerlink" title="RFC 8489 - 现行标准（2020）"></a>RFC 8489 - 现行标准（2020）</h3><p>RFC 5389 的更新版本，主要增强了安全性：</p>
 <ul>
 <li>认证中引入 SHA-256 替代 MD5（MESSAGE-INTEGRITY-SHA256）；</li>
 <li>新增 USERHASH 属性，支持匿名用户名；</li>
@@ -263,10 +265,10 @@
 <li>新增 ALTERNATE-DOMAIN 属性。</li>
 </ul>
 <hr>
-<h1 id="4-STUN-协议概述"><a href="#4-STUN-协议概述" class="headerlink" title="4. STUN 协议概述"></a>4. STUN 协议概述</h1><p>根据 RFC 8489，STUN 是一个<strong>客户端-服务器协议</strong>，支持两类事务（Transaction）：</p>
-<h3 id="Request-Response-事务"><a href="#Request-Response-事务" class="headerlink" title="Request&#x2F;Response 事务"></a>Request&#x2F;Response 事务</h3><p>客户端发送 Request，服务器返回 Success Response 或 Error Response。双方通过 <strong>96 位的 Transaction ID</strong> 关联请求与响应。这是最常见的模式，Binding Request&#x2F;Response 就属于此类。</p>
-<h3 id="Indication-事务"><a href="#Indication-事务" class="headerlink" title="Indication 事务"></a>Indication 事务</h3><p>任意一方（客户端或服务器）可以发送 Indication，<strong>不产生响应</strong>。Indication 不可靠，也不可认证。在 TURN 中，Send Indication 和 Data Indication 就使用此机制。</p>
-<h3 id="STUN-Usage"><a href="#STUN-Usage" class="headerlink" title="STUN Usage"></a>STUN Usage</h3><p>STUN 规范本身只定义了协议框架；具体使用方式由上层的 <strong>STUN Usage</strong> 定义。Usage 规定了：</p>
+<h1 id="4-STUN-协议概述"><a href="#4-STUN-协议概述" class="headerlink" title="4. STUN 协议概述"></a>4. STUN 协议概述</h1><p>根据 RFC 8489，STUN 是一个客户端-服务器协议，支持两类事务（Transaction）：</p>
+<h3 id="Request-Response-事务"><a href="#Request-Response-事务" class="headerlink" title="Request&#x2F;Response 事务"></a>Request&#x2F;Response 事务</h3><p>客户端发送 Request，服务器返回 Success Response 或 Error Response。双方通过 96 位的 Transaction ID 关联请求与响应。这是最常见的模式，Binding Request&#x2F;Response 就属于此类。</p>
+<h3 id="Indication-事务"><a href="#Indication-事务" class="headerlink" title="Indication 事务"></a>Indication 事务</h3><p>任意一方（客户端或服务器）可以发送 Indication，不产生响应。Indication 不可靠，也不可认证。在 TURN 中，Send Indication 和 Data Indication 就使用此机制。</p>
+<h3 id="STUN-Usage"><a href="#STUN-Usage" class="headerlink" title="STUN Usage"></a>STUN Usage</h3><p>STUN 规范本身只定义了协议框架；具体使用方式由上层的 STUN Usage 定义。Usage 规定了：</p>
 <ul>
 <li>何时发送 STUN 消息；</li>
 <li>使用哪些可选属性；</li>
@@ -304,14 +306,14 @@
 </tr>
 </tbody></table>
 <hr>
-<h1 id="5-报文结构详解"><a href="#5-报文结构详解" class="headerlink" title="5. 报文结构详解"></a>5. 报文结构详解</h1><h3 id="5-1-STUN-消息头（20-字节固定头）"><a href="#5-1-STUN-消息头（20-字节固定头）" class="headerlink" title="5.1 STUN 消息头（20 字节固定头）"></a>5.1 STUN 消息头（20 字节固定头）</h3><p>所有 STUN 消息都以一个 <strong>20 字节的固定头部</strong>开始，格式如下（RFC 8489 §5）：</p>
+<h1 id="5-报文结构详解"><a href="#5-报文结构详解" class="headerlink" title="5. 报文结构详解"></a>5. 报文结构详解</h1><h3 id="5-1-STUN-消息头（20-字节固定头）"><a href="#5-1-STUN-消息头（20-字节固定头）" class="headerlink" title="5.1 STUN 消息头（20 字节固定头）"></a>5.1 STUN 消息头（20 字节固定头）</h3><p>所有 STUN 消息都以一个 20 字节的固定头部开始，格式如下（RFC 8489 §5）：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|0 0|     STUN Message Type     |         Message Length        |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         Magic Cookie                          |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                                                               |</span><br><span class="line">|                     Transaction ID (96 bits)                  |</span><br><span class="line">|                                                               |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
 
 <p>各字段说明：</p>
-<p><strong>最高 2 位（固定为 <code>00</code>）</strong></p>
-<p>所有 STUN 消息的最高 2 位<strong>必须为零</strong>。这使得 STUN 可以与其他协议复用同一个端口，通过判断首字节高 2 位来区分协议类型（例如 RTP&#x2F;RTCP 首字节高 2 位为 <code>10</code>）。</p>
-<p><strong>STUN Message Type（14 位）</strong></p>
-<p>消息类型由 <strong>Method（12 位）</strong> 和 <strong>Class（2 位）</strong> 共同编码，两部分交织在这 14 位中：</p>
+<p>最高 2 位（固定为 <code>00</code>）</p>
+<p>所有 STUN 消息的最高 2 位必须为零。这使得 STUN 可以与其他协议复用同一个端口，通过判断首字节高 2 位来区分协议类型（例如 RTP&#x2F;RTCP 首字节高 2 位为 <code>10</code>）。</p>
+<p>STUN Message Type（14 位）</p>
+<p>消息类型由 Method（12 位） 和 Class（2 位） 共同编码，两部分交织在这 14 位中：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> 0                 1</span><br><span class="line"> 2  3  4  5  6  7  8  9  0  1  2  3</span><br><span class="line">+--+--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|M |M |M|M|M|C|M|M|M|C|M|M|M|M|   |</span><br><span class="line">|11|10|9|8|7|1|6|5|4|0|3|2|1|0|   |</span><br><span class="line">+--+--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
 
 <p>Class 取值（2 位）：</p>
@@ -365,24 +367,24 @@
 <td><code>0x0011</code></td>
 </tr>
 </tbody></table>
-<p><strong>Message Length（16 位）</strong></p>
-<p>消息体（attributes 部分）的字节长度，<strong>不含 20 字节头部</strong>，且必须为 4 的倍数。</p>
-<p><strong>Magic Cookie（32 位，固定值）</strong></p>
+<p>Message Length（16 位）</p>
+<p>消息体（attributes 部分）的字节长度，不含 20 字节头部，且必须为 4 的倍数。</p>
+<p>Magic Cookie（32 位，固定值）</p>
 <p>固定值 <code>0x2112A442</code>（网络字节序）。这是 RFC 5389 引入的关键字段，有两个作用：</p>
 <ol>
 <li>区分新版 STUN 与 RFC 3489 旧版 STUN；</li>
 <li>辅助在同一端口上多路复用时识别 STUN 报文；</li>
 <li>作为 XOR-MAPPED-ADDRESS 计算中的 XOR 掩码。</li>
 </ol>
-<p><strong>Transaction ID（96 位）</strong></p>
+<p>Transaction ID（96 位）</p>
 <p>由发起方随机生成，用于将 Request 与 Response 配对。服务器在响应中原样回显此字段。</p>
-<h3 id="5-2-STUN-属性（TLV-格式）"><a href="#5-2-STUN-属性（TLV-格式）" class="headerlink" title="5.2 STUN 属性（TLV 格式）"></a>5.2 STUN 属性（TLV 格式）</h3><p>头部之后跟随零个或多个属性，每个属性采用 <strong>TLV（Type-Length-Value）</strong> 编码：</p>
+<h3 id="5-2-STUN-属性（TLV-格式）"><a href="#5-2-STUN-属性（TLV-格式）" class="headerlink" title="5.2 STUN 属性（TLV 格式）"></a>5.2 STUN 属性（TLV 格式）</h3><p>头部之后跟随零个或多个属性，每个属性采用 TLV（Type-Length-Value） 编码：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> 0                   1                   2                   3</span><br><span class="line"> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|              Type             |             Length            |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">|                         Value (variable)                      |</span><br><span class="line">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><strong>Type</strong>：16 位，属性类型；</li>
-<li><strong>Length</strong>：16 位，Value 字段的字节数；</li>
-<li><strong>Value</strong>：变长，必须以 4 字节对齐（不足补零填充，填充字节不计入 Length）。</li>
+<li>Type：16 位，属性类型；</li>
+<li>Length：16 位，Value 字段的字节数；</li>
+<li>Value：变长，必须以 4 字节对齐（不足补零填充，填充字节不计入 Length）。</li>
 </ul>
 <p>属性类型根据最高位的取值分为两类：</p>
 <table>
@@ -393,12 +395,12 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><code>0x0000</code> – <code>0x7FFF</code></td>
-<td><strong>Comprehension-Required</strong>：若接收方不理解此属性，必须返回错误</td>
+<td><code>0x0000</code> - <code>0x7FFF</code></td>
+<td>Comprehension-Required：若接收方不理解此属性，必须返回错误</td>
 </tr>
 <tr>
-<td><code>0x8000</code> – <code>0xFFFF</code></td>
-<td><strong>Comprehension-Optional</strong>：若不理解，可安全忽略</td>
+<td><code>0x8000</code> - <code>0xFFFF</code></td>
+<td>Comprehension-Optional：若不理解，可安全忽略</td>
 </tr>
 </tbody></table>
 <p>RFC 8489 定义的核心属性：</p>
@@ -491,56 +493,56 @@
 
 <p>引入 XOR 编码的原因：部分网络中间设备（ALG，Application Layer Gateway）会扫描 UDP 负载中的 IP 地址并进行修改，从而破坏 MAPPED-ADDRESS 中的地址信息。XOR 混淆使地址不直接暴露，规避了这类设备的干扰。</p>
 <hr>
-<h1 id="6-Binding-方法：获取公网地址"><a href="#6-Binding-方法：获取公网地址" class="headerlink" title="6. Binding 方法：获取公网地址"></a>6. Binding 方法：获取公网地址</h1><p><strong>Binding</strong> 是 STUN 目前定义的唯一 Method，也是 WebRTC 中最核心的 STUN 操作。</p>
+<h1 id="6-Binding-方法：获取公网地址"><a href="#6-Binding-方法：获取公网地址" class="headerlink" title="6. Binding 方法：获取公网地址"></a>6. Binding 方法：获取公网地址</h1><p>Binding 是 STUN 目前定义的唯一 Method，也是 WebRTC 中最核心的 STUN 操作。</p>
 <h3 id="6-1-工作流程"><a href="#6-1-工作流程" class="headerlink" title="6.1 工作流程"></a>6.1 工作流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">私有网络                    NAT 设备                    公网 STUN 服务器</span><br><span class="line">     |                         |                              |</span><br><span class="line">     |  Binding Request        |                              |</span><br><span class="line">     |  src: 192.168.1.10:5000 |                              |</span><br><span class="line">     |------------------------&gt;|                              |</span><br><span class="line">     |                         |  Binding Request             |</span><br><span class="line">     |                         |  src: 203.0.113.1:10000      |</span><br><span class="line">     |                         |-----------------------------&gt;|</span><br><span class="line">     |                         |                              |</span><br><span class="line">     |                         |  Binding Response            |</span><br><span class="line">     |                         |  XOR-MAPPED-ADDRESS:         |</span><br><span class="line">     |                         |  203.0.113.1:10000           |</span><br><span class="line">     |                         |&lt;-----------------------------|</span><br><span class="line">     |  Binding Response       |                              |</span><br><span class="line">     |  XOR-MAPPED-ADDRESS:    |                              |</span><br><span class="line">     |  203.0.113.1:10000      |                              |</span><br><span class="line">     |&lt;------------------------|                              |</span><br><span class="line">     |                         |                              |</span><br></pre></td></tr></table></figure>
 
-<p><strong>步骤说明</strong>：</p>
+<p>步骤说明：</p>
 <ol>
-<li>客户端（<code>192.168.1.10:5000</code>）向公网 STUN 服务器发送 <strong>Binding Request</strong>（通常不含任何属性，无需认证）；</li>
+<li>客户端（<code>192.168.1.10:5000</code>）向公网 STUN 服务器发送 Binding Request（通常不含任何属性，无需认证）；</li>
 <li>报文经过 NAT 时，NAT 将源地址替换为公网地址 <code>203.0.113.1:10000</code>，并在映射表中建立记录；</li>
-<li>STUN 服务器收到请求后，观察到源地址为 <code>203.0.113.1:10000</code>，将其封装在 <strong>XOR-MAPPED-ADDRESS</strong> 属性中，发回 Binding Success Response；</li>
+<li>STUN 服务器收到请求后，观察到源地址为 <code>203.0.113.1:10000</code>，将其封装在 XOR-MAPPED-ADDRESS 属性中，发回 Binding Success Response；</li>
 <li>响应经 NAT 转发回客户端；</li>
-<li>客户端解析响应，获得自己的 <strong>reflexive transport address</strong>：<code>203.0.113.1:10000</code>。</li>
+<li>客户端解析响应，获得自己的 reflexive transport address：<code>203.0.113.1:10000</code>。</li>
 </ol>
 <blockquote>
-<p><strong>注意</strong>：如果客户端经过多层 NAT，STUN 返回的是<strong>最靠近服务器一侧的 NAT</strong> 分配的地址（即最外层 NAT 的映射），而非内层 NAT 的地址。</p>
+<p>注意：如果客户端经过多层 NAT，STUN 返回的是最靠近服务器一侧的 NAT 分配的地址（即最外层 NAT 的映射），而非内层 NAT 的地址。</p>
 </blockquote>
 <h3 id="6-2-Binding-用于-Keep-Alive"><a href="#6-2-Binding-用于-Keep-Alive" class="headerlink" title="6.2 Binding 用于 Keep-Alive"></a>6.2 Binding 用于 Keep-Alive</h3><p>NAT 映射有生命周期（通常 UDP 绑定为 30 秒至数分钟不等）。若长时间没有数据包经过，NAT 可能删除映射，导致通道中断。</p>
-<p>STUN Binding Request&#x2F;Indication 可被用作 <strong>keep-alive 心跳包</strong>，定期发送以维持 NAT 映射的活跃状态。在 WebRTC 的 ICE 实现中，ICE keep-alive 消息本质上就是周期性的 STUN Binding Indication。</p>
-<h3 id="6-3-Binding-用于连接检查（ICE-专用）"><a href="#6-3-Binding-用于连接检查（ICE-专用）" class="headerlink" title="6.3 Binding 用于连接检查（ICE 专用）"></a>6.3 Binding 用于连接检查（ICE 专用）</h3><p>在 ICE 连接检查阶段，STUN Binding Request 还承担<strong>连接可达性验证</strong>的职责：</p>
+<p>STUN Binding Request&#x2F;Indication 可被用作 keep-alive 心跳包，定期发送以维持 NAT 映射的活跃状态。在 WebRTC 的 ICE 实现中，ICE keep-alive 消息本质上就是周期性的 STUN Binding Indication。</p>
+<h3 id="6-3-Binding-用于连接检查（ICE-专用）"><a href="#6-3-Binding-用于连接检查（ICE-专用）" class="headerlink" title="6.3 Binding 用于连接检查（ICE 专用）"></a>6.3 Binding 用于连接检查（ICE 专用）</h3><p>在 ICE 连接检查阶段，STUN Binding Request 还承担连接可达性验证的职责：</p>
 <ul>
 <li>消息中携带 <code>PRIORITY</code>、<code>USE-CANDIDATE</code>、<code>ICE-CONTROLLED</code>&#x2F;<code>ICE-CONTROLLING</code> 等 ICE 专用属性（定义于 RFC 8445）；</li>
-<li>使用<strong>短期凭证（Short-Term Credential）</strong> 进行认证（凭证来自 SDP offer&#x2F;answer 中的 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code>）；</li>
+<li>使用短期凭证（Short-Term Credential） 进行认证（凭证来自 SDP offer&#x2F;answer 中的 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code>）；</li>
 <li>双向的 Binding Request&#x2F;Response 交换证明两端可以互相通信。</li>
 </ul>
 <hr>
 <h1 id="7-认证机制"><a href="#7-认证机制" class="headerlink" title="7. 认证机制"></a>7. 认证机制</h1><p>RFC 8489 定义了两种认证机制：</p>
-<h3 id="7-1-短期凭证机制（Short-Term-Credential-Mechanism）"><a href="#7-1-短期凭证机制（Short-Term-Credential-Mechanism）" class="headerlink" title="7.1 短期凭证机制（Short-Term Credential Mechanism）"></a>7.1 短期凭证机制（Short-Term Credential Mechanism）</h3><p><strong>用途</strong>：ICE 连接检查。</p>
+<h3 id="7-1-短期凭证机制（Short-Term-Credential-Mechanism）"><a href="#7-1-短期凭证机制（Short-Term-Credential-Mechanism）" class="headerlink" title="7.1 短期凭证机制（Short-Term Credential Mechanism）"></a>7.1 短期凭证机制（Short-Term Credential Mechanism）</h3><p>用途：ICE 连接检查。</p>
 <p>凭证在会话期间生成，随 SDP offer&#x2F;answer 通过信令通道交换（<code>ice-ufrag</code> 和 <code>ice-pwd</code>）。</p>
 <ul>
-<li><strong>HMAC Key</strong>：密钥直接为 <code>ice-pwd</code> 的 UTF-8 编码字节；</li>
-<li><strong>完整性保护</strong>：消息中附带 <code>MESSAGE-INTEGRITY</code>（HMAC-SHA1）或 <code>MESSAGE-INTEGRITY-SHA256</code>（HMAC-SHA256）属性；</li>
+<li>HMAC Key：密钥直接为 <code>ice-pwd</code> 的 UTF-8 编码字节；</li>
+<li>完整性保护：消息中附带 <code>MESSAGE-INTEGRITY</code>（HMAC-SHA1）或 <code>MESSAGE-INTEGRITY-SHA256</code>（HMAC-SHA256）属性；</li>
 <li>凭证随 ICE 会话刷新而更新（ICE restart 时）。</li>
 </ul>
-<p><strong>REQUEST 中的属性</strong>：</p>
+<p>REQUEST 中的属性：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">USERNAME  = &lt;remote-ufrag&gt;:&lt;local-ufrag&gt;</span><br><span class="line">MESSAGE-INTEGRITY = HMAC(key=remote-pwd, message=request_so_far)</span><br></pre></td></tr></table></figure>
 
-<p><strong>RESPONSE 中的属性</strong>：</p>
+<p>RESPONSE 中的属性：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MESSAGE-INTEGRITY = HMAC(key=local-pwd, message=response_so_far)</span><br></pre></td></tr></table></figure>
 
-<h3 id="7-2-长期凭证机制（Long-Term-Credential-Mechanism）"><a href="#7-2-长期凭证机制（Long-Term-Credential-Mechanism）" class="headerlink" title="7.2 长期凭证机制（Long-Term Credential Mechanism）"></a>7.2 长期凭证机制（Long-Term Credential Mechanism）</h3><p><strong>用途</strong>：TURN 服务器认证。</p>
+<h3 id="7-2-长期凭证机制（Long-Term-Credential-Mechanism）"><a href="#7-2-长期凭证机制（Long-Term-Credential-Mechanism）" class="headerlink" title="7.2 长期凭证机制（Long-Term Credential Mechanism）"></a>7.2 长期凭证机制（Long-Term Credential Mechanism）</h3><p>用途：TURN 服务器认证。</p>
 <p>采用挑战-响应模式，防止重放攻击：</p>
 <ol>
 <li>客户端首次发送不带认证的请求；</li>
 <li>服务器返回 <code>401 Unauthorized</code>，携带 <code>REALM</code> 和 <code>NONCE</code>；</li>
 <li>客户端重发请求，携带 <code>USERNAME</code>（或 <code>USERHASH</code>）、<code>REALM</code>、<code>NONCE</code> 和 <code>MESSAGE-INTEGRITY</code>；</li>
-<li><strong>HMAC Key</strong> &#x3D; <code>MD5(&quot;&lt;username&gt;:&lt;realm&gt;:&lt;password&gt;&quot;)</code> （RFC 5389 及之前）或 <code>SHA-256</code> 派生（RFC 8489）。</li>
+<li>HMAC Key &#x3D; <code>MD5(&quot;&lt;username&gt;:&lt;realm&gt;:&lt;password&gt;&quot;)</code> （RFC 5389 及之前）或 <code>SHA-256</code> 派生（RFC 8489）。</li>
 </ol>
 <p>RFC 8489 的改进：<code>NONCE</code> 中嵌入 nonce cookie（固定前缀 <code>obMatJos2</code>），通过其后的比特位表达服务器支持的安全特性（如密码算法），以抵御降级攻击（Bid-Down Attack）。</p>
 <hr>
-<h1 id="8-FINGERPRINT-机制"><a href="#8-FINGERPRINT-机制" class="headerlink" title="8. FINGERPRINT 机制"></a>8. FINGERPRINT 机制</h1><p>为了在同一端口上同时运行 STUN 和其他协议（如 RTP），RFC 5389 引入了 <strong>FINGERPRINT</strong> 属性：</p>
+<h1 id="8-FINGERPRINT-机制"><a href="#8-FINGERPRINT-机制" class="headerlink" title="8. FINGERPRINT 机制"></a>8. FINGERPRINT 机制</h1><p>为了在同一端口上同时运行 STUN 和其他协议（如 RTP），RFC 5389 引入了 FINGERPRINT 属性：</p>
 <ul>
-<li>计算方法：对 STUN 消息（含 FINGERPRINT 属性头，但 Value 填零）做 <strong>CRC-32</strong>，然后与 <code>0x5354554E</code> 进行 XOR；</li>
+<li>计算方法：对 STUN 消息（含 FINGERPRINT 属性头，但 Value 填零）做 CRC-32，然后与 <code>0x5354554E</code> 进行 XOR；</li>
 <li>将结果填入 FINGERPRINT 的 Value，附加在消息末尾；</li>
 <li>接收方验证此值，通过则可高置信度确认这是 STUN 报文。</li>
 </ul>
@@ -555,31 +557,31 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>UDP</strong></td>
+<td>UDP</td>
 <td>必须支持</td>
-<td>默认协议，最常用；RFC 8489 规定 STUN 服务器默认端口为 <strong>3478</strong></td>
+<td>默认协议，最常用；RFC 8489 规定 STUN 服务器默认端口为 3478</td>
 </tr>
 <tr>
-<td><strong>TCP</strong></td>
+<td>TCP</td>
 <td>必须支持</td>
 <td>用于无法使用 UDP 的场景</td>
 </tr>
 <tr>
-<td><strong>TLS over TCP</strong></td>
+<td>TLS over TCP</td>
 <td>可选</td>
-<td>提供加密通道，端口 <strong>5349</strong></td>
+<td>提供加密通道，端口 5349</td>
 </tr>
 <tr>
-<td><strong>DTLS over UDP</strong></td>
+<td>DTLS over UDP</td>
 <td>可选</td>
 <td>UDP 上的 TLS，端口 5349</td>
 </tr>
 </tbody></table>
-<h3 id="UDP-重传机制"><a href="#UDP-重传机制" class="headerlink" title="UDP 重传机制"></a>UDP 重传机制</h3><p>由于 UDP 不提供可靠传输，STUN 自身实现了<strong>应用层重传</strong>：</p>
+<h3 id="UDP-重传机制"><a href="#UDP-重传机制" class="headerlink" title="UDP 重传机制"></a>UDP 重传机制</h3><p>由于 UDP 不提供可靠传输，STUN 自身实现了应用层重传：</p>
 <ul>
 <li>初始重传超时（RTO）：RFC 建议初始值为 500ms；</li>
 <li>采用指数退避（Binary Exponential Backoff）：RTO × 1、× 2、× 4、× 8……；</li>
-<li>共尝试 <strong>Rc 次</strong>（RFC 建议默认 Rc &#x3D; 7），总超时约 <strong>39.5 秒</strong>；</li>
+<li>共尝试 Rc 次（RFC 建议默认 Rc &#x3D; 7），总超时约 39.5 秒；</li>
 <li>若在此期间收到响应，则取消后续重传。</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">发送时序（示例，RTO=500ms，Rc=7）：</span><br><span class="line">t=0ms      → Request #1</span><br><span class="line">t=500ms    → Request #2</span><br><span class="line">t=1500ms   → Request #3</span><br><span class="line">t=3500ms   → Request #4</span><br><span class="line">t=7500ms   → Request #5</span><br><span class="line">t=15500ms  → Request #6</span><br><span class="line">t=31500ms  → Request #7</span><br><span class="line">t=39500ms  → 超时，事务失败</span><br></pre></td></tr></table></figure>
@@ -596,44 +598,44 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>host candidate</strong></td>
+<td>host candidate</td>
 <td>本机网卡 IP</td>
 <td>无需 STUN</td>
 </tr>
 <tr>
-<td><strong>server reflexive candidate（srflx）</strong></td>
+<td>server reflexive candidate（srflx）</td>
 <td>STUN 服务器返回的 reflexive address</td>
-<td><strong>核心用途</strong></td>
+<td>核心用途</td>
 </tr>
 <tr>
-<td><strong>relayed candidate（relay）</strong></td>
+<td>relayed candidate（relay）</td>
 <td>TURN 服务器分配的中继地址</td>
 <td>TURN 基于 STUN 扩展实现</td>
 </tr>
 </tbody></table>
 <p>收集 srflx 候选的过程就是标准的 Binding Request&#x2F;Response 交互。</p>
-<h3 id="10-2-连接检查（Connectivity-Checks）"><a href="#10-2-连接检查（Connectivity-Checks）" class="headerlink" title="10.2 连接检查（Connectivity Checks）"></a>10.2 连接检查（Connectivity Checks）</h3><p>ICE 将两端收集的候选进行<strong>配对</strong>（candidate pairs），然后逐对执行 STUN Binding Request 检查：</p>
+<h3 id="10-2-连接检查（Connectivity-Checks）"><a href="#10-2-连接检查（Connectivity-Checks）" class="headerlink" title="10.2 连接检查（Connectivity Checks）"></a>10.2 连接检查（Connectivity Checks）</h3><p>ICE 将两端收集的候选进行配对（candidate pairs），然后逐对执行 STUN Binding Request 检查：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Agent A                          Agent B</span><br><span class="line">   |                                |</span><br><span class="line">   |--- Binding Request (with  ----&gt;|</span><br><span class="line">   |    PRIORITY, ICE-CONTROLLING)  |</span><br><span class="line">   |                                |</span><br><span class="line">   |&lt;--- Binding Success Response --|</span><br><span class="line">   |     (XOR-MAPPED-ADDRESS)       |</span><br></pre></td></tr></table></figure>
 
 <ul>
 <li>请求中携带 <code>PRIORITY</code>（候选优先级）、<code>ICE-CONTROLLING</code>&#x2F;<code>ICE-CONTROLLED</code>（角色）等属性；</li>
 <li>使用 <code>USERNAME</code>（<code>&lt;remote-ufrag&gt;:&lt;local-ufrag&gt;</code>）和短期凭证（<code>MESSAGE-INTEGRITY</code>）进行认证；</li>
-<li>双向检查通过则该 candidate pair 标记为 <strong>Succeeded</strong>；</li>
+<li>双向检查通过则该 candidate pair 标记为 Succeeded；</li>
 <li>Controlling Agent 选定最佳 pair 后，在请求中附加 <code>USE-CANDIDATE</code> 属性提名。</li>
 </ul>
-<h3 id="10-3-ICE-Keep-Alive"><a href="#10-3-ICE-Keep-Alive" class="headerlink" title="10.3 ICE Keep-Alive"></a>10.3 ICE Keep-Alive</h3><p>连接建立后，ICE 周期性发送 <strong>STUN Binding Indication</strong>（或无需响应的 Binding Request）以维持 NAT 绑定。WebRTC 默认 keep-alive 间隔为 15 秒（RFC 8445 §11）。</p>
-<h3 id="10-4-ICE-Restart"><a href="#10-4-ICE-Restart" class="headerlink" title="10.4 ICE Restart"></a>10.4 ICE Restart</h3><p>当网络切换（如 Wi-Fi 切换到 4G）时，ICE 可以通过更新 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code> 触发 <strong>ICE restart</strong>，重新收集候选并重新执行连接检查，而无需重建 DTLS&#x2F;SRTP 通道。</p>
+<h3 id="10-3-ICE-Keep-Alive"><a href="#10-3-ICE-Keep-Alive" class="headerlink" title="10.3 ICE Keep-Alive"></a>10.3 ICE Keep-Alive</h3><p>连接建立后，ICE 周期性发送 STUN Binding Indication（或无需响应的 Binding Request）以维持 NAT 绑定。WebRTC 默认 keep-alive 间隔为 15 秒（RFC 8445 §11）。</p>
+<h3 id="10-4-ICE-Restart"><a href="#10-4-ICE-Restart" class="headerlink" title="10.4 ICE Restart"></a>10.4 ICE Restart</h3><p>当网络切换（如 Wi-Fi 切换到 4G）时，ICE 可以通过更新 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code> 触发 ICE restart，重新收集候选并重新执行连接检查，而无需重建 DTLS&#x2F;SRTP 通道。</p>
 <hr>
-<h1 id="11-STUN-的局限性"><a href="#11-STUN-的局限性" class="headerlink" title="11. STUN 的局限性"></a>11. STUN 的局限性</h1><p>STUN <strong>不是</strong>万能的 NAT 穿透方案，存在以下明显局限：</p>
-<h3 id="11-1-无法穿透-Symmetric-NAT"><a href="#11-1-无法穿透-Symmetric-NAT" class="headerlink" title="11.1 无法穿透 Symmetric NAT"></a>11.1 无法穿透 Symmetric NAT</h3><p>如前所述，当一方或双方位于 Symmetric NAT 后时，STUN 观察到的反射地址对实际 P2P 通信无效。此时必须使用 <strong>TURN 中继</strong>。</p>
-<p>在实际网络中，企业防火墙、移动运营商 CGNAT（Carrier-Grade NAT）普遍采用 Symmetric NAT 或等效的严格过滤策略。这也是为什么生产级 WebRTC 应用<strong>必须部署 TURN 服务器</strong>。</p>
+<h1 id="11-STUN-的局限性"><a href="#11-STUN-的局限性" class="headerlink" title="11. STUN 的局限性"></a>11. STUN 的局限性</h1><p>STUN 不是万能的 NAT 穿透方案，存在以下明显局限：</p>
+<h3 id="11-1-无法穿透-Symmetric-NAT"><a href="#11-1-无法穿透-Symmetric-NAT" class="headerlink" title="11.1 无法穿透 Symmetric NAT"></a>11.1 无法穿透 Symmetric NAT</h3><p>如前所述，当一方或双方位于 Symmetric NAT 后时，STUN 观察到的反射地址对实际 P2P 通信无效。此时必须使用 TURN 中继。</p>
+<p>在实际网络中，企业防火墙、移动运营商 CGNAT（Carrier-Grade NAT）普遍采用 Symmetric NAT 或等效的严格过滤策略。这也是为什么生产级 WebRTC 应用必须部署 TURN 服务器。</p>
 <h3 id="11-2-反射地址的时效性"><a href="#11-2-反射地址的时效性" class="headerlink" title="11.2 反射地址的时效性"></a>11.2 反射地址的时效性</h3><p>NAT 映射会在空闲一段时间后过期，反射地址随之失效。如果 ICE 候选在信令中传递的时间过长（如用户在 SDP offer&#x2F;answer 之间停留），候选地址可能已失效，需要触发 ICE restart。</p>
 <h3 id="11-3-多层-NAT-下的精度问题"><a href="#11-3-多层-NAT-下的精度问题" class="headerlink" title="11.3 多层 NAT 下的精度问题"></a>11.3 多层 NAT 下的精度问题</h3><p>在多层 NAT 环境下，STUN 只能暴露最外层 NAT 的映射地址，内层 NAT 的信息不可见。</p>
 <h3 id="11-4-无法独立解决问题"><a href="#11-4-无法独立解决问题" class="headerlink" title="11.4 无法独立解决问题"></a>11.4 无法独立解决问题</h3><p>STUN 必须与 ICE 框架配合使用，单独使用 STUN（Classic STUN）已被证明不可靠，RFC 8489 明确不鼓励这种用法。</p>
 <hr>
-<h1 id="12-安全考量"><a href="#12-安全考量" class="headerlink" title="12. 安全考量"></a>12. 安全考量</h1><h3 id="12-1-外部攻击"><a href="#12-1-外部攻击" class="headerlink" title="12.1 外部攻击"></a>12.1 外部攻击</h3><p><strong>DoS 放大攻击</strong>：攻击者以受害者 IP 作为源地址向 STUN 服务器发送大量请求，利用 STUN 响应对受害者发动 DoS 放大攻击。</p>
+<h1 id="12-安全考量"><a href="#12-安全考量" class="headerlink" title="12. 安全考量"></a>12. 安全考量</h1><h3 id="12-1-外部攻击"><a href="#12-1-外部攻击" class="headerlink" title="12.1 外部攻击"></a>12.1 外部攻击</h3><p>DoS 放大攻击：攻击者以受害者 IP 作为源地址向 STUN 服务器发送大量请求，利用 STUN 响应对受害者发动 DoS 放大攻击。</p>
 <p>缓解措施：现代 STUN 请求与响应大小相近，放大倍数很低；部署速率限制。</p>
-<p><strong>反射地址伪造</strong>：攻击者可以向客户端发送伪造的 Binding Response，其中包含错误的 Mapped Address。</p>
+<p>反射地址伪造：攻击者可以向客户端发送伪造的 Binding Response，其中包含错误的 Mapped Address。</p>
 <p>缓解措施：STUN 与 ICE 联合使用时，连接检查会验证地址的真实可用性，单纯的地址伪造无法造成成功的连接劫持。</p>
 <h3 id="12-2-内部攻击"><a href="#12-2-内部攻击" class="headerlink" title="12.2 内部攻击"></a>12.2 内部攻击</h3><p>若攻击者能观察&#x2F;篡改 STUN 流量（中间人），且没有 MESSAGE-INTEGRITY 保护，则可以篡改反射地址。</p>
 <p>缓解措施：对需要安全性的场景（如 TURN 认证），必须使用长期凭证 + MESSAGE-INTEGRITY。ICE 使用短期凭证保护连接检查。</p>
@@ -644,12 +646,12 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// WebRTC ICEServer 配置示例</span></span><br><span class="line"><span class="keyword">const</span> config = &#123;</span><br><span class="line">  <span class="attr">iceServers</span>: [</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;stun:stun.l.google.com:19302&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;stun:stun1.l.google.com:19302&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;stun:stun.cloudflare.com:3478&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;stun:stun.stunprotocol.org:3478&#x27;</span> &#125;,</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>(config);</span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p><strong>生产环境注意</strong>：</p>
+<p>生产环境注意：</p>
 <ul>
 <li>公共 STUN 服务器不提供 SLA 保障，且有可能记录客户端 IP；</li>
 <li>生产环境应自建 STUN&#x2F;TURN 服务器（如 <a target="_blank" rel="noopener" href="https://github.com/coturn/coturn">coturn</a>）；</li>
 <li>对于 Symmetric NAT 场景，STUN 无效，必须配置 TURN 服务器；</li>
-<li>STUN 只需要客户端能访问公网即可，<strong>不需要防火墙打洞</strong>，只是普通的 UDP 出站流量。</li>
+<li>STUN 只需要客户端能访问公网即可，不需要防火墙打洞，只是普通的 UDP 出站流量。</li>
 </ul>
 </blockquote>
 <hr>
@@ -661,44 +663,44 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>协议性质</strong></td>
+<td>协议性质</td>
 <td>轻量级客户端-服务器协议，工具性，不独立成为完整解决方案</td>
 </tr>
 <tr>
-<td><strong>核心功能</strong></td>
+<td>核心功能</td>
 <td>发现 reflexive transport address（公网 IP:Port）</td>
 </tr>
 <tr>
-<td><strong>报文结构</strong></td>
+<td>报文结构</td>
 <td>20 字节固定头 + TLV 属性列表；Magic Cookie <code>0x2112A442</code></td>
 </tr>
 <tr>
-<td><strong>核心 Method</strong></td>
+<td>核心 Method</td>
 <td>Binding Request&#x2F;Response；Binding Indication（keep-alive）</td>
 </tr>
 <tr>
-<td><strong>认证</strong></td>
+<td>认证</td>
 <td>短期凭证（ICE 使用）；长期凭证（TURN 使用）</td>
 </tr>
 <tr>
-<td><strong>传输层</strong></td>
+<td>传输层</td>
 <td>UDP（主）&#x2F; TCP &#x2F; TLS-over-TCP &#x2F; DTLS-over-UDP</td>
 </tr>
 <tr>
-<td><strong>NAT 穿透能力</strong></td>
+<td>NAT 穿透能力</td>
 <td>仅对 EIM（非 Symmetric）NAT 有效</td>
 </tr>
 <tr>
-<td><strong>现行规范</strong></td>
+<td>现行规范</td>
 <td>RFC 8489（2020），废止 RFC 5389（2008）</td>
 </tr>
 </tbody></table>
-<p><strong>与其他章节的关联</strong>：</p>
+<p>与其他章节的关联：</p>
 <ul>
-<li><strong>与ICE</strong>：ICE 是 STUN 的上层 Usage，使用 STUN Binding 做候选收集和连接检查，是 STUN 在 WebRTC 中的主要使用场景；</li>
-<li><strong>与TURN</strong>：当 STUN 无法穿透 Symmetric NAT 时，TURN 作为 STUN 的扩展（Extension）提供中继方案，TURN 报文格式和认证机制直接基于 STUN；</li>
-<li><strong>与DTLS</strong>：ICE 连接建立后，DTLS 握手才开始，STUN&#x2F;ICE 先行完成地址协商；</li>
-<li><strong>与WebSocket</strong>：STUN 候选通过信令通道（WebSocket）以 SDP 或 Trickle ICE 形式交换给对端。</li>
+<li>与ICE：ICE 是 STUN 的上层 Usage，使用 STUN Binding 做候选收集和连接检查，是 STUN 在 WebRTC 中的主要使用场景；</li>
+<li>与TURN：当 STUN 无法穿透 Symmetric NAT 时，TURN 作为 STUN 的扩展（Extension）提供中继方案，TURN 报文格式和认证机制直接基于 STUN；</li>
+<li>与DTLS：ICE 连接建立后，DTLS 握手才开始，STUN&#x2F;ICE 先行完成地址协商；</li>
+<li>与WebSocket：STUN 候选通过信令通道（WebSocket）以 SDP 或 Trickle ICE 形式交换给对端。</li>
 </ul>
 <hr>
 <h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><table>
@@ -761,9 +763,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -771,23 +775,23 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-STUN"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 STUN</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAT-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">2. NAT 基础与分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAT-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAT 的基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAT-%E7%9A%84%E5%88%86%E7%B1%BB%EF%BC%88RFC-3489-%E7%BB%8F%E5%85%B8%E5%88%86%E7%B1%BB%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAT 的分类（RFC 3489 经典分类）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Full-Cone-NAT%EF%BC%88%E5%85%A8%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">Full Cone NAT（全锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Restricted-Cone-NAT%EF%BC%88%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Restricted Cone NAT（受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Port-Restricted-Cone-NAT%EF%BC%88%E7%AB%AF%E5%8F%A3%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">Port Restricted Cone NAT（端口受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Symmetric-NAT%EF%BC%88%E5%AF%B9%E7%A7%B0%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">Symmetric NAT（对称型）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-4787-%E7%8E%B0%E4%BB%A3%E5%88%86%E7%B1%BB%EF%BC%88Endpoint-Independent-vs-Dependent%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-STUN-%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">4.</span> <span class="toc-text">3. STUN 的演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-3489-%E2%80%94-Classic-STUN%EF%BC%882003%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">RFC 3489 — Classic STUN（2003）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-5389-%E2%80%94-Session-Traversal-Utilities-for-NAT%EF%BC%882008%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">RFC 5389 — Session Traversal Utilities for NAT（2008）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-8489-%E2%80%94-%E7%8E%B0%E8%A1%8C%E6%A0%87%E5%87%86%EF%BC%882020%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">RFC 8489 — 现行标准（2020）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-STUN-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0"><span class="toc-number">5.</span> <span class="toc-text">4. STUN 协议概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Request-Response-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">Request&#x2F;Response 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Indication-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.2.</span> <span class="toc-text">Indication 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STUN-Usage"><span class="toc-number">5.0.3.</span> <span class="toc-text">STUN Usage</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-STUN-%E6%B6%88%E6%81%AF%E5%A4%B4%EF%BC%8820-%E5%AD%97%E8%8A%82%E5%9B%BA%E5%AE%9A%E5%A4%B4%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 STUN 消息头（20 字节固定头）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-STUN-%E5%B1%9E%E6%80%A7%EF%BC%88TLV-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 STUN 属性（TLV 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-XOR-MAPPED-ADDRESS-%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 XOR-MAPPED-ADDRESS 的编码方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Binding-%E6%96%B9%E6%B3%95%EF%BC%9A%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80"><span class="toc-number">7.</span> <span class="toc-text">6. Binding 方法：获取公网地址</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Binding-%E7%94%A8%E4%BA%8E-Keep-Alive"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Binding 用于 Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Binding-%E7%94%A8%E4%BA%8E%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88ICE-%E4%B8%93%E7%94%A8%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Binding 用于连接检查（ICE 专用）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 认证机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9F%AD%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Short-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 短期凭证机制（Short-Term Credential Mechanism）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%95%BF%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Long-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 长期凭证机制（Long-Term Credential Mechanism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FINGERPRINT-%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. FINGERPRINT 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%E6%94%AF%E6%8C%81"><span class="toc-number">10.</span> <span class="toc-text">9. 传输协议支持</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UDP-%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.1.</span> <span class="toc-text">UDP 重传机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-STUN-%E5%9C%A8-WebRTC-ICE-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">11.</span> <span class="toc-text">10. STUN 在 WebRTC&#x2F;ICE 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E6%94%B6%E9%9B%86%EF%BC%88Candidate-Gathering%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 候选地址收集（Candidate Gathering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88Connectivity-Checks%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 连接检查（Connectivity Checks）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-ICE-Keep-Alive"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 ICE Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-ICE-Restart"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 ICE Restart</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-STUN-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. STUN 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%97%A0%E6%B3%95%E7%A9%BF%E9%80%8F-Symmetric-NAT"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 无法穿透 Symmetric NAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E5%8F%8D%E5%B0%84%E5%9C%B0%E5%9D%80%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 反射地址的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%A4%9A%E5%B1%82-NAT-%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 多层 NAT 下的精度问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%97%A0%E6%B3%95%E7%8B%AC%E7%AB%8B%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 无法独立解决问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%A4%96%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 外部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%86%85%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 内部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%AF%86%E7%A0%81%E9%99%8D%E7%BA%A7%E6%94%BB%E5%87%BB%EF%BC%88Bid-Down-Attack%EF%BC%8CRFC-8489-%E6%96%B0%E5%A2%9E%E9%98%B2%E6%8A%A4%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 密码降级攻击（Bid-Down Attack，RFC 8489 新增防护）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E9%9A%90%E7%A7%81%E8%80%83%E9%87%8F"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 隐私考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-STUN-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 常用公共 STUN 服务器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-STUN"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么需要 STUN</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-NAT-%E5%9F%BA%E7%A1%80%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">2. NAT 基础与分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NAT-%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 NAT 的基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-NAT-%E7%9A%84%E5%88%86%E7%B1%BB%EF%BC%88RFC-3489-%E7%BB%8F%E5%85%B8%E5%88%86%E7%B1%BB%EF%BC%89"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 NAT 的分类（RFC 3489 经典分类）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Full-Cone-NAT%EF%BC%88%E5%85%A8%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">Full Cone NAT（全锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Restricted-Cone-NAT%EF%BC%88%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.2.</span> <span class="toc-text">Restricted Cone NAT（受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Port-Restricted-Cone-NAT%EF%BC%88%E7%AB%AF%E5%8F%A3%E5%8F%97%E9%99%90%E9%94%A5%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.3.</span> <span class="toc-text">Port Restricted Cone NAT（端口受限锥型）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Symmetric-NAT%EF%BC%88%E5%AF%B9%E7%A7%B0%E5%9E%8B%EF%BC%89"><span class="toc-number">3.0.2.4.</span> <span class="toc-text">Symmetric NAT（对称型）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-RFC-4787-%E7%8E%B0%E4%BB%A3%E5%88%86%E7%B1%BB%EF%BC%88Endpoint-Independent-vs-Dependent%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 RFC 4787 现代分类（Endpoint-Independent vs. Dependent）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-STUN-%E7%9A%84%E6%BC%94%E8%BF%9B"><span class="toc-number">4.</span> <span class="toc-text">3. STUN 的演进</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-3489-Classic-STUN%EF%BC%882003%EF%BC%89"><span class="toc-number">4.0.1.</span> <span class="toc-text">RFC 3489 - Classic STUN（2003）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-5389-Session-Traversal-Utilities-for-NAT%EF%BC%882008%EF%BC%89"><span class="toc-number">4.0.2.</span> <span class="toc-text">RFC 5389 - Session Traversal Utilities for NAT（2008）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#RFC-8489-%E7%8E%B0%E8%A1%8C%E6%A0%87%E5%87%86%EF%BC%882020%EF%BC%89"><span class="toc-number">4.0.3.</span> <span class="toc-text">RFC 8489 - 现行标准（2020）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-STUN-%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%BF%B0"><span class="toc-number">5.</span> <span class="toc-text">4. STUN 协议概述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Request-Response-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.1.</span> <span class="toc-text">Request&#x2F;Response 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Indication-%E4%BA%8B%E5%8A%A1"><span class="toc-number">5.0.2.</span> <span class="toc-text">Indication 事务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STUN-Usage"><span class="toc-number">5.0.3.</span> <span class="toc-text">STUN Usage</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%8A%A5%E6%96%87%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="toc-number">6.</span> <span class="toc-text">5. 报文结构详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-STUN-%E6%B6%88%E6%81%AF%E5%A4%B4%EF%BC%8820-%E5%AD%97%E8%8A%82%E5%9B%BA%E5%AE%9A%E5%A4%B4%EF%BC%89"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 STUN 消息头（20 字节固定头）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-STUN-%E5%B1%9E%E6%80%A7%EF%BC%88TLV-%E6%A0%BC%E5%BC%8F%EF%BC%89"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 STUN 属性（TLV 格式）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-XOR-MAPPED-ADDRESS-%E7%9A%84%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F"><span class="toc-number">6.0.3.</span> <span class="toc-text">5.3 XOR-MAPPED-ADDRESS 的编码方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-Binding-%E6%96%B9%E6%B3%95%EF%BC%9A%E8%8E%B7%E5%8F%96%E5%85%AC%E7%BD%91%E5%9C%B0%E5%9D%80"><span class="toc-number">7.</span> <span class="toc-text">6. Binding 方法：获取公网地址</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 工作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Binding-%E7%94%A8%E4%BA%8E-Keep-Alive"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 Binding 用于 Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Binding-%E7%94%A8%E4%BA%8E%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88ICE-%E4%B8%93%E7%94%A8%EF%BC%89"><span class="toc-number">7.0.3.</span> <span class="toc-text">6.3 Binding 用于连接检查（ICE 专用）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%AE%A4%E8%AF%81%E6%9C%BA%E5%88%B6"><span class="toc-number">8.</span> <span class="toc-text">7. 认证机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%9F%AD%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Short-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 短期凭证机制（Short-Term Credential Mechanism）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E9%95%BF%E6%9C%9F%E5%87%AD%E8%AF%81%E6%9C%BA%E5%88%B6%EF%BC%88Long-Term-Credential-Mechanism%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 长期凭证机制（Long-Term Credential Mechanism）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-FINGERPRINT-%E6%9C%BA%E5%88%B6"><span class="toc-number">9.</span> <span class="toc-text">8. FINGERPRINT 机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE%E6%94%AF%E6%8C%81"><span class="toc-number">10.</span> <span class="toc-text">9. 传输协议支持</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#UDP-%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="toc-number">10.0.1.</span> <span class="toc-text">UDP 重传机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-STUN-%E5%9C%A8-WebRTC-ICE-%E4%B8%AD%E7%9A%84%E8%A7%92%E8%89%B2"><span class="toc-number">11.</span> <span class="toc-text">10. STUN 在 WebRTC&#x2F;ICE 中的角色</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E6%94%B6%E9%9B%86%EF%BC%88Candidate-Gathering%EF%BC%89"><span class="toc-number">11.0.1.</span> <span class="toc-text">10.1 候选地址收集（Candidate Gathering）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%BF%9E%E6%8E%A5%E6%A3%80%E6%9F%A5%EF%BC%88Connectivity-Checks%EF%BC%89"><span class="toc-number">11.0.2.</span> <span class="toc-text">10.2 连接检查（Connectivity Checks）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-ICE-Keep-Alive"><span class="toc-number">11.0.3.</span> <span class="toc-text">10.3 ICE Keep-Alive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-ICE-Restart"><span class="toc-number">11.0.4.</span> <span class="toc-text">10.4 ICE Restart</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-STUN-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">12.</span> <span class="toc-text">11. STUN 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E6%97%A0%E6%B3%95%E7%A9%BF%E9%80%8F-Symmetric-NAT"><span class="toc-number">12.0.1.</span> <span class="toc-text">11.1 无法穿透 Symmetric NAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E5%8F%8D%E5%B0%84%E5%9C%B0%E5%9D%80%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-number">12.0.2.</span> <span class="toc-text">11.2 反射地址的时效性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E5%A4%9A%E5%B1%82-NAT-%E4%B8%8B%E7%9A%84%E7%B2%BE%E5%BA%A6%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.3.</span> <span class="toc-text">11.3 多层 NAT 下的精度问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E6%97%A0%E6%B3%95%E7%8B%AC%E7%AB%8B%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="toc-number">12.0.4.</span> <span class="toc-text">11.4 无法独立解决问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E5%AE%89%E5%85%A8%E8%80%83%E9%87%8F"><span class="toc-number">13.</span> <span class="toc-text">12. 安全考量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E5%A4%96%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 外部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E5%86%85%E9%83%A8%E6%94%BB%E5%87%BB"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 内部攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E5%AF%86%E7%A0%81%E9%99%8D%E7%BA%A7%E6%94%BB%E5%87%BB%EF%BC%88Bid-Down-Attack%EF%BC%8CRFC-8489-%E6%96%B0%E5%A2%9E%E9%98%B2%E6%8A%A4%EF%BC%89"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 密码降级攻击（Bid-Down Attack，RFC 8489 新增防护）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E9%9A%90%E7%A7%81%E8%80%83%E9%87%8F"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 隐私考量</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B8%B8%E7%94%A8%E5%85%AC%E5%85%B1-STUN-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">14.</span> <span class="toc-text">13. 常用公共 STUN 服务器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#14-%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">14. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">16.</span> <span class="toc-text">参考文献</span></a></li></ol>
       </div>
     
 
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/24/webrtc/06-stun/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/webrtc/06-stun/&text=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/webrtc/06-stun/&is_video=false&description=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透&body=Check out this article: http://example.com/2022/04/24/webrtc/06-stun/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/webrtc/06-stun/&name=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/webrtc/06-stun/&t=STUN（Session Traversal Utilities for NAT） — 获取公网地址，辅助 NAT 穿透"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/24/webrtc/06-stun/&text=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/24/webrtc/06-stun/&is_video=false&description=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透&body=Check out this article: http://example.com/2022/04/24/webrtc/06-stun/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/24/webrtc/06-stun/&title=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/24/webrtc/06-stun/&name=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/24/webrtc/06-stun/&t=STUN（Session Traversal Utilities for NAT） - 获取公网地址，辅助 NAT 穿透"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -823,9 +827,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

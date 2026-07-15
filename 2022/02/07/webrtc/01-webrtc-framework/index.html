@@ -14,7 +14,7 @@
 <meta property="og:description" content="1. 什么是 WebRTCWebRTC（Web Real-Time Communication）是一套面向浏览器与移动端的开放标准，允许应用在无需插件或第三方软件的情况下，在对等节点（Peer）之间直接传输音频、视频与任意数据。 从标准化角度，WebRTC 由两大组织共同推进：  W3C WEBRTC 工作组：负责定义浏览器端 JavaScript API（RTCPeerConnection、Me">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-02-07T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-05-04T09:06:17.925Z">
+<meta property="article:modified_time" content="2026-07-14T01:45:40.950Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -172,17 +174,17 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h1 id="1-什么是-WebRTC"><a href="#1-什么是-WebRTC" class="headerlink" title="1. 什么是 WebRTC"></a>1. 什么是 WebRTC</h1><p>WebRTC（Web Real-Time Communication）是一套面向浏览器与移动端的开放标准，允许应用在<strong>无需插件或第三方软件</strong>的情况下，在对等节点（Peer）之间直接传输音频、视频与任意数据。</p>
+    <h1 id="1-什么是-WebRTC"><a href="#1-什么是-WebRTC" class="headerlink" title="1. 什么是 WebRTC"></a>1. 什么是 WebRTC</h1><p>WebRTC（Web Real-Time Communication）是一套面向浏览器与移动端的开放标准，允许应用在无需插件或第三方软件的情况下，在对等节点（Peer）之间直接传输音频、视频与任意数据。</p>
 <p>从标准化角度，WebRTC 由两大组织共同推进：</p>
 <ul>
-<li><strong>W3C WEBRTC 工作组</strong>：负责定义浏览器端 JavaScript API（<code>RTCPeerConnection</code>、<code>MediaStream</code>、<code>RTCDataChannel</code> 等），最终产出为 <a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/">WebRTC 1.0 W3C Recommendation</a>。</li>
-<li><strong>IETF RTCWEB 工作组</strong>：负责定义底层协议、数据格式、安全机制等，核心规范汇总于 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 — Overview: Real-Time Protocols for Browser-Based Applications</a>（H. Alvestrand，January 2021）。</li>
+<li>W3C WEBRTC 工作组：负责定义浏览器端 JavaScript API（<code>RTCPeerConnection</code>、<code>MediaStream</code>、<code>RTCDataChannel</code> 等），最终产出为 <a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/">WebRTC 1.0 W3C Recommendation</a>。</li>
+<li>IETF RTCWEB 工作组：负责定义底层协议、数据格式、安全机制等，核心规范汇总于 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 - Overview: Real-Time Protocols for Browser-Based Applications</a>（H. Alvestrand，January 2021）。</li>
 </ul>
 <blockquote>
-<p>RFC 8825 本身是一份”适用性声明”（applicability statement）：它不规定任何新协议，而是指明一个合规的 WebRTC 实现必须遵循哪些已有规范。这一设计思路决定了 WebRTC 天然是<strong>协议的组合体</strong>，而非一个单一协议。</p>
+<p>RFC 8825 本身是一份”适用性声明”（applicability statement）：它不规定任何新协议，而是指明一个合规的 WebRTC 实现必须遵循哪些已有规范。这一设计思路决定了 WebRTC 天然是协议的组合体，而非一个单一协议。</p>
 </blockquote>
 <hr>
-<h1 id="2-WebRTC-不是一个协议，而是一套协议栈"><a href="#2-WebRTC-不是一个协议，而是一套协议栈" class="headerlink" title="2. WebRTC 不是一个协议，而是一套协议栈"></a>2. WebRTC 不是一个协议，而是一套协议栈</h1><p>在理解具体模块之前，必须建立一个关键认知：<strong>WebRTC 是由十余个 IETF&#x2F;W3C 规范共同组成的协议套件</strong>。以下是最核心的几份规范：</p>
+<h1 id="2-WebRTC-不是一个协议，而是一套协议栈"><a href="#2-WebRTC-不是一个协议，而是一套协议栈" class="headerlink" title="2. WebRTC 不是一个协议，而是一套协议栈"></a>2. WebRTC 不是一个协议，而是一套协议栈</h1><p>在理解具体模块之前，必须建立一个关键认知：WebRTC 是由十余个 IETF&#x2F;W3C 规范共同组成的协议套件。以下是最核心的几份规范：</p>
 <table>
 <thead>
 <tr>
@@ -258,23 +260,23 @@
 
 <p>整个架构有两个关键分层边界：</p>
 <ol>
-<li><strong>Web App ↔ Web API</strong>：这是应用开发者的工作区域，通过标准 JavaScript API 控制媒体与连接，无需了解底层协议细节。</li>
-<li><strong>Web API ↔ Native C++ API</strong>：这是浏览器厂商（Chrome、Firefox、Safari 等）的实现边界，Native C++ API 为浏览器提供了一个统一的接入点以实现上层 Web API。</li>
+<li>Web App ↔ Web API：这是应用开发者的工作区域，通过标准 JavaScript API 控制媒体与连接，无需了解底层协议细节。</li>
+<li>Web API ↔ Native C++ API：这是浏览器厂商（Chrome、Firefox、Safari 等）的实现边界，Native C++ API 为浏览器提供了一个统一的接入点以实现上层 Web API。</li>
 </ol>
 <hr>
 <h1 id="4-第一层：Web-App"><a href="#4-第一层：Web-App" class="headerlink" title="4. 第一层：Web App"></a>4. 第一层：Web App</h1><p>这是应用开发者直接接触的层面。无论是视频会议应用、在线教育平台还是实时协作工具，开发者通过标准的 JavaScript API 与 WebRTC 交互。</p>
 <p>从 RFC 8827 的角度来看，典型的两方通话系统结构如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+----------------+</span><br><span class="line">|                |</span><br><span class="line">|   Web Server   |  ←── 提供信令通道（WebSocket / HTTP）</span><br><span class="line">|                |</span><br><span class="line">+----------------+</span><br><span class="line">      ^      ^</span><br><span class="line">     /        \</span><br><span class="line">  HTTP        HTTP</span><br><span class="line">   /            \</span><br><span class="line">  v              v</span><br><span class="line">JS API          JS API</span><br><span class="line">+-----------+  +-----------+</span><br><span class="line">|           |  |           |</span><br><span class="line">|  Browser  |  |  Browser  |</span><br><span class="line">|     A     |◄►|     B     |  ←── 直接 P2P 媒体传输</span><br><span class="line">|           |  |           |</span><br><span class="line">+-----------+  +-----------+</span><br></pre></td></tr></table></figure>
 
-<p>Web 服务器在这里仅负责<strong>信令</strong>（Signaling），即协助两端交换 SDP 与 ICE 候选，一旦连接建立，媒体数据便直接在两端之间流动，不再经过服务器。</p>
-<p><strong>重要说明</strong>：WebRTC 标准<strong>不规定信令协议</strong>。开发者可以自由选择 WebSocket、SIP、XMPP、HTTP REST，甚至电子邮件来交换 SDP。这是 WebRTC 设计上的刻意留白，目的是保持灵活性。</p>
+<p>Web 服务器在这里仅负责信令（Signaling），即协助两端交换 SDP 与 ICE 候选，一旦连接建立，媒体数据便直接在两端之间流动，不再经过服务器。</p>
+<p>重要说明：WebRTC 标准不规定信令协议。开发者可以自由选择 WebSocket、SIP、XMPP、HTTP REST，甚至电子邮件来交换 SDP。这是 WebRTC 设计上的刻意留白，目的是保持灵活性。</p>
 <hr>
 <h1 id="5-第二层：Web-API"><a href="#5-第二层：Web-API" class="headerlink" title="5. 第二层：Web API"></a>5. 第二层：Web API</h1><p>W3C 将浏览器侧的 WebRTC 能力抽象为三个核心 JavaScript 接口：</p>
-<h3 id="5-1-MediaStream（媒体流）"><a href="#5-1-MediaStream（媒体流）" class="headerlink" title="5.1 MediaStream（媒体流）"></a>5.1 MediaStream（媒体流）</h3><p><code>MediaStream</code> 由 <strong>W3C Media Capture and Streams</strong> 规范定义，对应 <code>getUserMedia()</code> API，用于从设备获取音视频流。</p>
+<h3 id="5-1-MediaStream（媒体流）"><a href="#5-1-MediaStream（媒体流）" class="headerlink" title="5.1 MediaStream（媒体流）"></a>5.1 MediaStream（媒体流）</h3><p><code>MediaStream</code> 由 W3C Media Capture and Streams 规范定义，对应 <code>getUserMedia()</code> API，用于从设备获取音视频流。</p>
 <p>关键特性：</p>
 <ul>
 <li>一个 <code>MediaStream</code> 对象由一个或多个 <code>MediaStreamTrack</code> 组成（例如一条音频轨、一条视频轨）。</li>
-<li>同一个 <code>MediaStream</code> 中的多条轨道是<strong>时间同步</strong>的。</li>
+<li>同一个 <code>MediaStream</code> 中的多条轨道是时间同步的。</li>
 <li>输入源可以是物理设备（麦克风、摄像头）、屏幕共享，或者来自网络对端的远程流。</li>
 <li>输出可以是本地 <code>&lt;video&gt;</code>&#x2F;<code>&lt;audio&gt;</code> 元素、Canvas 处理，或者通过 <code>RTCPeerConnection</code> 发送给远端。</li>
 </ul>
@@ -291,7 +293,7 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> pc = <span class="keyword">new</span> <span class="title class_">RTCPeerConnection</span>(&#123;</span><br><span class="line">  <span class="attr">iceServers</span>: [</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;stun:stun.example.com:3478&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">urls</span>: <span class="string">&#x27;turn:turn.example.com:3478&#x27;</span>, <span class="attr">username</span>: <span class="string">&#x27;user&#x27;</span>, <span class="attr">credential</span>: <span class="string">&#x27;pass&#x27;</span> &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加本地媒体轨</span></span><br><span class="line">stream.<span class="title function_">getTracks</span>().<span class="title function_">forEach</span>(<span class="function"><span class="params">track</span> =&gt;</span> pc.<span class="title function_">addTrack</span>(track, stream));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建 Offer</span></span><br><span class="line"><span class="keyword">const</span> offer = <span class="keyword">await</span> pc.<span class="title function_">createOffer</span>();</span><br><span class="line"><span class="keyword">await</span> pc.<span class="title function_">setLocalDescription</span>(offer);</span><br><span class="line"><span class="comment">// 通过信令通道将 offer 发送给远端...</span></span><br></pre></td></tr></table></figure>
 
 <p><code>RTCPeerConnection</code> 背后隐藏了 ICE、STUN、TURN、DTLS、SRTP 等所有协议的复杂性。</p>
-<h3 id="5-3-RTCDataChannel（数据通道）"><a href="#5-3-RTCDataChannel（数据通道）" class="headerlink" title="5.3 RTCDataChannel（数据通道）"></a>5.3 RTCDataChannel（数据通道）</h3><p><code>RTCDataChannel</code> 提供了浏览器之间传输<strong>任意二进制或文本数据</strong>的能力，底层基于 SCTP over DTLS over ICE&#x2F;UDP（由 RFC 8831 定义）。</p>
+<h3 id="5-3-RTCDataChannel（数据通道）"><a href="#5-3-RTCDataChannel（数据通道）" class="headerlink" title="5.3 RTCDataChannel（数据通道）"></a>5.3 RTCDataChannel（数据通道）</h3><p><code>RTCDataChannel</code> 提供了浏览器之间传输任意二进制或文本数据的能力，底层基于 SCTP over DTLS over ICE&#x2F;UDP（由 RFC 8831 定义）。</p>
 <p>与媒体流不同，DataChannel 支持：</p>
 <ul>
 <li>可靠（Reliable）或不可靠（Unreliable）传输模式</li>
@@ -300,12 +302,12 @@
 </ul>
 <p>典型使用场景：游戏状态同步、实时聊天、文件传输、白板协作。</p>
 <hr>
-<h1 id="6-第三层：WebRTC-Native-C-API"><a href="#6-第三层：WebRTC-Native-C-API" class="headerlink" title="6. 第三层：WebRTC Native C++ API"></a>6. 第三层：WebRTC Native C++ API</h1><p>这一层是<strong>浏览器厂商实现 WebRTC 的 C++ 接入点</strong>，它将 Web API 的高层语义映射到下层的 VoiceEngine、VideoEngine 和 Transport 模块。</p>
+<h1 id="6-第三层：WebRTC-Native-C-API"><a href="#6-第三层：WebRTC-Native-C-API" class="headerlink" title="6. 第三层：WebRTC Native C++ API"></a>6. 第三层：WebRTC Native C++ API</h1><p>这一层是浏览器厂商实现 WebRTC 的 C++ 接入点，它将 Web API 的高层语义映射到下层的 VoiceEngine、VideoEngine 和 Transport 模块。</p>
 <p>Web 应用开发者通常不需要直接面对这一层，但理解它对于调试性能问题、构建 Native 客户端（Android&#x2F;iOS 原生 SDK）至关重要。</p>
 <hr>
-<h1 id="7-第四层：核心引擎模块"><a href="#7-第四层：核心引擎模块" class="headerlink" title="7. 第四层：核心引擎模块"></a>7. 第四层：核心引擎模块</h1><h3 id="7-1-VoiceEngine（音频引擎）"><a href="#7-1-VoiceEngine（音频引擎）" class="headerlink" title="7.1 VoiceEngine（音频引擎）"></a>7.1 VoiceEngine（音频引擎）</h3><p>VoiceEngine 是<strong>音频媒体链</strong>的完整实现框架，覆盖从声卡采集到网络发送、从网络接收到扬声器播放的全链路。</p>
+<h1 id="7-第四层：核心引擎模块"><a href="#7-第四层：核心引擎模块" class="headerlink" title="7. 第四层：核心引擎模块"></a>7. 第四层：核心引擎模块</h1><h3 id="7-1-VoiceEngine（音频引擎）"><a href="#7-1-VoiceEngine（音频引擎）" class="headerlink" title="7.1 VoiceEngine（音频引擎）"></a>7.1 VoiceEngine（音频引擎）</h3><p>VoiceEngine 是音频媒体链的完整实现框架，覆盖从声卡采集到网络发送、从网络接收到扬声器播放的全链路。</p>
 <h4 id="7-1-1-音频编解码器"><a href="#7-1-1-音频编解码器" class="headerlink" title="7.1.1 音频编解码器"></a>7.1.1 音频编解码器</h4><p>WebRTC 强制要求实现以下编解码器（RFC 7874）：</p>
-<p><strong>Opus</strong>（核心推荐，RFC 6716）</p>
+<p>Opus（核心推荐，RFC 6716）</p>
 <ul>
 <li>采样率：8 kHz 至 48 kHz 自适应</li>
 <li>码率：6 kbps 至 510 kbps 可变</li>
@@ -313,24 +315,24 @@
 <li>同时支持语音（SILK 内核）和音乐（CELT 内核）两种模式，可在通话中无缝切换</li>
 <li>低延迟特性（最低约 5 ms 算法延迟）使其成为 WebRTC 音频的事实标准</li>
 </ul>
-<p><strong>G.711（PCMA&#x2F;PCMU）</strong>（RFC 7478 要求的最低兼容性）</p>
+<p>G.711（PCMA&#x2F;PCMU）（RFC 7478 要求的最低兼容性）</p>
 <ul>
 <li>64 kbps 固定码率</li>
 <li>主要用于与传统 PSTN&#x2F;VoIP 系统互通</li>
 </ul>
-<p><strong>历史遗留（已较少使用）</strong>：</p>
+<p>历史遗留（已较少使用）：</p>
 <ul>
-<li><strong>iSAC</strong>：16&#x2F;32 kHz 采样，12–52 kbps 自适应码率，Google GIPS 时代的宽带编解码器</li>
-<li><strong>iLBC</strong>（RFC 3951&#x2F;3952）：8 kHz 采样，15.2 kbps（20ms 帧）或 13.33 kbps（30ms 帧），窄带语音编解码器</li>
+<li>iSAC：16&#x2F;32 kHz 采样，12-52 kbps 自适应码率，Google GIPS 时代的宽带编解码器</li>
+<li>iLBC（RFC 3951&#x2F;3952）：8 kHz 采样，15.2 kbps（20ms 帧）或 13.33 kbps（30ms 帧），窄带语音编解码器</li>
 </ul>
-<h4 id="7-1-2-NetEQ"><a href="#7-1-2-NetEQ" class="headerlink" title="7.1.2 NetEQ"></a>7.1.2 NetEQ</h4><p>NetEQ 是 VoiceEngine 中的<strong>动态抖动缓冲与错误隐藏算法</strong>，由 Google 开源自 GIPS。</p>
+<h4 id="7-1-2-NetEQ"><a href="#7-1-2-NetEQ" class="headerlink" title="7.1.2 NetEQ"></a>7.1.2 NetEQ</h4><p>NetEQ 是 VoiceEngine 中的动态抖动缓冲与错误隐藏算法，由 Google 开源自 GIPS。</p>
 <p>它的核心职责是：</p>
 <ul>
 <li>通过自适应缓冲平滑网络抖动（Jitter），在保持低延迟的同时维持播放连续性</li>
-<li>在发生丢包时执行<strong>包丢失隐藏（PLC，Packet Loss Concealment）</strong>，通过外推或插值生成替代音频，避免出现明显的卡顿或静音</li>
+<li>在发生丢包时执行包丢失隐藏（PLC，Packet Loss Concealment），通过外推或插值生成替代音频，避免出现明显的卡顿或静音</li>
 </ul>
 <p>NetEQ 持续监测网络抖动统计，动态调整缓冲区深度，在延迟与音质之间寻找最优平衡。</p>
-<h4 id="7-1-3-AEC（声学回声消除，Acoustic-Echo-Cancellation）"><a href="#7-1-3-AEC（声学回声消除，Acoustic-Echo-Cancellation）" class="headerlink" title="7.1.3 AEC（声学回声消除，Acoustic Echo Cancellation）"></a>7.1.3 AEC（声学回声消除，Acoustic Echo Cancellation）</h4><p>AEC 解决的是<strong>扬声器播出的声音被麦克风重新采集</strong>这一问题，即”回声”。</p>
+<h4 id="7-1-3-AEC（声学回声消除，Acoustic-Echo-Cancellation）"><a href="#7-1-3-AEC（声学回声消除，Acoustic-Echo-Cancellation）" class="headerlink" title="7.1.3 AEC（声学回声消除，Acoustic Echo Cancellation）"></a>7.1.3 AEC（声学回声消除，Acoustic Echo Cancellation）</h4><p>AEC 解决的是扬声器播出的声音被麦克风重新采集这一问题，即”回声”。</p>
 <p>工作原理：</p>
 <ol>
 <li>以”远端参考信号”（即扬声器输出）作为参考</li>
@@ -339,26 +341,26 @@
 </ol>
 <p>这一模块在无耳机场景（如手机免提、视频会议大屏）下至关重要。</p>
 <h4 id="7-1-4-NR（噪声抑制，Noise-Reduction）"><a href="#7-1-4-NR（噪声抑制，Noise-Reduction）" class="headerlink" title="7.1.4 NR（噪声抑制，Noise Reduction）"></a>7.1.4 NR（噪声抑制，Noise Reduction）</h4><p>NR 组件基于频谱减法或深度学习等方法，消除背景噪声（风扇声、键盘声、环境杂音等），提升语音清晰度。</p>
-<h3 id="7-2-VideoEngine（视频引擎）"><a href="#7-2-VideoEngine（视频引擎）" class="headerlink" title="7.2 VideoEngine（视频引擎）"></a>7.2 VideoEngine（视频引擎）</h3><p>VideoEngine 是<strong>视频媒体链</strong>的完整实现框架，覆盖从摄像头采集到编码发送、从接收解码到屏幕渲染的全链路。</p>
-<h4 id="7-2-1-视频编解码器"><a href="#7-2-1-视频编解码器" class="headerlink" title="7.2.1 视频编解码器"></a>7.2.1 视频编解码器</h4><p><strong>VP8</strong>（WebM Project，早期默认）</p>
+<h3 id="7-2-VideoEngine（视频引擎）"><a href="#7-2-VideoEngine（视频引擎）" class="headerlink" title="7.2 VideoEngine（视频引擎）"></a>7.2 VideoEngine（视频引擎）</h3><p>VideoEngine 是视频媒体链的完整实现框架，覆盖从摄像头采集到编码发送、从接收解码到屏幕渲染的全链路。</p>
+<h4 id="7-2-1-视频编解码器"><a href="#7-2-1-视频编解码器" class="headerlink" title="7.2.1 视频编解码器"></a>7.2.1 视频编解码器</h4><p>VP8（WebM Project，早期默认）</p>
 <ul>
 <li>由 Google 开源，完全免专利</li>
 <li>专为低延迟 RTC 场景设计</li>
 <li>支持 Temporal Scalability（时间可伸缩性）</li>
 </ul>
-<p><strong>VP9</strong></p>
+<p>VP9</p>
 <ul>
 <li>VP8 的后继者，相同质量下码率降低约 50%</li>
 <li>完全开源免专利</li>
 <li>现代浏览器广泛支持</li>
 </ul>
-<p><strong>H.264（AVC）</strong></p>
+<p>H.264（AVC）</p>
 <ul>
 <li>硬件编解码支持最为成熟（移动端尤为重要）</li>
 <li>专利授权复杂，但已广泛部署</li>
 <li>WebRTC 规范中作为可选项（RFC 7742 规定浏览器可选择支持）</li>
 </ul>
-<p><strong>AV1</strong></p>
+<p>AV1</p>
 <ul>
 <li>新一代开源免费视频编解码器</li>
 <li>压缩率超越 VP9 和 H.265，现代浏览器逐步支持中</li>
@@ -366,10 +368,10 @@
 <h4 id="7-2-2-视频抖动缓冲（Video-Jitter-Buffer）"><a href="#7-2-2-视频抖动缓冲（Video-Jitter-Buffer）" class="headerlink" title="7.2.2 视频抖动缓冲（Video Jitter Buffer）"></a>7.2.2 视频抖动缓冲（Video Jitter Buffer）</h4><p>与音频的 NetEQ 类似，视频抖动缓冲对网络传输的视频包进行重排序和缓存，隐藏网络抖动与丢包对视频质量的负面影响。</p>
 <p>视频抖动缓冲还负责配合 NACK&#x2F;PLI 机制触发重传请求或关键帧请求。</p>
 <h4 id="7-2-3-图像质量增强（Image-Enhancements）"><a href="#7-2-3-图像质量增强（Image-Enhancements）" class="headerlink" title="7.2.3 图像质量增强（Image Enhancements）"></a>7.2.3 图像质量增强（Image Enhancements）</h4><p>包括去噪（Denoising）、亮度&#x2F;对比度自动调整等，通常在采集端完成，以提升编码质量。</p>
-<h3 id="7-3-Transport-Session（传输与会话层）"><a href="#7-3-Transport-Session（传输与会话层）" class="headerlink" title="7.3 Transport &#x2F; Session（传输与会话层）"></a>7.3 Transport &#x2F; Session（传输与会话层）</h3><p>这是 WebRTC 中<strong>协议密度最高</strong>的区域，覆盖连接建立、NAT 穿透、加密和实际数据传输。</p>
-<h4 id="7-3-1-整体协议栈分层"><a href="#7-3-1-整体协议栈分层" class="headerlink" title="7.3.1 整体协议栈分层"></a>7.3.1 整体协议栈分层</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">   应用数据 (音频/视频/DataChannel)</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│         SRTP / SRTCP             │  媒体加密传输（RFC 3711）</span><br><span class="line">│         SCTP over DTLS           │  DataChannel 传输（RFC 8831）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│              DTLS                │  握手与密钥协商（RFC 6347/9147）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│         ICE（含 STUN/TURN）      │  NAT 穿透与候选选择（RFC 8445）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│              UDP                 │  底层传输（必要时降级 TCP）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">             IP 网络</span><br></pre></td></tr></table></figure>
+<h3 id="7-3-Transport-Session（传输与会话层）"><a href="#7-3-Transport-Session（传输与会话层）" class="headerlink" title="7.3 Transport &#x2F; Session（传输与会话层）"></a>7.3 Transport &#x2F; Session（传输与会话层）</h3><p>这是 WebRTC 中协议密度最高的区域，覆盖连接建立、NAT 穿透、加密和实际数据传输。</p>
+<h4 id="7-3-1-整体协议栈分层"><a href="#7-3-1-整体协议栈分层" class="headerlink" title="7.3.1 整体协议栈分层"></a>7.3.1 整体协议栈分层</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">   应用数据 (音频/视频/DataChannel)</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│         SRTP / SRTCP             │  媒体加密传输（RFC 3711）</span><br><span class="line">│         SCTP over DTLS           │  DataChannel 传输（RFC 8831）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│              DTLS                │  握手与密钥协商（RFC 6347/9147）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│         ICE（含 STUN/TURN）       │  NAT 穿透与候选选择（RFC 8445）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">┌──────────────────────────────────┐</span><br><span class="line">│              UDP                 │  底层传输（必要时降级 TCP）</span><br><span class="line">└──────────────────────────────────┘</span><br><span class="line">                │</span><br><span class="line">                ▼</span><br><span class="line">             IP 网络</span><br></pre></td></tr></table></figure>
 
-<h4 id="7-3-2-RTP-Stack"><a href="#7-3-2-RTP-Stack" class="headerlink" title="7.3.2 RTP Stack"></a>7.3.2 RTP Stack</h4><p>RTP（实时传输协议，RFC 3550）是<strong>媒体数据在网络上传输的核心载体</strong>：</p>
+<h4 id="7-3-2-RTP-Stack"><a href="#7-3-2-RTP-Stack" class="headerlink" title="7.3.2 RTP Stack"></a>7.3.2 RTP Stack</h4><p>RTP（实时传输协议，RFC 3550）是媒体数据在网络上传输的核心载体：</p>
 <ul>
 <li>每个 RTP 数据包携带：序列号（Sequence Number）、时间戳（Timestamp）、同步源标识符（SSRC）、媒体负载（Payload）</li>
 <li>配套的 RTCP（RTP Control Protocol）负责传输质量反馈（接收方报告 RR、发送方报告 SR、丢包率、抖动统计等）</li>
@@ -377,11 +379,11 @@
 </ul>
 <p>WebRTC 在 RTP 之上还扩展了多个重要机制：</p>
 <ul>
-<li><strong>BUNDLE</strong>（RFC 9143）：将音频、视频、DataChannel 复用在同一个 UDP 五元组上，减少 ICE 候选对数量</li>
-<li><strong>RTP Header Extensions</strong>：携带额外元数据，如绝对发送时间（abs-send-time）、传输序号（transport-wide-cc）等</li>
-<li><strong>RTCP Feedback</strong>：NACK（重传请求）、PLI（图片丢失指示，触发关键帧）、REMB&#x2F;Transport-CC（带宽估计反馈）</li>
+<li>BUNDLE（RFC 9143）：将音频、视频、DataChannel 复用在同一个 UDP 五元组上，减少 ICE 候选对数量</li>
+<li>RTP Header Extensions：携带额外元数据，如绝对发送时间（abs-send-time）、传输序号（transport-wide-cc）等</li>
+<li>RTCP Feedback：NACK（重传请求）、PLI（图片丢失指示，触发关键帧）、REMB&#x2F;Transport-CC（带宽估计反馈）</li>
 </ul>
-<h4 id="7-3-3-ICE-STUN-TURN"><a href="#7-3-3-ICE-STUN-TURN" class="headerlink" title="7.3.3 ICE &#x2F; STUN &#x2F; TURN"></a>7.3.3 ICE &#x2F; STUN &#x2F; TURN</h4><p>ICE（Interactive Connectivity Establishment，RFC 8445）是 WebRTC <strong>解决 NAT 穿透</strong>的核心框架：</p>
+<h4 id="7-3-3-ICE-STUN-TURN"><a href="#7-3-3-ICE-STUN-TURN" class="headerlink" title="7.3.3 ICE &#x2F; STUN &#x2F; TURN"></a>7.3.3 ICE &#x2F; STUN &#x2F; TURN</h4><p>ICE（Interactive Connectivity Establishment，RFC 8445）是 WebRTC 解决 NAT 穿透的核心框架：</p>
 <ul>
 <li>每个端点收集本地候选（host）、服务器反射候选（srflx，通过 STUN 获取）和中继候选（relay，通过 TURN 获取）</li>
 <li>双端通过信令交换候选列表</li>
@@ -390,31 +392,31 @@
 </ul>
 <p>STUN（Session Traversal Utilities for NAT，RFC 5389）：轻量级协议，用于获取 NAT 映射的公网地址。</p>
 <p>TURN（Traversal Using Relays around NAT，RFC 5766）：当直连失败（如对称型 NAT 或严格防火墙）时，通过 TURN 服务器中继媒体数据。</p>
-<h4 id="7-3-4-Session-Management（JSEP）"><a href="#7-3-4-Session-Management（JSEP）" class="headerlink" title="7.3.4 Session Management（JSEP）"></a>7.3.4 Session Management（JSEP）</h4><p>会话管理由 <strong>JSEP（JavaScript Session Establishment Protocol，RFC 8829）</strong> 定义，它规定了 WebRTC 中 SDP Offer&#x2F;Answer 的交互模型：</p>
+<h4 id="7-3-4-Session-Management（JSEP）"><a href="#7-3-4-Session-Management（JSEP）" class="headerlink" title="7.3.4 Session Management（JSEP）"></a>7.3.4 Session Management（JSEP）</h4><p>会话管理由 JSEP（JavaScript Session Establishment Protocol，RFC 8829） 定义，它规定了 WebRTC 中 SDP Offer&#x2F;Answer 的交互模型：</p>
 <ul>
 <li>Caller 调用 <code>createOffer()</code> 生成描述本端能力的 SDP</li>
 <li>SDP 通过信令通道传输给 Callee</li>
 <li>Callee 调用 <code>createAnswer()</code> 回复本端能力</li>
 <li>双端分别 <code>setLocalDescription</code> &#x2F; <code>setRemoteDescription</code> 完成协商</li>
 </ul>
-<p>JSEP 刻意将<strong>会话协商</strong>（SDP 交换）与<strong>信令传输</strong>（WebSocket 等）解耦，应用开发者可以自由选择信令机制。</p>
-<h4 id="7-3-5-DTLS-与-SRTP"><a href="#7-3-5-DTLS-与-SRTP" class="headerlink" title="7.3.5 DTLS 与 SRTP"></a>7.3.5 DTLS 与 SRTP</h4><p>WebRTC <strong>强制要求</strong>所有媒体传输必须加密（RFC 8827）：</p>
+<p>JSEP 刻意将会话协商（SDP 交换）与信令传输（WebSocket 等）解耦，应用开发者可以自由选择信令机制。</p>
+<h4 id="7-3-5-DTLS-与-SRTP"><a href="#7-3-5-DTLS-与-SRTP" class="headerlink" title="7.3.5 DTLS 与 SRTP"></a>7.3.5 DTLS 与 SRTP</h4><p>WebRTC 强制要求所有媒体传输必须加密（RFC 8827）：</p>
 <ul>
-<li><strong>DTLS（Datagram TLS，RFC 6347 &#x2F; RFC 9147）</strong>：在 UDP 之上运行的 TLS 变体，用于握手并协商 SRTP 密钥。WebRTC 使用自签名证书（non-PKI），证书指纹通过 SDP 交换并绑定到信令通道，防止中间人攻击。</li>
-<li><strong>SRTP（Secure RTP，RFC 3711）</strong>：在 RTP 基础上添加对称加密（默认 AES-128-CM）和消息认证（HMAC-SHA1），密钥由 DTLS 握手协商产生（DTLS-SRTP，RFC 5764）。</li>
+<li>DTLS（Datagram TLS，RFC 6347 &#x2F; RFC 9147）：在 UDP 之上运行的 TLS 变体，用于握手并协商 SRTP 密钥。WebRTC 使用自签名证书（non-PKI），证书指纹通过 SDP 交换并绑定到信令通道，防止中间人攻击。</li>
+<li>SRTP（Secure RTP，RFC 3711）：在 RTP 基础上添加对称加密（默认 AES-128-CM）和消息认证（HMAC-SHA1），密钥由 DTLS 握手协商产生（DTLS-SRTP，RFC 5764）。</li>
 </ul>
 <hr>
 <h1 id="8-数据流：一帧视频的完整旅程"><a href="#8-数据流：一帧视频的完整旅程" class="headerlink" title="8. 数据流：一帧视频的完整旅程"></a>8. 数据流：一帧视频的完整旅程</h1><p>以一帧视频从发送端到接收端为例，梳理各模块的协作：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">[摄像头采集]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[VideoEngine: 图像增强、分辨率调整]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[视频编码器: VP8/VP9/H.264 压缩]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[RTP 打包: 添加序列号、时间戳、SSRC]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[SRTP 加密: AES 加密 + HMAC 认证]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[ICE/UDP 发送: 经 NAT 映射的网络路径]</span><br><span class="line">     │</span><br><span class="line">     ║  ← 网络传输（可能经 TURN 中继）</span><br><span class="line">     ▼</span><br><span class="line">[ICE/UDP 接收]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[SRTP 解密与认证]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[RTP 解包: 提取序列号、时间戳]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[Video Jitter Buffer: 排序、抖动平滑、丢包处理]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[视频解码器: 还原压缩帧]</span><br><span class="line">     │</span><br><span class="line">     ▼</span><br><span class="line">[渲染输出到 &lt;video&gt; 元素]</span><br></pre></td></tr></table></figure>
 
-<p>RTCP 在这一过程中作为<strong>旁路控制信道</strong>持续工作：接收端定期发送 RTCP RR（接收方报告），反馈丢包率与抖动统计；发送端根据这些反馈以及 Transport-CC 估算可用带宽，驱动拥塞控制算法（GCC）调整编码码率。</p>
+<p>RTCP 在这一过程中作为旁路控制信道持续工作：接收端定期发送 RTCP RR（接收方报告），反馈丢包率与抖动统计；发送端根据这些反馈以及 Transport-CC 估算可用带宽，驱动拥塞控制算法（GCC）调整编码码率。</p>
 <hr>
 <h1 id="9-WebRTC-架构设计哲学"><a href="#9-WebRTC-架构设计哲学" class="headerlink" title="9. WebRTC 架构设计哲学"></a>9. WebRTC 架构设计哲学</h1><p>理解了各层模块后，可以提炼出 WebRTC 架构的几个核心设计原则：</p>
-<p><strong>9.1 安全优先（Security by Default）</strong><br>RFC 8827 明确要求：WebRTC 中的媒体传输必须加密，不存在”可选加密”。DTLS 握手与 SRTP 加密是强制的，不可绕过。</p>
-<p><strong>9.2 NAT 友好（NAT Traversal First-Class）</strong><br>ICE&#x2F;STUN&#x2F;TURN 是架构的一等公民。RFC 8825 将 NAT 穿透视为互联网现实的组成部分，而非例外情况。</p>
-<p><strong>9.3 信令解耦（Signaling Agnostic）</strong><br>WebRTC 不规定信令协议，这是有意为之。它使 WebRTC 能够与现有的 SIP、XMPP 基础设施集成，同时又不被绑定在任何特定协议上。</p>
-<p><strong>9.4 浏览器内嵌（Browser-Native）</strong><br>所有处理——音视频采集、编解码、网络传输、加密，均在浏览器内完成，应用开发者通过简洁的 JavaScript API 控制，无需关心底层细节。</p>
-<p><strong>9.5 UDP 优先（UDP First）</strong><br>WebRTC 以 UDP 为基础传输层，以满足实时通信对低延迟的要求。在 UDP 被阻断时，ICE 可降级为 TCP（RFC 8835 允许 TCP 作为候选传输方式），TURN over TLS&#x2F;TCP 作为最后的保底方案。</p>
+<p>9.1 安全优先（Security by Default）<br>RFC 8827 明确要求：WebRTC 中的媒体传输必须加密，不存在”可选加密”。DTLS 握手与 SRTP 加密是强制的，不可绕过。</p>
+<p>9.2 NAT 友好（NAT Traversal First-Class）<br>ICE&#x2F;STUN&#x2F;TURN 是架构的一等公民。RFC 8825 将 NAT 穿透视为互联网现实的组成部分，而非例外情况。</p>
+<p>9.3 信令解耦（Signaling Agnostic）<br>WebRTC 不规定信令协议，这是有意为之。它使 WebRTC 能够与现有的 SIP、XMPP 基础设施集成，同时又不被绑定在任何特定协议上。</p>
+<p>9.4 浏览器内嵌（Browser-Native）<br>所有处理，音视频采集、编解码、网络传输、加密，均在浏览器内完成，应用开发者通过简洁的 JavaScript API 控制，无需关心底层细节。</p>
+<p>9.5 UDP 优先（UDP First）<br>WebRTC 以 UDP 为基础传输层，以满足实时通信对低延迟的要求。在 UDP 被阻断时，ICE 可降级为 TCP（RFC 8835 允许 TCP 作为候选传输方式），TURN over TLS&#x2F;TCP 作为最后的保底方案。</p>
 <hr>
 <h1 id="10-关键-RFC"><a href="#10-关键-RFC" class="headerlink" title="10. 关键 RFC"></a>10. 关键 RFC</h1><table>
 <thead>
@@ -526,23 +528,23 @@
 </tr>
 </tbody></table>
 <hr>
-<h1 id="11-小结"><a href="#11-小结" class="headerlink" title="11. 小结"></a>11. 小结</h1><p>WebRTC 的整体架构可以用一句话概括：<strong>通过精心设计的分层体系，将十余个 IETF&#x2F;W3C 规范组合成一套能在浏览器中直接运行的实时通信平台</strong>。</p>
+<h1 id="11-小结"><a href="#11-小结" class="headerlink" title="11. 小结"></a>11. 小结</h1><p>WebRTC 的整体架构可以用一句话概括：通过精心设计的分层体系，将十余个 IETF&#x2F;W3C 规范组合成一套能在浏览器中直接运行的实时通信平台。</p>
 <p>从开发者视角，WebRTC 提供了三个简洁的 JavaScript API（<code>MediaStream</code>、<code>RTCPeerConnection</code>、<code>RTCDataChannel</code>），屏蔽了 ICE、DTLS、SRTP、RTP、NetEQ 等大量底层复杂性。</p>
 <p>从架构视角，每一层都有其精确的职责划分：</p>
 <ul>
-<li><strong>VoiceEngine</strong>：从采集到发送的音频全链路处理</li>
-<li><strong>VideoEngine</strong>：从采集到发送的视频全链路处理</li>
-<li><strong>Transport&#x2F;Session</strong>：NAT 穿透（ICE）、加密（DTLS&#x2F;SRTP）、媒体传输（RTP&#x2F;RTCP）、数据传输（SCTP）</li>
+<li>VoiceEngine：从采集到发送的音频全链路处理</li>
+<li>VideoEngine：从采集到发送的视频全链路处理</li>
+<li>Transport&#x2F;Session：NAT 穿透（ICE）、加密（DTLS&#x2F;SRTP）、媒体传输（RTP&#x2F;RTCP）、数据传输（SCTP）</li>
 </ul>
 <hr>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
-<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 — Overview: Real-Time Protocols for Browser-Based Applications</a>（H. Alvestrand, IETF, January 2021）</li>
-<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8827">RFC 8827 — WebRTC Security Architecture</a>（E. Rescorla, IETF, January 2021）</li>
-<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8829">RFC 8829 — JavaScript Session Establishment Protocol (JSEP)</a>（J. Uberti et al., IETF, January 2021）</li>
-<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8835">RFC 8835 — Transports for WebRTC</a>（H. Alvestrand, IETF, January 2021）</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 - Overview: Real-Time Protocols for Browser-Based Applications</a>（H. Alvestrand, IETF, January 2021）</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8827">RFC 8827 - WebRTC Security Architecture</a>（E. Rescorla, IETF, January 2021）</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8829">RFC 8829 - JavaScript Session Establishment Protocol (JSEP)</a>（J. Uberti et al., IETF, January 2021）</li>
+<li><a target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8835">RFC 8835 - Transports for WebRTC</a>（H. Alvestrand, IETF, January 2021）</li>
 <li><a target="_blank" rel="noopener" href="https://www.w3.org/TR/webrtc/">WebRTC 1.0: Real-Time Communication Between Browsers</a>（W3C Recommendation, January 2021）</li>
-<li><a target="_blank" rel="noopener" href="https://webrtc.github.io/webrtc-org/architecture/">WebRTC Architecture — webrtc.github.io</a>（Official WebRTC Project）</li>
-<li><a target="_blank" rel="noopener" href="https://www.w3.org/TR/mediacapture-streams/">Media Capture and Streams — W3C</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtc.github.io/webrtc-org/architecture/">WebRTC Architecture - webrtc.github.io</a>（Official WebRTC Project）</li>
+<li><a target="_blank" rel="noopener" href="https://www.w3.org/TR/mediacapture-streams/">Media Capture and Streams - W3C</a></li>
 <li>Grigorik, I., <em>High Performance Browser Networking</em>, Chapter 18: WebRTC（O’Reilly）</li>
 <li><a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/">WebRTC for the Curious</a></li>
 </ul>
@@ -566,9 +568,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -628,9 +632,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

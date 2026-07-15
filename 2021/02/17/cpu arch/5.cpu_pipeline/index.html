@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="现代处理器的速度核心，在于并行执行多条指令的能力，而这一切的基础是流水线（Pipelining） 技术。即便问世数十年，它依然是当代 CPU 高性能的核心，支撑着最先进的架构。  一、用最简单的方式理解 CPU 流水线想象你在汉堡店做 3 个汉堡，每个都要经过 3 步：  煎肉饼（1 分钟） 组装汉堡（1 分钟） 包装（1 分钟）  无流水线：一个人全包一个工人从头到尾做完一个再做下一个：  第">
+    <meta name="description" content="现代处理器之所以快，关键在于能并行执行多条指令，而这一切的基础是流水线（Pipelining）技术。流水线问世数十年，至今仍是 CPU 高性能的核心。  一、用最简单的方式理解 CPU 流水线想象你在汉堡店做 3 个汉堡，每个都要经过 3 步：  煎肉饼（1 分钟） 组装汉堡（1 分钟） 包装（1 分钟）  无流水线：一个人全包一个工人从头到尾做完一个再做下一个：  第 1–3 分钟：汉堡 1 第">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CPU 流水线：现代处理器如何加速指令执行">
 <meta property="og:url" content="http://example.com/2021/02/17/cpu%20arch/5.cpu_pipeline/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
-<meta property="og:description" content="现代处理器的速度核心，在于并行执行多条指令的能力，而这一切的基础是流水线（Pipelining） 技术。即便问世数十年，它依然是当代 CPU 高性能的核心，支撑着最先进的架构。  一、用最简单的方式理解 CPU 流水线想象你在汉堡店做 3 个汉堡，每个都要经过 3 步：  煎肉饼（1 分钟） 组装汉堡（1 分钟） 包装（1 分钟）  无流水线：一个人全包一个工人从头到尾做完一个再做下一个：  第">
+<meta property="og:description" content="现代处理器之所以快，关键在于能并行执行多条指令，而这一切的基础是流水线（Pipelining）技术。流水线问世数十年，至今仍是 CPU 高性能的核心。  一、用最简单的方式理解 CPU 流水线想象你在汉堡店做 3 个汉堡，每个都要经过 3 步：  煎肉饼（1 分钟） 组装汉堡（1 分钟） 包装（1 分钟）  无流水线：一个人全包一个工人从头到尾做完一个再做下一个：  第 1–3 分钟：汉堡 1 第">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-17T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-20T22:14:24.149Z">
+<meta property="article:modified_time" content="2026-07-13T09:39:54.353Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="CPU Arch">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -172,7 +174,7 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <p>现代处理器的速度核心，在于<strong>并行执行多条指令</strong>的能力，而这一切的基础是<strong>流水线（Pipelining）</strong> 技术。即便问世数十年，它依然是当代 CPU 高性能的核心，支撑着最先进的架构。</p>
+    <p>现代处理器之所以快，关键在于能并行执行多条指令，而这一切的基础是流水线（Pipelining）技术。流水线问世数十年，至今仍是 CPU 高性能的核心。</p>
 <hr>
 <h1 id="一、用最简单的方式理解-CPU-流水线"><a href="#一、用最简单的方式理解-CPU-流水线" class="headerlink" title="一、用最简单的方式理解 CPU 流水线"></a>一、用最简单的方式理解 CPU 流水线</h1><p>想象你在汉堡店做 3 个汉堡，每个都要经过 3 步：</p>
 <ol>
@@ -186,7 +188,7 @@
 <li>第 4–6 分钟：汉堡 2</li>
 <li>第 7–9 分钟：汉堡 3</li>
 </ul>
-<p><strong>总耗时：9 分钟</strong></p>
+<p>总耗时：9 分钟</p>
 <p>同一时间只做一个汉堡，无重叠，效率极低。</p>
 <h3 id="有流水线（装配线）：专人专岗"><a href="#有流水线（装配线）：专人专岗" class="headerlink" title="有流水线（装配线）：专人专岗"></a>有流水线（装配线）：专人专岗</h3><p>3 个工人，每人只做自己的步骤：</p>
 <ul>
@@ -196,8 +198,8 @@
 <li>第 4 分钟：工人 2 组装汉堡 3，工人 3 包装汉堡 2</li>
 <li>第 5 分钟：工人 3 包装汉堡 3</li>
 </ul>
-<p><strong>总耗时：5 分钟</strong></p>
-<p>流水线填满后（第 3 分钟起），<strong>每分钟完成 1 个汉堡</strong>。</p>
+<p>总耗时：5 分钟</p>
+<p>流水线填满后（第 3 分钟起），每分钟完成 1 个汉堡。</p>
 <h3 id="对应到-CPU"><a href="#对应到-CPU" class="headerlink" title="对应到 CPU"></a>对应到 CPU</h3><table>
 <thead>
 <tr>
@@ -227,14 +229,14 @@
 </tr>
 </tbody></table>
 <hr>
-<h1 id="二、CPU-流水线：阶段与专用单元"><a href="#二、CPU-流水线：阶段与专用单元" class="headerlink" title="二、CPU 流水线：阶段与专用单元"></a>二、CPU 流水线：阶段与专用单元</h1><p>CPU 流水线就像装配线，每条指令依次经过一系列<strong>阶段（Stage）</strong>，每个阶段由专属硬件处理。</p>
-<p><strong>典型 5 级流水线：</strong></p>
+<h1 id="二、CPU-流水线：阶段与专用单元"><a href="#二、CPU-流水线：阶段与专用单元" class="headerlink" title="二、CPU 流水线：阶段与专用单元"></a>二、CPU 流水线：阶段与专用单元</h1><p>CPU 流水线就像装配线，每条指令依次经过一系列阶段（Stage），每个阶段由专属硬件处理。</p>
+<p>典型 5 级流水线：</p>
 <ol>
-<li><strong>取指（IF）</strong>：从内存取出指令</li>
-<li><strong>译码（ID）</strong>：解析指令、读寄存器</li>
-<li><strong>执行（EX）</strong>：ALU 运算</li>
-<li><strong>访存（MEM）</strong>：读写内存</li>
-<li><strong>写回（WB）</strong>：结果写回寄存器</li>
+<li>取指（IF）：从内存取出指令</li>
+<li>译码（ID）：解析指令、读寄存器</li>
+<li>执行（EX）：ALU 运算</li>
+<li>访存（MEM）：读写内存</li>
+<li>写回（WB）：结果写回寄存器</li>
 </ol>
 <h3 id="指令流水线示例"><a href="#指令流水线示例" class="headerlink" title="指令流水线示例"></a>指令流水线示例</h3><p>3 条简单指令：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">I1: R1 = MEM[0x1000]  ; 从内存加载到 R1</span><br><span class="line">I2: R2 = MEM[0x1004]  ; 从内存加载到 R2</span><br><span class="line">I3: R3 = R1 + R2      ; R1 + R2 → R3</span><br></pre></td></tr></table></figure>
@@ -310,8 +312,8 @@
 </tbody></table>
 <hr>
 <h1 id="三、CPU-流水线的三大瓶颈"><a href="#三、CPU-流水线的三大瓶颈" class="headerlink" title="三、CPU 流水线的三大瓶颈"></a>三、CPU 流水线的三大瓶颈</h1><p>流水线虽快，但会遇到三类冲突（Hazard），导致停顿。</p>
-<h3 id="1-数据冲突（Data-Hazards）"><a href="#1-数据冲突（Data-Hazards）" class="headerlink" title="1. 数据冲突（Data Hazards）"></a>1. 数据冲突（Data Hazards）</h3><p>后一条指令需要前一条指令还没算出的结果。例：I3 依赖 I1、I2 的加载结果，必须<strong>停顿</strong>。</p>
-<p><strong>解决办法：</strong></p>
+<h3 id="1-数据冲突（Data-Hazards）"><a href="#1-数据冲突（Data-Hazards）" class="headerlink" title="1. 数据冲突（Data Hazards）"></a>1. 数据冲突（Data Hazards）</h3><p>后一条指令需要前一条指令还没算出的结果。例：I3 依赖 I1、I2 的加载结果，必须停顿。</p>
+<p>解决办法：</p>
 <ul>
 <li>流水线停顿（Stall）</li>
 <li>数据转发（Forwarding）：阶段间直接传递结果</li>
@@ -319,22 +321,22 @@
 <li>乱序执行（Out-of-order）</li>
 <li>寄存器重命名</li>
 </ul>
-<h3 id="2-控制冲突（Control-Hazards-分支冲突）"><a href="#2-控制冲突（Control-Hazards-分支冲突）" class="headerlink" title="2. 控制冲突（Control Hazards &#x2F; 分支冲突）"></a>2. 控制冲突（Control Hazards &#x2F; 分支冲突）</h3><p>遇到 if&#x2F;else、循环等分支时，CPU 不知道下一步该走哪条路，只能<strong>猜测</strong>。猜错就要清空流水线，造成<strong>分支惩罚（Branch Penalty）</strong>。</p>
-<p><strong>解决办法：</strong></p>
+<h3 id="2-控制冲突（Control-Hazards-分支冲突）"><a href="#2-控制冲突（Control-Hazards-分支冲突）" class="headerlink" title="2. 控制冲突（Control Hazards &#x2F; 分支冲突）"></a>2. 控制冲突（Control Hazards &#x2F; 分支冲突）</h3><p>遇到 if&#x2F;else、循环等分支时，CPU 不知道下一步该走哪条路，只能猜测。猜错就要清空流水线，造成分支惩罚（Branch Penalty）。</p>
+<p>解决办法：</p>
 <ul>
 <li>分支预测（Branch Prediction）</li>
 <li>推测执行（Speculative Execution）</li>
 <li>延迟分支（Delayed Branch）</li>
 </ul>
 <h3 id="3-结构冲突（Structural-Hazards）"><a href="#3-结构冲突（Structural-Hazards）" class="headerlink" title="3. 结构冲突（Structural Hazards）"></a>3. 结构冲突（Structural Hazards）</h3><p>多条指令同时需要同一个硬件资源（如同一个 ALU），导致资源竞争。</p>
-<p><strong>解决办法：</strong></p>
+<p>解决办法：</p>
 <ul>
 <li>增加硬件副本（多 ALU、多 load 单元）</li>
 <li>资源调度优化</li>
 </ul>
 <hr>
-<h1 id="四、流水线停顿（气泡）"><a href="#四、流水线停顿（气泡）" class="headerlink" title="四、流水线停顿（气泡）"></a>四、流水线停顿（气泡）</h1><p>为解决冲突，CPU 会插入空周期，没有指令完成，称为<strong>气泡（Bubble）</strong>。例如 I3 必须等待 I1、I2 写回，译码阶段停顿。</p>
-<p><strong>解决办法：</strong></p>
+<h1 id="四、流水线停顿（气泡）"><a href="#四、流水线停顿（气泡）" class="headerlink" title="四、流水线停顿（气泡）"></a>四、流水线停顿（气泡）</h1><p>为解决冲突，CPU 会插入空周期，没有指令完成，称为气泡（Bubble）。例如 I3 必须等待 I1、I2 写回，译码阶段停顿。</p>
+<p>解决办法：</p>
 <ul>
 <li>冲突检测单元</li>
 <li>乱序执行</li>
@@ -342,9 +344,9 @@
 </ul>
 <hr>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
-<li><strong>流水线 &#x3D; 指令装配线</strong>，让不同指令的不同阶段重叠执行。</li>
-<li>填满后<strong>每个时钟周期完成一条指令</strong>，吞吐量大幅提升。</li>
-<li>三大冲突：<strong>数据冲突、控制冲突、结构冲突</strong>，现代 CPU 用预测、转发、乱序等技术持续优化。</li>
+<li>流水线就是指令装配线，让不同指令的不同阶段重叠执行。</li>
+<li>填满后每个时钟周期完成一条指令，吞吐量大幅提升。</li>
+<li>三大冲突：数据冲突、控制冲突、结构冲突，现代 CPU 用预测、转发、乱序等技术持续优化。</li>
 </ul>
 
   </div>
@@ -365,9 +367,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -427,9 +431,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

@@ -14,7 +14,7 @@
 <meta property="og:description" content="1. 为什么需要讨论部署架构WebRTC 原生是为点对点（P2P）通信设计的：两个浏览器通过 ICE&#x2F;DTLS&#x2F;SRTP 直接交换媒体，不需要任何媒体服务器介入。 这在 1 对 1 通话场景中工作得很好，但当参与者增多时，问题立刻暴露出来。每个参与者需要同时向其他所有人发送和接收媒体流，上行带宽与 CPU 随参与者数量爆炸式增长。 为了解决这个扩展性问题，工程实践中形成了三种主">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-02-27T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-30T07:22:26.005Z">
+<meta property="article:modified_time" content="2026-07-13T12:29:46.161Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -172,22 +174,22 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <h1 id="1-为什么需要讨论部署架构"><a href="#1-为什么需要讨论部署架构" class="headerlink" title="1. 为什么需要讨论部署架构"></a>1. 为什么需要讨论部署架构</h1><p>WebRTC 原生是为<strong>点对点（P2P）通信</strong>设计的：两个浏览器通过 ICE&#x2F;DTLS&#x2F;SRTP 直接交换媒体，不需要任何媒体服务器介入。</p>
+    <h1 id="1-为什么需要讨论部署架构"><a href="#1-为什么需要讨论部署架构" class="headerlink" title="1. 为什么需要讨论部署架构"></a>1. 为什么需要讨论部署架构</h1><p>WebRTC 原生是为点对点（P2P）通信设计的：两个浏览器通过 ICE&#x2F;DTLS&#x2F;SRTP 直接交换媒体，不需要任何媒体服务器介入。</p>
 <p>这在 1 对 1 通话场景中工作得很好，但当参与者增多时，问题立刻暴露出来。每个参与者需要同时向其他所有人发送和接收媒体流，上行带宽与 CPU 随参与者数量爆炸式增长。</p>
 <p>为了解决这个扩展性问题，工程实践中形成了三种主流的媒体拓扑：</p>
 <ul>
-<li><strong>P2P（Peer-to-Peer，端到端）&#x2F; Mesh（网状）</strong>：所有参与者直接两两相连</li>
-<li><strong>SFU（Selective Forwarding Unit，选择性转发单元）</strong>：媒体服务器只路由，不处理</li>
-<li><strong>MCU（Multipoint Control Unit，多点控制单元）</strong>：媒体服务器解码、混合、重新编码</li>
+<li>P2P（Peer-to-Peer，端到端）&#x2F; Mesh（网状）：所有参与者直接两两相连</li>
+<li>SFU（Selective Forwarding Unit，选择性转发单元）：媒体服务器只路由，不处理</li>
+<li>MCU（Multipoint Control Unit，多点控制单元）：媒体服务器解码、混合、重新编码</li>
 </ul>
 <hr>
 <h1 id="2-P2P-Mesh-架构"><a href="#2-P2P-Mesh-架构" class="headerlink" title="2. P2P &#x2F; Mesh 架构"></a>2. P2P &#x2F; Mesh 架构</h1><h3 id="2-1-工作原理"><a href="#2-1-工作原理" class="headerlink" title="2.1 工作原理"></a>2.1 工作原理</h3><p>在纯 P2P 架构中，每个参与者与其他所有参与者建立直接的 <code>RTCPeerConnection</code>。对于 N 个参与者的会话，连接数为：</p>
 <p>$$\text{连接总数} &#x3D; \frac{N \times (N-1)}{2}$$</p>
 <p>每个参与者需要：</p>
 <ul>
-<li><strong>上行</strong>：向其他 N-1 个参与者各发送一路流</li>
-<li><strong>下行</strong>：从其他 N-1 个参与者各接收一路流</li>
-<li><strong>CPU</strong>：对本地流进行 N-1 次编码（或至少维护 N-1 条发送通道）</li>
+<li>上行：向其他 N-1 个参与者各发送一路流</li>
+<li>下行：从其他 N-1 个参与者各接收一路流</li>
+<li>CPU：对本地流进行 N-1 次编码（或至少维护 N-1 条发送通道）</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">  P2P / Mesh 拓扑（4人会议示例）</span><br><span class="line"></span><br><span class="line">  [A] ─────────────── [B]</span><br><span class="line">   │ ╲               ╱ │</span><br><span class="line">   │   ╲           ╱   │</span><br><span class="line">   │     ╲       ╱     │</span><br><span class="line">   │       ╲   ╱       │</span><br><span class="line">   │         ╳         │</span><br><span class="line">   │       ╱   ╲       │</span><br><span class="line">   │     ╱       ╲     │</span><br><span class="line">   │   ╱           ╲   │</span><br><span class="line">   │ ╱               ╲ │</span><br><span class="line">  [C] ─────────────── [D]</span><br><span class="line"></span><br><span class="line">每条线 = 1 个 RTCPeerConnection（双向媒体）</span><br><span class="line">4 人 → 6 条连接</span><br><span class="line">5 人 → 10 条连接</span><br><span class="line">N 人 → N*(N-1)/2 条连接</span><br></pre></td></tr></table></figure>
 
@@ -238,24 +240,24 @@
 <td align="center">~14.7 Mbps</td>
 </tr>
 </tbody></table>
-<p>可以看到，P2P 的上行带宽需求与 N 线性增长，而普通家庭宽带的上行通常只有 5–20 Mbps，4 人以上就已捉襟见肘。</p>
-<h3 id="2-3-核心优势"><a href="#2-3-核心优势" class="headerlink" title="2.3 核心优势"></a>2.3 核心优势</h3><p><strong>天然端到端加密（E2EE）</strong>：由于媒体直接在两端之间流动，DTLS-SRTP 的加密完全由两端控制，不存在任何第三方解密节点。这是 P2P 架构在安全性上无可替代的优势。</p>
-<p><strong>基础设施成本几乎为零</strong>：不需要任何媒体服务器，唯一可能需要的是 TURN 服务器（当直连无法建立时作为中继）。信令服务器的开销也极小。</p>
-<p><strong>最低延迟</strong>：媒体沿最短路径传输，端到端延迟通常在 50–100 ms 级别，是三种架构中延迟最低的。</p>
-<p><strong>实现简单</strong>：基本的 WebRTC API 即可完成，无需部署额外的媒体服务器组件。</p>
-<h3 id="2-4-核心缺点"><a href="#2-4-核心缺点" class="headerlink" title="2.4 核心缺点"></a>2.4 核心缺点</h3><p><strong>上行带宽瓶颈</strong>：上行带宽是 P2P 最严重的限制。由于互联网的不对称性（下行 &gt;&gt; 上行），即使在带宽充足的场景下，多人同时发送多路高清流也很快会耗尽上行容量。</p>
-<p><strong>客户端 CPU 压力</strong>：浏览器需要对本地流进行 N-1 路并行编码。随着参与者增多，CPU 占用急剧上升，在移动设备和低配置电脑上尤为明显。</p>
-<p><strong>不可扩展</strong>：连接数以 O(N²) 速度增长，无论是对客户端还是网络，实际可用上限通常在 <strong>4–6 人</strong>。</p>
-<p><strong>信令复杂度线性增加</strong>：加入或退出一个参与者，需要在其与所有现有参与者之间重新进行 ICE 协商，信令开销随 N 线性增长。</p>
+<p>可以看到，P2P 的上行带宽需求与 N 线性增长，而普通家庭宽带的上行通常只有 5-20 Mbps，4 人以上就已捉襟见肘。</p>
+<h3 id="2-3-核心优势"><a href="#2-3-核心优势" class="headerlink" title="2.3 核心优势"></a>2.3 核心优势</h3><p>天然端到端加密（E2EE）：由于媒体直接在两端之间流动，DTLS-SRTP 的加密完全由两端控制，不存在任何第三方解密节点。这是 P2P 架构在安全性上无可替代的优势。</p>
+<p>基础设施成本几乎为零：不需要任何媒体服务器，唯一可能需要的是 TURN 服务器（当直连无法建立时作为中继）。信令服务器的开销也极小。</p>
+<p>最低延迟：媒体沿最短路径传输，端到端延迟通常在 50-100 ms 级别，是三种架构中延迟最低的。</p>
+<p>实现简单：基本的 WebRTC API 即可完成，无需部署额外的媒体服务器组件。</p>
+<h3 id="2-4-核心缺点"><a href="#2-4-核心缺点" class="headerlink" title="2.4 核心缺点"></a>2.4 核心缺点</h3><p>上行带宽瓶颈：上行带宽是 P2P 最严重的限制。由于互联网的不对称性（下行 &gt;&gt; 上行），即使在带宽充足的场景下，多人同时发送多路高清流也很快会耗尽上行容量。</p>
+<p>客户端 CPU 压力：浏览器需要对本地流进行 N-1 路并行编码。随着参与者增多，CPU 占用急剧上升，在移动设备和低配置电脑上尤为明显。</p>
+<p>不可扩展：连接数以 O(N²) 速度增长，无论是对客户端还是网络，实际可用上限通常在 4-6 人。</p>
+<p>信令复杂度线性增加：加入或退出一个参与者，需要在其与所有现有参与者之间重新进行 ICE 协商，信令开销随 N 线性增长。</p>
 <h3 id="2-5-适用场景"><a href="#2-5-适用场景" class="headerlink" title="2.5 适用场景"></a>2.5 适用场景</h3><ul>
-<li><strong>1 对 1 通话</strong>：最理想场景，充分发挥低延迟、E2EE 的优势</li>
-<li><strong>小型私密会议（2–4 人）</strong>：对安全性有极高要求（医疗、法律咨询等）且参与者带宽充足</li>
-<li><strong>开发调试</strong>：快速验证 WebRTC 基本流程，无需搭建媒体服务器</li>
+<li>1 对 1 通话：最理想场景，充分发挥低延迟、E2EE 的优势</li>
+<li>小型私密会议（2-4 人）：对安全性有极高要求（医疗、法律咨询等）且参与者带宽充足</li>
+<li>开发调试：快速验证 WebRTC 基本流程，无需搭建媒体服务器</li>
 </ul>
 <hr>
-<h1 id="3-SFU-架构（选择性转发单元）"><a href="#3-SFU-架构（选择性转发单元）" class="headerlink" title="3. SFU 架构（选择性转发单元）"></a>3. SFU 架构（选择性转发单元）</h1><h3 id="3-1-工作原理"><a href="#3-1-工作原理" class="headerlink" title="3.1 工作原理"></a>3.1 工作原理</h3><p>SFU 是当前<strong>最主流</strong>的 WebRTC 多方通信架构。其核心思想极其简洁：<strong>服务器只路由，不处理</strong>。</p>
-<p>每个参与者只向 SFU 发送一路（或多路，用于 Simulcast）上行流，SFU 根据每个订阅者的网络状况与订阅请求，<strong>选择性地</strong>将其他参与者的流转发给该订阅者。</p>
-<p>SFU 的关键特性是：<strong>RTP 包在转发过程中不被解码、不被修改</strong>（少数情况如 SRTP 重加密除外），服务器仅做路由决策。</p>
+<h1 id="3-SFU-架构（选择性转发单元）"><a href="#3-SFU-架构（选择性转发单元）" class="headerlink" title="3. SFU 架构（选择性转发单元）"></a>3. SFU 架构（选择性转发单元）</h1><h3 id="3-1-工作原理"><a href="#3-1-工作原理" class="headerlink" title="3.1 工作原理"></a>3.1 工作原理</h3><p>SFU 是当前最主流的 WebRTC 多方通信架构。其核心思想极其简洁：服务器只路由，不处理。</p>
+<p>每个参与者只向 SFU 发送一路（或多路，用于 Simulcast）上行流，SFU 根据每个订阅者的网络状况与订阅请求，选择性地将其他参与者的流转发给该订阅者。</p>
+<p>SFU 的关键特性是：RTP 包在转发过程中不被解码、不被修改（少数情况如 SRTP 重加密除外），服务器仅做路由决策。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">  SFU 拓扑（4人会议示例）</span><br><span class="line"></span><br><span class="line">  [A] ──上行──► [     ]──下行──► [B]</span><br><span class="line">  [B] ──上行──► [ SFU ]──下行──► [A]</span><br><span class="line">  [C] ──上行──► [     ]──下行──► [C]</span><br><span class="line">  [D] ──上行──► [     ]──下行──► [D]</span><br><span class="line"></span><br><span class="line">每个参与者：</span><br><span class="line">- 上行：1 路流（发送给 SFU）</span><br><span class="line">- 下行：N-1 路流（从 SFU 接收其他参与者的流）</span><br><span class="line"></span><br><span class="line">服务器：</span><br><span class="line">- 接收 N 路上行流</span><br><span class="line">- 为每个参与者路由 N-1 路下行流</span><br><span class="line">- 不解码、不混合、不重新编码</span><br></pre></td></tr></table></figure>
 
 <h3 id="3-2-带宽消耗对比（SFU-vs-P2P）"><a href="#3-2-带宽消耗对比（SFU-vs-P2P）" class="headerlink" title="3.2 带宽消耗对比（SFU vs P2P）"></a>3.2 带宽消耗对比（SFU vs P2P）</h3><p>以每路 1 Mbps 视频 + 50 kbps 音频为例：</p>
@@ -293,13 +295,13 @@
 <td align="center">95%</td>
 </tr>
 </tbody></table>
-<p>SFU 将每个客户端的**上行带宽需求从 O(N) 降为 O(1)**，这是其相对于 P2P 最核心的改进。</p>
+<p>SFU 将每个客户端的上行带宽需求从 O(N) 降为 O(1)，这是其相对于 P2P 最核心的改进。</p>
 <p>下行带宽与 P2P 相似（仍需接收 N-1 路流），但这通常不是瓶颈，因为互联网下行通常远大于上行。</p>
-<h3 id="3-3-SFU-的核心能力"><a href="#3-3-SFU-的核心能力" class="headerlink" title="3.3 SFU 的核心能力"></a>3.3 SFU 的核心能力</h3><h4 id="3-3-1-Simulcast（同步多播）"><a href="#3-3-1-Simulcast（同步多播）" class="headerlink" title="3.3.1 Simulcast（同步多播）"></a>3.3.1 Simulcast（同步多播）</h4><p>Simulcast 是 SFU 最重要的自适应码率手段。发送端同时编码<strong>多个分辨率版本</strong>（例如 720p &#x2F; 360p &#x2F; 180p），分别作为独立的 RTP 流（使用不同 SSRC）上行到 SFU。</p>
-<p>SFU 根据每个接收者的实时网络状况，为其<strong>选择并转发</strong>最合适的分辨率层，而无需重新编码。当某个接收者的带宽下降时，SFU 只需切换转发的层，切换延迟通常在一个关键帧周期内（约 100–300 ms）。</p>
+<h3 id="3-3-SFU-的核心能力"><a href="#3-3-SFU-的核心能力" class="headerlink" title="3.3 SFU 的核心能力"></a>3.3 SFU 的核心能力</h3><h4 id="3-3-1-Simulcast（同步多播）"><a href="#3-3-1-Simulcast（同步多播）" class="headerlink" title="3.3.1 Simulcast（同步多播）"></a>3.3.1 Simulcast（同步多播）</h4><p>Simulcast 是 SFU 最重要的自适应码率手段。发送端同时编码多个分辨率版本（例如 720p &#x2F; 360p &#x2F; 180p），分别作为独立的 RTP 流（使用不同 SSRC）上行到 SFU。</p>
+<p>SFU 根据每个接收者的实时网络状况，为其选择并转发最合适的分辨率层，而无需重新编码。当某个接收者的带宽下降时，SFU 只需切换转发的层，切换延迟通常在一个关键帧周期内（约 100-300 ms）。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">发送端 Simulcast 流：</span><br><span class="line"></span><br><span class="line">  高清层（720p, ~1.5 Mbps）  ──►┐</span><br><span class="line">  中清层（360p, ~0.5 Mbps）  ──►│ SFU</span><br><span class="line">  低清层（180p, ~0.1 Mbps）  ──►┘</span><br><span class="line"></span><br><span class="line">SFU 转发策略：</span><br><span class="line">  接收者 B（带宽充足）← 高清层</span><br><span class="line">  接收者 C（带宽一般）← 中清层</span><br><span class="line">  接收者 D（移动网络）← 低清层</span><br></pre></td></tr></table></figure>
 
-<h4 id="3-3-2-SVC（可伸缩视频编码）"><a href="#3-3-2-SVC（可伸缩视频编码）" class="headerlink" title="3.3.2 SVC（可伸缩视频编码）"></a>3.3.2 SVC（可伸缩视频编码）</h4><p>SVC（Scalable Video Coding）是另一种自适应策略，但原理不同：编码器产生<strong>单一码流</strong>，其中包含多个可独立解码的质量层（时间层 &#x2F; 空间层）。SFU 通过丢弃高层数据包来降低转发码率，而无需发送方产生多路独立流。</p>
+<h4 id="3-3-2-SVC（可伸缩视频编码）"><a href="#3-3-2-SVC（可伸缩视频编码）" class="headerlink" title="3.3.2 SVC（可伸缩视频编码）"></a>3.3.2 SVC（可伸缩视频编码）</h4><p>SVC（Scalable Video Coding）是另一种自适应策略，但原理不同：编码器产生单一码流，其中包含多个可独立解码的质量层（时间层 &#x2F; 空间层）。SFU 通过丢弃高层数据包来降低转发码率，而无需发送方产生多路独立流。</p>
 <p>VP9 的 SVC 支持（K-SVC 模式）在 Chrome 中已较为成熟，AV1 也原生支持 SVC。但 Safari&#x2F;iOS 的 SVC 支持历来较为滞后，这导致大多数生产环境仍以 Simulcast 为主。</p>
 <h4 id="3-3-3-带宽估计与拥塞控制"><a href="#3-3-3-带宽估计与拥塞控制" class="headerlink" title="3.3.3 带宽估计与拥塞控制"></a>3.3.3 带宽估计与拥塞控制</h4><p>SFU 通常集成或协助 Google Congestion Control（GCC）机制：</p>
 <ul>
@@ -307,8 +309,8 @@
 <li>SFU 将这些 RTCP 包透传给对应的发送端</li>
 <li>发送端的带宽估计模块（BWE）据此调整编码码率</li>
 </ul>
-<p>部分高级 SFU（如 mediasoup）还实现了<strong>发送端带宽估计</strong>（Sender-Side BWE），在服务器侧聚合全局视角，做出更优的拥塞控制决策。</p>
-<h4 id="3-3-4-灵活的布局控制"><a href="#3-3-4-灵活的布局控制" class="headerlink" title="3.3.4 灵活的布局控制"></a>3.3.4 灵活的布局控制</h4><p>由于每个参与者收到的是<strong>独立的视频轨</strong>，客户端可以自由决定：</p>
+<p>部分高级 SFU（如 mediasoup）还实现了发送端带宽估计（Sender-Side BWE），在服务器侧聚合全局视角，做出更优的拥塞控制决策。</p>
+<h4 id="3-3-4-灵活的布局控制"><a href="#3-3-4-灵活的布局控制" class="headerlink" title="3.3.4 灵活的布局控制"></a>3.3.4 灵活的布局控制</h4><p>由于每个参与者收到的是独立的视频轨，客户端可以自由决定：</p>
 <ul>
 <li>以何种布局（Grid、Speaker View、Spotlight）展示</li>
 <li>是否订阅某个参与者的流（节省下行带宽）</li>
@@ -316,10 +318,10 @@
 </ul>
 <p>这是 SFU 相对 MCU 的重要优势，布局由客户端控制，而非服务器固定输出。</p>
 <h4 id="3-3-5-服务端录制"><a href="#3-3-5-服务端录制" class="headerlink" title="3.3.5 服务端录制"></a>3.3.5 服务端录制</h4><p>SFU 可以在不解码的情况下，将 RTP 流直接写入录制管道（如输出为 .webm 文件），录制服务器可作为一个”哑订阅者”连接到 SFU。这比 MCU 录制更高效，也支持录制原始独立轨道。</p>
-<h3 id="3-4-SFU-的局限性"><a href="#3-4-SFU-的局限性" class="headerlink" title="3.4 SFU 的局限性"></a>3.4 SFU 的局限性</h3><p><strong>客户端下行压力依然存在</strong>：N-1 路独立流仍需客户端各自解码和渲染。参与者超过 20–30 人时，即使有 Simulcast 降低分辨率，客户端的解码 CPU 占用也会成为瓶颈。</p>
-<p><strong>E2EE 实现较为复杂</strong>：标准 WebRTC 的 DTLS-SRTP 密钥在 SFU 服务器上终止（SFU 需要解密 SRTP 才能读取 RTP Header 以做路由决策）。因此，传统 SFU 架构<strong>不是</strong>真正的端到端加密。要实现 E2EE，需要在应用层对媒体内容进行额外加密（如使用 WebRTC Insertable Streams API &#x2F; Encoded Transform），SFU 仅能转发其无法解密的密文包。这种方案已有生产落地（如 Zoom 的 E2EE 会议），但实现复杂度显著提高。</p>
-<p><strong>单节点水平扩展有挑战</strong>：单个 SFU 进程通常绑定在单个 CPU 核心上（如 mediasoup 的 Worker 模型）。支持大规模会议需要实现 SFU 级联（Cascading）或集群（Clustering）架构，这增加了系统复杂度。</p>
-<p><strong>运维成本</strong>：相比 P2P，需要部署和维护媒体服务器，带宽成本从客户端转移到服务器侧（服务器需承载所有参与者的上行流和下行路由）。</p>
+<h3 id="3-4-SFU-的局限性"><a href="#3-4-SFU-的局限性" class="headerlink" title="3.4 SFU 的局限性"></a>3.4 SFU 的局限性</h3><p>客户端下行压力依然存在：N-1 路独立流仍需客户端各自解码和渲染。参与者超过 20-30 人时，即使有 Simulcast 降低分辨率，客户端的解码 CPU 占用也会成为瓶颈。</p>
+<p>E2EE 实现较为复杂：标准 WebRTC 的 DTLS-SRTP 密钥在 SFU 服务器上终止（SFU 需要解密 SRTP 才能读取 RTP Header 以做路由决策）。因此，传统 SFU 架构不是真正的端到端加密。要实现 E2EE，需要在应用层对媒体内容进行额外加密（如使用 WebRTC Insertable Streams API &#x2F; Encoded Transform），SFU 仅能转发其无法解密的密文包。这种方案已有生产落地（如 Zoom 的 E2EE 会议），但实现复杂度显著提高。</p>
+<p>单节点水平扩展有挑战：单个 SFU 进程通常绑定在单个 CPU 核心上（如 mediasoup 的 Worker 模型）。支持大规模会议需要实现 SFU 级联（Cascading）或集群（Clustering）架构，这增加了系统复杂度。</p>
+<p>运维成本：相比 P2P，需要部署和维护媒体服务器，带宽成本从客户端转移到服务器侧（服务器需承载所有参与者的上行流和下行路由）。</p>
 <h3 id="3-5-主流开源-SFU"><a href="#3-5-主流开源-SFU" class="headerlink" title="3.5 主流开源 SFU"></a>3.5 主流开源 SFU</h3><table>
 <thead>
 <tr>
@@ -329,53 +331,53 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>mediasoup</strong></td>
+<td>mediasoup</td>
 <td>C++ &#x2F; Node.js</td>
 <td>高性能、细粒度控制、Simulcast&#x2F;SVC 支持完善，适合深度定制</td>
 </tr>
 <tr>
-<td><strong>Jitsi Videobridge</strong></td>
+<td>Jitsi Videobridge</td>
 <td>Java</td>
 <td>成熟稳定、大规模部署案例多（Jitsi Meet 背后）</td>
 </tr>
 <tr>
-<td><strong>LiveKit</strong></td>
+<td>LiveKit</td>
 <td>Go (Pion)</td>
 <td>云原生、水平扩展友好、SDK 生态完整</td>
 </tr>
 <tr>
-<td><strong>Janus</strong></td>
+<td>Janus</td>
 <td>C</td>
 <td>模块化插件架构、灵活但配置复杂</td>
 </tr>
 <tr>
-<td><strong>ion-sfu</strong> &#x2F; <strong>Pion</strong></td>
+<td>ion-sfu &#x2F; Pion</td>
 <td>Go</td>
 <td>轻量、适合自定义 SFU 开发</td>
 </tr>
 <tr>
-<td><strong>medooze</strong></td>
+<td>medooze</td>
 <td>C++</td>
 <td>支持 SVC 和 Simulcast，功能全面</td>
 </tr>
 </tbody></table>
 <h3 id="3-6-适用场景"><a href="#3-6-适用场景" class="headerlink" title="3.6 适用场景"></a>3.6 适用场景</h3><ul>
-<li><strong>视频会议（5–100 人）</strong>：最典型场景，Zoom、Teams、Google Meet 等均以 SFU 为核心</li>
-<li><strong>在线教育</strong>：多人课堂，教师流与学生流分别路由</li>
-<li><strong>互动直播（低延迟场景）</strong>：主播上行，大量观众下行，结合订阅控制</li>
-<li><strong>实时协作平台</strong>：游戏连麦、多人音视频协作</li>
+<li>视频会议（5-100 人）：最典型场景，Zoom、Teams、Google Meet 等均以 SFU 为核心</li>
+<li>在线教育：多人课堂，教师流与学生流分别路由</li>
+<li>互动直播（低延迟场景）：主播上行，大量观众下行，结合订阅控制</li>
+<li>实时协作平台：游戏连麦、多人音视频协作</li>
 </ul>
 <hr>
-<h1 id="4-MCU-架构（多点控制单元）"><a href="#4-MCU-架构（多点控制单元）" class="headerlink" title="4. MCU 架构（多点控制单元）"></a>4. MCU 架构（多点控制单元）</h1><h3 id="4-1-工作原理"><a href="#4-1-工作原理" class="headerlink" title="4.1 工作原理"></a>4.1 工作原理</h3><p>MCU 代表了与 SFU 截然不同的哲学：<strong>服务器承担所有复杂性，客户端只处理一路流</strong>。</p>
+<h1 id="4-MCU-架构（多点控制单元）"><a href="#4-MCU-架构（多点控制单元）" class="headerlink" title="4. MCU 架构（多点控制单元）"></a>4. MCU 架构（多点控制单元）</h1><h3 id="4-1-工作原理"><a href="#4-1-工作原理" class="headerlink" title="4.1 工作原理"></a>4.1 工作原理</h3><p>MCU 代表了与 SFU 截然不同的哲学：服务器承担所有复杂性，客户端只处理一路流。</p>
 <p>每个参与者将媒体流上行到 MCU，MCU 完成以下操作：</p>
 <ol>
-<li><strong>解密</strong>（SRTP → 原始 RTP）</li>
-<li><strong>解码</strong>（压缩视频 → 原始像素）</li>
-<li><strong>合成布局</strong>（将多路视频帧拼接为一张画面）</li>
-<li><strong>混音</strong>（将多路音频波形叠加）</li>
-<li><strong>重新编码</strong>（原始像素&#x2F;波形 → 压缩视频&#x2F;音频）</li>
-<li><strong>重新加密</strong>（原始 RTP → SRTP）</li>
-<li><strong>发送</strong>（向每个参与者发送合成后的单路流）</li>
+<li>解密（SRTP → 原始 RTP）</li>
+<li>解码（压缩视频 → 原始像素）</li>
+<li>合成布局（将多路视频帧拼接为一张画面）</li>
+<li>混音（将多路音频波形叠加）</li>
+<li>重新编码（原始像素&#x2F;波形 → 压缩视频&#x2F;音频）</li>
+<li>重新加密（原始 RTP → SRTP）</li>
+<li>发送（向每个参与者发送合成后的单路流）</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">  MCU 拓扑（4人会议示例）</span><br><span class="line"></span><br><span class="line">  [A] ──上行──►┐            ┌──下行──► [A]（收到 B+C+D 的合成画面）</span><br><span class="line">  [B] ──上行──►│    MCU     │──下行──► [B]（收到 A+C+D 的合成画面）</span><br><span class="line">  [C] ──上行──►│  解码+合成  │──下行──► [C]（收到 A+B+D 的合成画面）</span><br><span class="line">  [D] ──上行──►┘  +重编码    └──下行──► [D]（收到 A+B+C 的合成画面）</span><br><span class="line"></span><br><span class="line">每个参与者：</span><br><span class="line">- 上行：1 路流</span><br><span class="line">- 下行：1 路合成流（无论参与者多少）</span><br><span class="line">✓ 客户端负担恒定</span><br><span class="line">✗ 服务器 CPU/GPU 消耗巨大</span><br></pre></td></tr></table></figure>
 
@@ -398,13 +400,13 @@
 <td>客户端下行</td>
 <td>(N-1) × 流</td>
 <td>(N-1) × 流</td>
-<td><strong>1 × 合成流</strong></td>
+<td>1 × 合成流</td>
 </tr>
 <tr>
 <td>客户端解码数</td>
 <td>N-1 路</td>
 <td>N-1 路</td>
-<td><strong>1 路</strong></td>
+<td>1 路</td>
 </tr>
 <tr>
 <td>服务器带宽</td>
@@ -416,28 +418,28 @@
 <td>服务器 CPU</td>
 <td>极低</td>
 <td>低（仅路由）</td>
-<td><strong>极高</strong>（解码 + 合成 + 重编码）</td>
+<td>极高（解码 + 合成 + 重编码）</td>
 </tr>
 </tbody></table>
-<p>MCU 的带宽效率是：客户端下行从 O(N) 降为 **O(1)**，代价是服务器承担了所有的计算成本。</p>
-<h3 id="4-3-核心优势"><a href="#4-3-核心优势" class="headerlink" title="4.3 核心优势"></a>4.3 核心优势</h3><p><strong>客户端负担恒定</strong><br>无论房间里有多少参与者，客户端始终只需解码和渲染一路流。这对以下场景至关重要：</p>
+<p>MCU 的带宽效率是：客户端下行从 O(N) 降为 O(1)，代价是服务器承担了所有的计算成本。</p>
+<h3 id="4-3-核心优势"><a href="#4-3-核心优势" class="headerlink" title="4.3 核心优势"></a>4.3 核心优势</h3><p>客户端负担恒定<br>无论房间里有多少参与者，客户端始终只需解码和渲染一路流。这对以下场景至关重要：</p>
 <ul>
 <li>老旧设备（CPU&#x2F;GPU 处理能力有限）</li>
 <li>移动端（节省电量与发热）</li>
 <li>极低带宽环境（农村网络、卫星链路）</li>
 </ul>
-<p><strong>固定布局输出</strong><br>MCU 可以在服务端生成固定的”九宫格”画面，所有参与者看到完全相同的合成视图。这在以下场景有明显意义：</p>
+<p>固定布局输出<br>MCU 可以在服务端生成固定的”九宫格”画面，所有参与者看到完全相同的合成视图。这在以下场景有明显意义：</p>
 <ul>
-<li><strong>录制与合规</strong>：录制内容与参与者所见完全一致，满足”所见即所录”的审计要求</li>
-<li><strong>与传统系统集成</strong>：单路合成流可直接接入传统视频会议终端（H.323&#x2F;SIP）、IPTV 系统、CDN 推流等</li>
+<li>录制与合规：录制内容与参与者所见完全一致，满足”所见即所录”的审计要求</li>
+<li>与传统系统集成：单路合成流可直接接入传统视频会议终端（H.323&#x2F;SIP）、IPTV 系统、CDN 推流等</li>
 </ul>
-<p><strong>跨编解码器转码</strong><br>MCU 可以在参与者使用不同编解码器时进行转码（如一端使用 VP9，另一端只支持 H.264），这是 SFU 原生无法做到的（SFU 只透传，不转码）。</p>
-<p><strong>遗留系统兼容性</strong><br>企业中大量存在支持 H.264&#x2F;H.323&#x2F;SIP 的传统视频会议终端，MCU 可作为 WebRTC 世界与传统 VTC 世界之间的桥梁。</p>
-<h3 id="4-4-核心缺点"><a href="#4-4-核心缺点" class="headerlink" title="4.4 核心缺点"></a>4.4 核心缺点</h3><p><strong>服务器 CPU&#x2F;GPU 成本极高</strong><br>解码 + 合成 + 重编码是计算密集型操作，尤其对于高清视频。参与者越多，服务器计算量线性增加。规模化 MCU 部署通常需要专用 GPU 加速（NVENC&#x2F;Quick Sync 等硬件编码器）。</p>
-<p><strong>无法实现真正的 E2EE</strong><br>这是 MCU 的根本性安全局限：MCU 必须解密并解码媒体流才能合成，这意味着<strong>服务器可以看到所有参与者的原始媒体内容</strong>。对于医疗会诊、法律顾问、机密商务会议等高隐私场景，MCU 存在固有的信任风险。</p>
-<p><strong>布局僵化，灵活性差</strong><br>合成布局由服务器决定，客户端通常无法自定义（例如放大特定参与者、切换不同视图模式等）。虽然可以通过信令让服务端切换布局，但实时性和灵活性远不如 SFU。</p>
-<p><strong>引入额外延迟</strong><br>解码 → 合成 → 重编码的流水线不可避免地引入额外延迟（通常在 100–200 ms 量级），这在低延迟要求场景（如实时游戏）中是不可接受的。</p>
-<p><strong>水平扩展困难</strong><br>MCU 的计算高度集中，难以简单地水平扩展——你不能把一个视频合成任务拆分到多台机器上。典型解决方案是”级联 MCU”（Cascading MCU），但架构复杂度成倍上升。</p>
+<p>跨编解码器转码<br>MCU 可以在参与者使用不同编解码器时进行转码（如一端使用 VP9，另一端只支持 H.264），这是 SFU 原生无法做到的（SFU 只透传，不转码）。</p>
+<p>遗留系统兼容性<br>企业中大量存在支持 H.264&#x2F;H.323&#x2F;SIP 的传统视频会议终端，MCU 可作为 WebRTC 世界与传统 VTC 世界之间的桥梁。</p>
+<h3 id="4-4-核心缺点"><a href="#4-4-核心缺点" class="headerlink" title="4.4 核心缺点"></a>4.4 核心缺点</h3><p>服务器 CPU&#x2F;GPU 成本极高<br>解码 + 合成 + 重编码是计算密集型操作，尤其对于高清视频。参与者越多，服务器计算量线性增加。规模化 MCU 部署通常需要专用 GPU 加速（NVENC&#x2F;Quick Sync 等硬件编码器）。</p>
+<p>无法实现真正的 E2EE<br>这是 MCU 的根本性安全局限：MCU 必须解密并解码媒体流才能合成，这意味着服务器可以看到所有参与者的原始媒体内容。对于医疗会诊、法律顾问、机密商务会议等高隐私场景，MCU 存在固有的信任风险。</p>
+<p>布局僵化，灵活性差<br>合成布局由服务器决定，客户端通常无法自定义（例如放大特定参与者、切换不同视图模式等）。虽然可以通过信令让服务端切换布局，但实时性和灵活性远不如 SFU。</p>
+<p>引入额外延迟<br>解码 → 合成 → 重编码的流水线不可避免地引入额外延迟（通常在 100-200 ms 量级），这在低延迟要求场景（如实时游戏）中是不可接受的。</p>
+<p>水平扩展困难<br>MCU 的计算高度集中，难以简单地水平扩展，你不能把一个视频合成任务拆分到多台机器上。典型解决方案是”级联 MCU”（Cascading MCU），但架构复杂度成倍上升。</p>
 <h3 id="4-5-主流-MCU-实现"><a href="#4-5-主流-MCU-实现" class="headerlink" title="4.5 主流 MCU 实现"></a>4.5 主流 MCU 实现</h3><table>
 <thead>
 <tr>
@@ -446,23 +448,23 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>Kurento</strong></td>
+<td>Kurento</td>
 <td>基于 GStreamer，支持服务端媒体处理管道，Twilio Video 早期基础</td>
 </tr>
 <tr>
-<td><strong>FreeSWITCH</strong></td>
+<td>FreeSWITCH</td>
 <td>主要面向音频会议&#x2F;呼叫中心场景，视频能力相对有限</td>
 </tr>
 <tr>
-<td><strong>Ant Media Server</strong></td>
+<td>Ant Media Server</td>
 <td>同时支持 SFU 和 MCU 模式，GPU 加速</td>
 </tr>
 <tr>
-<td><strong>Frozen Mountain</strong></td>
+<td>Frozen Mountain</td>
 <td>商业 MCU，企业级支持</td>
 </tr>
 <tr>
-<td><strong>OpenMCU-ru</strong></td>
+<td>OpenMCU-ru</td>
 <td>开源 MCU 实现</td>
 </tr>
 </tbody></table>
@@ -470,11 +472,11 @@
 <p>值得注意的是，Kurento 的开发在 2023 年后基本停滞，许多原本基于 Kurento 的服务（如早期 Twilio Video）已迁移至 SFU 架构。这一趋势折射出整个行业从 MCU 向 SFU 的迁移。</p>
 </blockquote>
 <h3 id="4-6-适用场景"><a href="#4-6-适用场景" class="headerlink" title="4.6 适用场景"></a>4.6 适用场景</h3><ul>
-<li><strong>大规模广播型会议</strong>（参与者设备性能差异大）：客户端负担恒定</li>
-<li><strong>传统视频会议终端互通</strong>：与 H.323&#x2F;SIP 设备对接</li>
-<li><strong>合规录制场景</strong>：所有人看到相同画面的合规审计</li>
-<li><strong>超低带宽客户端</strong>：只能承受一路流的极端网络环境</li>
-<li><strong>电话会议 &#x2F; 纯音频场景</strong>：音频混合计算量远低于视频</li>
+<li>大规模广播型会议（参与者设备性能差异大）：客户端负担恒定</li>
+<li>传统视频会议终端互通：与 H.323&#x2F;SIP 设备对接</li>
+<li>合规录制场景：所有人看到相同画面的合规审计</li>
+<li>超低带宽客户端：只能承受一路流的极端网络环境</li>
+<li>电话会议 &#x2F; 纯音频场景：音频混合计算量远低于视频</li>
 </ul>
 <hr>
 <h1 id="5-三种架构横向对比"><a href="#5-三种架构横向对比" class="headerlink" title="5. 三种架构横向对比"></a>5. 三种架构横向对比</h1><h3 id="5-1-核心指标对比表"><a href="#5-1-核心指标对比表" class="headerlink" title="5.1 核心指标对比表"></a>5.1 核心指标对比表</h3><table>
@@ -487,82 +489,82 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>客户端上行路数</strong></td>
+<td>客户端上行路数</td>
 <td align="center">N-1 路</td>
 <td align="center">1 路</td>
 <td align="center">1 路</td>
 </tr>
 <tr>
-<td><strong>客户端下行路数</strong></td>
+<td>客户端下行路数</td>
 <td align="center">N-1 路</td>
 <td align="center">N-1 路</td>
-<td align="center"><strong>1 路</strong></td>
+<td align="center">1 路</td>
 </tr>
 <tr>
-<td><strong>客户端解码数</strong></td>
+<td>客户端解码数</td>
 <td align="center">N-1 路</td>
 <td align="center">N-1 路</td>
-<td align="center"><strong>1 路</strong></td>
+<td align="center">1 路</td>
 </tr>
 <tr>
-<td><strong>服务器 CPU</strong></td>
+<td>服务器 CPU</td>
 <td align="center">无</td>
 <td align="center">低（路由）</td>
 <td align="center">极高（转码）</td>
 </tr>
 <tr>
-<td><strong>服务器带宽</strong></td>
+<td>服务器带宽</td>
 <td align="center">无（仅 TURN）</td>
 <td align="center">中</td>
 <td align="center">低（合成后）</td>
 </tr>
 <tr>
-<td><strong>E2EE 支持</strong></td>
+<td>E2EE 支持</td>
 <td align="center">原生</td>
 <td align="center">需额外方案</td>
 <td align="center">不可用</td>
 </tr>
 <tr>
-<td><strong>延迟</strong></td>
+<td>延迟</td>
 <td align="center">最低</td>
 <td align="center">低</td>
 <td align="center">中（+转码延迟）</td>
 </tr>
 <tr>
-<td><strong>布局灵活性</strong></td>
+<td>布局灵活性</td>
 <td align="center">客户端完全自控</td>
 <td align="center">客户端自控</td>
 <td align="center">服务器固定输出</td>
 </tr>
 <tr>
-<td><strong>可扩展参与者数</strong></td>
-<td align="center">2–4 人</td>
-<td align="center">5–100+ 人</td>
-<td align="center">10–1000+ 人</td>
+<td>可扩展参与者数</td>
+<td align="center">2-4 人</td>
+<td align="center">5-100+ 人</td>
+<td align="center">10-1000+ 人</td>
 </tr>
 <tr>
-<td><strong>基础设施成本</strong></td>
+<td>基础设施成本</td>
 <td align="center">极低</td>
 <td align="center">中</td>
 <td align="center">高</td>
 </tr>
 <tr>
-<td><strong>实现复杂度</strong></td>
+<td>实现复杂度</td>
 <td align="center">低</td>
 <td align="center">中</td>
 <td align="center">高</td>
 </tr>
 <tr>
-<td><strong>录制</strong></td>
+<td>录制</td>
 <td align="center">客户端录制</td>
 <td align="center">服务端独立轨道录制</td>
 <td align="center">服务端合成录制</td>
 </tr>
 <tr>
-<td><strong>传统系统集成</strong></td>
+<td>传统系统集成</td>
 <td align="center">困难</td>
 <td align="center">困难</td>
-<td align="center"><strong>容易</strong></td>
+<td align="center">容易</td>
 </tr>
 </tbody></table>
 <h3 id="5-2-带宽消耗示意（以-10-人会议、每路-1-Mbps-为例）"><a href="#5-2-带宽消耗示意（以-10-人会议、每路-1-Mbps-为例）" class="headerlink" title="5.2 带宽消耗示意（以 10 人会议、每路 1 Mbps 为例）"></a>5.2 带宽消耗示意（以 10 人会议、每路 1 Mbps 为例）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">P2P（每人上行）：  ████████████████████████████████████  9 Mbps ×10人</span><br><span class="line">SFU（每人上行）：  ████                                  1 Mbps ×10人</span><br><span class="line">MCU（每人上行）：  ████                                  1 Mbps ×10人</span><br><span class="line"></span><br><span class="line">P2P（每人下行）：  ████████████████████████████████████  9 Mbps ×10人</span><br><span class="line">SFU（每人下行）：  ████████████████████████████████████  9 Mbps ×10人</span><br><span class="line">MCU（每人下行）：  ████                                  1 Mbps ×10人</span><br><span class="line"></span><br><span class="line">服务器处理：</span><br><span class="line">P2P：              （无需媒体服务器）</span><br><span class="line">SFU：              路由 10 路上行 → N-1 路下行，无转码</span><br><span class="line">MCU：              解码 10 路 → 合成 → 重编码 → 10 路下行（CPU 极高）</span><br></pre></td></tr></table></figure>
@@ -590,27 +592,27 @@
 <h1 id="7-如何选型"><a href="#7-如何选型" class="headerlink" title="7. 如何选型"></a>7. 如何选型</h1><h3 id="7-1-决策树"><a href="#7-1-决策树" class="headerlink" title="7.1 决策树"></a>7.1 决策树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">   ┌─────────────────────────────────────┐</span><br><span class="line">   │           参与者 ≤ 4 人？             │</span><br><span class="line">   └─────────────────────────────────────┘</span><br><span class="line">             │               │</span><br><span class="line">            是               否</span><br><span class="line">             │               │</span><br><span class="line">   ┌─────────▼───┐    ┌──────▼──────────────────────┐</span><br><span class="line">   │ 需要 E2EE？  │    │     参与者 ≤ 100 人？         │</span><br><span class="line">   └─────────────┘    └─────────────────────────────┘</span><br><span class="line">     │         │              │               │</span><br><span class="line">    是         否            是               否</span><br><span class="line">     │         │              │               │</span><br><span class="line">┌────▼──┐  ┌───▼───┐   ┌──────▼───┐   ┌───────▼────────┐</span><br><span class="line">│  P2P  │  │P2P 或 │   │   SFU    │   │ SFU 集群 / MCU  │</span><br><span class="line">│(E2EE) │  │  SFU  │   │(+ Simu-  │   │ + CDN（视场景）  │</span><br><span class="line">└───────┘  └───────┘   │   cast)  │   └────────────────┘</span><br><span class="line">                       └──────────┘</span><br><span class="line">                       客户端设备弱？</span><br><span class="line">                            │ 是</span><br><span class="line">                   考虑 MCU（客户端只收 1 路）</span><br></pre></td></tr></table></figure>
 
 <h3 id="7-2-关键决策因素"><a href="#7-2-关键决策因素" class="headerlink" title="7.2 关键决策因素"></a>7.2 关键决策因素</h3><p>在选择架构时，以下因素是核心考量：</p>
-<p><strong>参与者规模与增长预期</strong>：这是最主要的决策维度。P2P 适合 ≤4 人，SFU 适合 5–100 人，更大规模需要集群或混合方案。</p>
-<p><strong>客户端设备能力</strong>：如果目标用户大量使用移动设备、老旧电脑或处于低带宽网络环境，MCU 的”客户端只收 1 路”特性能有效保障体验。</p>
-<p><strong>端到端加密需求</strong>：涉及医疗、法律、金融等高隐私场景，P2P 是唯一天然支持 E2EE 的方案；SFU 可通过 Insertable Streams 实现应用层 E2EE，但增加实现复杂度；MCU 无法实现真正的 E2EE。</p>
-<p><strong>延迟要求</strong>：实时游戏、在线拍卖等对延迟极为敏感的场景，优先 P2P 或低延迟 SFU；MCU 的转码延迟通常不可接受。</p>
-<p><strong>录制与合规</strong>：需要”所见即所录”的合规录制 → MCU；需要独立轨道录制（后期剪辑、AI 分析等）→ SFU。</p>
-<p><strong>传统系统集成</strong>：需要与 H.323&#x2F;SIP 终端对接 → MCU 是最自然的选择。</p>
-<p><strong>基础设施成本</strong>：P2P ≈ 零服务器成本；SFU 带宽成本可预测（按参与者上行计算）；MCU CPU&#x2F;GPU 成本高且随参与者线性增长。</p>
+<p>参与者规模与增长预期：这是最主要的决策维度。P2P 适合 ≤4 人，SFU 适合 5-100 人，更大规模需要集群或混合方案。</p>
+<p>客户端设备能力：如果目标用户大量使用移动设备、老旧电脑或处于低带宽网络环境，MCU 的”客户端只收 1 路”特性能有效保障体验。</p>
+<p>端到端加密需求：涉及医疗、法律、金融等高隐私场景，P2P 是唯一天然支持 E2EE 的方案；SFU 可通过 Insertable Streams 实现应用层 E2EE，但增加实现复杂度；MCU 无法实现真正的 E2EE。</p>
+<p>延迟要求：实时游戏、在线拍卖等对延迟极为敏感的场景，优先 P2P 或低延迟 SFU；MCU 的转码延迟通常不可接受。</p>
+<p>录制与合规：需要”所见即所录”的合规录制 → MCU；需要独立轨道录制（后期剪辑、AI 分析等）→ SFU。</p>
+<p>传统系统集成：需要与 H.323&#x2F;SIP 终端对接 → MCU 是最自然的选择。</p>
+<p>基础设施成本：P2P ≈ 零服务器成本；SFU 带宽成本可预测（按参与者上行计算）；MCU CPU&#x2F;GPU 成本高且随参与者线性增长。</p>
 <hr>
 <h1 id="8-小结"><a href="#8-小结" class="headerlink" title="8. 小结"></a>8. 小结</h1><p>三种架构不存在绝对的优劣，而是对不同约束条件的不同权衡：</p>
-<p><strong>P2P</strong> 是 WebRTC 的本源，适合小规模、高安全性场景。它以客户端带宽和 CPU 换取零服务器成本和天然 E2EE。</p>
-<p><strong>SFU</strong> 是当前行业主流。它用一台路由服务器解决了 P2P 的上行瓶颈，同时保持低服务器成本、灵活布局和较低延迟。Simulcast 和 SVC 是其核心的自适应码率机制。绝大多数现代视频会议产品（Zoom、Teams、Google Meet、Discord）的核心都是 SFU。</p>
-<p><strong>MCU</strong> 将计算复杂性从客户端转移到服务器，以高昂的服务器成本换取客户端的极简体验。它在遗留系统集成和特定合规场景中仍有不可替代的价值，但在隐私性和灵活性上存在固有局限。</p>
+<p>P2P 是 WebRTC 的本源，适合小规模、高安全性场景。它以客户端带宽和 CPU 换取零服务器成本和天然 E2EE。</p>
+<p>SFU 是当前行业主流。它用一台路由服务器解决了 P2P 的上行瓶颈，同时保持低服务器成本、灵活布局和较低延迟。Simulcast 和 SVC 是其核心的自适应码率机制。绝大多数现代视频会议产品（Zoom、Teams、Google Meet、Discord）的核心都是 SFU。</p>
+<p>MCU 将计算复杂性从客户端转移到服务器，以高昂的服务器成本换取客户端的极简体验。它在遗留系统集成和特定合规场景中仍有不可替代的价值，但在隐私性和灵活性上存在固有局限。</p>
 <p>在实际工程中，混合架构往往是最佳答案：用 P2P 优化 1 对 1 通话成本，用 SFU 支撑多方会议，用 MCU 或 CDN 覆盖广播场景，每层架构各司其职，共同构成一个可扩展的实时通信系统。</p>
 <hr>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
-<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 — Overview: Real-Time Protocols for Browser-Based Applications</a>（IETF RTCWEB）</li>
+<li><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/info/rfc8825">RFC 8825 - Overview: Real-Time Protocols for Browser-Based Applications</a>（IETF RTCWEB）</li>
 <li><a target="_blank" rel="noopener" href="https://docs.livekit.io/reference/internals/livekit-sfu/">LiveKit SFU 架构文档</a></li>
 <li><a target="_blank" rel="noopener" href="https://mediasoup.org/documentation/">mediasoup 官方文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/">WebRTC for the Curious — Selective Forwarding Units</a></li>
+<li><a target="_blank" rel="noopener" href="https://webrtcforthecurious.com/">WebRTC for the Curious - Selective Forwarding Units</a></li>
 <li><a target="_blank" rel="noopener" href="https://hpbn.co/webrtc/">High Performance Browser Networking, Chapter 18: WebRTC</a>（Ilya Grigorik, O’Reilly）</li>
-<li><a target="_blank" rel="noopener" href="https://webrtc.ventures/2020/12/webrtc-media-servers-sfus-vs-mcus/">WebRTC Media Servers — SFUs vs MCUs</a>（WebRTC.ventures）</li>
+<li><a target="_blank" rel="noopener" href="https://webrtc.ventures/2020/12/webrtc-media-servers-sfus-vs-mcus/">WebRTC Media Servers - SFUs vs MCUs</a>（WebRTC.ventures）</li>
 <li>Gouaillard, A. et al., “Breaking Point: WebRTC SFU Load Testing”（webrtcHacks, 2018）</li>
 </ul>
 <hr>
@@ -633,9 +635,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -695,9 +699,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

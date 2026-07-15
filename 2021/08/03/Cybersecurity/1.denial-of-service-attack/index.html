@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 概述 DoS 与 DDoS 的区别 攻击动机 历史事件与里程碑 攻击类型详解 洪水攻击（Flood Attacks） 应用层攻击（Application Layer Attacks） 协议漏洞攻击 放大&#x2F;反射攻击（Amplification &amp; Reflection） 永久性拒绝服务攻击（PDoS） 高级持续性拒绝服务攻击（APDoS） 其他特殊攻击类型   僵尸网络与攻击">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-08-02T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-04-29T00:34:44.472Z">
+<meta property="article:modified_time" content="2026-07-13T10:17:40.528Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="Cyber Security">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -174,16 +176,16 @@
   <div class="content e-content" itemprop="articleBody">
     <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
 <li><a href="#%E6%A6%82%E8%BF%B0">概述</a></li>
-<li><a href="#dos-%E4%B8%8E-ddos-%E7%9A%84%E5%8C%BA%E5%88%AB">DoS 与 DDoS 的区别</a></li>
+<li><a href="#DoS-%E4%B8%8E-DDoS-%E7%9A%84%E5%8C%BA%E5%88%AB">DoS 与 DDoS 的区别</a></li>
 <li><a href="#%E6%94%BB%E5%87%BB%E5%8A%A8%E6%9C%BA">攻击动机</a></li>
 <li><a href="#%E5%8E%86%E5%8F%B2%E4%BA%8B%E4%BB%B6%E4%B8%8E%E9%87%8C%E7%A8%8B%E7%A2%91">历史事件与里程碑</a></li>
 <li><a href="#%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B%E8%AF%A6%E8%A7%A3">攻击类型详解</a><ul>
-<li><a href="#%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BBflood-attacks">洪水攻击（Flood Attacks）</a></li>
-<li><a href="#%E5%BA%94%E7%94%A8%E5%B1%82%E6%94%BB%E5%87%BBapplication-layer-attacks">应用层攻击（Application Layer Attacks）</a></li>
+<li><a href="#%E6%B4%AA%E6%B0%B4%E6%94%BB%E5%87%BB%EF%BC%88Flood-Attacks%EF%BC%89">洪水攻击（Flood Attacks）</a></li>
+<li><a href="#%E5%BA%94%E7%94%A8%E5%B1%82%E6%94%BB%E5%87%BB%EF%BC%88Application-Layer-Attacks%EF%BC%89">应用层攻击（Application Layer Attacks）</a></li>
 <li><a href="#%E5%8D%8F%E8%AE%AE%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB">协议漏洞攻击</a></li>
-<li><a href="#%E6%94%BE%E5%A4%A7%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BBamplification--reflection">放大&#x2F;反射攻击（Amplification &amp; Reflection）</a></li>
-<li><a href="#%E6%B0%B8%E4%B9%85%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BBpdos">永久性拒绝服务攻击（PDoS）</a></li>
-<li><a href="#%E9%AB%98%E7%BA%A7%E6%8C%81%E7%BB%AD%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BBapdos">高级持续性拒绝服务攻击（APDoS）</a></li>
+<li><a href="#%E6%94%BE%E5%A4%A7-%E5%8F%8D%E5%B0%84%E6%94%BB%E5%87%BB%EF%BC%88Amplification-Reflection%EF%BC%89">放大&#x2F;反射攻击（Amplification &amp; Reflection）</a></li>
+<li><a href="#%E6%B0%B8%E4%B9%85%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88PDoS%EF%BC%89">永久性拒绝服务攻击（PDoS）</a></li>
+<li><a href="#%E9%AB%98%E7%BA%A7%E6%8C%81%E7%BB%AD%E6%80%A7%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%94%BB%E5%87%BB%EF%BC%88APDoS%EF%BC%89">高级持续性拒绝服务攻击（APDoS）</a></li>
 <li><a href="#%E5%85%B6%E4%BB%96%E7%89%B9%E6%AE%8A%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B">其他特殊攻击类型</a></li>
 </ul>
 </li>
@@ -194,10 +196,10 @@
 <li><a href="#%E6%B3%95%E5%BE%8B%E4%B8%8E%E7%9B%91%E7%AE%A1">法律与监管</a></li>
 </ol>
 <hr>
-<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p><strong>拒绝服务攻击</strong>（Denial-of-Service Attack，简称 <strong>DoS 攻击</strong>，读音 &#x2F;dɒs&#x2F;）是一种网络攻击手段，攻击者通过向目标机器或网络资源发送大量无效请求，试图使合法用户无法正常访问服务，从而临时或永久地中断连接在网络上的主机所提供的服务。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>拒绝服务攻击（Denial-of-Service Attack，简称 DoS 攻击，读音 &#x2F;dɒs&#x2F;）是一种网络攻击手段，攻击者通过向目标机器或网络资源发送大量无效请求，试图使合法用户无法正常访问服务，从而临时或永久地中断连接在网络上的主机所提供的服务。</p>
 <p>DoS 攻击通常通过向目标机器或资源发送大量多余请求来实现，以期超载系统，阻止部分或全部合法请求得到响应。攻击范围相当广泛，从向服务器发送数百万个请求使其性能降低，到用大量无效数据压垮服务器，再到提交包含非法 IP 地址的请求，手段多种多样。</p>
 <blockquote>
-<p><strong>形象比喻</strong>：DDoS 攻击类似于一群人拥堵在商店门口，使合法顾客难以进入，从而扰乱正常经营并造成商业损失。</p>
+<p>形象比喻：DDoS 攻击类似于一群人拥堵在商店门口，使合法顾客难以进入，从而扰乱正常经营并造成商业损失。</p>
 </blockquote>
 <hr>
 <h1 id="DoS-与-DDoS-的区别"><a href="#DoS-与-DDoS-的区别" class="headerlink" title="DoS 与 DDoS 的区别"></a>DoS 与 DDoS 的区别</h1><table>
@@ -234,23 +236,23 @@
 <td>僵尸网络（Botnet）</td>
 </tr>
 </tbody></table>
-<p><strong>分布式拒绝服务攻击</strong>（Distributed Denial-of-Service，<strong>DDoS</strong>，读音 &#x2F;ˈdiː.dɒs&#x2F;）发生时，来自许多不同来源的入侵流量同时淹没受害目标。DDoS 攻击的规模在近年来持续上升，到 2016 年已超过每秒 1 Tbit（太比特）。</p>
+<p>分布式拒绝服务攻击（Distributed Denial-of-Service，DDoS，读音 &#x2F;ˈdiː.dɒs&#x2F;）发生时，来自许多不同来源的入侵流量同时淹没受害目标。DDoS 攻击的规模在近年来持续上升，到 2016 年已超过每秒 1 Tbit（太比特）。</p>
 <hr>
 <h1 id="攻击动机"><a href="#攻击动机" class="headerlink" title="攻击动机"></a>攻击动机</h1><p>DoS&#x2F;DDoS 攻击的动机多种多样：</p>
 <ul>
-<li><strong>报复（Revenge）</strong>：针对特定组织或个人的报复行为</li>
-<li><strong>勒索（Blackmail&#x2F;Extortion）</strong>：攻击者威胁持续攻击，要求以比特币支付赎金</li>
-<li><strong>黑客行动主义（Hacktivism）</strong>：以政治或社会目的为由发动的抗议攻击，例如匿名者（Anonymous）组织</li>
-<li><strong>竞争性破坏</strong>：商业竞争对手雇用攻击者打击目标网站</li>
-<li><strong>网络战（Cyber Warfare）</strong>：国家支持的行为者针对他国关键基础设施</li>
-<li><strong>测试或炫耀技术</strong>：部分攻击出于技术炫耀或娱乐目的</li>
+<li>报复（Revenge）：针对特定组织或个人的报复行为</li>
+<li>勒索（Blackmail&#x2F;Extortion）：攻击者威胁持续攻击，要求以比特币支付赎金</li>
+<li>黑客行动主义（Hacktivism）：以政治或社会目的为由发动的抗议攻击，例如匿名者（Anonymous）组织</li>
+<li>竞争性破坏：商业竞争对手雇用攻击者打击目标网站</li>
+<li>网络战（Cyber Warfare）：国家支持的行为者针对他国关键基础设施</li>
+<li>测试或炫耀技术：部分攻击出于技术炫耀或娱乐目的</li>
 </ul>
 <p>犯罪组织通常以银行、信用卡支付网关等高知名度 Web 服务器托管的网站或服务为目标。2015 年起，以 DD4BC 为代表的 DDoS 僵尸网络开始以金融机构为目标，惯用手法是先发动低烈度攻击，附带警告称若不支付比特币赎金将发动更大规模攻击。安全专家建议被攻击网站不要支付赎金，因为攻击者在意识到目标愿意付款后往往会变本加厉。</p>
 <hr>
 <h1 id="历史事件与里程碑"><a href="#历史事件与里程碑" class="headerlink" title="历史事件与里程碑"></a>历史事件与里程碑</h1><h3 id="早期攻击"><a href="#早期攻击" class="headerlink" title="早期攻击"></a>早期攻击</h3><ul>
-<li><strong>1996 年 9 月 6 日</strong>：全球第三古老的互联网服务提供商 <strong>Panix</strong> 遭受 SYN 洪水攻击，服务中断数天，直到思科等硬件厂商研发出应对防御方案。此次事件中泄露的样本代码，随后被用于攻击 Sprint、EarthLink、E-Trade 等大型企业。</li>
-<li><strong>2001 年初</strong>：微软（Microsoft）遭受 DoS 攻击，大量用户无法访问微软网站和相关服务。</li>
-<li><strong>2014 年 6 月 10 日</strong>：Evernote 遭受长达 24 小时的 DDoS 攻击。</li>
+<li>1996 年 9 月 6 日：全球第三古老的互联网服务提供商 Panix 遭受 SYN 洪水攻击，服务中断数天，直到思科等硬件厂商研发出应对防御方案。此次事件中泄露的样本代码，随后被用于攻击 Sprint、EarthLink、E-Trade 等大型企业。</li>
+<li>2001 年初：微软（Microsoft）遭受 DoS 攻击，大量用户无法访问微软网站和相关服务。</li>
+<li>2014 年 6 月 10 日：Evernote 遭受长达 24 小时的 DDoS 攻击。</li>
 </ul>
 <h3 id="近年重大事件"><a href="#近年重大事件" class="headerlink" title="近年重大事件"></a>近年重大事件</h3><table>
 <thead>
@@ -326,41 +328,41 @@
 <td>11.5 Tb&#x2F;s</td>
 </tr>
 <tr>
-<td><strong>2025 年 9 月 23 日</strong></td>
-<td><strong>Cloudflare 自主拦截史上最大 DDoS 攻击</strong></td>
-<td><strong>22.2 Tb&#x2F;s，持续 40 秒，逾 40.4 万个源 IP，且源 IP 均未被伪造</strong></td>
+<td>2025 年 9 月 23 日</td>
+<td>Cloudflare 自主拦截史上最大 DDoS 攻击</td>
+<td>22.2 Tb&#x2F;s，持续 40 秒，逾 40.4 万个源 IP，且源 IP 均未被伪造</td>
 </tr>
 </tbody></table>
 <hr>
 <h1 id="攻击类型详解"><a href="#攻击类型详解" class="headerlink" title="攻击类型详解"></a>攻击类型详解</h1><h3 id="洪水攻击（Flood-Attacks）"><a href="#洪水攻击（Flood-Attacks）" class="headerlink" title="洪水攻击（Flood Attacks）"></a>洪水攻击（Flood Attacks）</h3><p>最简单的 DoS 攻击依靠蛮力，向目标发送大量数据包，使其连接带宽饱和或耗尽系统资源。</p>
 <h4 id="SYN-洪水攻击（SYN-Flood）"><a href="#SYN-洪水攻击（SYN-Flood）" class="headerlink" title="SYN 洪水攻击（SYN Flood）"></a>SYN 洪水攻击（SYN Flood）</h4><p>SYN 洪水发生时，主机发送大量 TCP&#x2F;SYN 数据包，通常使用伪造的发送方地址。每个数据包都被当作连接请求处理，导致服务器产生半开连接（half-open connection），发回 TCP&#x2F;SYN-ACK 数据包，并等待来自发送方地址的响应。然而由于发送方地址是伪造的，响应永远不会到来。这些半开连接耗尽服务器可用连接数，使其无法响应合法请求。</p>
-<p><strong>SYN cookies</strong> 技术是应对 SYN 队列洪水的有效缓解手段，但无法解决带宽耗尽问题。</p>
-<p>2022 年，TCP 攻击是 DDoS 事件中使用最多的方式，占所有 DDoS 活动的 <strong>63%</strong> ，包括 TCP SYN、TCP ACK 和 TCP 洪水等战术。</p>
+<p>SYN cookies 技术是应对 SYN 队列洪水的有效缓解手段，但无法解决带宽耗尽问题。</p>
+<p>2022 年，TCP 攻击是 DDoS 事件中使用最多的方式，占所有 DDoS 活动的 63% ，包括 TCP SYN、TCP ACK 和 TCP 洪水等战术。</p>
 <h4 id="UDP-洪水攻击"><a href="#UDP-洪水攻击" class="headerlink" title="UDP 洪水攻击"></a>UDP 洪水攻击</h4><p>UDP 洪水是常见的 DDoS 攻击类型之一，通过向目标发送大量 UDP 数据包来消耗带宽。</p>
 <h4 id="Ping-洪水（Ping-Flood）"><a href="#Ping-洪水（Ping-Flood）" class="headerlink" title="Ping 洪水（Ping Flood）"></a>Ping 洪水（Ping Flood）</h4><p>向受害者发送压倒性数量的 ping 数据包，通常使用类 Unix 主机上的 ping 命令。主要要求是攻击者拥有比受害者更大的带宽。</p>
 <h4 id="死亡-Ping（Ping-of-Death）"><a href="#死亡-Ping（Ping-of-Death）" class="headerlink" title="死亡 Ping（Ping of Death）"></a>死亡 Ping（Ping of Death）</h4><p>向受害者发送格式错误的 ping 数据包，导致脆弱系统崩溃。</p>
 <hr>
 <h3 id="应用层攻击（Application-Layer-Attacks）"><a href="#应用层攻击（Application-Layer-Attacks）" class="headerlink" title="应用层攻击（Application Layer Attacks）"></a>应用层攻击（Application Layer Attacks）</h3><p>应用层 DDoS 攻击（也称第 7 层 DDoS 攻击）以应用层进程为目标，通过过度消耗网站的特定功能或特性使其失效。与整个网络攻击不同，它通常被用于对抗金融机构，以分散 IT 和安全人员对安全漏洞的注意力。</p>
 <ul>
-<li><strong>2013 年</strong>：应用层 DDoS 攻击占所有 DDoS 攻击的 <strong>20%</strong></li>
-<li><strong>2013 年 Q4 至 2014 年 Q4</strong>：应用层攻击增加了 <strong>51%</strong></li>
-<li><strong>2014 年 Q3 至 Q4</strong>：再增加 <strong>16%</strong></li>
-<li><strong>2017 年</strong>：Cloudflare 工程师指出，尽管网络级攻击频率下降，但应用层攻击丝毫没有放缓迹象。</li>
+<li>2013 年：应用层 DDoS 攻击占所有 DDoS 攻击的 20%</li>
+<li>2013 年 Q4 至 2014 年 Q4：应用层攻击增加了 51%</li>
+<li>2014 年 Q3 至 Q4：再增加 16%</li>
+<li>2017 年：Cloudflare 工程师指出，尽管网络级攻击频率下降，但应用层攻击丝毫没有放缓迹象。</li>
 </ul>
 <h4 id="HTTP-慢速-POST-攻击（Slow-POST）"><a href="#HTTP-慢速-POST-攻击（Slow-POST）" class="headerlink" title="HTTP 慢速 POST 攻击（Slow POST）"></a>HTTP 慢速 POST 攻击（Slow POST）</h4><p>首次发现于 2009 年。攻击者发送完整合法的 HTTP POST 头，其中包含 Content-Length 字段指定后续消息体大小，但随后以极低速率（如 1 字节&#x2F;110 秒）发送实际消息体。服务器会遵从 Content-Length 字段等待完整消息体，攻击者建立数百甚至数千个此类连接，直到服务器上所有传入连接资源耗尽。</p>
-<p>该攻击的特点是<strong>针对逻辑资源而非网络带宽</strong>，因此受害者仍有足够带宽和 CPU，但连接池被耗尽。Apache HTTP Server 默认接受最大 2 GB 的请求，使此攻击极具威力。OWASP 发布了测试服务器对该类攻击防御能力的工具。</p>
+<p>该攻击的特点是针对逻辑资源而非网络带宽，因此受害者仍有足够带宽和 CPU，但连接池被耗尽。Apache HTTP Server 默认接受最大 2 GB 的请求，使此攻击极具威力。OWASP 发布了测试服务器对该类攻击防御能力的工具。</p>
 <h4 id="CC-攻击（Challenge-Collapsar）"><a href="#CC-攻击（Challenge-Collapsar）" class="headerlink" title="CC 攻击（Challenge Collapsar）"></a>CC 攻击（Challenge Collapsar）</h4><p>2004 年由中国黑客 KiKi 发明，针对 NSFOCUS 防火墙”Collapsar”而得名。CC 攻击向目标 Web 服务器频繁发送标准 HTTP 请求，这些请求的 URI 需要耗时的复杂算法或数据库操作，从而耗尽目标服务器资源。</p>
 <h4 id="RUDY-攻击"><a href="#RUDY-攻击" class="headerlink" title="RUDY 攻击"></a>RUDY 攻击</h4><p>RUDY（R-U-Dead-Yet）针对 Web 应用，通过 Web 服务器上可用会话的耗尽来实现攻击。类似于 Slowloris，使用永无止境的 POST 传输来保持会话挂起，并发送任意大的 content-length 头值。</p>
 <h4 id="Slowloris"><a href="#Slowloris" class="headerlink" title="Slowloris"></a>Slowloris</h4><p>Slowloris 是一种慢速攻击工具，通过与受害者建立大量挂起连接来实现拒绝服务。其代码嵌入在恶意软件中，可在系统所有者不知情的情况下发动攻击。</p>
 <h4 id="XDoS（XML-DoS）"><a href="#XDoS（XML-DoS）" class="headerlink" title="XDoS（XML DoS）"></a>XDoS（XML DoS）</h4><p>一种可由现代 Web 应用防火墙（WAF）控制的应用级 DoS 攻击，属于超时利用类攻击。</p>
 <h4 id="降级服务攻击（Degradation-of-Service）"><a href="#降级服务攻击（Degradation-of-Service）" class="headerlink" title="降级服务攻击（Degradation-of-Service）"></a>降级服务攻击（Degradation-of-Service）</h4><p>脉冲僵尸（Pulsing Zombies）是一组受控制的被入侵计算机，被指令对目标网站发动断断续续、短暂的洪水攻击，目的仅仅是降低其性能而非使其崩溃。这类攻击被称为”降级服务攻击”，比普通 DoS 更难检测，可长期持续地扰乱网站连接，造成的整体破坏可能更大。</p>
-<h4 id="针对云端自动扩缩的-Yo-yo-攻击"><a href="#针对云端自动扩缩的-Yo-yo-攻击" class="headerlink" title="针对云端自动扩缩的 Yo-yo 攻击"></a>针对云端自动扩缩的 Yo-yo 攻击</h4><p>Yo-yo 攻击是一种针对使用<strong>自动扩缩（Autoscaling）</strong>的云托管应用程序的特定 DoS&#x2F;DDoS 类型。攻击者在发送大量流量（导致向上扩展）和停止突发（导致向下缩减）之间反复切换，通过频繁触发扩缩操作向应用运营商增加额外云计算费用，或使其陷入持续的资源调度混乱。</p>
+<h4 id="针对云端自动扩缩的-Yo-yo-攻击"><a href="#针对云端自动扩缩的-Yo-yo-攻击" class="headerlink" title="针对云端自动扩缩的 Yo-yo 攻击"></a>针对云端自动扩缩的 Yo-yo 攻击</h4><p>Yo-yo 攻击是一种针对使用自动扩缩（Autoscaling）的云托管应用程序的特定 DoS&#x2F;DDoS 类型。攻击者在发送大量流量（导致向上扩展）和停止突发（导致向下缩减）之间反复切换，通过频繁触发扩缩操作向应用运营商增加额外云计算费用，或使其陷入持续的资源调度混乱。</p>
 <hr>
 <h3 id="协议漏洞攻击"><a href="#协议漏洞攻击" class="headerlink" title="协议漏洞攻击"></a>协议漏洞攻击</h3><h4 id="Smurf-攻击"><a href="#Smurf-攻击" class="headerlink" title="Smurf 攻击"></a>Smurf 攻击</h4><p>Smurf 攻击依赖于错误配置的网络设备，允许数据包通过网络广播地址发送到特定网络上的所有计算机。攻击者发送大量 IP 数据包，其源地址被伪造成受害者地址，网络上的大多数设备会向该源 IP 地址回复，导致受害者计算机被流量淹没，甚至无法使用。</p>
 <p>Ping 洪水是 Smurf 攻击的基础形式之一。</p>
 <h4 id="Fraggle-攻击"><a href="#Fraggle-攻击" class="headerlink" title="Fraggle 攻击"></a>Fraggle 攻击</h4><p>类似于 Smurf 攻击的带宽消耗攻击。</p>
 <h4 id="泪滴攻击（Teardrop-Attack）"><a href="#泪滴攻击（Teardrop-Attack）" class="headerlink" title="泪滴攻击（Teardrop Attack）"></a>泪滴攻击（Teardrop Attack）</h4><p>向目标机器发送带有重叠、超大载荷的破损 IP 分片。这会导致各种操作系统崩溃，因为其 TCP&#x2F;IP 分片重组代码存在漏洞。Windows 3.1x、Windows 95、Windows NT 以及 2.0.32 和 2.1.63 版本之前的 Linux 均易受此攻击。</p>
-<h4 id="Nuke（核弹攻击）"><a href="#Nuke（核弹攻击）" class="headerlink" title="Nuke（核弹攻击）"></a>Nuke（核弹攻击）</h4><p>一种老式拒绝服务攻击，通过向目标发送分片的或无效的 ICMP 数据包，使用改装的 ping 工具反复发送这些损坏数据，使受影响的计算机速度减慢直到完全停止。典型案例是 <strong>WinNuke</strong>，利用了 Windows 95 中 NetBIOS 处理程序的漏洞，向受害者机器的 TCP 139 端口发送带外数据，导致系统锁死并显示蓝屏死机（BSOD）。</p>
+<h4 id="Nuke（核弹攻击）"><a href="#Nuke（核弹攻击）" class="headerlink" title="Nuke（核弹攻击）"></a>Nuke（核弹攻击）</h4><p>一种老式拒绝服务攻击，通过向目标发送分片的或无效的 ICMP 数据包，使用改装的 ping 工具反复发送这些损坏数据，使受影响的计算机速度减慢直到完全停止。典型案例是 WinNuke，利用了 Windows 95 中 NetBIOS 处理程序的漏洞，向受害者机器的 TCP 139 端口发送带外数据，导致系统锁死并显示蓝屏死机（BSOD）。</p>
 <h4 id="BlackNurse-攻击"><a href="#BlackNurse-攻击" class="headerlink" title="BlackNurse 攻击"></a>BlackNurse 攻击</h4><p>利用目标端口不可达 ICMP 数据包的一种攻击。</p>
 <h4 id="剪切攻击（Shrew-Attack）"><a href="#剪切攻击（Shrew-Attack）" class="headerlink" title="剪切攻击（Shrew Attack）"></a>剪切攻击（Shrew Attack）</h4><p>针对传输控制协议（TCP）的拒绝服务攻击，攻击者采用中间人技术，利用 TCP 重传超时机制的弱点，使用短暂的同步突发流量破坏同一链路上的 TCP 连接。</p>
 <h4 id="SACK-Panic（Linux-内核漏洞）"><a href="#SACK-Panic（Linux-内核漏洞）" class="headerlink" title="SACK Panic（Linux 内核漏洞）"></a>SACK Panic（Linux 内核漏洞）</h4><p>通过操纵最大分段大小（MSS）和选择性确认（SACK）触发 Linux 内核的整数溢出，可能导致内核崩溃（kernel panic）。2019 年 6 月 17 日，Jonathan Looney 发现了相关 CVE（CVE-2019-11477、CVE-2019-11478、CVE-2019-11479）。</p>
@@ -369,8 +371,8 @@
 <h4 id="ARP-欺骗（ARP-Spoofing）"><a href="#ARP-欺骗（ARP-Spoofing）" class="headerlink" title="ARP 欺骗（ARP Spoofing）"></a>ARP 欺骗（ARP Spoofing）</h4><p>常见的 DoS 攻击，利用 ARP 协议中的漏洞，使攻击者能将其 MAC 地址与另一台计算机或网关的 IP 地址关联，导致发往原始 IP 的流量被重定向到攻击者，从而造成拒绝服务。</p>
 <h4 id="TTL-过期攻击"><a href="#TTL-过期攻击" class="headerlink" title="TTL 过期攻击"></a>TTL 过期攻击</h4><p>丢弃 TTL 值为 1 或更低的数据包比转发 TTL 较高的数据包需要更多路由器资源。当数据包因 TTL 到期被丢弃时，路由器 CPU 必须生成并发送 ICMP 超时响应。大量产生这些响应会使路由器 CPU 过载。</p>
 <hr>
-<h3 id="放大-反射攻击（Amplification-Reflection）"><a href="#放大-反射攻击（Amplification-Reflection）" class="headerlink" title="放大&#x2F;反射攻击（Amplification &amp; Reflection）"></a>放大&#x2F;反射攻击（Amplification &amp; Reflection）</h3><p><strong>分布式反射拒绝服务（DRDoS）攻击</strong>：攻击者向大量计算机发送伪造请求，使用目标受害者的 IP 地址作为源地址，所有回复将涌入并淹没目标。</p>
-<p><strong>放大攻击</strong>用于放大发送给受害者的带宽。US-CERT 观察到不同服务可能产生不同的放大系数：</p>
+<h3 id="放大-反射攻击（Amplification-Reflection）"><a href="#放大-反射攻击（Amplification-Reflection）" class="headerlink" title="放大&#x2F;反射攻击（Amplification &amp; Reflection）"></a>放大&#x2F;反射攻击（Amplification &amp; Reflection）</h3><p>分布式反射拒绝服务（DRDoS）攻击：攻击者向大量计算机发送伪造请求，使用目标受害者的 IP 地址作为源地址，所有回复将涌入并淹没目标。</p>
+<p>放大攻击用于放大发送给受害者的带宽。US-CERT 观察到不同服务可能产生不同的放大系数：</p>
 <table>
 <thead>
 <tr>
@@ -381,7 +383,7 @@
 </thead>
 <tbody><tr>
 <td>Mitel MiCollab</td>
-<td><strong>2,200,000,000×</strong></td>
+<td>2,200,000,000×</td>
 <td></td>
 </tr>
 <tr>
@@ -456,26 +458,26 @@
 </tr>
 </tbody></table>
 <h4 id="DNS-放大攻击"><a href="#DNS-放大攻击" class="headerlink" title="DNS 放大攻击"></a>DNS 放大攻击</h4><p>攻击者向一个或多个公共 DNS 服务器发送 DNS 名称查询请求，将目标受害者的源 IP 地址欺骗为发送方。攻击者尽量请求尽可能多的信息，从而放大发送给目标受害者的 DNS 响应，大幅增加针对目标的流量。</p>
-<h4 id="NTP-放大攻击"><a href="#NTP-放大攻击" class="headerlink" title="NTP 放大攻击"></a>NTP 放大攻击</h4><p>利用 NTP 服务器的 <code>monlist</code> 命令（返回请求过时间的最后 600 个主机的详细信息）。向该时间服务器发送伪造源 IP 地址的小请求，将收到 <strong>556.9 倍</strong>大小的响应发送给受害者。与僵尸网络结合后，所有发送相同欺骗 IP 源请求的节点将导致大量数据被发回受害者，且响应数据来自合法服务器，极难防御。</p>
+<h4 id="NTP-放大攻击"><a href="#NTP-放大攻击" class="headerlink" title="NTP 放大攻击"></a>NTP 放大攻击</h4><p>利用 NTP 服务器的 <code>monlist</code> 命令（返回请求过时间的最后 600 个主机的详细信息）。向该时间服务器发送伪造源 IP 地址的小请求，将收到 556.9 倍大小的响应发送给受害者。与僵尸网络结合后，所有发送相同欺骗 IP 源请求的节点将导致大量数据被发回受害者，且响应数据来自合法服务器，极难防御。</p>
 <hr>
-<h3 id="永久性拒绝服务攻击（PDoS）"><a href="#永久性拒绝服务攻击（PDoS）" class="headerlink" title="永久性拒绝服务攻击（PDoS）"></a>永久性拒绝服务攻击（PDoS）</h3><p><strong>永久性拒绝服务攻击</strong>（Permanent Denial-of-Service，PDoS），也称为”<strong>phlashing</strong>“，是一种损坏系统严重到需要更换或重新安装硬件的攻击。</p>
-<p>PDoS 攻击利用受害者硬件（路由器、打印机或其他网络硬件）管理接口的远程管理安全漏洞，将设备固件替换为修改过的、损坏的或有缺陷的固件镜像——即”刷机”操作。目的是将设备变砖（brick），使其无法用于原始用途，直到修复或更换。</p>
+<h3 id="永久性拒绝服务攻击（PDoS）"><a href="#永久性拒绝服务攻击（PDoS）" class="headerlink" title="永久性拒绝服务攻击（PDoS）"></a>永久性拒绝服务攻击（PDoS）</h3><p>永久性拒绝服务攻击（Permanent Denial-of-Service，PDoS），也称为”phlashing”，是一种损坏系统严重到需要更换或重新安装硬件的攻击。</p>
+<p>PDoS 攻击利用受害者硬件（路由器、打印机或其他网络硬件）管理接口的远程管理安全漏洞，将设备固件替换为修改过的、损坏的或有缺陷的固件镜像，即”刷机”操作。目的是将设备变砖（brick），使其无法用于原始用途，直到修复或更换。</p>
 <p>PDoS 是纯粹针对硬件的攻击，比 DDoS 攻击更快速，所需资源更少。</p>
 <ul>
-<li><strong>BrickerBot</strong>：一款针对 IoT 设备的恶意软件，使用 PDoS 攻击禁用目标设备。</li>
-<li><strong>PhlashDance</strong>：由 HP 系统安全实验室员工 Rich Smith 创建的工具，用于在 2008 年伦敦 EUSecWest 应用安全会议上检测和演示 PDoS 漏洞。</li>
+<li>BrickerBot：一款针对 IoT 设备的恶意软件，使用 PDoS 攻击禁用目标设备。</li>
+<li>PhlashDance：由 HP 系统安全实验室员工 Rich Smith 创建的工具，用于在 2008 年伦敦 EUSecWest 应用安全会议上检测和演示 PDoS 漏洞。</li>
 </ul>
 <hr>
-<h3 id="高级持续性拒绝服务攻击（APDoS）"><a href="#高级持续性拒绝服务攻击（APDoS）" class="headerlink" title="高级持续性拒绝服务攻击（APDoS）"></a>高级持续性拒绝服务攻击（APDoS）</h3><p><strong>高级持续性拒绝服务攻击</strong>（Advanced Persistent DoS，APDoS）与高级持续性威胁（APT）相关联，需要专门的 DDoS 缓解措施。</p>
-<p>记录在案的最长连续攻击持续了 <strong>38 天</strong>，涉及约 <strong>50+ Pb（50,000+ TB）的恶意流量</strong>。攻击者可能战术性地在多个目标之间切换，制造干扰以规避 DDoS 防御措施，但最终将主要攻击力量集中在单一受害者身上。</p>
+<h3 id="高级持续性拒绝服务攻击（APDoS）"><a href="#高级持续性拒绝服务攻击（APDoS）" class="headerlink" title="高级持续性拒绝服务攻击（APDoS）"></a>高级持续性拒绝服务攻击（APDoS）</h3><p>高级持续性拒绝服务攻击（Advanced Persistent DoS，APDoS）与高级持续性威胁（APT）相关联，需要专门的 DDoS 缓解措施。</p>
+<p>记录在案的最长连续攻击持续了 38 天，涉及约 50+ Pb（50,000+ TB）的恶意流量。攻击者可能战术性地在多个目标之间切换，制造干扰以规避 DDoS 防御措施，但最终将主要攻击力量集中在单一受害者身上。</p>
 <p>APDoS 攻击的特征：</p>
 <ul>
-<li><strong>高级侦察</strong>：攻击前进行开源情报（OSINT）收集和大量诱饵扫描，以长期规避检测</li>
-<li><strong>战术执行</strong>：同时攻击主要和次要目标，但焦点在于主要目标</li>
-<li><strong>明确动机</strong>：有精心设计的最终目标</li>
-<li><strong>强大计算能力</strong>：具备访问大量计算机能力和网络带宽</li>
-<li><strong>多线程 OSI 层攻击</strong>：在 OSI 第 3 层至第 7 层同时运作的复杂工具</li>
-<li><strong>长期持续性</strong>：将上述所有特点整合成跨多目标的协调、精心管理的攻击</li>
+<li>高级侦察：攻击前进行开源情报（OSINT）收集和大量诱饵扫描，以长期规避检测</li>
+<li>战术执行：同时攻击主要和次要目标，但焦点在于主要目标</li>
+<li>明确动机：有精心设计的最终目标</li>
+<li>强大计算能力：具备访问大量计算机能力和网络带宽</li>
+<li>多线程 OSI 层攻击：在 OSI 第 3 层至第 7 层同时运作的复杂工具</li>
+<li>长期持续性：将上述所有特点整合成跨多目标的协调、精心管理的攻击</li>
 </ul>
 <hr>
 <h3 id="其他特殊攻击类型"><a href="#其他特殊攻击类型" class="headerlink" title="其他特殊攻击类型"></a>其他特殊攻击类型</h3><h4 id="点对点-DDoS（Peer-to-Peer-DDoS）"><a href="#点对点-DDoS（Peer-to-Peer-DDoS）" class="headerlink" title="点对点 DDoS（Peer-to-Peer DDoS）"></a>点对点 DDoS（Peer-to-Peer DDoS）</h4><p>攻击者利用对等网络服务器中的漏洞发动 DDoS 攻击。最具攻击性的此类攻击利用 DC++ 协议。攻击者充当”幕后操控者”，指示大型点对点文件共享中心的客户端断开与对等网络的连接，转而连接受害者的网站，无需僵尸网络，也无需与被颠覆的客户端通信。</p>
@@ -485,29 +487,29 @@
 <ul>
 <li>诈骗者联系受害者的银行或经纪商，伪装成受害者请求转账，同时用虚假来电淹没受害者电话线，使其无法被联系到</li>
 <li>诈骗者向消费者谎称追收发薪日贷款，当消费者反对时，用自动呼叫淹没受害者雇主</li>
-<li><strong>骚扰性攻击（Swatting）</strong>：诈骗者以收债为由威胁报警，当受害者拒绝时，用来电显示欺骗成受害者号码淹没当地警局，警察随后上门</li>
+<li>骚扰性攻击（Swatting）：诈骗者以收债为由威胁报警，当受害者拒绝时，用来电显示欺骗成受害者号码淹没当地警局，警察随后上门</li>
 </ul>
-<p>历史案例：<strong>2002 年新罕布什尔州参议院选举电话堵塞丑闻</strong>中，电话推销员被用于向政治对手的电话热线发送大量虚假来电。</p>
+<p>历史案例：2002 年新罕布什尔州参议院选举电话堵塞丑闻中，电话推销员被用于向政治对手的电话热线发送大量虚假来电。</p>
 <h4 id="Booter-Stresser-服务"><a href="#Booter-Stresser-服务" class="headerlink" title="Booter &#x2F; Stresser 服务"></a>Booter &#x2F; Stresser 服务</h4><p>部分供应商提供所谓的”booter”或”stresser”服务，这些服务具有简单的基于 Web 的前端，并通过网络接受付款。以压力测试工具为名进行营销，实际上可用于执行未经授权的拒绝服务攻击，允许技术能力有限的攻击者访问复杂的攻击工具。由僵尸网络驱动，此类工具产生的流量通常在 5–50 Gbit&#x2F;s 之间，足以使普通家庭用户无法上网。</p>
 <hr>
-<h1 id="僵尸网络与攻击基础设施"><a href="#僵尸网络与攻击基础设施" class="headerlink" title="僵尸网络与攻击基础设施"></a>僵尸网络与攻击基础设施</h1><p><strong>僵尸网络（Botnet）</strong> 是被入侵计算机的集合，是现代 DDoS 攻击的核心基础设施。</p>
+<h1 id="僵尸网络与攻击基础设施"><a href="#僵尸网络与攻击基础设施" class="headerlink" title="僵尸网络与攻击基础设施"></a>僵尸网络与攻击基础设施</h1><p>僵尸网络（Botnet） 是被入侵计算机的集合，是现代 DDoS 攻击的核心基础设施。</p>
 <h3 id="典型工具"><a href="#典型工具" class="headerlink" title="典型工具"></a>典型工具</h3><ul>
-<li><strong>Stacheldraht</strong>：经典 DDoS 工具，使用分层结构——攻击者通过客户端程序连接到处理程序（被入侵系统），处理程序向僵尸代理发出命令，每个处理程序可控制多达 <strong>1000 个代理</strong></li>
-<li><strong>Low Orbit Ion Cannon（LOIC）</strong> 和 <strong>High Orbit Ion Cannon（HOIC）</strong>：常用于黑客行动主义攻击（如匿名者的”Operation Payback”行动），部分情况下机器所有者知情并同意参与</li>
-<li><strong>MyDoom</strong>：DoS 机制在特定日期和时间触发，目标 IP 地址在发布前硬编码，无需进一步交互即可发动攻击</li>
+<li>Stacheldraht：经典 DDoS 工具，使用分层结构，攻击者通过客户端程序连接到处理程序（被入侵系统），处理程序向僵尸代理发出命令，每个处理程序可控制多达 1000 个代理</li>
+<li>Low Orbit Ion Cannon（LOIC） 和 High Orbit Ion Cannon（HOIC）：常用于黑客行动主义攻击（如匿名者的”Operation Payback”行动），部分情况下机器所有者知情并同意参与</li>
+<li>MyDoom：DoS 机制在特定日期和时间触发，目标 IP 地址在发布前硬编码，无需进一步交互即可发动攻击</li>
 </ul>
 <h3 id="Mirai-僵尸网络"><a href="#Mirai-僵尸网络" class="headerlink" title="Mirai 僵尸网络"></a>Mirai 僵尸网络</h3><p>Mirai 通过计算机蠕虫感染数十万台 IoT 设备（温控器、Wi-Fi 时钟、洗衣机等保护不足的设备），设备所有者通常无法立即察觉设备被感染。2016 年 10 月，Mirai 僵尸网络攻击了 Dyn（Netflix 等网站的 DNS 提供商），导致这些网站数小时不可访问。</p>
-<p>IoT 设备引发的新型攻击也在增加，曾记录到约 900 台 CCTV 摄像头发起的峰值约 <strong>2 万请求&#x2F;秒</strong>的攻击。</p>
+<p>IoT 设备引发的新型攻击也在增加，曾记录到约 900 台 CCTV 摄像头发起的峰值约 2 万请求&#x2F;秒的攻击。</p>
 <p>英国 GCHQ 也拥有名为 PREDATORS FACE 和 ROLLING THUNDER 的 DDoS 工具。</p>
 <hr>
 <h1 id="非蓄意拒绝服务"><a href="#非蓄意拒绝服务" class="headerlink" title="非蓄意拒绝服务"></a>非蓄意拒绝服务</h1><p>非蓄意拒绝服务（Unintentional DoS）不是由蓄意攻击造成的，而是由于突然的巨大流量激增导致系统被拒绝访问。</p>
-<p><strong>常见场景</strong>：</p>
+<p>常见场景：</p>
 <ul>
-<li>一个极受欢迎的网站在新闻报道中发布了指向一个准备不足的次要网站的显著链接，导致该次要网站在几个小时内被数十万用户点击，效果等同于 DDoS 攻击，也称为”<strong>Slashdot 效应</strong>“</li>
-<li><strong>VIPDoS</strong>：当链接由名人发布时，由此产生的流量激增尤为剧烈</li>
-<li><strong>搜索引擎抓取</strong>：搜索引擎频繁地对尚未准备好处理高流量的小站点进行索引</li>
+<li>一个极受欢迎的网站在新闻报道中发布了指向一个准备不足的次要网站的显著链接，导致该次要网站在几个小时内被数十万用户点击，效果等同于 DDoS 攻击，也称为”Slashdot 效应”</li>
+<li>VIPDoS：当链接由名人发布时，由此产生的流量激增尤为剧烈</li>
+<li>搜索引擎抓取：搜索引擎频繁地对尚未准备好处理高流量的小站点进行索引</li>
 </ul>
-<p>典型案例：<strong>2009 年迈克尔·杰克逊逝世</strong>时，谷歌、Twitter 等网站显著减速甚至崩溃，许多网站服务器误认为这些请求来自病毒或间谍软件。</p>
+<p>典型案例：2009 年迈克尔·杰克逊逝世时，谷歌、Twitter 等网站显著减速甚至崩溃，许多网站服务器误认为这些请求来自病毒或间谍软件。</p>
 <hr>
 <h1 id="攻击症状与检测"><a href="#攻击症状与检测" class="headerlink" title="攻击症状与检测"></a>攻击症状与检测</h1><p>美国计算机应急准备小组（US-CERT）识别出的拒绝服务攻击症状包括：</p>
 <ul>
@@ -593,9 +595,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -655,9 +659,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 概述 三大核心算法 正确性与失败处理 安全性定义：IND-CCA KEM 与 DEM 的组合：混合公钥加密 KEM 与公钥加密方案的关系 KEM 在认证密钥协商中的应用 典型 KEM 构造 RSA-KEM Elgamal-KEM &#x2F; DH-KEM ML-KEM（后量子）   KEM 组合器（KEM Combiner） 标准化现状   1. 概述在密码学中，密钥封装机制（Key En">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-06-09T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-04-19T12:08:31.996Z">
+<meta property="article:modified_time" content="2026-07-13T10:04:00.124Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="Cryptology">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -176,26 +178,26 @@
 <li><a href="#1-%E6%A6%82%E8%BF%B0">概述</a></li>
 <li><a href="#2-%E4%B8%89%E5%A4%A7%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95">三大核心算法</a></li>
 <li><a href="#3-%E6%AD%A3%E7%A1%AE%E6%80%A7%E4%B8%8E%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86">正确性与失败处理</a></li>
-<li><a href="#4-%E5%AE%89%E5%85%A8%E6%80%A7%E5%AE%9A%E4%B9%89ind-cca">安全性定义：IND-CCA</a></li>
-<li><a href="#5-kem-%E4%B8%8E-dem-%E7%9A%84%E7%BB%84%E5%90%88%E6%B7%B7%E5%90%88%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86">KEM 与 DEM 的组合：混合公钥加密</a></li>
-<li><a href="#6-kem-%E4%B8%8E%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88%E7%9A%84%E5%85%B3%E7%B3%BB">KEM 与公钥加密方案的关系</a></li>
-<li><a href="#7-kem-%E5%9C%A8%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">KEM 在认证密钥协商中的应用</a></li>
-<li><a href="#8-%E5%85%B8%E5%9E%8B-kem-%E6%9E%84%E9%80%A0">典型 KEM 构造</a><ul>
-<li><a href="#81-rsa-kem">RSA-KEM</a></li>
-<li><a href="#82-elgamal-kem--dh-kem">Elgamal-KEM &#x2F; DH-KEM</a></li>
-<li><a href="#83-ml-kem%E5%90%8E%E9%87%8F%E5%AD%90">ML-KEM（后量子）</a></li>
+<li><a href="#4-%E5%AE%89%E5%85%A8%E6%80%A7%E5%AE%9A%E4%B9%89%EF%BC%9AIND-CCA">安全性定义：IND-CCA</a></li>
+<li><a href="#5-KEM-%E4%B8%8E-DEM-%E7%9A%84%E7%BB%84%E5%90%88%EF%BC%9A%E6%B7%B7%E5%90%88%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86">KEM 与 DEM 的组合：混合公钥加密</a></li>
+<li><a href="#6-KEM-%E4%B8%8E%E5%85%AC%E9%92%A5%E5%8A%A0%E5%AF%86%E6%96%B9%E6%A1%88%E7%9A%84%E5%85%B3%E7%B3%BB">KEM 与公钥加密方案的关系</a></li>
+<li><a href="#7-KEM-%E5%9C%A8%E8%AE%A4%E8%AF%81%E5%AF%86%E9%92%A5%E5%8D%8F%E5%95%86%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8">KEM 在认证密钥协商中的应用</a></li>
+<li><a href="#8-%E5%85%B8%E5%9E%8B-KEM-%E6%9E%84%E9%80%A0">典型 KEM 构造</a><ul>
+<li><a href="#8-1-RSA-KEM">RSA-KEM</a></li>
+<li><a href="#8-2-Elgamal-KEM-DH-KEM">Elgamal-KEM &#x2F; DH-KEM</a></li>
+<li><a href="#8-3-ML-KEM%EF%BC%88%E5%90%8E%E9%87%8F%E5%AD%90%EF%BC%89">ML-KEM（后量子）</a></li>
 </ul>
 </li>
-<li><a href="#9-kem-%E7%BB%84%E5%90%88%E5%99%A8kem-combiner">KEM 组合器（KEM Combiner）</a></li>
+<li><a href="#9-KEM-%E7%BB%84%E5%90%88%E5%99%A8%EF%BC%88KEM-Combiner%EF%BC%89">KEM 组合器（KEM Combiner）</a></li>
 <li><a href="#10-%E6%A0%87%E5%87%86%E5%8C%96%E7%8E%B0%E7%8A%B6">标准化现状</a></li>
 </ol>
 <hr>
-<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>在密码学中，<strong>密钥封装机制</strong>（Key Encapsulation Mechanism，简称 <strong>KEM</strong>）是一种公钥密码体制，它允许发送方生成一个短的随机密钥，并以保密的方式将其传输给接收方，即使存在窃听者或中间人攻击也能保持安全。现代公钥加密标准（如 NIST FIPS 203、RFC 9180 HPKE）通常都以 KEM 为基础构建。</p>
+<h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h1><p>在密码学中，密钥封装机制（Key Encapsulation Mechanism，简称 KEM）是一种公钥密码体制，它允许发送方生成一个短的随机密钥，并以保密的方式将其传输给接收方，即使存在窃听者或中间人攻击也能保持安全。现代公钥加密标准（如 NIST FIPS 203、RFC 9180 HPKE）通常都以 KEM 为基础构建。</p>
 <p>KEM 的核心思想是：</p>
 <ul>
-<li><strong>发送方</strong>知道接收方的公钥，通过封装算法（Encapsulation）同时生成一个短的随机密钥 $K$ 及其对应的封装密文 $C$；</li>
-<li><strong>接收方</strong>知道对应的私钥，通过解封装算法（Decapsulation）从封装密文 $C$ 中恢复出相同的随机密钥 $K$；</li>
-<li><strong>任何不知道私钥的人</strong>无法从封装密文中获得关于密钥的任何信息，即使他们已经窃听了通信或向接收方提交了其他封装以研究接收方的反应。</li>
+<li>发送方知道接收方的公钥，通过封装算法（Encapsulation）同时生成一个短的随机密钥 $K$ 及其对应的封装密文 $C$；</li>
+<li>接收方知道对应的私钥，通过解封装算法（Decapsulation）从封装密文 $C$ 中恢复出相同的随机密钥 $K$；</li>
+<li>任何不知道私钥的人无法从封装密文中获得关于密钥的任何信息，即使他们已经窃听了通信或向接收方提交了其他封装以研究接收方的反应。</li>
 </ul>
 <p>KEM 与传统公钥加密方案的核心区别在于：传统公钥加密方案允许发送方从某个消息空间中选择任意消息进行加密，而 KEM 则由算法本身为发送方随机生成一个短密钥。这使得 KEM 比完整的公钥加密方案更容易设计和安全性分析。</p>
 <hr>
@@ -228,59 +230,59 @@
 <td>密钥 $K$，或失败符号 $\bot$</td>
 </tr>
 </tbody></table>
-<p><strong>关于密钥长度：</strong></p>
+<p>关于密钥长度：</p>
 <ul>
 <li>在理论密码学的渐近分析框架下，算法是关于安全参数 $\lambda$ 的概率多项式时间算法，密钥长度是安全参数的函数。</li>
 <li>在实际密码学中，每种算法通常使用固定长度的密钥。例如：<ul>
-<li><strong>ML-KEM</strong> 固定使用 256 位密钥；</li>
-<li><strong>RFC 9180</strong> 中的算法根据配置使用 256、384 或 512 位密钥；</li>
+<li>ML-KEM 固定使用 256 位密钥；</li>
+<li>RFC 9180 中的算法根据配置使用 256、384 或 512 位密钥；</li>
 <li>任意长度的密钥可通过密钥派生函数（KDF）从 $K$ 进一步派生。</li>
 </ul>
 </li>
 </ul>
 <hr>
-<h1 id="3-正确性与失败处理"><a href="#3-正确性与失败处理" class="headerlink" title="3. 正确性与失败处理"></a>3. 正确性与失败处理</h1><p><strong>正确性</strong>：KEM 是正确的（Correct），当且仅当对于任意由 $\text{Gen}()$ 生成的密钥对 $(pk, sk)$，以高概率满足：</p>
+<h1 id="3-正确性与失败处理"><a href="#3-正确性与失败处理" class="headerlink" title="3. 正确性与失败处理"></a>3. 正确性与失败处理</h1><p>正确性：KEM 是正确的（Correct），当且仅当对于任意由 $\text{Gen}()$ 生成的密钥对 $(pk, sk)$，以高概率满足：</p>
 <p>$$\text{Decap}(sk, C) &#x3D; K \quad \text{其中} \quad (K, C) \leftarrow \text{Encap}(pk)$$</p>
-<p><strong>解封装失败</strong>发生在以下场景：输入的封装密文 $C$ 并非由合法的 $\text{Encap}$ 产生，而是被篡改或恶意构造。KEM 处理失败有两种方式：</p>
+<p>解封装失败发生在以下场景：输入的封装密文 $C$ 并非由合法的 $\text{Encap}$ 产生，而是被篡改或恶意构造。KEM 处理失败有两种方式：</p>
 <ul>
-<li><strong>显式拒绝（Explicit Rejection）</strong>：当解封装失败时，返回特殊的失败符号（如错误码或异常），明确告知调用方解封装失败。</li>
-<li><strong>隐式拒绝（Implicit Rejection）</strong>：当解封装失败时，不返回失败符号，而是返回一个由私钥 $sk$ 和密文 $C$ 伪随机派生的随机密钥。这种方式可以防止攻击者通过观察是否失败来获得额外信息，ML-KEM 采用此方式。</li>
+<li>显式拒绝（Explicit Rejection）：当解封装失败时，返回特殊的失败符号（如错误码或异常），明确告知调用方解封装失败。</li>
+<li>隐式拒绝（Implicit Rejection）：当解封装失败时，不返回失败符号，而是返回一个由私钥 $sk$ 和密文 $C$ 伪随机派生的随机密钥。这种方式可以防止攻击者通过观察是否失败来获得额外信息，ML-KEM 采用此方式。</li>
 </ul>
 <hr>
-<h1 id="4-安全性定义：IND-CCA"><a href="#4-安全性定义：IND-CCA" class="headerlink" title="4. 安全性定义：IND-CCA"></a>4. 安全性定义：IND-CCA</h1><p>KEM 的安全性通过<strong>自适应选择密文攻击下的不可区分性</strong>（Indistinguishability under Adaptive Chosen-Ciphertext Attack，<strong>IND-CCA</strong>）来量化。直观上，IND-CCA 衡量的是：攻击者在获得一个随机密钥 $K$ 和一个封装密文 $C^*$ 之后，能否区分 $K$ 是由 $C^*$ 封装的密钥，还是一个独立随机选取的密钥——即攻击者的能力是否超过掷硬币猜测。</p>
-<p><strong>IND-CCA 游戏流程如下：</strong></p>
+<h1 id="4-安全性定义：IND-CCA"><a href="#4-安全性定义：IND-CCA" class="headerlink" title="4. 安全性定义：IND-CCA"></a>4. 安全性定义：IND-CCA</h1><p>KEM 的安全性通过自适应选择密文攻击下的不可区分性（Indistinguishability under Adaptive Chosen-Ciphertext Attack，IND-CCA）来量化。直观上，IND-CCA 衡量的是：攻击者在获得一个随机密钥 $K$ 和一个封装密文 $C^*$ 之后，能否区分 $K$ 是由 $C^*$ 封装的密钥，还是一个独立随机选取的密钥，即攻击者的能力是否超过掷硬币猜测。</p>
+<p>IND-CCA 游戏流程如下：</p>
 <ol>
 <li>运行 $\text{Gen}()$ 生成密钥对 $(pk, sk)$；</li>
 <li>将公钥 $pk$ 公开给攻击者；</li>
-<li>攻击者可以向解封装预言机查询任意封装密文（<strong>自适应选择密文查询阶段 1</strong>）；</li>
+<li>攻击者可以向解封装预言机查询任意封装密文（自适应选择密文查询阶段 1）；</li>
 <li>运行 $\text{Encap}(pk)$ 随机生成挑战密钥 $K_0$ 和封装密文 $C^*$，同时独立随机生成另一个密钥 $K_1$；</li>
 <li>抛一枚公平硬币，得到结果 $b \in {0, 1}$；</li>
 <li>将挑战对 $(K_b, C^*)$ 公开给攻击者；</li>
-<li>攻击者可以继续查询解封装预言机，但不能查询 $C^*$（<strong>自适应选择密文查询阶段 2</strong>）；</li>
+<li>攻击者可以继续查询解封装预言机，但不能查询 $C^*$（自适应选择密文查询阶段 2）；</li>
 <li>攻击者输出猜测 $b’$，若 $b’ &#x3D; b$ 则赢得游戏。</li>
 </ol>
-<p>攻击者的 <strong>IND-CCA 优势</strong>定义为：</p>
+<p>攻击者的 IND-CCA 优势定义为：</p>
 <p>$$\text{Adv}^{\text{IND-CCA}} &#x3D; \left| \Pr[b’ &#x3D; b] - \frac{1}{2} \right|$$</p>
 <p>即攻击者正确区分封装密钥与随机密钥的概率超过公平猜测的部分。一个安全的 KEM 要求此优势对于任何高效攻击者都可忽略不计。</p>
 <hr>
-<h1 id="5-KEM-与-DEM-的组合：混合公钥加密"><a href="#5-KEM-与-DEM-的组合：混合公钥加密" class="headerlink" title="5. KEM 与 DEM 的组合：混合公钥加密"></a>5. KEM 与 DEM 的组合：混合公钥加密</h1><p>KEM 本身只解决了密钥传输问题，要加密任意长度的消息，需要将 KEM 与<strong>数据封装机制</strong>（Data Encapsulation Mechanism，<strong>DEM</strong>）组合，构成<strong>混合公钥加密</strong>（Hybrid Public-Key Encryption，HPKE）方案。</p>
+<h1 id="5-KEM-与-DEM-的组合：混合公钥加密"><a href="#5-KEM-与-DEM-的组合：混合公钥加密" class="headerlink" title="5. KEM 与 DEM 的组合：混合公钥加密"></a>5. KEM 与 DEM 的组合：混合公钥加密</h1><p>KEM 本身只解决了密钥传输问题，要加密任意长度的消息，需要将 KEM 与数据封装机制（Data Encapsulation Mechanism，DEM）组合，构成混合公钥加密（Hybrid Public-Key Encryption，HPKE）方案。</p>
 <p>DEM 即一个对称认证加密方案，其安全要求是对单条发送方加密消息的选择密文攻击下的不可区分性（IND-CCA for a single message）。</p>
-<p><strong>混合加密方案的构造：</strong></p>
+<p>混合加密方案的构造：</p>
 <p>给定安全的 KEM（算法 $\text{Gen}&#x2F;\text{Encap}&#x2F;\text{Decap}$）和安全的 DEM $E$：</p>
-<p><strong>加密</strong>（发送方对消息 $m$ 用公钥 $pk$ 加密）：</p>
+<p>加密（发送方对消息 $m$ 用公钥 $pk$ 加密）：</p>
 <ol>
 <li>运行 $\text{Encap}(pk)$，得到随机密钥 $K$ 及封装密文 $C_1$；</li>
 <li>用 $K$ 作为对称密钥，对消息 $m$ 进行认证加密，得到密文 $C_2 \leftarrow E_K(m)$；</li>
 <li>发送密文对 $(C_1, C_2)$。</li>
 </ol>
-<p><strong>解密</strong>（接收方用私钥 $sk$ 解密）：</p>
+<p>解密（接收方用私钥 $sk$ 解密）：</p>
 <ol>
 <li>运行 $\text{Decap}(sk, C_1)$，恢复密钥 $K$，若失败则中止；</li>
 <li>用 $K$ 解密 $C_2$，恢复消息 $m$，若失败则中止。</li>
 </ol>
-<p><strong>安全性结论</strong>：只要 KEM 满足 IND-CCA，且 DEM 对单条消息满足 IND-CCA，则该混合加密方案整体满足公钥设定下的 IND-CCA。</p>
+<p>安全性结论：只要 KEM 满足 IND-CCA，且 DEM 对单条消息满足 IND-CCA，则该混合加密方案整体满足公钥设定下的 IND-CCA。</p>
 <blockquote>
-<p><strong>重要提示</strong>：上述匿名公钥加密方案不提供发送方认证——任何持有公钥的人都可以向接收方发送消息。若需要证明发送方身份，必须配合数字签名等机制。此外，<strong>必须使用认证加密</strong>（而非仅提供 IND-CPA 安全的加密）；若使用未认证的加密，攻击者可以在传输过程中选择性地篡改密文，不仅在技术上违反 IND-CCA，还可能在实践中危及机密性（参见 EFAIL 攻击）。</p>
+<p>重要提示：上述匿名公钥加密方案不提供发送方认证，任何持有公钥的人都可以向接收方发送消息。若需要证明发送方身份，必须配合数字签名等机制。此外，必须使用认证加密（而非仅提供 IND-CPA 安全的加密）；若使用未认证的加密，攻击者可以在传输过程中选择性地篡改密文，不仅在技术上违反 IND-CCA，还可能在实践中危及机密性（参见 EFAIL 攻击）。</p>
 </blockquote>
 <hr>
 <h1 id="6-KEM-与公钥加密方案的关系"><a href="#6-KEM-与公钥加密方案的关系" class="headerlink" title="6. KEM 与公钥加密方案的关系"></a>6. KEM 与公钥加密方案的关系</h1><table>
@@ -315,7 +317,7 @@
 <p>理论上，公钥加密方案可以转换为 KEM（随机选取密钥并加密），但设计安全的 KEM 比设计安全的 PKE 更简单。因此，大多数现代公钥加密标准直接基于 KEM 构建，而非反之。</p>
 <p>典型例子：RSAES-PKCS1-v1_5、RSAES-OAEP、ElGamal 加密在实践中几乎都用于加密短随机密钥（混合加密），而非直接加密任意消息。</p>
 <hr>
-<h1 id="7-KEM-在认证密钥协商中的应用"><a href="#7-KEM-在认证密钥协商中的应用" class="headerlink" title="7. KEM 在认证密钥协商中的应用"></a>7. KEM 在认证密钥协商中的应用</h1><p>KEM 还可用于带<strong>前向安全性</strong>（Forward Secrecy）的认证密钥协商协议，如 TLS：</p>
+<h1 id="7-KEM-在认证密钥协商中的应用"><a href="#7-KEM-在认证密钥协商中的应用" class="headerlink" title="7. KEM 在认证密钥协商中的应用"></a>7. KEM 在认证密钥协商中的应用</h1><p>KEM 还可用于带前向安全性（Forward Secrecy）的认证密钥协商协议，如 TLS：</p>
 <ul>
 <li>客户端和服务端各自生成临时 KEM 密钥对；</li>
 <li>双方交换经签名的封装密文；</li>
@@ -324,18 +326,18 @@
 <p>这样，即使长期私钥日后泄露，攻击者也无法解密历史会话，实现了前向安全性。</p>
 <hr>
 <h1 id="8-典型-KEM-构造"><a href="#8-典型-KEM-构造" class="headerlink" title="8. 典型 KEM 构造"></a>8. 典型 KEM 构造</h1><p>不同的 KEM 依赖不同的数学难题来保证安全性。以下介绍三种典型构造。</p>
-<h3 id="8-1-RSA-KEM"><a href="#8-1-RSA-KEM" class="headerlink" title="8.1 RSA-KEM"></a>8.1 RSA-KEM</h3><p><strong>背景</strong>：传统 RSA 加密（”教科书 RSA”）因无随机化而完全不安全——同一明文总产生相同密文，无法抵抗已知明文攻击。各种随机化 padding 方案（如 RSAES-PKCS1-v1_5、RSAES-OAEP）试图修复这一问题，但有些已被证明存在漏洞（如 Bleichenbacher 攻击）。</p>
-<p><strong>RSA-KEM 构造</strong>（更简单且具有更紧归约）：</p>
+<h3 id="8-1-RSA-KEM"><a href="#8-1-RSA-KEM" class="headerlink" title="8.1 RSA-KEM"></a>8.1 RSA-KEM</h3><p>背景：传统 RSA 加密（”教科书 RSA”）因无随机化而完全不安全，同一明文总产生相同密文，无法抵抗已知明文攻击。各种随机化 padding 方案（如 RSAES-PKCS1-v1_5、RSAES-OAEP）试图修复这一问题，但有些已被证明存在漏洞（如 Bleichenbacher 攻击）。</p>
+<p>RSA-KEM 构造（更简单且具有更紧归约）：</p>
 <ul>
-<li><strong>密钥生成</strong>：生成 $n$ 位半素数 $n &#x3D; pq$，计算 $d &#x3D; e^{-1} \pmod{\lambda(n)}$。公钥为 $(n, e)$，私钥为 $(n, d)$。</li>
-<li><strong>封装</strong> $\text{Encap}(pk)$：<ol>
+<li>密钥生成：生成 $n$ 位半素数 $n &#x3D; pq$，计算 $d &#x3D; e^{-1} \pmod{\lambda(n)}$。公钥为 $(n, e)$，私钥为 $(n, d)$。</li>
+<li>封装 $\text{Encap}(pk)$：<ol>
 <li>均匀随机选取整数 $r \in \mathbb{Z}&#x2F;n\mathbb{Z}$；</li>
 <li>计算封装密文 $C &#x3D; r^e \bmod n$；</li>
 <li>通过密钥派生函数计算密钥 $K &#x3D; \text{KDF}(r)$；</li>
 <li>返回 $(K, C)$。</li>
 </ol>
 </li>
-<li><strong>解封装</strong> $\text{Decap}(sk, C)$：<ol>
+<li>解封装 $\text{Decap}(sk, C)$：<ol>
 <li>计算 $r &#x3D; C^d \bmod n$；</li>
 <li>返回 $K &#x3D; \text{KDF}(r)$。</li>
 </ol>
@@ -343,31 +345,31 @@
 </ul>
 <p>RSA-KEM 直接基于 RSA 困难问题（整数因子分解），比 RSAES-OAEP 等 padding 方案具有更紧的安全性归约，且无需复杂的 padding 逻辑。</p>
 <blockquote>
-<p><strong>量子安全性</strong>：RSA 安全性基于整数因子分解的困难性，而运行 Shor 算法的量子计算机可以高效分解大整数，因此 RSA-KEM <strong>不具备量子安全性</strong>。</p>
+<p>量子安全性：RSA 安全性基于整数因子分解的困难性，而运行 Shor 算法的量子计算机可以高效分解大整数，因此 RSA-KEM 不具备量子安全性。</p>
 </blockquote>
-<h3 id="8-2-Elgamal-KEM-DH-KEM"><a href="#8-2-Elgamal-KEM-DH-KEM" class="headerlink" title="8.2 Elgamal-KEM &#x2F; DH-KEM"></a>8.2 Elgamal-KEM &#x2F; DH-KEM</h3><p><strong>背景</strong>：传统 ElGamal 加密定义在有限域乘法子群上，可以证明对选择密文攻击是不安全的（例如，攻击者可以通过提交变形密文 $(u, 2v)$ 来恢复 $2m$，进而还原 $m$）。此外，ElGamal 加密在椭圆曲线上的推广需要将消息可逆编码为曲线点，增加了复杂性。</p>
-<p><strong>DH-KEM 构造</strong>（也称 Elgamal-KEM）：</p>
+<h3 id="8-2-Elgamal-KEM-DH-KEM"><a href="#8-2-Elgamal-KEM-DH-KEM" class="headerlink" title="8.2 Elgamal-KEM &#x2F; DH-KEM"></a>8.2 Elgamal-KEM &#x2F; DH-KEM</h3><p>背景：传统 ElGamal 加密定义在有限域乘法子群上，可以证明对选择密文攻击是不安全的（例如，攻击者可以通过提交变形密文 $(u, 2v)$ 来恢复 $2m$，进而还原 $m$）。此外，ElGamal 加密在椭圆曲线上的推广需要将消息可逆编码为曲线点，增加了复杂性。</p>
+<p>DH-KEM 构造（也称 Elgamal-KEM）：</p>
 <ul>
-<li><strong>密钥生成</strong>：选取生成元 $g$，随机选取私钥 $x$，计算公钥 $h &#x3D; g^x$。</li>
-<li><strong>封装</strong> $\text{Encap}(pk)$：<ol>
+<li>密钥生成：选取生成元 $g$，随机选取私钥 $x$，计算公钥 $h &#x3D; g^x$。</li>
+<li>封装 $\text{Encap}(pk)$：<ol>
 <li>均匀随机选取 $r$；</li>
 <li>计算 $u &#x3D; g^r$（封装密文）；</li>
 <li>计算 $K &#x3D; \text{KDF}(h^r)$（由共享秘密派生密钥）；</li>
 <li>返回 $(K, u)$。</li>
 </ol>
 </li>
-<li><strong>解封装</strong> $\text{Decap}(sk, u)$：<ol>
+<li>解封装 $\text{Decap}(sk, u)$：<ol>
 <li>验证 $u$ 在合法子群中，否则返回 $\bot$；</li>
 <li>计算 $K &#x3D; \text{KDF}(u^x)$（因为 $u^x &#x3D; g^{rx} &#x3D; h^r$）；</li>
 <li>返回 $K$。</li>
 </ol>
 </li>
 </ul>
-<p>DH-KEM 与认证加密组合后本质上等价于<strong>集成加密方案（IES&#x2F;ECIES）</strong>。由于 KEM 只需对群元素进行单向哈希（无需可逆消息编码），它可以自然地推广到椭圆曲线群（如 ECIES、RFC 9180 中的 DHKEM(X25519) 等），在相同安全级别下更为紧凑高效。</p>
+<p>DH-KEM 与认证加密组合后本质上等价于集成加密方案（IES&#x2F;ECIES）。由于 KEM 只需对群元素进行单向哈希（无需可逆消息编码），它可以自然地推广到椭圆曲线群（如 ECIES、RFC 9180 中的 DHKEM(X25519) 等），在相同安全级别下更为紧凑高效。</p>
 <blockquote>
-<p><strong>量子安全性</strong>：DH-KEM 安全性基于离散对数问题，同样易受 Shor 算法攻击，<strong>不具备量子安全性</strong>。</p>
+<p>量子安全性：DH-KEM 安全性基于离散对数问题，同样易受 Shor 算法攻击，不具备量子安全性。</p>
 </blockquote>
-<h3 id="8-3-ML-KEM（后量子）"><a href="#8-3-ML-KEM（后量子）" class="headerlink" title="8.3 ML-KEM（后量子）"></a>8.3 ML-KEM（后量子）</h3><p><strong>ML-KEM</strong>（Module-Lattice-Based KEM）是 NIST 于 2024 年 8 月发布的后量子 KEM 标准（FIPS 203），其安全性基于<strong>模格上的带错误学习问题</strong>（Module Learning With Errors，Module-LWE）的计算困难性。</p>
+<h3 id="8-3-ML-KEM（后量子）"><a href="#8-3-ML-KEM（后量子）" class="headerlink" title="8.3 ML-KEM（后量子）"></a>8.3 ML-KEM（后量子）</h3><p>ML-KEM（Module-Lattice-Based KEM）是 NIST 于 2024 年 8 月发布的后量子 KEM 标准（FIPS 203），其安全性基于模格上的带错误学习问题（Module Learning With Errors，Module-LWE）的计算困难性。</p>
 <p>该问题目前已被研究数十年，尚未发现量子计算机能够高效求解的算法（即使对具有 Shor 算法能力的量子计算机也不例外）。</p>
 <p>FIPS 203 规定了三个参数集（安全性从低到高，性能从快到慢）：</p>
 <table>
@@ -394,17 +396,17 @@
 <td>较大</td>
 </tr>
 </tbody></table>
-<p>ML-KEM 固定输出 <strong>256 位</strong>的封装密钥，采用<strong>隐式拒绝</strong>处理解封装失败。</p>
+<p>ML-KEM 固定输出 256 位的封装密钥，采用隐式拒绝处理解封装失败。</p>
 <hr>
-<h1 id="9-KEM-组合器（KEM-Combiner）"><a href="#9-KEM-组合器（KEM-Combiner）" class="headerlink" title="9. KEM 组合器（KEM Combiner）"></a>9. KEM 组合器（KEM Combiner）</h1><p><strong>KEM 组合器</strong>是将两个 KEM（KEM₁ 和 KEM₂）组合成一个新 KEM 的方案，使得只要 KEM₁ 或 KEM₂ 中有任意一个是安全的，组合后的 KEM 就是安全的。</p>
-<p>这种方案的典型应用是构建<strong>量子-经典混合 KEM</strong>：</p>
+<h1 id="9-KEM-组合器（KEM-Combiner）"><a href="#9-KEM-组合器（KEM-Combiner）" class="headerlink" title="9. KEM 组合器（KEM Combiner）"></a>9. KEM 组合器（KEM Combiner）</h1><p>KEM 组合器是将两个 KEM（KEM₁ 和 KEM₂）组合成一个新 KEM 的方案，使得只要 KEM₁ 或 KEM₂ 中有任意一个是安全的，组合后的 KEM 就是安全的。</p>
+<p>这种方案的典型应用是构建量子-经典混合 KEM：</p>
 <ul>
 <li>将经典 KEM（如基于 X25519 的 DH-KEM）与后量子 KEM（如 ML-KEM）组合；</li>
 <li>若量子计算机未来被证明能破解经典 KEM，后量子 KEM 仍能保障安全；</li>
 <li>若后量子 KEM 未来被发现存在经典漏洞，经典 KEM 仍能提供保护。</li>
 </ul>
 <blockquote>
-<p>注意区分<strong>混合 KEM</strong>（hybrid KEM，指结合量子安全与经典 KEM 的组合器方案）与<strong>混合密码系统</strong>（hybrid cryptosystem，指将公钥密码与对称密码结合的系统），两者是不同的概念。</p>
+<p>注意区分混合 KEM（hybrid KEM，指结合量子安全与经典 KEM 的组合器方案）与混合密码系统（hybrid cryptosystem，指将公钥密码与对称密码结合的系统），两者是不同的概念。</p>
 </blockquote>
 <p>相关标准：ETSI TS 103 744 提供了量子安全混合密钥交换的技术规范。</p>
 <hr>
@@ -418,43 +420,43 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>FIPS 203</strong></td>
+<td>FIPS 203</td>
 <td>ML-KEM（后量子 KEM 标准，基于 Module-LWE）</td>
 <td>NIST</td>
 <td>2024-08</td>
 </tr>
 <tr>
-<td><strong>NIST SP 800-227</strong></td>
+<td>NIST SP 800-227</td>
 <td>KEM 推荐规范（定义、属性与应用）</td>
 <td>NIST</td>
 <td>2025-01（初始草案）</td>
 </tr>
 <tr>
-<td><strong>RFC 9180</strong></td>
+<td>RFC 9180</td>
 <td>混合公钥加密（HPKE），包含 DHKEM 系列</td>
 <td>IETF&#x2F;IRTF</td>
 <td>2022-02</td>
 </tr>
 <tr>
-<td><strong>RFC 9690</strong></td>
+<td>RFC 9690</td>
 <td>RSA-KEM 在 CMS 中的使用规范</td>
 <td>IETF</td>
 <td>2025-02</td>
 </tr>
 <tr>
-<td><strong>ISO&#x2F;IEC 18033-2</strong></td>
+<td>ISO&#x2F;IEC 18033-2</td>
 <td>公钥加密标准（含 KEM&#x2F;DEM 范式，由 Shoup 提案）</td>
 <td>ISO&#x2F;IEC</td>
 <td>2006-05</td>
 </tr>
 <tr>
-<td><strong>JEP 452</strong></td>
+<td>JEP 452</td>
 <td>Java 平台 KEM API 标准（支持 ML-KEM 等）</td>
 <td>OpenJDK</td>
 <td>2023</td>
 </tr>
 <tr>
-<td><strong>ETSI TS 103 744</strong></td>
+<td>ETSI TS 103 744</td>
 <td>量子安全混合密钥交换规范</td>
 <td>ETSI</td>
 <td>2020-12</td>
@@ -499,9 +501,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -561,9 +565,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

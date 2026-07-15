@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="目录 为什么需要 ICE ICE 协议规范概览 核心概念与术语 候选地址的类型 候选地址的收集（Gathering） 候选地址的编码：SDP 属性格式 候选地址的优先级计算 候选对（Candidate Pair）的形成与排序 连接性检查（Connectivity Checks） 候选提名（Nomination）与 ICE 结束 Trickle ICE：增量式候选交换 ICE Restart Kee">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制">
+<meta property="og:title" content="ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制">
 <meta property="og:url" content="http://example.com/2022/04/09/webrtc/05-ICE/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
 <meta property="og:description" content="目录 为什么需要 ICE ICE 协议规范概览 核心概念与术语 候选地址的类型 候选地址的收集（Gathering） 候选地址的编码：SDP 属性格式 候选地址的优先级计算 候选对（Candidate Pair）的形成与排序 连接性检查（Connectivity Checks） 候选提名（Nomination）与 ICE 结束 Trickle ICE：增量式候选交换 ICE Restart Kee">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-04-09T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-29T00:13:07.952Z">
+<meta property="article:modified_time" content="2026-07-13T12:30:22.486Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="webrtc">
 <meta name="twitter:card" content="summary">
@@ -37,7 +37,7 @@
       
     
     <!-- title -->
-    <title>ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制</title>
+    <title>ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制</title>
     <!-- async scripts -->
     <!-- Google Analytics -->
 
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -111,16 +113,16 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/09/webrtc/05-ICE/&text=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/09/webrtc/05-ICE/&is_video=false&description=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制&body=Check out this article: http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/09/webrtc/05-ICE/&name=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/09/webrtc/05-ICE/&t=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/09/webrtc/05-ICE/&text=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/09/webrtc/05-ICE/&is_video=false&description=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制&body=Check out this article: http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/09/webrtc/05-ICE/&name=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/09/webrtc/05-ICE/&t=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -140,7 +142,7 @@
   <header>
     
     <h1 class="posttitle p-name" itemprop="name headline">
-        ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制
+        ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制
     </h1>
 
 
@@ -173,32 +175,32 @@
 
   <div class="content e-content" itemprop="articleBody">
     <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
-<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-ice">为什么需要 ICE</a></li>
-<li><a href="#2-ice-%E5%8D%8F%E8%AE%AE%E8%A7%84%E8%8C%83%E6%A6%82%E8%A7%88">ICE 协议规范概览</a></li>
+<li><a href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-ICE">为什么需要 ICE</a></li>
+<li><a href="#2-ICE-%E5%8D%8F%E8%AE%AE%E8%A7%84%E8%8C%83%E6%A6%82%E8%A7%88">ICE 协议规范概览</a></li>
 <li><a href="#3-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5%E4%B8%8E%E6%9C%AF%E8%AF%AD">核心概念与术语</a></li>
 <li><a href="#4-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E7%B1%BB%E5%9E%8B">候选地址的类型</a></li>
-<li><a href="#5-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E6%94%B6%E9%9B%86gathering">候选地址的收集（Gathering）</a></li>
-<li><a href="#6-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E7%BC%96%E7%A0%81sdp-%E5%B1%9E%E6%80%A7%E6%A0%BC%E5%BC%8F">候选地址的编码：SDP 属性格式</a></li>
+<li><a href="#5-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E6%94%B6%E9%9B%86%EF%BC%88Gathering%EF%BC%89">候选地址的收集（Gathering）</a></li>
+<li><a href="#6-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E7%BC%96%E7%A0%81%EF%BC%9ASDP-%E5%B1%9E%E6%80%A7%E6%A0%BC%E5%BC%8F">候选地址的编码：SDP 属性格式</a></li>
 <li><a href="#7-%E5%80%99%E9%80%89%E5%9C%B0%E5%9D%80%E7%9A%84%E4%BC%98%E5%85%88%E7%BA%A7%E8%AE%A1%E7%AE%97">候选地址的优先级计算</a></li>
-<li><a href="#8-%E5%80%99%E9%80%89%E5%AF%B9candidate-pair%E7%9A%84%E5%BD%A2%E6%88%90%E4%B8%8E%E6%8E%92%E5%BA%8F">候选对（Candidate Pair）的形成与排序</a></li>
-<li><a href="#9-%E8%BF%9E%E6%8E%A5%E6%80%A7%E6%A3%80%E6%9F%A5connectivity-checks">连接性检查（Connectivity Checks）</a></li>
-<li><a href="#10-%E5%80%99%E9%80%89%E6%8F%90%E5%90%8Dnomination%E4%B8%8E-ice-%E7%BB%93%E6%9D%9F">候选提名（Nomination）与 ICE 结束</a></li>
-<li><a href="#11-trickle-ice%E5%A2%9E%E9%87%8F%E5%BC%8F%E5%80%99%E9%80%89%E4%BA%A4%E6%8D%A2">Trickle ICE：增量式候选交换</a></li>
-<li><a href="#12-ice-restart">ICE Restart</a></li>
-<li><a href="#13-keepalive-%E4%B8%8E-consent-freshness">Keepalive 与 Consent Freshness</a></li>
-<li><a href="#14-ice-%E4%B8%8E-webrtc-%E5%AE%89%E5%85%A8dtlssrtp-%E7%BB%91%E5%AE%9A">ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定</a></li>
+<li><a href="#8-%E5%80%99%E9%80%89%E5%AF%B9%EF%BC%88Candidate-Pair%EF%BC%89%E7%9A%84%E5%BD%A2%E6%88%90%E4%B8%8E%E6%8E%92%E5%BA%8F">候选对（Candidate Pair）的形成与排序</a></li>
+<li><a href="#9-%E8%BF%9E%E6%8E%A5%E6%80%A7%E6%A3%80%E6%9F%A5%EF%BC%88Connectivity-Checks%EF%BC%89">连接性检查（Connectivity Checks）</a></li>
+<li><a href="#10-%E5%80%99%E9%80%89%E6%8F%90%E5%90%8D%EF%BC%88Nomination%EF%BC%89%E4%B8%8E-ICE-%E7%BB%93%E6%9D%9F">候选提名（Nomination）与 ICE 结束</a></li>
+<li><a href="#11-Trickle-ICE%EF%BC%9A%E5%A2%9E%E9%87%8F%E5%BC%8F%E5%80%99%E9%80%89%E4%BA%A4%E6%8D%A2">Trickle ICE：增量式候选交换</a></li>
+<li><a href="#12-ICE-Restart">ICE Restart</a></li>
+<li><a href="#13-Keepalive-%E4%B8%8E-Consent-Freshness">Keepalive 与 Consent Freshness</a></li>
+<li><a href="#14-ICE-%E4%B8%8E-WebRTC-%E5%AE%89%E5%85%A8%EF%BC%9ADTLS-SRTP-%E7%BB%91%E5%AE%9A">ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定</a></li>
 <li><a href="#15-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7">常见问题与调试技巧</a></li>
 </ol>
 <hr>
 <h1 id="1-为什么需要-ICE"><a href="#1-为什么需要-ICE" class="headerlink" title="1. 为什么需要 ICE"></a>1. 为什么需要 ICE</h1><p>现代互联网中，绝大多数设备并不拥有全球唯一的公网 IP 地址。NAT（Network Address Translation，网络地址转换）技术的广泛部署，从家用路由器到企业防火墙，使得直接在两个端点之间建立 P2P 连接变得困难重重。</p>
 <p>具体挑战包括：</p>
 <ul>
-<li><strong>私网地址不可路由</strong>：<code>10.x.x.x</code>、<code>192.168.x.x</code>、<code>172.16-31.x.x</code> 等私网地址无法在公网上直接寻址。</li>
-<li><strong>NAT 类型多样</strong>：Full Cone、Restricted Cone、Port-Restricted Cone、Symmetric NAT 对入站连接的限制程度各不相同，其中 Symmetric NAT 对于 P2P 穿透最为棘手。</li>
-<li><strong>防火墙策略各异</strong>：企业环境往往只允许特定端口（如 80&#x2F;443）的出站连接，甚至做深度包检测（DPI）。</li>
-<li><strong>多层 NAT 叠加</strong>：设备可能处于多级 NAT 之后，路径更加复杂。</li>
+<li>私网地址不可路由：<code>10.x.x.x</code>、<code>192.168.x.x</code>、<code>172.16-31.x.x</code> 等私网地址无法在公网上直接寻址。</li>
+<li>NAT 类型多样：Full Cone、Restricted Cone、Port-Restricted Cone、Symmetric NAT 对入站连接的限制程度各不相同，其中 Symmetric NAT 对于 P2P 穿透最为棘手。</li>
+<li>防火墙策略各异：企业环境往往只允许特定端口（如 80&#x2F;443）的出站连接，甚至做深度包检测（DPI）。</li>
+<li>多层 NAT 叠加：设备可能处于多级 NAT 之后，路径更加复杂。</li>
 </ul>
-<p>在 ICE 出现之前，应用层通常需要为每种 NAT 类型手动设计穿透方案，既不通用，也难以维护。ICE 的出现统一了这一过程：<strong>系统地枚举所有可能的连接路径（候选地址），按优先级逐一验证，选出最优路径</strong>。</p>
+<p>在 ICE 出现之前，应用层通常需要为每种 NAT 类型手动设计穿透方案，既不通用，也难以维护。ICE 的出现统一了这一过程：系统地枚举所有可能的连接路径（候选地址），按优先级逐一验证，选出最优路径。</p>
 <hr>
 <h1 id="2-ICE-协议规范概览"><a href="#2-ICE-协议规范概览" class="headerlink" title="2. ICE 协议规范概览"></a>2. ICE 协议规范概览</h1><p>ICE 由 IETF MMUSIC 工作组制定，核心规范演进如下：</p>
 <table>
@@ -215,22 +217,22 @@
 <td>早期草案（已废弃）</td>
 </tr>
 <tr>
-<td><strong>RFC 5245</strong></td>
+<td>RFC 5245</td>
 <td>2010</td>
 <td>ICE 第一个正式标准，Offer&#x2F;Answer 绑定版本</td>
 </tr>
 <tr>
-<td><strong>RFC 8445</strong></td>
+<td>RFC 8445</td>
 <td>2018</td>
 <td>当前主流标准，解耦了 ICE 与 SDP Offer&#x2F;Answer，增加 IPv6、Consent Freshness 等支持，废弃 Aggressive Nomination</td>
 </tr>
 <tr>
-<td><strong>RFC 8839</strong></td>
+<td>RFC 8839</td>
 <td>2021</td>
 <td>ICE 的 SDP Offer&#x2F;Answer 使用规范（从 RFC 8445 中分离）</td>
 </tr>
 <tr>
-<td><strong>RFC 8838</strong></td>
+<td>RFC 8838</td>
 <td>2021</td>
 <td>Trickle ICE，候选地址增量交换扩展</td>
 </tr>
@@ -245,28 +247,28 @@
 <td>STUN Consent Freshness，连接持续授权机制</td>
 </tr>
 </tbody></table>
-<p>WebRTC 的实现（Chrome、Firefox、Safari）均以 <strong>RFC 8445 + RFC 8839 + RFC 8838</strong> 为基础。</p>
+<p>WebRTC 的实现（Chrome、Firefox、Safari）均以 RFC 8445 + RFC 8839 + RFC 8838 为基础。</p>
 <hr>
 <h1 id="3-核心概念与术语"><a href="#3-核心概念与术语" class="headerlink" title="3. 核心概念与术语"></a>3. 核心概念与术语</h1><p>在深入流程之前，先搞清楚 RFC 8445 中的关键术语：</p>
 <h3 id="3-1-ICE-Agent（ICE-代理）"><a href="#3-1-ICE-Agent（ICE-代理）" class="headerlink" title="3.1 ICE Agent（ICE 代理）"></a>3.1 ICE Agent（ICE 代理）</h3><p>参与 ICE 候选交换的协议实体，即通信的每一端。一次会话中有且仅有两个 Agent：</p>
 <ul>
-<li><strong>Initiating Agent（发起方）</strong>：发起 ICE 候选交换流程的一方，通常是 Offer 的发送者。</li>
-<li><strong>Responding Agent（响应方）</strong>：接收并响应发起方的一方，通常是 Answer 的发送者。</li>
+<li>Initiating Agent（发起方）：发起 ICE 候选交换流程的一方，通常是 Offer 的发送者。</li>
+<li>Responding Agent（响应方）：接收并响应发起方的一方，通常是 Answer 的发送者。</li>
 </ul>
 <h3 id="3-2-控制角色：Controlling-Controlled"><a href="#3-2-控制角色：Controlling-Controlled" class="headerlink" title="3.2 控制角色：Controlling &#x2F; Controlled"></a>3.2 控制角色：Controlling &#x2F; Controlled</h3><p>ICE 中还存在一对逻辑角色，与 Initiating&#x2F;Responding 有所不同：</p>
 <ul>
-<li><strong>Controlling Agent（控制方）</strong>：负责最终<strong>提名（Nominate）</strong> 使用哪个候选对进行通信。两个 Full Implementation 时，发起方担任 Controlling 角色；一端为 Lite Implementation 时，Full 实现的一方担任 Controlling 角色。</li>
-<li><strong>Controlled Agent（受控方）</strong>：等待 Controlling Agent 提名，并遵照执行。</li>
+<li>Controlling Agent（控制方）：负责最终提名（Nominate） 使用哪个候选对进行通信。两个 Full Implementation 时，发起方担任 Controlling 角色；一端为 Lite Implementation 时，Full 实现的一方担任 Controlling 角色。</li>
+<li>Controlled Agent（受控方）：等待 Controlling Agent 提名，并遵照执行。</li>
 </ul>
 <p>若两端角色冲突（均声称自己是 Controlling），通过 STUN 请求中的 <code>tiebreaker</code> 值解决。</p>
 <h3 id="3-3-Transport-Address（传输地址）"><a href="#3-3-Transport-Address（传输地址）" class="headerlink" title="3.3 Transport Address（传输地址）"></a>3.3 Transport Address（传输地址）</h3><p>IP 地址 + 端口号 + 协议（UDP 或 TCP）的三元组，是候选地址的物理载体。</p>
-<h3 id="3-4-Candidate（候选地址）"><a href="#3-4-Candidate（候选地址）" class="headerlink" title="3.4 Candidate（候选地址）"></a>3.4 Candidate（候选地址）</h3><p>对一个传输地址的描述，包含类型、优先级、Foundation 等元数据。每个候选地址与一个特定的<strong>媒体组件（Component）</strong> 关联：</p>
+<h3 id="3-4-Candidate（候选地址）"><a href="#3-4-Candidate（候选地址）" class="headerlink" title="3.4 Candidate（候选地址）"></a>3.4 Candidate（候选地址）</h3><p>对一个传输地址的描述，包含类型、优先级、Foundation 等元数据。每个候选地址与一个特定的媒体组件（Component） 关联：</p>
 <ul>
-<li><strong>Component ID &#x3D; 1</strong>：RTP 流量</li>
-<li><strong>Component ID &#x3D; 2</strong>：RTCP 流量（若未使用 RTCP-MUX，则需要单独候选）</li>
+<li>Component ID &#x3D; 1：RTP 流量</li>
+<li>Component ID &#x3D; 2：RTCP 流量（若未使用 RTCP-MUX，则需要单独候选）</li>
 </ul>
-<h3 id="3-5-Foundation（基础标识符）"><a href="#3-5-Foundation（基础标识符）" class="headerlink" title="3.5 Foundation（基础标识符）"></a>3.5 Foundation（基础标识符）</h3><p>Foundation 是一个字符串，用于标识”具有相同网络特征”的候选地址集合。当两个候选地址的<strong>类型、Base IP、传输协议、STUN&#x2F;TURN 服务器地址</strong>完全相同时，它们共享同一个 Foundation。</p>
-<p>Foundation 的主要用途是<strong>冻结算法（Frozen Algorithm）</strong>：避免对具有相同 Foundation 的候选对进行重复检查，提高效率。</p>
+<h3 id="3-5-Foundation（基础标识符）"><a href="#3-5-Foundation（基础标识符）" class="headerlink" title="3.5 Foundation（基础标识符）"></a>3.5 Foundation（基础标识符）</h3><p>Foundation 是一个字符串，用于标识”具有相同网络特征”的候选地址集合。当两个候选地址的类型、Base IP、传输协议、STUN&#x2F;TURN 服务器地址完全相同时，它们共享同一个 Foundation。</p>
+<p>Foundation 的主要用途是冻结算法（Frozen Algorithm）：避免对具有相同 Foundation 的候选对进行重复检查，提高效率。</p>
 <h3 id="3-6-Base（基础地址）"><a href="#3-6-Base（基础地址）" class="headerlink" title="3.6 Base（基础地址）"></a>3.6 Base（基础地址）</h3><p>候选地址的”原始来源”地址：</p>
 <ul>
 <li>Host 候选的 Base 是其自身。</li>
@@ -274,8 +276,8 @@
 <li>Relayed 候选的 Base 是 TURN 服务器分配的中继地址本身。</li>
 </ul>
 <h3 id="3-7-Full-vs-Lite-Implementation"><a href="#3-7-Full-vs-Lite-Implementation" class="headerlink" title="3.7 Full vs Lite Implementation"></a>3.7 Full vs Lite Implementation</h3><ul>
-<li><strong>Full Implementation</strong>：执行完整的 ICE 流程，包括候选收集、连接性检查、状态机维护，支持所有 NAT 穿透场景。浏览器、移动端均使用 Full 实现。</li>
-<li><strong>Lite Implementation</strong>：简化版，省略状态机和主动连接性检查，仅响应对端发来的检查请求。适用于拥有公网地址、无需 NAT 穿透的服务器端。</li>
+<li>Full Implementation：执行完整的 ICE 流程，包括候选收集、连接性检查、状态机维护，支持所有 NAT 穿透场景。浏览器、移动端均使用 Full 实现。</li>
+<li>Lite Implementation：简化版，省略状态机和主动连接性检查，仅响应对端发来的检查请求。适用于拥有公网地址、无需 NAT 穿透的服务器端。</li>
 </ul>
 <hr>
 <h1 id="4-候选地址的类型"><a href="#4-候选地址的类型" class="headerlink" title="4. 候选地址的类型"></a>4. 候选地址的类型</h1><p>ICE 定义了四种候选类型，按 NAT 穿透能力和优先级从高到低排列：</p>
@@ -296,8 +298,8 @@
 <li>对 Symmetric NAT 无效（每次连接目的地不同，端口映射也不同）。</li>
 </ul>
 <h3 id="4-3-Peer-Reflexive-Candidate（对等反射候选，prflx）"><a href="#4-3-Peer-Reflexive-Candidate（对等反射候选，prflx）" class="headerlink" title="4.3 Peer-Reflexive Candidate（对等反射候选，prflx）"></a>4.3 Peer-Reflexive Candidate（对等反射候选，prflx）</h3><p>在连接性检查过程中动态发现的候选。当 Agent A 发送 STUN Binding Request 给 Agent B 时，B 可能观察到一个此前未在 SDP 中宣告的源地址，这个地址会被 B 记录为一个 Peer-Reflexive 候选。</p>
-<p>Peer-Reflexive 候选不在 SDP 中预先声明，而是在 STUN 连接检查的响应过程中<strong>实时发现</strong>并加入候选对列表。这在网络路径发生变化、或 Trickle ICE 场景下尤为重要。</p>
-<p>RFC 8445 附录 B.7 特别说明：<strong>应优先选择 Peer-Reflexive 候选而非 Server-Reflexive 候选</strong>，因为前者反映了连接检查时刻真实的 NAT 映射，更加准确。</p>
+<p>Peer-Reflexive 候选不在 SDP 中预先声明，而是在 STUN 连接检查的响应过程中实时发现并加入候选对列表。这在网络路径发生变化、或 Trickle ICE 场景下尤为重要。</p>
+<p>RFC 8445 附录 B.7 特别说明：应优先选择 Peer-Reflexive 候选而非 Server-Reflexive 候选，因为前者反映了连接检查时刻真实的 NAT 映射，更加准确。</p>
 <h3 id="4-4-Relayed-Candidate（中继候选，relay）"><a href="#4-4-Relayed-Candidate（中继候选，relay）" class="headerlink" title="4.4 Relayed Candidate（中继候选，relay）"></a>4.4 Relayed Candidate（中继候选，relay）</h3><p>当 Agent 无法通过 STUN 建立直接连接时，向 TURN 服务器申请一个中继地址（Relayed Transport Address）。所有流量经由 TURN 服务器转发。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=candidate:3 1 UDP 16777215 198.51.100.1 3478 typ relay raddr 203.0.113.5 rport 12345</span><br></pre></td></tr></table></figure>
 
@@ -316,7 +318,7 @@
 <h3 id="5-2-Server-Reflexive-候选收集"><a href="#5-2-Server-Reflexive-候选收集" class="headerlink" title="5.2 Server-Reflexive 候选收集"></a>5.2 Server-Reflexive 候选收集</h3><p>Agent 向配置的 STUN 服务器发送 UDP STUN Binding Request，STUN 服务器将其观察到的 Agent 公网地址填入 <code>XOR-MAPPED-ADDRESS</code> 属性，返回给 Agent。这就是 Agent 的 Server-Reflexive 地址。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Agent ──STUN Binding Request──▶ STUN Server</span><br><span class="line">Agent ◀──XOR-MAPPED-ADDRESS ── STUN Server</span><br><span class="line">        (203.0.113.5:12345)</span><br></pre></td></tr></table></figure>
 
-<p>注意：一个 STUN 请求（由某个 Host 候选发出）可以同时为该 Host 候选生成对应的 srflx 候选。如果多个 Host 候选共享同一个 NAT 出口（例如同一路由器），它们可能映射到相同的公网地址，此时 ICE 会进行<strong>冗余候选消除（Redundant Candidate Pruning）</strong>，避免重复检查。</p>
+<p>注意：一个 STUN 请求（由某个 Host 候选发出）可以同时为该 Host 候选生成对应的 srflx 候选。如果多个 Host 候选共享同一个 NAT 出口（例如同一路由器），它们可能映射到相同的公网地址，此时 ICE 会进行冗余候选消除（Redundant Candidate Pruning），避免重复检查。</p>
 <h3 id="5-3-Relayed-候选收集"><a href="#5-3-Relayed-候选收集" class="headerlink" title="5.3 Relayed 候选收集"></a>5.3 Relayed 候选收集</h3><p>Agent 向 TURN 服务器发送 TURN Allocate Request，TURN 服务器在其公网 IP 上分配一个端口，作为该 Agent 的中继地址。TURN 服务器在 Allocate Response 中返回：</p>
 <ul>
 <li><code>RELAYED-ADDRESS</code>：中继候选地址</li>
@@ -345,7 +347,7 @@
 </tbody></table>
 <p>收集完成后，若使用传统 ICE（非 Trickle），Agent 会将全部候选放入 SDP 一并发送；若使用 Trickle ICE，则每发现一个候选就立即通过信令通道推送。</p>
 <hr>
-<h1 id="6-候选地址的编码：SDP-属性格式"><a href="#6-候选地址的编码：SDP-属性格式" class="headerlink" title="6. 候选地址的编码：SDP 属性格式"></a>6. 候选地址的编码：SDP 属性格式</h1><p>ICE 候选通过 SDP <code>a=candidate</code> 属性传递（规范见 <strong>RFC 8839</strong>）。</p>
+<h1 id="6-候选地址的编码：SDP-属性格式"><a href="#6-候选地址的编码：SDP-属性格式" class="headerlink" title="6. 候选地址的编码：SDP 属性格式"></a>6. 候选地址的编码：SDP 属性格式</h1><p>ICE 候选通过 SDP <code>a=candidate</code> 属性传递（规范见 RFC 8839）。</p>
 <h3 id="6-1-ABNF-语法"><a href="#6-1-ABNF-语法" class="headerlink" title="6.1 ABNF 语法"></a>6.1 ABNF 语法</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">candidate-attribute</span> <span class="operator">=</span> <span class="string">&quot;candidate&quot;</span> <span class="string">&quot;:&quot;</span> foundation <span class="keyword">SP</span> component-id <span class="keyword">SP</span></span><br><span class="line">                      transport <span class="keyword">SP</span> priority <span class="keyword">SP</span></span><br><span class="line">                      connection-address <span class="keyword">SP</span> port</span><br><span class="line">                      <span class="keyword">SP</span> cand-type</span><br><span class="line">                      [<span class="keyword">SP</span> rel-addr]</span><br><span class="line">                      [<span class="keyword">SP</span> rel-port]</span><br><span class="line">                      *(<span class="keyword">SP</span> cand-extension)</span><br><span class="line"></span><br><span class="line"><span class="attribute">foundation</span>         <span class="operator">=</span> <span class="number">1</span>*<span class="number">32</span>ice-char</span><br><span class="line"><span class="attribute">component-id</span>       <span class="operator">=</span> <span class="number">1</span>*<span class="number">3</span><span class="keyword">DIGIT</span></span><br><span class="line"><span class="attribute">transport</span>          <span class="operator">=</span> <span class="string">&quot;UDP&quot;</span> / transport-extension</span><br><span class="line"><span class="attribute">priority</span>           <span class="operator">=</span> <span class="number">1</span>*<span class="number">10</span><span class="keyword">DIGIT</span></span><br><span class="line"><span class="attribute">cand-type</span>          <span class="operator">=</span> <span class="string">&quot;typ&quot;</span> <span class="keyword">SP</span> candidate-types</span><br><span class="line"><span class="attribute">candidate-types</span>    <span class="operator">=</span> <span class="string">&quot;host&quot;</span> / <span class="string">&quot;srflx&quot;</span> / <span class="string">&quot;prflx&quot;</span> / <span class="string">&quot;relay&quot;</span> / token</span><br><span class="line"><span class="attribute">rel-addr</span>           <span class="operator">=</span> <span class="string">&quot;raddr&quot;</span> <span class="keyword">SP</span> connection-address</span><br><span class="line"><span class="attribute">rel-port</span>           <span class="operator">=</span> <span class="string">&quot;rport&quot;</span> <span class="keyword">SP</span> port</span><br></pre></td></tr></table></figure>
 
 <h3 id="6-2-完整示例解析"><a href="#6-2-完整示例解析" class="headerlink" title="6.2 完整示例解析"></a>6.2 完整示例解析</h3><p>以下是一段包含各类型候选的 SDP 片段：</p>
@@ -408,10 +410,10 @@
 </tbody></table>
 <h3 id="6-3-Session-级属性"><a href="#6-3-Session-级属性" class="headerlink" title="6.3 Session 级属性"></a>6.3 Session 级属性</h3><p>除候选属性外，SDP 中还包含以下 ICE 相关的会话级属性：</p>
 <ul>
-<li>**<code>ice-ufrag</code>**：ICE 用户名片段（Username Fragment），用于 STUN 请求的认证。</li>
-<li>**<code>ice-pwd</code>**：ICE 密码，用于 STUN 消息完整性验证（HMAC-SHA1）。</li>
-<li>**<code>ice-options: trickle</code>**：声明支持 Trickle ICE。</li>
-<li>**<code>ice-lite</code>**：声明本端为 Lite Implementation。</li>
+<li><code>ice-ufrag</code>：ICE 用户名片段（Username Fragment），用于 STUN 请求的认证。</li>
+<li><code>ice-pwd</code>：ICE 密码，用于 STUN 消息完整性验证（HMAC-SHA1）。</li>
+<li><code>ice-options: trickle</code>：声明支持 Trickle ICE。</li>
+<li><code>ice-lite</code>：声明本端为 Lite Implementation。</li>
 </ul>
 <hr>
 <h1 id="7-候选地址的优先级计算"><a href="#7-候选地址的优先级计算" class="headerlink" title="7. 候选地址的优先级计算"></a>7. 候选地址的优先级计算</h1><p>RFC 8445 第 5.1.2 节定义了推荐的优先级计算公式：</p>
@@ -419,7 +421,7 @@
 
 <p>其中：</p>
 <ul>
-<li><p>**<code>type_preference</code>**：候选类型偏好，取值范围 0–126，值越大越优先。RFC 推荐值：</p>
+<li><p><code>type_preference</code>：候选类型偏好，取值范围 0-126，值越大越优先。RFC 推荐值：</p>
 <ul>
 <li>Host：<code>126</code></li>
 <li>Peer-Reflexive：<code>110</code></li>
@@ -427,18 +429,18 @@
 <li>Relayed：<code>0</code>（或极小值）</li>
 </ul>
 </li>
-<li><p>**<code>local_preference</code>**：本地偏好，取值 0–65535，用于区分同类型的多个候选（例如多个网卡）。IPv6 候选通常被赋予比 IPv4 更高的 <code>local_preference</code>。</p>
+<li><p><code>local_preference</code>：本地偏好，取值 0-65535，用于区分同类型的多个候选（例如多个网卡）。IPv6 候选通常被赋予比 IPv4 更高的 <code>local_preference</code>。</p>
 </li>
-<li><p>**<code>component_id</code>**：组件 ID（1 或 2），RTP 的优先级略高于 RTCP。</p>
+<li><p><code>component_id</code>：组件 ID（1 或 2），RTP 的优先级略高于 RTCP。</p>
 </li>
 </ul>
-<p><strong>示例计算</strong>：</p>
+<p>示例计算：</p>
 <p>一个 Host UDP 候选（<code>type_preference=126</code>，<code>local_preference=65535</code>，<code>component_id=1</code>）：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">priority = (2^24 × 126) + (2^8 × 65535) + (256 - 1)</span><br><span class="line">         = 2130706431</span><br></pre></td></tr></table></figure>
 
 <p>这正是上方 SDP 示例中 Host 候选的优先级值。</p>
 <hr>
-<h1 id="8-候选对（Candidate-Pair）的形成与排序"><a href="#8-候选对（Candidate-Pair）的形成与排序" class="headerlink" title="8. 候选对（Candidate Pair）的形成与排序"></a>8. 候选对（Candidate Pair）的形成与排序</h1><p>双方通过信令通道交换候选列表后，每个 ICE Agent 将本地候选与远端候选两两配对，形成<strong>候选对（Candidate Pair）</strong>。</p>
+<h1 id="8-候选对（Candidate-Pair）的形成与排序"><a href="#8-候选对（Candidate-Pair）的形成与排序" class="headerlink" title="8. 候选对（Candidate Pair）的形成与排序"></a>8. 候选对（Candidate Pair）的形成与排序</h1><p>双方通过信令通道交换候选列表后，每个 ICE Agent 将本地候选与远端候选两两配对，形成候选对（Candidate Pair）。</p>
 <h3 id="8-1-配对规则"><a href="#8-1-配对规则" class="headerlink" title="8.1 配对规则"></a>8.1 配对规则</h3><ul>
 <li>本地候选与远端候选的传输协议必须相同（均为 UDP 或均为 TCP）。</li>
 <li>本地候选与远端候选的地址族（IPv4&#x2F;IPv6）应一致（即不跨族配对）。</li>
@@ -454,23 +456,23 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">     ┌──────────┐</span><br><span class="line">     │  Frozen  │  ← 初始状态，等待解冻</span><br><span class="line">     └────┬─────┘</span><br><span class="line">          │ 解冻（Unfreeze）</span><br><span class="line">          ▼</span><br><span class="line">     ┌──────────┐</span><br><span class="line">     │ Waiting  │  ← 等待发起连接性检查</span><br><span class="line">     └────┬─────┘</span><br><span class="line">          │ 开始检查</span><br><span class="line">          ▼</span><br><span class="line">     ┌───────────┐</span><br><span class="line">     │In-Progress│ ← 正在进行 STUN 检查</span><br><span class="line">     └────┬──────┘</span><br><span class="line">     ┌────┴────┐</span><br><span class="line">     ▼         ▼</span><br><span class="line">┌─────────┐ ┌────────┐</span><br><span class="line">│Succeeded│ │ Failed │</span><br><span class="line">└─────────┘ └────────┘</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><strong>Frozen</strong>：默认初始状态，每个 Foundation 只有一个候选对被”解冻”（Waiting），其余保持 Frozen，直到同 Foundation 的其他流检查完成。</li>
-<li><strong>Waiting</strong>：可以开始发起 STUN Binding Request。</li>
-<li><strong>In-Progress</strong>：已发出请求，等待响应。</li>
-<li><strong>Succeeded</strong>：收到成功响应，该对进入 Valid List（有效列表）。</li>
-<li><strong>Failed</strong>：超时或收到错误响应。</li>
+<li>Frozen：默认初始状态，每个 Foundation 只有一个候选对被”解冻”（Waiting），其余保持 Frozen，直到同 Foundation 的其他流检查完成。</li>
+<li>Waiting：可以开始发起 STUN Binding Request。</li>
+<li>In-Progress：已发出请求，等待响应。</li>
+<li>Succeeded：收到成功响应，该对进入 Valid List（有效列表）。</li>
+<li>Failed：超时或收到错误响应。</li>
 </ul>
 <hr>
 <h1 id="9-连接性检查（Connectivity-Checks）"><a href="#9-连接性检查（Connectivity-Checks）" class="headerlink" title="9. 连接性检查（Connectivity Checks）"></a>9. 连接性检查（Connectivity Checks）</h1><p>连接性检查是 ICE 的核心机制，通过 STUN Binding Request&#x2F;Response 实现对称的双向验证。</p>
 <h3 id="9-1-基本流程：四次握手"><a href="#9-1-基本流程：四次握手" class="headerlink" title="9.1 基本流程：四次握手"></a>9.1 基本流程：四次握手</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">L（本地）                       R（远端）</span><br><span class="line">   |                              |</span><br><span class="line">   |--- STUN Binding Request --▶  |  ← L 的主动检查</span><br><span class="line">   |◀-- STUN Binding Response --- |</span><br><span class="line">   |                              |</span><br><span class="line">   |◀-- STUN Binding Request ---  |  ← R 的主动检查（反向）</span><br><span class="line">   |--- STUN Binding Response --▶ |</span><br></pre></td></tr></table></figure>
 
-<p>双方<strong>同时</strong>对同一候选对进行检查，这种对称机制可以”打洞”，两端几乎同时向对方发送包，NAT 设备会将对端的包识别为已建立映射的回程流量，从而放行。</p>
+<p>双方同时对同一候选对进行检查，这种对称机制可以”打洞”，两端几乎同时向对方发送包，NAT 设备会将对端的包识别为已建立映射的回程流量，从而放行。</p>
 <h3 id="9-2-STUN-请求中的关键属性"><a href="#9-2-STUN-请求中的关键属性" class="headerlink" title="9.2 STUN 请求中的关键属性"></a>9.2 STUN 请求中的关键属性</h3><ul>
-<li>**<code>USERNAME</code>**：格式为 <code>远端ufrag:本端ufrag</code>，用于 Agent 识别这是哪个 ICE 会话的检查请求。</li>
-<li>**<code>MESSAGE-INTEGRITY</code>**：基于 <code>ice-pwd</code> 的 HMAC-SHA1，防止篡改。</li>
-<li>**<code>PRIORITY</code>**：Peer-Reflexive 候选的优先级（若发现新候选时使用）。</li>
-<li>**<code>ICE-CONTROLLING</code> &#x2F; <code>ICE-CONTROLLED</code>**：标识发送方的角色，附带一个 64 位随机 tiebreaker 值。</li>
-<li>**<code>USE-CANDIDATE</code>**（仅 Controlling Agent 在提名时使用）：通知对端提名该候选对。</li>
+<li><code>USERNAME</code>：格式为 <code>远端ufrag:本端ufrag</code>，用于 Agent 识别这是哪个 ICE 会话的检查请求。</li>
+<li><code>MESSAGE-INTEGRITY</code>：基于 <code>ice-pwd</code> 的 HMAC-SHA1，防止篡改。</li>
+<li><code>PRIORITY</code>：Peer-Reflexive 候选的优先级（若发现新候选时使用）。</li>
+<li><code>ICE-CONTROLLING</code> &#x2F; <code>ICE-CONTROLLED</code>：标识发送方的角色，附带一个 64 位随机 tiebreaker 值。</li>
+<li><code>USE-CANDIDATE</code>（仅 Controlling Agent 在提名时使用）：通知对端提名该候选对。</li>
 </ul>
 <h3 id="9-3-Triggered-Checks（触发检查）"><a href="#9-3-Triggered-Checks（触发检查）" class="headerlink" title="9.3 Triggered Checks（触发检查）"></a>9.3 Triggered Checks（触发检查）</h3><p>当 Agent 收到对端发来的 STUN Binding Request 时，如果对应的候选对状态为 Frozen 或 Waiting，则会将其移至队列前部立即进行检查（Triggered Check）。这确保对端已发现某条路径时，本端也能快速验证对称性。</p>
 <h3 id="9-4-Peer-Reflexive-Candidate-的发现"><a href="#9-4-Peer-Reflexive-Candidate-的发现" class="headerlink" title="9.4 Peer-Reflexive Candidate 的发现"></a>9.4 Peer-Reflexive Candidate 的发现</h3><p>在连接性检查过程中，若 Agent B 收到来自 Agent A 的 STUN 请求，其源地址不在 B 已知的候选列表中，则 B 将该地址记录为 Peer-Reflexive 候选，并为其创建新的候选对加入 Checklist（RFC 8445 §7.3.1.3）。这在以下场景中常见：</p>
@@ -479,12 +481,12 @@
 <li>Trickle ICE 场景下，远端尚未发来所有候选时，连接检查先于候选信息到达。</li>
 </ul>
 <hr>
-<h1 id="10-候选提名（Nomination）与-ICE-结束"><a href="#10-候选提名（Nomination）与-ICE-结束" class="headerlink" title="10. 候选提名（Nomination）与 ICE 结束"></a>10. 候选提名（Nomination）与 ICE 结束</h1><h3 id="10-1-提名过程（RFC-8445-中的-Regular-Nomination）"><a href="#10-1-提名过程（RFC-8445-中的-Regular-Nomination）" class="headerlink" title="10.1 提名过程（RFC 8445 中的 Regular Nomination）"></a>10.1 提名过程（RFC 8445 中的 Regular Nomination）</h3><p>RFC 8445 <strong>废弃了</strong> RFC 5245 中的 Aggressive Nomination，仅保留 Regular Nomination：</p>
+<h1 id="10-候选提名（Nomination）与-ICE-结束"><a href="#10-候选提名（Nomination）与-ICE-结束" class="headerlink" title="10. 候选提名（Nomination）与 ICE 结束"></a>10. 候选提名（Nomination）与 ICE 结束</h1><h3 id="10-1-提名过程（RFC-8445-中的-Regular-Nomination）"><a href="#10-1-提名过程（RFC-8445-中的-Regular-Nomination）" class="headerlink" title="10.1 提名过程（RFC 8445 中的 Regular Nomination）"></a>10.1 提名过程（RFC 8445 中的 Regular Nomination）</h3><p>RFC 8445 废弃了 RFC 5245 中的 Aggressive Nomination，仅保留 Regular Nomination：</p>
 <ol>
 <li>Controlling Agent 等待至少有一个有效对出现在 Valid List 中。</li>
 <li>Controlling Agent 选定一个（或多个，取最高优先级）有效对，向其发送带有 <code>USE-CANDIDATE</code> 属性的 STUN Binding Request。</li>
-<li>若 Controlled Agent 接受该提名请求并成功响应，该候选对被标记为 <strong>Nominated</strong>。</li>
-<li>两端均将该对设为 <strong>Selected Pair</strong>，用于实际媒体传输。</li>
+<li>若 Controlled Agent 接受该提名请求并成功响应，该候选对被标记为 Nominated。</li>
+<li>两端均将该对设为 Selected Pair，用于实际媒体传输。</li>
 <li>对应数据流的 Checklist 状态变为 <code>Completed</code>，ICE 对该流结束。</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">L（Controlling）                    R（Controlled）</span><br><span class="line">       |                                  |</span><br><span class="line">       |--- STUN Request (USE-CANDIDATE)→ |</span><br><span class="line">       |◀-- STUN Response --------------- |</span><br><span class="line">       |                                  |</span><br><span class="line">  [Selected Pair 确定，媒体可以传输]</span><br></pre></td></tr></table></figure>
@@ -528,7 +530,7 @@
 </tbody></table>
 <hr>
 <h1 id="11-Trickle-ICE：增量式候选交换"><a href="#11-Trickle-ICE：增量式候选交换" class="headerlink" title="11. Trickle ICE：增量式候选交换"></a>11. Trickle ICE：增量式候选交换</h1><p>传统 ICE 要求 Agent 等待所有候选收集完成，再将完整列表放入 SDP 发送。这在慢速网络或 TURN 分配延迟时会造成显著的连接建立延迟。</p>
-<p><strong>Trickle ICE</strong>（RFC 8838，2021）允许 Agent 在收集到候选的同时，通过信令通道<strong>逐个推送</strong>候选给对端，并立即开始连接性检查。</p>
+<p>Trickle ICE（RFC 8838，2021）允许 Agent 在收集到候选的同时，通过信令通道逐个推送候选给对端，并立即开始连接性检查。</p>
 <h3 id="11-1-工作模式"><a href="#11-1-工作模式" class="headerlink" title="11.1 工作模式"></a>11.1 工作模式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发起方（Offerer）                      响应方（Answerer）</span><br><span class="line">      |                                       |</span><br><span class="line">      |-- Offer（含初始候选，可为空）------▶     |</span><br><span class="line">      |                                       | ← 开始收集</span><br><span class="line">      |-- candidate: host ------------------▶|</span><br><span class="line">      |-- candidate: srflx -----------------▶|</span><br><span class="line">      |◀-- Answer（含初始候选） ------------   |</span><br><span class="line">      |◀-- candidate: host ----------------  |</span><br><span class="line">      |   [双方同时进行连接性检查]               |</span><br><span class="line">      |-- candidate: relay -----------------▶|</span><br><span class="line">      |-- end-of-candidates ----------------▶|  ← 收集结束标记</span><br></pre></td></tr></table></figure>
 
 <h3 id="11-2-End-of-Candidates-指示"><a href="#11-2-End-of-Candidates-指示" class="headerlink" title="11.2 End-of-Candidates 指示"></a>11.2 End-of-Candidates 指示</h3><p>当 Agent 完成所有候选收集后，须通过信令通道发送 <code>end-of-candidates</code> 指示，让对端知道不再会有新候选到来。这使得对端可以：</p>
@@ -551,50 +553,50 @@
 <p>RFC 8445 §9 规定，ICE Restart 可以针对单个数据流，也可以针对所有流同时进行。</p>
 <hr>
 <h1 id="13-Keepalive-与-Consent-Freshness"><a href="#13-Keepalive-与-Consent-Freshness" class="headerlink" title="13. Keepalive 与 Consent Freshness"></a>13. Keepalive 与 Consent Freshness</h1><h3 id="13-1-NAT-Keepalive"><a href="#13-1-NAT-Keepalive" class="headerlink" title="13.1 NAT Keepalive"></a>13.1 NAT Keepalive</h3><p>NAT 设备维护的地址映射表有超时时间（通常 30 秒到几分钟不等）。若长时间无数据包流过，NAT 映射会被释放，导致连接中断。ICE 通过定期发送 STUN Binding Indication（无需响应的单向 STUN 消息）来维持 NAT 映射，默认间隔为 15 秒（RFC 8445 §11）。</p>
-<h3 id="13-2-Consent-Freshness（RFC-7675）"><a href="#13-2-Consent-Freshness（RFC-7675）" class="headerlink" title="13.2 Consent Freshness（RFC 7675）"></a>13.2 Consent Freshness（RFC 7675）</h3><p>ICE 连接建立后，如何确认远端仍在线且同意继续接收流量？RFC 7675 定义了<strong>持续授权检查（Consent Freshness）</strong> 机制：</p>
+<h3 id="13-2-Consent-Freshness（RFC-7675）"><a href="#13-2-Consent-Freshness（RFC-7675）" class="headerlink" title="13.2 Consent Freshness（RFC 7675）"></a>13.2 Consent Freshness（RFC 7675）</h3><p>ICE 连接建立后，如何确认远端仍在线且同意继续接收流量？RFC 7675 定义了持续授权检查（Consent Freshness） 机制：</p>
 <ul>
-<li>Agent 每 <strong>5 秒</strong>（随机化为 4–6 秒）发送一次 STUN Binding Request 给对端。</li>
-<li>若 <strong>30 秒</strong>内未收到任何有效响应，则视为授权过期，停止发送数据。</li>
+<li>Agent 每 5 秒（随机化为 4-6 秒）发送一次 STUN Binding Request 给对端。</li>
+<li>若 30 秒内未收到任何有效响应，则视为授权过期，停止发送数据。</li>
 <li>每次 Consent Check 使用新的 STUN Transaction ID，且请求发送一次（不重传）。</li>
 </ul>
 <p>这一机制解决了两类安全问题：</p>
 <ol>
-<li><strong>放大攻击</strong>：防止恶意 JavaScript 利用浏览器向不知情的第三方发送大量流量。</li>
-<li><strong>会话劫持检测</strong>：若对端下线或网络中断，发送方可以及时感知并停止发送。</li>
+<li>放大攻击：防止恶意 JavaScript 利用浏览器向不知情的第三方发送大量流量。</li>
+<li>会话劫持检测：若对端下线或网络中断，发送方可以及时感知并停止发送。</li>
 </ol>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 浏览器 ICE 连接状态变化</span></span><br><span class="line">pc.<span class="title function_">addEventListener</span>(<span class="string">&#x27;iceconnectionstatechange&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (pc.<span class="property">iceConnectionState</span> === <span class="string">&#x27;disconnected&#x27;</span>) &#123;</span><br><span class="line">    <span class="comment">// Consent 超时或 keepalive 失败</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;ICE 连接断开，可能触发 ICE Restart&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h1 id="14-ICE-与-WebRTC-安全：DTLS-SRTP-绑定"><a href="#14-ICE-与-WebRTC-安全：DTLS-SRTP-绑定" class="headerlink" title="14. ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定"></a>14. ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定</h1><p>ICE 负责找到一条可用的网络路径，但它本身不加密媒体数据。WebRTC 强制要求在 ICE 建立的路径上运行 <strong>DTLS</strong>（Datagram Transport Layer Security），完成密钥协商后再通过 <strong>SRTP</strong> 加密实际的媒体数据。</p>
+<h1 id="14-ICE-与-WebRTC-安全：DTLS-SRTP-绑定"><a href="#14-ICE-与-WebRTC-安全：DTLS-SRTP-绑定" class="headerlink" title="14. ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定"></a>14. ICE 与 WebRTC 安全：DTLS&#x2F;SRTP 绑定</h1><p>ICE 负责找到一条可用的网络路径，但它本身不加密媒体数据。WebRTC 强制要求在 ICE 建立的路径上运行 DTLS（Datagram Transport Layer Security），完成密钥协商后再通过 SRTP 加密实际的媒体数据。</p>
 <p>ICE 与 DTLS 的绑定关系：</p>
 <ol>
-<li>ICE 通过连接性检查验证路径的<strong>物理可达性</strong>，同时借助 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code> 的 HMAC-SHA1 验证实现<strong>信令绑定</strong>（防止中间人插入伪造候选）。</li>
+<li>ICE 通过连接性检查验证路径的物理可达性，同时借助 <code>ice-ufrag</code>&#x2F;<code>ice-pwd</code> 的 HMAC-SHA1 验证实现信令绑定（防止中间人插入伪造候选）。</li>
 <li>在 ICE 完成、Selected Pair 确定后，DTLS 握手在该路径上进行，交换证书并协商 SRTP 密钥材料。</li>
 <li>SDP 中的 <code>a=fingerprint</code> 属性携带 DTLS 证书的指纹，通过信令通道传递，确保 DTLS 握手不被中间人替换证书。</li>
 </ol>
-<p>这种设计实现了<strong>信令层（SDP）→ 传输层（ICE）→ 加密层（DTLS）→ 媒体层（SRTP）</strong> 的层层绑定，完整防护了 WebRTC 的安全威胁模型。</p>
+<p>这种设计实现了信令层（SDP）→ 传输层（ICE）→ 加密层（DTLS）→ 媒体层（SRTP） 的层层绑定，完整防护了 WebRTC 的安全威胁模型。</p>
 <hr>
-<h1 id="15-常见问题与调试技巧"><a href="#15-常见问题与调试技巧" class="headerlink" title="15. 常见问题与调试技巧"></a>15. 常见问题与调试技巧</h1><h3 id="15-1-ICE-Failed：所有候选对均检查失败"><a href="#15-1-ICE-Failed：所有候选对均检查失败" class="headerlink" title="15.1 ICE Failed：所有候选对均检查失败"></a>15.1 ICE Failed：所有候选对均检查失败</h3><p><strong>可能原因：</strong></p>
+<h1 id="15-常见问题与调试技巧"><a href="#15-常见问题与调试技巧" class="headerlink" title="15. 常见问题与调试技巧"></a>15. 常见问题与调试技巧</h1><h3 id="15-1-ICE-Failed：所有候选对均检查失败"><a href="#15-1-ICE-Failed：所有候选对均检查失败" class="headerlink" title="15.1 ICE Failed：所有候选对均检查失败"></a>15.1 ICE Failed：所有候选对均检查失败</h3><p>可能原因：</p>
 <ul>
 <li>未配置 TURN 服务器，且双端均位于 Symmetric NAT 之后。</li>
 <li>STUN&#x2F;TURN 服务器不可达（网络问题、防火墙拦截）。</li>
 <li><code>ice-pwd</code> 不匹配（SDP 协商错误）。</li>
 </ul>
-<p><strong>排查方法：</strong></p>
+<p>排查方法：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pc.<span class="title function_">getStats</span>().<span class="title function_">then</span>(<span class="function"><span class="params">stats</span> =&gt;</span> &#123;</span><br><span class="line">  stats.<span class="title function_">forEach</span>(<span class="function"><span class="params">report</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (report.<span class="property">type</span> === <span class="string">&#x27;candidate-pair&#x27;</span>) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(report);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<h3 id="15-2-始终使用-Relay（TURN）连接"><a href="#15-2-始终使用-Relay（TURN）连接" class="headerlink" title="15.2 始终使用 Relay（TURN）连接"></a>15.2 始终使用 Relay（TURN）连接</h3><p><strong>可能原因：</strong></p>
+<h3 id="15-2-始终使用-Relay（TURN）连接"><a href="#15-2-始终使用-Relay（TURN）连接" class="headerlink" title="15.2 始终使用 Relay（TURN）连接"></a>15.2 始终使用 Relay（TURN）连接</h3><p>可能原因：</p>
 <ul>
 <li>STUN 候选未能收集（STUN 服务器配置错误）。</li>
 <li>Symmetric NAT 环境，srflx 候选无法穿透。</li>
 <li>Host 候选因 mDNS 匿名化导致无法直连（浏览器隐私保护）。</li>
 </ul>
-<h3 id="15-3-ICE-Gathering-卡死不完成"><a href="#15-3-ICE-Gathering-卡死不完成" class="headerlink" title="15.3 ICE Gathering 卡死不完成"></a>15.3 ICE Gathering 卡死不完成</h3><p><strong>可能原因：</strong></p>
+<h3 id="15-3-ICE-Gathering-卡死不完成"><a href="#15-3-ICE-Gathering-卡死不完成" class="headerlink" title="15.3 ICE Gathering 卡死不完成"></a>15.3 ICE Gathering 卡死不完成</h3><p>可能原因：</p>
 <ul>
 <li>TURN 服务器响应慢，<code>relay</code> 候选迟迟未返回。</li>
 <li>多个网络接口（VPN、虚拟网卡）导致候选数量过多。</li>
 </ul>
-<p><strong>建议：</strong> 设置合理的 <code>iceCandidatePoolSize</code> 并配合 Trickle ICE 减少等待时间。</p>
+<p>建议： 设置合理的 <code>iceCandidatePoolSize</code> 并配合 Trickle ICE 减少等待时间。</p>
 <h3 id="15-4-使用-chrome-webrtc-internals-调试"><a href="#15-4-使用-chrome-webrtc-internals-调试" class="headerlink" title="15.4 使用 chrome://webrtc-internals 调试"></a>15.4 使用 <code>chrome://webrtc-internals</code> 调试</h3><p>Chrome 内置的 WebRTC 调试工具可以实时展示：</p>
 <ul>
 <li>所有候选地址及其类型和优先级。</li>
@@ -678,9 +680,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -695,16 +699,16 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/09/webrtc/05-ICE/&text=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/09/webrtc/05-ICE/&is_video=false&description=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制&body=Check out this article: http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/09/webrtc/05-ICE/&name=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/09/webrtc/05-ICE/&t=ICE（Interactive Connectivity Establishment） — 连接候选收集与优选机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/09/webrtc/05-ICE/&text=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/09/webrtc/05-ICE/&is_video=false&description=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制&body=Check out this article: http://example.com/2022/04/09/webrtc/05-ICE/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/09/webrtc/05-ICE/&title=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/09/webrtc/05-ICE/&name=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/09/webrtc/05-ICE/&t=ICE（Interactive Connectivity Establishment） - 连接候选收集与优选机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -740,9 +744,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

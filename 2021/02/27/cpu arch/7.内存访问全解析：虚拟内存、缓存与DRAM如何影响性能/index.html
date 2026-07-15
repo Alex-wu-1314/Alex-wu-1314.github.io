@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="现代软件性能深受内存访问效率的影响。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文将系统解析不同类型虚拟内存访问的延迟，并揭示这些延迟如何影响系统整体性能。  目录 什么是虚拟内存？ 为什么需要虚拟内存？ 虚拟内存实现：分页机制与地址转换 页表（Page Table） TLB：地址转换后备缓冲器 页表遍历缓存（Page Walk Cache）">
+    <meta name="description" content="现代软件性能受内存访问效率影响很大。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文分析不同类型虚拟内存访问的延迟，以及它们如何影响系统整体性能。  目录 什么是虚拟内存？ 为什么需要虚拟内存？ 虚拟内存实现：分页机制与地址转换 页表（Page Table） TLB：地址转换后备缓冲器 页表遍历缓存（Page Walk Cache） 虚拟内存超">
 <meta property="og:type" content="article">
 <meta property="og:title" content="内存访问全解析：虚拟内存、缓存与 DRAM 如何影响性能">
 <meta property="og:url" content="http://example.com/2021/02/27/cpu%20arch/7.%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E3%80%81%E7%BC%93%E5%AD%98%E4%B8%8EDRAM%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD/index.html">
 <meta property="og:site_name" content="Alex&#39;s Tech Blog">
-<meta property="og:description" content="现代软件性能深受内存访问效率的影响。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文将系统解析不同类型虚拟内存访问的延迟，并揭示这些延迟如何影响系统整体性能。  目录 什么是虚拟内存？ 为什么需要虚拟内存？ 虚拟内存实现：分页机制与地址转换 页表（Page Table） TLB：地址转换后备缓冲器 页表遍历缓存（Page Walk Cache）">
+<meta property="og:description" content="现代软件性能受内存访问效率影响很大。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文分析不同类型虚拟内存访问的延迟，以及它们如何影响系统整体性能。  目录 什么是虚拟内存？ 为什么需要虚拟内存？ 虚拟内存实现：分页机制与地址转换 页表（Page Table） TLB：地址转换后备缓冲器 页表遍历缓存（Page Walk Cache） 虚拟内存超">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-27T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-04-20T22:49:04.109Z">
+<meta property="article:modified_time" content="2026-07-13T09:44:44.592Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="CPU Arch">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -127,7 +129,7 @@
     
     
       <div id="toc">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是虚拟内存？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要虚拟内存？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BF%9B%E7%A8%8B%E9%9A%94%E7%A6%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 进程隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AE%80%E5%8C%96%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 简化内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%EF%BC%88%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 高效使用物理内存（按需分页）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%94%AF%E6%8C%81%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%88Overcommit%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 支持内存超配（Overcommit）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%EF%BC%9A%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">3. 虚拟内存实现：分页机制与地址转换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%A1%B5%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分页基本原理</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%A1%B5%E8%A1%A8%EF%BC%88Page-Table%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 页表（Page Table）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%9B%E7%BA%A7%E9%A1%B5%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 四级页表结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%BB%93%E6%9E%84%EF%BC%8848-%E4%BD%8D%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 虚拟地址结构（48 位）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%EF%BC%88Page-Walk%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 页表遍历（Page Walk）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TLB%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. TLB：地址转换后备缓冲器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TLB-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 TLB 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TLB-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TLB 的局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%88Page-Walk-Cache%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 页表遍历缓存（Page Walk Cache）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 为什么需要页表遍历缓存？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 工作机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%9A%E4%BA%A4%E6%8D%A2%E3%80%81%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8"><span class="toc-number">8.</span> <span class="toc-text">7. 虚拟内存超配：交换、按需分页与缺页异常</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%88Demand-Paging%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 按需分页（Demand Paging）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%BA%A4%E6%8D%A2%EF%BC%88Swapping%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 交换（Swapping）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%88MMU%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 内存管理单元（MMU）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-MMU-%E7%9A%84%E8%81%8C%E8%B4%A3"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 MMU 的职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E8%AE%BF%E9%97%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 完整访问流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%EF%BC%88Page-Fault%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 缺页异常（Page Fault）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E8%A7%A6%E5%8F%91%E6%97%B6%E6%9C%BA"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 触发时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 缺页异常的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="toc-number">11.</span> <span class="toc-text">10. 内存访问的完整链路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 内存访问延迟总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-number">13.</span> <span class="toc-text">12. 性能瓶颈与优化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-TLB-%E6%9C%AA%E5%91%BD%E4%B8%AD%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 TLB 未命中频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E5%BC%80%E9%94%80%E9%AB%98"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 页表遍历开销高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 缺页异常频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-DRAM-%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E9%AB%98"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 DRAM 访问延迟高</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B0%8F%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是虚拟内存？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要虚拟内存？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BF%9B%E7%A8%8B%E9%9A%94%E7%A6%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 进程隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AE%80%E5%8C%96%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 简化内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%8C%89%E9%9C%80%E4%BD%BF%E7%94%A8%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 按需使用物理内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%94%AF%E6%8C%81%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%88Overcommit%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 支持内存超配（Overcommit）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%EF%BC%9A%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">3. 虚拟内存实现：分页机制与地址转换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%A1%B5%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分页基本原理</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%A1%B5%E8%A1%A8%EF%BC%88Page-Table%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 页表（Page Table）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%9B%E7%BA%A7%E9%A1%B5%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 四级页表结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%BB%93%E6%9E%84%EF%BC%8848-%E4%BD%8D%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 虚拟地址结构（48 位）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%EF%BC%88Page-Walk%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 页表遍历（Page Walk）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TLB%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. TLB：地址转换后备缓冲器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TLB-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 TLB 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TLB-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TLB 的局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%88Page-Walk-Cache%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 页表遍历缓存（Page Walk Cache）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 为什么需要页表遍历缓存？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 工作机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%9A%E4%BA%A4%E6%8D%A2%E3%80%81%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8"><span class="toc-number">8.</span> <span class="toc-text">7. 虚拟内存超配：交换、按需分页与缺页异常</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%88Demand-Paging%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 按需分页（Demand Paging）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%BA%A4%E6%8D%A2%EF%BC%88Swapping%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 交换（Swapping）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%88MMU%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 内存管理单元（MMU）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-MMU-%E7%9A%84%E8%81%8C%E8%B4%A3"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 MMU 的职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E8%AE%BF%E9%97%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 完整访问流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%EF%BC%88Page-Fault%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 缺页异常（Page Fault）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E8%A7%A6%E5%8F%91%E6%97%B6%E6%9C%BA"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 触发时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 缺页异常的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="toc-number">11.</span> <span class="toc-text">10. 内存访问的完整链路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 内存访问延迟总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-number">13.</span> <span class="toc-text">12. 性能瓶颈与优化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-TLB-%E6%9C%AA%E5%91%BD%E4%B8%AD%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 TLB 未命中频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E5%BC%80%E9%94%80%E9%AB%98"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 页表遍历开销高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 缺页异常频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-DRAM-%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E9%AB%98"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 DRAM 访问延迟高</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B0%8F%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
       </div>
     
   </span>
@@ -172,18 +174,18 @@
   
 
   <div class="content e-content" itemprop="articleBody">
-    <p>现代软件性能深受内存访问效率的影响。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文将系统解析不同类型虚拟内存访问的延迟，并揭示这些延迟如何影响系统整体性能。</p>
+    <p>现代软件性能受内存访问效率影响很大。内存访问延迟的完整链路涉及多层结构：从 CPU 缓存、虚拟地址转换，到最终的物理 DRAM 访问。本文分析不同类型虚拟内存访问的延迟，以及它们如何影响系统整体性能。</p>
 <hr>
 <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
-<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98">什么是虚拟内存？</a></li>
-<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98">为什么需要虚拟内存？</a></li>
-<li><a href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2">虚拟内存实现：分页机制与地址转换</a></li>
-<li><a href="#4-%E9%A1%B5%E8%A1%A8page-table">页表（Page Table）</a></li>
-<li><a href="#5-tlb%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8">TLB：地址转换后备缓冲器</a></li>
-<li><a href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98page-walk-cache">页表遍历缓存（Page Walk Cache）</a></li>
-<li><a href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%E4%BA%A4%E6%8D%A2%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8">虚拟内存超配：交换、按需分页与缺页异常</a></li>
-<li><a href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83mmu">内存管理单元（MMU）</a></li>
-<li><a href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8page-fault">缺页异常（Page Fault）</a></li>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F">什么是虚拟内存？</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F">为什么需要虚拟内存？</a></li>
+<li><a href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%EF%BC%9A%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2">虚拟内存实现：分页机制与地址转换</a></li>
+<li><a href="#4-%E9%A1%B5%E8%A1%A8%EF%BC%88Page-Table%EF%BC%89">页表（Page Table）</a></li>
+<li><a href="#5-TLB%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8">TLB：地址转换后备缓冲器</a></li>
+<li><a href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%88Page-Walk-Cache%EF%BC%89">页表遍历缓存（Page Walk Cache）</a></li>
+<li><a href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%9A%E4%BA%A4%E6%8D%A2%E3%80%81%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8">虚拟内存超配：交换、按需分页与缺页异常</a></li>
+<li><a href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%88MMU%EF%BC%89">内存管理单元（MMU）</a></li>
+<li><a href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%EF%BC%88Page-Fault%EF%BC%89">缺页异常（Page Fault）</a></li>
 <li><a href="#10-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF">内存访问的完整链路</a></li>
 <li><a href="#11-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E6%80%BB%E7%BB%93">内存访问延迟总结</a></li>
 <li><a href="#12-%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88">性能瓶颈与优化方案</a></li>
@@ -199,55 +201,55 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>物理内存</strong></td>
+<td>物理内存</td>
 <td>数据实际存储的硬件（DRAM），有固定的物理地址空间</td>
 </tr>
 <tr>
-<td><strong>虚拟内存</strong></td>
+<td>虚拟内存</td>
 <td>一种抽象层，让应用程序可以使用独立、连续的大地址空间，无需关心底层物理内存布局</td>
 </tr>
 </tbody></table>
-<p>操作系统与硬件协同工作，将应用使用的<strong>虚拟地址</strong>转换为 DRAM 使用的<strong>物理地址</strong>，以完成数据访问。</p>
+<p>操作系统与硬件协同工作，将应用使用的虚拟地址转换为 DRAM 使用的物理地址，以完成数据访问。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">应用程序</span><br><span class="line">   │</span><br><span class="line">   │ 使用虚拟地址（如 0x7fff...）</span><br><span class="line">   ▼</span><br><span class="line"> MMU（内存管理单元）</span><br><span class="line">   │</span><br><span class="line">   │ 转换为物理地址（如 0x1a3f...）</span><br><span class="line">   ▼</span><br><span class="line">DRAM（物理内存）</span><br></pre></td></tr></table></figure>
 
 <hr>
 <h1 id="2-为什么需要虚拟内存？"><a href="#2-为什么需要虚拟内存？" class="headerlink" title="2. 为什么需要虚拟内存？"></a>2. 为什么需要虚拟内存？</h1><p>虚拟内存解决了物理内存管理中的四个核心问题：</p>
 <h3 id="2-1-进程隔离"><a href="#2-1-进程隔离" class="headerlink" title="2.1 进程隔离"></a>2.1 进程隔离</h3><p>让每个进程运行在独立的私有虚拟地址空间中，防止进程意外或恶意访问其他进程的内存。</p>
-<p><strong>启用虚拟内存后（安全）：</strong></p>
+<p>启用虚拟内存后（安全）：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 进程 A</span></span><br><span class="line"><span class="type">int</span> *secret = <span class="built_in">malloc</span>(<span class="number">4</span>);</span><br><span class="line">*secret = <span class="number">42</span>;  <span class="comment">// secret 是虚拟地址，仅在进程 A 的私有空间内有效，对进程 B 安全</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>若无虚拟内存（危险）：</strong></p>
+<p>若无虚拟内存（危险）：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 进程 A</span></span><br><span class="line"><span class="type">int</span> *shared = (<span class="type">int</span> *)<span class="number">0x1000</span>;  <span class="comment">// DRAM 中的绝对物理地址</span></span><br><span class="line">*shared = <span class="number">42</span>;                 <span class="comment">// 可能直接覆盖进程 B 的内存！</span></span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p><strong>注</strong>：现代系统中，用户态代码无法直接访问物理地址，虚拟内存已强制生效。直接操作物理地址通常仅限内核态或驱动代码。</p>
+<p>注：现代系统中，用户态代码无法直接访问物理地址，虚拟内存已强制生效。直接操作物理地址通常仅限内核态或驱动代码。</p>
 </blockquote>
 <h3 id="2-2-简化内存管理"><a href="#2-2-简化内存管理" class="headerlink" title="2.2 简化内存管理"></a>2.2 简化内存管理</h3><p>即使物理内存碎片化或容量有限，虚拟内存也能给应用提供干净、连续的地址空间，简化编程与内存分配逻辑。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">物理内存（碎片化）         虚拟内存（连续）</span><br><span class="line">┌──────────┐              ┌──────────┐</span><br><span class="line">│ 进程A片段 │              │          │</span><br><span class="line">├──────────┤              │  进程A   │</span><br><span class="line">│   空闲   │   ─────►     │  连续    │</span><br><span class="line">├──────────┤              │  地址空间│</span><br><span class="line">│ 进程A片段 │              │          │</span><br><span class="line">└──────────┘              └──────────┘</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-3-高效使用物理内存（按需分页）"><a href="#2-3-高效使用物理内存（按需分页）" class="headerlink" title="2.3 高效使用物理内存（按需分页）"></a>2.3 高效使用物理内存（按需分页）</h3><p>仅在需要时才将应用或文件的必需部分加载到物理内存，节省资源，加快程序启动。这就是<strong>按需分页（Demand Paging）</strong> 的核心思想：</p>
+<h3 id="2-3-按需使用物理内存"><a href="#2-3-按需使用物理内存" class="headerlink" title="2.3 按需使用物理内存"></a>2.3 按需使用物理内存</h3><p>仅在需要时才将应用或文件的必需部分加载到物理内存，节省资源，加快程序启动。这就是按需分页（Demand Paging）的核心思想：</p>
 <ul>
-<li>程序启动时，大部分代码和数据<strong>不会立即加载</strong>到物理内存</li>
+<li>程序启动时，大部分代码和数据不会立即加载到物理内存</li>
 <li>只有当 CPU 真正访问某个页时，才将其从磁盘加载进来</li>
-<li>若某段代码从未被执行，对应的物理内存<strong>永远不会被占用</strong></li>
+<li>若某段代码从未被执行，对应的物理内存永远不会被占用</li>
 </ul>
 <h3 id="2-4-支持内存超配（Overcommit）"><a href="#2-4-支持内存超配（Overcommit）" class="headerlink" title="2.4 支持内存超配（Overcommit）"></a>2.4 支持内存超配（Overcommit）</h3><p>系统可以向应用承诺比实际物理内存更大的空间，因为很多应用要么空闲，要么只使用已分配空间的一部分。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 申请 ~40MB 内存，但实际可能不会全部用到</span></span><br><span class="line"><span class="type">int</span> *big_array = <span class="built_in">malloc</span>(<span class="number">10000000</span> * <span class="keyword">sizeof</span>(<span class="type">int</span>));</span><br></pre></td></tr></table></figure>
 
 <p>若无内存超配能力，即便内存不会被完全使用，这类分配也可能直接失败。</p>
 <hr>
-<h1 id="3-虚拟内存实现：分页机制与地址转换"><a href="#3-虚拟内存实现：分页机制与地址转换" class="headerlink" title="3. 虚拟内存实现：分页机制与地址转换"></a>3. 虚拟内存实现：分页机制与地址转换</h1><h3 id="3-1-分页基本原理"><a href="#3-1-分页基本原理" class="headerlink" title="3.1 分页基本原理"></a>3.1 分页基本原理</h3><p>虚拟内存的实现依赖<strong>分页机制（Paging）</strong>，其核心规则如下：</p>
+<h1 id="3-虚拟内存实现：分页机制与地址转换"><a href="#3-虚拟内存实现：分页机制与地址转换" class="headerlink" title="3. 虚拟内存实现：分页机制与地址转换"></a>3. 虚拟内存实现：分页机制与地址转换</h1><h3 id="3-1-分页基本原理"><a href="#3-1-分页基本原理" class="headerlink" title="3.1 分页基本原理"></a>3.1 分页基本原理</h3><p>虚拟内存的实现依赖分页机制（Paging），核心规则如下：</p>
 <ol>
-<li><strong>虚拟内存</strong>被划分为固定大小的<strong>页（Page）</strong>，通常为 <strong>4KB</strong>，是内存管理与地址转换的基本单元。</li>
-<li><strong>物理内存（DRAM）</strong>被划分为同样大小的<strong>帧（Frame）</strong>。</li>
-<li>每个进程拥有独立的 <strong>48 位虚拟地址空间</strong>（最大 2⁴⁸ &#x3D; 256 TB），即便实际可用物理内存小得多。</li>
+<li>虚拟内存被划分为固定大小的页（Page），通常为 4KB，是内存管理与地址转换的基本单元。</li>
+<li>物理内存（DRAM）被划分为同样大小的帧（Frame）。</li>
+<li>每个进程拥有独立的 48 位虚拟地址空间（最大 2⁴⁸ &#x3D; 256 TB），即便实际可用物理内存小得多。</li>
 <li>只有应用实际使用的页才会存入 DRAM 或磁盘，操作系统无需预先为所有内容分配物理内存。</li>
-<li>虚拟页加载后，会精确映射到一个物理帧，这种映射由操作系统通过<strong>页表</strong>管理。</li>
+<li>虚拟页加载后，会精确映射到一个物理帧，这种映射由操作系统通过页表管理。</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">虚拟地址空间（256 TB）          物理内存（如 16 GB）</span><br><span class="line">┌────────────────┐              ┌──────────────┐</span><br><span class="line">│   虚拟页 0     │─────────────►│   物理帧 42  │</span><br><span class="line">├────────────────┤              ├──────────────┤</span><br><span class="line">│   虚拟页 1     │─────────────►│   物理帧 7   │</span><br><span class="line">├────────────────┤              ├──────────────┤</span><br><span class="line">│   虚拟页 2     │──► (在磁盘)  │   物理帧 ...  │</span><br><span class="line">├────────────────┤              └──────────────┘</span><br><span class="line">│      ...       │</span><br><span class="line">└────────────────┘</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h1 id="4-页表（Page-Table）"><a href="#4-页表（Page-Table）" class="headerlink" title="4. 页表（Page Table）"></a>4. 页表（Page Table）</h1><h3 id="4-1-四级页表结构"><a href="#4-1-四级页表结构" class="headerlink" title="4.1 四级页表结构"></a>4.1 四级页表结构</h3><p>x86-64 架构使用<strong>四级层次化索引结构</strong>来存储虚拟页与物理帧之间的映射：</p>
+<h1 id="4-页表（Page-Table）"><a href="#4-页表（Page-Table）" class="headerlink" title="4. 页表（Page Table）"></a>4. 页表（Page Table）</h1><h3 id="4-1-四级页表结构"><a href="#4-1-四级页表结构" class="headerlink" title="4.1 四级页表结构"></a>4.1 四级页表结构</h3><p>x86-64 架构使用四级层次化索引结构来存储虚拟页与物理帧之间的映射：</p>
 <table>
 <thead>
 <tr>
@@ -277,21 +279,21 @@
 <td>包含 PTE，直接指向物理帧</td>
 </tr>
 </tbody></table>
-<p>每张表有 <strong>512 个条目</strong>（因为每级使用 9 位索引，2⁹ &#x3D; 512）。</p>
-<h3 id="4-2-虚拟地址结构（48-位）"><a href="#4-2-虚拟地址结构（48-位）" class="headerlink" title="4.2 虚拟地址结构（48 位）"></a>4.2 虚拟地址结构（48 位）</h3><p>48 位虚拟地址被分为 <strong>5 个字段</strong>，作为层级索引：</p>
+<p>每张表有 512 个条目（因为每级使用 9 位索引，2⁹ &#x3D; 512）。</p>
+<h3 id="4-2-虚拟地址结构（48-位）"><a href="#4-2-虚拟地址结构（48-位）" class="headerlink" title="4.2 虚拟地址结构（48 位）"></a>4.2 虚拟地址结构（48 位）</h3><p>48 位虚拟地址被分为 5 个字段，作为层级索引：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 47      39 38      30 29      21 20      12 11          0</span><br><span class="line">┌──────────┬──────────┬──────────┬──────────┬────────────┐</span><br><span class="line">│  PML4 索引│  PDPT 索引│  PD 索引  │  PT 索引  │  页内偏移  │</span><br><span class="line">│  9 bits  │  9 bits  │  9 bits  │  9 bits  │  12 bits   │</span><br><span class="line">└──────────┴──────────┴──────────┴──────────┴────────────┘</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>四级各占 <strong>9 位</strong>（共 36 位），每级可索引 512 个条目</li>
-<li>最后 <strong>12 位</strong>为页内偏移（2¹² &#x3D; 4096，对应 4KB 页大小）</li>
+<li>四级各占 9 位（共 36 位），每级可索引 512 个条目</li>
+<li>最后 12 位为页内偏移（2¹² &#x3D; 4096，对应 4KB 页大小）</li>
 </ul>
-<h3 id="4-3-页表遍历（Page-Walk）"><a href="#4-3-页表遍历（Page-Walk）" class="headerlink" title="4.3 页表遍历（Page Walk）"></a>4.3 页表遍历（Page Walk）</h3><p>CPU 访问一个虚拟地址时，需要逐级遍历页表才能找到对应的物理地址，这一过程称为<strong>页表遍历（Page Walk）</strong>：</p>
+<h3 id="4-3-页表遍历（Page-Walk）"><a href="#4-3-页表遍历（Page-Walk）" class="headerlink" title="4.3 页表遍历（Page Walk）"></a>4.3 页表遍历（Page Walk）</h3><p>CPU 访问一个虚拟地址时，需要逐级遍历页表才能找到对应的物理地址，这一过程称为页表遍历（Page Walk）：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">虚拟地址</span><br><span class="line">    │</span><br><span class="line">    ├─[PML4 索引]──► PML4 表 ──► PDPT 基地址      (第 1 次 DRAM 访问)</span><br><span class="line">    │</span><br><span class="line">    ├─[PDPT 索引]──► PDPT 表 ──► PD 基地址         (第 2 次 DRAM 访问)</span><br><span class="line">    │</span><br><span class="line">    ├─[PD 索引]────► PD 表   ──► PT 基地址          (第 3 次 DRAM 访问)</span><br><span class="line">    │</span><br><span class="line">    ├─[PT 索引]────► PT 表   ──► PTE（物理帧地址）  (第 4 次 DRAM 访问)</span><br><span class="line">    │</span><br><span class="line">    └─[页内偏移]───► 物理帧内精确地址               (第 5 次 DRAM 访问，读取实际数据)</span><br></pre></td></tr></table></figure>
 
-<p><strong>一次完整遍历最多产生 5 次 DRAM 访问</strong>——仅地址转换就需要 4 次，再加上最终读取数据的 1 次，开销极大。</p>
-<p>为加速转换，CPU 使用专用缓存：<strong>TLB</strong>。</p>
+<p>一次完整遍历最多产生 5 次 DRAM 访问，仅地址转换就需要 4 次，加上最终读取数据的 1 次，开销很大。</p>
+<p>为加速转换，CPU 使用专用缓存：TLB。</p>
 <hr>
-<h1 id="5-TLB：地址转换后备缓冲器"><a href="#5-TLB：地址转换后备缓冲器" class="headerlink" title="5. TLB：地址转换后备缓冲器"></a>5. TLB：地址转换后备缓冲器</h1><h3 id="5-1-TLB-工作原理"><a href="#5-1-TLB-工作原理" class="headerlink" title="5.1 TLB 工作原理"></a>5.1 TLB 工作原理</h3><p><strong>地址转换后备缓冲器（Translation Lookaside Buffer，TLB）</strong> 是 CPU 内部的小型超高速缓存，缓存最近使用的<strong>虚拟→物理地址转换结果</strong>（本质上是缓存页表项 PTE）。</p>
+<h1 id="5-TLB：地址转换后备缓冲器"><a href="#5-TLB：地址转换后备缓冲器" class="headerlink" title="5. TLB：地址转换后备缓冲器"></a>5. TLB：地址转换后备缓冲器</h1><h3 id="5-1-TLB-工作原理"><a href="#5-1-TLB-工作原理" class="headerlink" title="5.1 TLB 工作原理"></a>5.1 TLB 工作原理</h3><p>地址转换后备缓冲器（Translation Lookaside Buffer，TLB）是 CPU 内部的小型高速缓存，缓存最近使用的虚拟→物理地址转换结果（本质上是缓存页表项 PTE）。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">CPU 发出虚拟地址访问</span><br><span class="line">         │</span><br><span class="line">         ▼</span><br><span class="line">    ┌──────────┐</span><br><span class="line">    │  TLB 查找 │</span><br><span class="line">    └────┬─────┘</span><br><span class="line">         │</span><br><span class="line">    ┌────┴─────┐</span><br><span class="line">    │命中？     │</span><br><span class="line">    ├──是──────┤ ─► 直接返回物理地址（1–2 周期，约 0.3ns）</span><br><span class="line">    └──否──────┘ ─► 触发完整页表遍历（~100–300 周期，约 100ns）</span><br></pre></td></tr></table></figure>
 
 <table>
@@ -303,12 +305,12 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>TLB 命中</strong></td>
+<td>TLB 命中</td>
 <td>1–2 CPU 周期（约 0.3 ns）</td>
 <td>直接返回缓存的物理地址</td>
 </tr>
 <tr>
-<td><strong>TLB 未命中</strong></td>
+<td>TLB 未命中</td>
 <td>100–300 CPU 周期（约 100 ns）</td>
 <td>执行完整 4 级页表遍历</td>
 </tr>
@@ -333,15 +335,15 @@
 <td>较快，作为 L1 TLB 的后备</td>
 </tr>
 </tbody></table>
-<p>当进程访问的内存区域超过 TLB 所能覆盖的范围时，TLB 未命中率上升，性能显著下降。</p>
+<p>当进程访问的内存区域超过 TLB 所能覆盖的范围时，TLB 未命中率上升，性能下降。</p>
 <hr>
-<h1 id="6-页表遍历缓存（Page-Walk-Cache）"><a href="#6-页表遍历缓存（Page-Walk-Cache）" class="headerlink" title="6. 页表遍历缓存（Page Walk Cache）"></a>6. 页表遍历缓存（Page Walk Cache）</h1><h3 id="6-1-为什么需要页表遍历缓存？"><a href="#6-1-为什么需要页表遍历缓存？" class="headerlink" title="6.1 为什么需要页表遍历缓存？"></a>6.1 为什么需要页表遍历缓存？</h3><p>TLB 未命中时，CPU 需要完整遍历 4 级页表，每一级都可能触发一次 DRAM 访问。为减少这一开销，现代 CPU 引入了<strong>页表遍历缓存（Page Walk Cache）</strong>。</p>
-<h3 id="6-2-工作机制"><a href="#6-2-工作机制" class="headerlink" title="6.2 工作机制"></a>6.2 工作机制</h3><p>页表遍历缓存存储页表各级（PML4、PDPT、PD、PT）最近访问的<strong>中间条目</strong>：</p>
+<h1 id="6-页表遍历缓存（Page-Walk-Cache）"><a href="#6-页表遍历缓存（Page-Walk-Cache）" class="headerlink" title="6. 页表遍历缓存（Page Walk Cache）"></a>6. 页表遍历缓存（Page Walk Cache）</h1><h3 id="6-1-为什么需要页表遍历缓存？"><a href="#6-1-为什么需要页表遍历缓存？" class="headerlink" title="6.1 为什么需要页表遍历缓存？"></a>6.1 为什么需要页表遍历缓存？</h3><p>TLB 未命中时，CPU 需要完整遍历 4 级页表，每一级都可能触发一次 DRAM 访问。为减少这一开销，现代 CPU 引入了页表遍历缓存（Page Walk Cache）。</p>
+<h3 id="6-2-工作机制"><a href="#6-2-工作机制" class="headerlink" title="6.2 工作机制"></a>6.2 工作机制</h3><p>页表遍历缓存存储页表各级（PML4、PDPT、PD、PT）最近访问的中间条目：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">TLB 未命中</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">查找页表遍历缓存</span><br><span class="line">    │</span><br><span class="line">    ├─ 命中 PD 级缓存 ──► 跳过前 3 级，只需 1 次 DRAM 访问（PT 级）</span><br><span class="line">    │</span><br><span class="line">    ├─ 命中 PDPT 级缓存 ─► 跳过前 2 级，需 2 次 DRAM 访问</span><br><span class="line">    │</span><br><span class="line">    └─ 全部未命中 ──────► 完整 4 次 DRAM 访问</span><br></pre></td></tr></table></figure>
 
-<p>通过缓存中间条目，CPU 在 TLB 未命中时可显著减少慢速 DRAM 访问次数，加快虚拟地址转换。</p>
+<p>通过缓存中间条目，CPU 在 TLB 未命中时可减少慢速 DRAM 访问次数，加快虚拟地址转换。</p>
 <hr>
-<h1 id="7-虚拟内存超配：交换、按需分页与缺页异常"><a href="#7-虚拟内存超配：交换、按需分页与缺页异常" class="headerlink" title="7. 虚拟内存超配：交换、按需分页与缺页异常"></a>7. 虚拟内存超配：交换、按需分页与缺页异常</h1><p>x86-64 系统中，每个进程可拥有最大 256 TB 的虚拟地址空间，而物理内存可能只有几 GB。操作系统通过<strong>按需分页</strong>与<strong>交换</strong>来实现这一”魔法”。</p>
+<h1 id="7-虚拟内存超配：交换、按需分页与缺页异常"><a href="#7-虚拟内存超配：交换、按需分页与缺页异常" class="headerlink" title="7. 虚拟内存超配：交换、按需分页与缺页异常"></a>7. 虚拟内存超配：交换、按需分页与缺页异常</h1><p>x86-64 系统中，每个进程可拥有最大 256 TB 的虚拟地址空间，而物理内存可能只有几 GB。操作系统通过按需分页与交换来实现这一”魔法”。</p>
 <h3 id="7-1-按需分页（Demand-Paging）"><a href="#7-1-按需分页（Demand-Paging）" class="headerlink" title="7.1 按需分页（Demand Paging）"></a>7.1 按需分页（Demand Paging）</h3><table>
 <thead>
 <tr>
@@ -350,33 +352,33 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>初始状态</strong></td>
+<td>初始状态</td>
 <td>大部分虚拟页的 PTE 标记为”不存在”（Present bit &#x3D; 0）</td>
 </tr>
 <tr>
-<td><strong>首次访问</strong></td>
+<td>首次访问</td>
 <td>CPU 触发缺页异常，OS 将该页从磁盘加载到物理内存</td>
 </tr>
 <tr>
-<td><strong>后续访问</strong></td>
+<td>后续访问</td>
 <td>该页已在 DRAM 中，TLB 或页表可直接命中</td>
 </tr>
 <tr>
-<td><strong>从未访问</strong></td>
+<td>从未访问</td>
 <td>该页永远不会占用 DRAM，节省物理内存</td>
 </tr>
 </tbody></table>
-<h3 id="7-2-交换（Swapping）"><a href="#7-2-交换（Swapping）" class="headerlink" title="7.2 交换（Swapping）"></a>7.2 交换（Swapping）</h3><p>即便使用按需分页，物理内存仍会随页面访问而逐渐占满。操作系统通过<strong>交换</strong>来应对：</p>
+<h3 id="7-2-交换（Swapping）"><a href="#7-2-交换（Swapping）" class="headerlink" title="7.2 交换（Swapping）"></a>7.2 交换（Swapping）</h3><p>即便使用按需分页，物理内存仍会随页面访问而逐渐占满。操作系统通过交换来应对：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">物理内存不足</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">选择&quot;冷&quot;页面（最近最少使用）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">将其写入磁盘交换区（Swap Space）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">腾出物理帧，用于加载新页</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><strong>换出（Swap Out）</strong>：将不活跃页从 DRAM 移到磁盘</li>
-<li><strong>换入（Swap In）</strong>：访问换出页时，从磁盘重新加载到 DRAM</li>
+<li>换出（Swap Out）：将不活跃页从 DRAM 移到磁盘</li>
+<li>换入（Swap In）：访问换出页时，从磁盘重新加载到 DRAM</li>
 <li>代价：磁盘 I&#x2F;O 延迟（通常 1–10 毫秒），远高于 DRAM 访问（约 80 ns）</li>
 </ul>
 <p>通过交换，系统在快速 DRAM 与慢速磁盘之间调度页面，对应用透明地营造出”更大内存”的假象。</p>
 <hr>
-<h1 id="8-内存管理单元（MMU）"><a href="#8-内存管理单元（MMU）" class="headerlink" title="8. 内存管理单元（MMU）"></a>8. 内存管理单元（MMU）</h1><h3 id="8-1-MMU-的职责"><a href="#8-1-MMU-的职责" class="headerlink" title="8.1 MMU 的职责"></a>8.1 MMU 的职责</h3><p>前文提到的页表遍历、TLB 查询等操作，并不由 CPU 核心直接处理，而是交给专用硬件组件——<strong>内存管理单元（Memory Management Unit，MMU）</strong>。</p>
+<h1 id="8-内存管理单元（MMU）"><a href="#8-内存管理单元（MMU）" class="headerlink" title="8. 内存管理单元（MMU）"></a>8. 内存管理单元（MMU）</h1><h3 id="8-1-MMU-的职责"><a href="#8-1-MMU-的职责" class="headerlink" title="8.1 MMU 的职责"></a>8.1 MMU 的职责</h3><p>前文提到的页表遍历、TLB 查询等操作，并不由 CPU 核心直接处理，而是交给专用硬件组件内存管理单元（Memory Management Unit，MMU）。</p>
 <table>
 <thead>
 <tr>
@@ -385,15 +387,15 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>CPU</strong></td>
+<td>CPU</td>
 <td>发出内存访问请求（使用虚拟地址）</td>
 </tr>
 <tr>
-<td><strong>MMU</strong></td>
+<td>MMU</td>
 <td>执行虚拟→物理地址转换（TLB 查询、页表遍历）</td>
 </tr>
 <tr>
-<td><strong>内存控制器</strong></td>
+<td>内存控制器</td>
 <td>管理对 DRAM 的物理访问</td>
 </tr>
 </tbody></table>
@@ -401,15 +403,15 @@
 
 <p>通过将地址转换逻辑卸载给 MMU，CPU 核心可以专注于指令执行，不被地址转换的复杂逻辑拖累。</p>
 <hr>
-<h1 id="9-缺页异常（Page-Fault）"><a href="#9-缺页异常（Page-Fault）" class="headerlink" title="9. 缺页异常（Page Fault）"></a>9. 缺页异常（Page Fault）</h1><h3 id="9-1-触发时机"><a href="#9-1-触发时机" class="headerlink" title="9.1 触发时机"></a>9.1 触发时机</h3><p>当 CPU 访问一个虚拟内存页时，MMU 执行地址转换。若该页<strong>当前不在物理内存中</strong>（PTE 的 Present bit &#x3D; 0），MMU 会触发<strong>缺页异常（Page Fault）</strong>，将控制权交给操作系统。</p>
+<h1 id="9-缺页异常（Page-Fault）"><a href="#9-缺页异常（Page-Fault）" class="headerlink" title="9. 缺页异常（Page Fault）"></a>9. 缺页异常（Page Fault）</h1><h3 id="9-1-触发时机"><a href="#9-1-触发时机" class="headerlink" title="9.1 触发时机"></a>9.1 触发时机</h3><p>当 CPU 访问一个虚拟内存页时，MMU 执行地址转换。若该页当前不在物理内存中（PTE 的 Present bit &#x3D; 0），MMU 会触发缺页异常（Page Fault），将控制权交给操作系统。</p>
 <h3 id="9-2-处理流程"><a href="#9-2-处理流程" class="headerlink" title="9.2 处理流程"></a>9.2 处理流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">CPU 访问虚拟地址</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">MMU 发现页面不在物理内存</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">触发缺页异常（中断当前程序）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">操作系统缺页异常处理程序</span><br><span class="line">    │</span><br><span class="line">    ├─ 情况 1：页面已换出到磁盘</span><br><span class="line">    │       → 从磁盘读取页面到空闲物理帧</span><br><span class="line">    │       → 更新 PTE（Present bit = 1）</span><br><span class="line">    │</span><br><span class="line">    └─ 情况 2：首次访问（按需分页）</span><br><span class="line">            → 分配新的物理帧</span><br><span class="line">            → 初始化内容（清零或从文件加载）</span><br><span class="line">            → 更新 PTE</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">恢复程序执行（重试触发缺页的指令）</span><br></pre></td></tr></table></figure>
 
-<h3 id="9-3-缺页异常的性能代价"><a href="#9-3-缺页异常的性能代价" class="headerlink" title="9.3 缺页异常的性能代价"></a>9.3 缺页异常的性能代价</h3><p>缺页异常涉及<strong>用户态→内核态</strong>的上下文切换，以及可能的磁盘 I&#x2F;O，延迟可达 <strong>1–10 毫秒</strong>，是 DRAM 访问（约 80 ns）的 <strong>10,000–100,000 倍</strong>。因此，频繁缺页异常是严重的性能瓶颈。</p>
+<h3 id="9-3-缺页异常的性能代价"><a href="#9-3-缺页异常的性能代价" class="headerlink" title="9.3 缺页异常的性能代价"></a>9.3 缺页异常的性能代价</h3><p>缺页异常涉及用户态→内核态的上下文切换，以及可能的磁盘 I&#x2F;O，延迟可达 1–10 毫秒，是 DRAM 访问（约 80 ns）的 10,000–100,000 倍。因此，频繁缺页异常是严重的性能瓶颈。</p>
 <hr>
 <h1 id="10-内存访问的完整链路"><a href="#10-内存访问的完整链路" class="headerlink" title="10. 内存访问的完整链路"></a>10. 内存访问的完整链路</h1><p>综合以上内容，一次完整的内存访问经历以下决策链路：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">CPU 发出内存访问（虚拟地址）</span><br><span class="line">            │</span><br><span class="line">            ▼</span><br><span class="line">    ┌───────────────┐</span><br><span class="line">    │  L1 Cache 查询 │</span><br><span class="line">    └───────┬───────┘</span><br><span class="line">     命中 ◄─┤─► 未命中</span><br><span class="line">      (1ns) │        │</span><br><span class="line">            │        ▼</span><br><span class="line">            │ ┌───────────────┐</span><br><span class="line">            │ │  L2 Cache 查询 │</span><br><span class="line">            │ └───────┬───────┘</span><br><span class="line">            │  命中 ◄─┤─► 未命中</span><br><span class="line">            │ (1.5ns) │        │</span><br><span class="line">            │         │        ▼</span><br><span class="line">            │         │ ┌───────────────┐</span><br><span class="line">            │         │ │  L3 Cache 查询 │</span><br><span class="line">            │         │ └───────┬───────┘</span><br><span class="line">            │         │  命中 ◄─┤─► 未命中</span><br><span class="line">            │         │  (5ns)  │        │</span><br><span class="line">            │         │         │        ▼</span><br><span class="line">            │         │         │  ┌──────────────┐</span><br><span class="line">            │         │         │  │   TLB 查询    │</span><br><span class="line">            │         │         │  └──────┬───────┘</span><br><span class="line">            │         │         │  命中 ◄─┤─► 未命中</span><br><span class="line">            │         │         │ (0.3ns) │        │</span><br><span class="line">            │         │         │         │        ▼</span><br><span class="line">            │         │         │         │  页表遍历</span><br><span class="line">            │         │         │         │  (4×DRAM，~100ns)</span><br><span class="line">            │         │         │         │        │</span><br><span class="line">            │         │         │         │        ▼</span><br><span class="line">            │         │         │    得到物理地址</span><br><span class="line">            │         │         │         │</span><br><span class="line">            │         │         │         ▼</span><br><span class="line">            │         │         │     DRAM 访问</span><br><span class="line">            │         │         │      (~80ns)</span><br><span class="line">            │         │         │         │</span><br><span class="line">            ▼         ▼         ▼         ▼</span><br><span class="line">                  返回数据给 CPU</span><br></pre></td></tr></table></figure>
 
-<p><strong>最坏情况</strong>（TLB 未命中 + 缺页异常）：需要多次 DRAM 访问 + 磁盘 I&#x2F;O，延迟可达数毫秒。</p>
+<p>最坏情况（TLB 未命中 + 缺页异常）：需要多次 DRAM 访问 + 磁盘 I&#x2F;O，延迟可达数毫秒。</p>
 <hr>
 <h1 id="11-内存访问延迟总结"><a href="#11-内存访问延迟总结" class="headerlink" title="11. 内存访问延迟总结"></a>11. 内存访问延迟总结</h1><table>
 <thead>
@@ -420,37 +422,37 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>L1 缓存命中</strong></td>
+<td>L1 缓存命中</td>
 <td>1–3 CPU 周期</td>
 <td>~0.3 ns</td>
 </tr>
 <tr>
-<td><strong>L2 缓存命中</strong></td>
+<td>L2 缓存命中</td>
 <td>4–10 CPU 周期</td>
 <td>~1.5 ns</td>
 </tr>
 <tr>
-<td><strong>L3 缓存命中</strong></td>
+<td>L3 缓存命中</td>
 <td>10–30 CPU 周期</td>
 <td>~5 ns</td>
 </tr>
 <tr>
-<td><strong>TLB 命中</strong>（虚拟地址转换）</td>
+<td>TLB 命中（虚拟地址转换）</td>
 <td>1–2 CPU 周期</td>
 <td>~0.3 ns</td>
 </tr>
 <tr>
-<td><strong>TLB 未命中</strong>（完整页表遍历）</td>
+<td>TLB 未命中（完整页表遍历）</td>
 <td>100–300 CPU 周期</td>
 <td>~100 ns</td>
 </tr>
 <tr>
-<td><strong>DRAM 直接访问</strong></td>
+<td>DRAM 直接访问</td>
 <td>80–150 CPU 周期</td>
 <td>~80 ns</td>
 </tr>
 <tr>
-<td><strong>缺页异常</strong>（磁盘加载）</td>
+<td>缺页异常（磁盘加载）</td>
 <td>—</td>
 <td>~1–10 ms</td>
 </tr>
@@ -458,11 +460,11 @@
 <blockquote>
 <p>以上数据基于 3 GHz CPU（单周期约 0.33 ns），实际值因处理器架构、内存频率等因素有所差异。</p>
 </blockquote>
-<p><strong>延迟对比可视化</strong>（对数坐标）：</p>
+<p>延迟对比可视化（对数坐标）：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0.3ns  ██ L1 Cache / TLB 命中</span><br><span class="line">1.5ns  ████ L2 Cache</span><br><span class="line">5ns    ██████████ L3 Cache</span><br><span class="line">80ns   ████████████████████████████████████████ DRAM</span><br><span class="line">100ns  ██████████████████████████████████████████████ TLB 未命中</span><br><span class="line">10ms   ████████████████████...（约为 DRAM 的 100,000 倍）缺页异常</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h1 id="12-性能瓶颈与优化方案"><a href="#12-性能瓶颈与优化方案" class="headerlink" title="12. 性能瓶颈与优化方案"></a>12. 性能瓶颈与优化方案</h1><h3 id="12-1-TLB-未命中频繁"><a href="#12-1-TLB-未命中频繁" class="headerlink" title="12.1 TLB 未命中频繁"></a>12.1 TLB 未命中频繁</h3><p><strong>根本原因</strong>：虚拟地址空间大、TLB 容量有限、内存访问局部性差</p>
+<h1 id="12-性能瓶颈与优化方案"><a href="#12-性能瓶颈与优化方案" class="headerlink" title="12. 性能瓶颈与优化方案"></a>12. 性能瓶颈与优化方案</h1><h3 id="12-1-TLB-未命中频繁"><a href="#12-1-TLB-未命中频繁" class="headerlink" title="12.1 TLB 未命中频繁"></a>12.1 TLB 未命中频繁</h3><p>根本原因：虚拟地址空间大、TLB 容量有限、内存访问局部性差</p>
 <table>
 <thead>
 <tr>
@@ -471,19 +473,19 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>使用大页（Huge Pages）</strong></td>
+<td>使用大页（Huge Pages）</td>
 <td>使用 2 MB 或 1 GB 大页，一个 TLB 条目覆盖更大范围，显著减少 TLB 未命中率</td>
 </tr>
 <tr>
-<td><strong>优化内存访问局部性</strong></td>
+<td>优化内存访问局部性</td>
 <td>尽量顺序访问内存，避免随机跳跃，提高 TLB 命中率</td>
 </tr>
 <tr>
-<td><strong>提升 TLB 相联度</strong></td>
+<td>提升 TLB 相联度</td>
 <td>硬件层面增加 TLB 的关联度，减少冲突未命中</td>
 </tr>
 </tbody></table>
-<h3 id="12-2-页表遍历开销高"><a href="#12-2-页表遍历开销高" class="headerlink" title="12.2 页表遍历开销高"></a>12.2 页表遍历开销高</h3><p><strong>根本原因</strong>：四级页表结构，完整遍历需 4 次 DRAM 访问</p>
+<h3 id="12-2-页表遍历开销高"><a href="#12-2-页表遍历开销高" class="headerlink" title="12.2 页表遍历开销高"></a>12.2 页表遍历开销高</h3><p>根本原因：四级页表结构，完整遍历需 4 次 DRAM 访问</p>
 <table>
 <thead>
 <tr>
@@ -492,15 +494,15 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>启用页表遍历缓存</strong></td>
+<td>启用页表遍历缓存</td>
 <td>缓存中间层页表条目，减少遍历所需 DRAM 访问次数</td>
 </tr>
 <tr>
-<td><strong>硬件加速页表遍历</strong></td>
+<td>硬件加速页表遍历</td>
 <td>利用 MMU 内置的专用遍历单元，并行处理多级查找</td>
 </tr>
 </tbody></table>
-<h3 id="12-3-缺页异常频繁"><a href="#12-3-缺页异常频繁" class="headerlink" title="12.3 缺页异常频繁"></a>12.3 缺页异常频繁</h3><p><strong>根本原因</strong>：物理内存不足，活跃页面超出 DRAM 容量</p>
+<h3 id="12-3-缺页异常频繁"><a href="#12-3-缺页异常频繁" class="headerlink" title="12.3 缺页异常频繁"></a>12.3 缺页异常频繁</h3><p>根本原因：物理内存不足，活跃页面超出 DRAM 容量</p>
 <table>
 <thead>
 <tr>
@@ -509,23 +511,23 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>增加物理内存</strong></td>
+<td>增加物理内存</td>
 <td>最直接的解决方案，减少换出</td>
 </tr>
 <tr>
-<td><strong>调整交换策略</strong></td>
+<td>调整交换策略</td>
 <td>调整 Linux <code>vm.swappiness</code> 参数（值越小，越倾向保留物理内存）；使用更快的 NVMe SSD 作为交换区</td>
 </tr>
 <tr>
-<td><strong>排查内存泄漏</strong></td>
+<td>排查内存泄漏</td>
 <td>确保程序正确释放内存，避免无效占用</td>
 </tr>
 <tr>
-<td><strong>使用内存映射优化</strong></td>
+<td>使用内存映射优化</td>
 <td>使用 <code>madvise()</code> 系统调用提示 OS 访问模式，提前加载或及时释放页面</td>
 </tr>
 </tbody></table>
-<h3 id="12-4-DRAM-访问延迟高"><a href="#12-4-DRAM-访问延迟高" class="headerlink" title="12.4 DRAM 访问延迟高"></a>12.4 DRAM 访问延迟高</h3><p><strong>根本原因</strong>：DRAM 速度远低于 CPU 缓存</p>
+<h3 id="12-4-DRAM-访问延迟高"><a href="#12-4-DRAM-访问延迟高" class="headerlink" title="12.4 DRAM 访问延迟高"></a>12.4 DRAM 访问延迟高</h3><p>根本原因：DRAM 速度远低于 CPU 缓存</p>
 <table>
 <thead>
 <tr>
@@ -534,31 +536,31 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>提高缓存命中率</strong></td>
+<td>提高缓存命中率</td>
 <td>优化数据结构布局（缓存行对齐、避免 False Sharing）</td>
 </tr>
 <tr>
-<td><strong>使用多通道 DRAM</strong></td>
+<td>使用多通道 DRAM</td>
 <td>双通道&#x2F;四通道配置可成倍提升内存带宽</td>
 </tr>
 <tr>
-<td><strong>优化内存访问模式</strong></td>
+<td>优化内存访问模式</td>
 <td>连续访问（Row Major）优于随机访问，充分利用 DRAM Row Buffer</td>
 </tr>
 <tr>
-<td><strong>NUMA 感知编程</strong></td>
+<td>NUMA 感知编程</td>
 <td>多处理器系统中，优先访问本地 NUMA 节点的内存</td>
 </tr>
 </tbody></table>
 <hr>
-<h1 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h1><p>本文从虚拟内存的基本概念出发，系统梳理了现代计算机内存访问的完整链路：</p>
+<h1 id="13-小结"><a href="#13-小结" class="headerlink" title="13. 小结"></a>13. 小结</h1><p>本文从虚拟内存的基本概念出发，梳理现代计算机内存访问的完整链路：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">虚拟内存 → 分页机制 → 页表（4 级）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">地址转换（MMU）</span><br><span class="line">    ├── TLB 命中（快，~0.3 ns）</span><br><span class="line">    └── TLB 未命中 → 页表遍历（慢，~100 ns）</span><br><span class="line">                        ├── 页表遍历缓存（加速中间级）</span><br><span class="line">                        └── 完整 DRAM 遍历（4 次访问）</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">物理内存访问</span><br><span class="line">    ├── DRAM 命中（~80 ns）</span><br><span class="line">    └── 缺页异常 → 磁盘加载（~1–10 ms）</span><br></pre></td></tr></table></figure>
 
-<p><strong>核心结论</strong>：</p>
+<p>核心结论：</p>
 <ol>
-<li><strong>TLB 是性能关键</strong>：TLB 命中与未命中之间存在约 300 倍的延迟差距，良好的内存局部性和大页技术是减少 TLB 未命中的有效手段。</li>
-<li><strong>缺页异常代价极高</strong>：磁盘 I&#x2F;O 延迟是 DRAM 的数万倍，应尽量避免频繁缺页，合理管理内存使用。</li>
-<li><strong>层次化缓存的价值</strong>：从 L1 Cache 到 TLB 到 DRAM，每一层都是上一层的”减速器”，充分利用缓存局部性是性能优化的基础。</li>
+<li>TLB 是性能关键：TLB 命中与未命中之间存在约 300 倍的延迟差距，良好的内存局部性和大页技术是减少 TLB 未命中的有效手段。</li>
+<li>缺页异常代价很高：磁盘 I&#x2F;O 延迟是 DRAM 的数万倍，应尽量避免频繁缺页，合理管理内存使用。</li>
+<li>层次化缓存的价值：从 L1 Cache 到 TLB 到 DRAM，每一层都为上一层提供缓冲，充分利用缓存局部性是性能优化的基础。</li>
 </ol>
 <hr>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
@@ -585,9 +587,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -595,7 +599,7 @@
     
     
       <div id="toc-footer" style="display: none">
-        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是虚拟内存？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要虚拟内存？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BF%9B%E7%A8%8B%E9%9A%94%E7%A6%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 进程隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AE%80%E5%8C%96%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 简化内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%EF%BC%88%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%89"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 高效使用物理内存（按需分页）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%94%AF%E6%8C%81%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%88Overcommit%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 支持内存超配（Overcommit）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%EF%BC%9A%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">3. 虚拟内存实现：分页机制与地址转换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%A1%B5%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分页基本原理</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%A1%B5%E8%A1%A8%EF%BC%88Page-Table%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 页表（Page Table）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%9B%E7%BA%A7%E9%A1%B5%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 四级页表结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%BB%93%E6%9E%84%EF%BC%8848-%E4%BD%8D%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 虚拟地址结构（48 位）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%EF%BC%88Page-Walk%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 页表遍历（Page Walk）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TLB%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. TLB：地址转换后备缓冲器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TLB-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 TLB 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TLB-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TLB 的局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%88Page-Walk-Cache%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 页表遍历缓存（Page Walk Cache）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 为什么需要页表遍历缓存？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 工作机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%9A%E4%BA%A4%E6%8D%A2%E3%80%81%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8"><span class="toc-number">8.</span> <span class="toc-text">7. 虚拟内存超配：交换、按需分页与缺页异常</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%88Demand-Paging%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 按需分页（Demand Paging）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%BA%A4%E6%8D%A2%EF%BC%88Swapping%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 交换（Swapping）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%88MMU%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 内存管理单元（MMU）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-MMU-%E7%9A%84%E8%81%8C%E8%B4%A3"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 MMU 的职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E8%AE%BF%E9%97%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 完整访问流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%EF%BC%88Page-Fault%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 缺页异常（Page Fault）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E8%A7%A6%E5%8F%91%E6%97%B6%E6%9C%BA"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 触发时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 缺页异常的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="toc-number">11.</span> <span class="toc-text">10. 内存访问的完整链路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 内存访问延迟总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-number">13.</span> <span class="toc-text">12. 性能瓶颈与优化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-TLB-%E6%9C%AA%E5%91%BD%E4%B8%AD%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 TLB 未命中频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E5%BC%80%E9%94%80%E9%AB%98"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 页表遍历开销高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 缺页异常频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-DRAM-%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E9%AB%98"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 DRAM 访问延迟高</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B0%8F%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 什么是虚拟内存？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">2. 为什么需要虚拟内存？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BF%9B%E7%A8%8B%E9%9A%94%E7%A6%BB"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 进程隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AE%80%E5%8C%96%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 简化内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%8C%89%E9%9C%80%E4%BD%BF%E7%94%A8%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98"><span class="toc-number">3.0.3.</span> <span class="toc-text">2.3 按需使用物理内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%94%AF%E6%8C%81%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%88Overcommit%EF%BC%89"><span class="toc-number">3.0.4.</span> <span class="toc-text">2.4 支持内存超配（Overcommit）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0%EF%BC%9A%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">3. 虚拟内存实现：分页机制与地址转换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%86%E9%A1%B5%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">4.0.1.</span> <span class="toc-text">3.1 分页基本原理</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%A1%B5%E8%A1%A8%EF%BC%88Page-Table%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">4. 页表（Page Table）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9B%9B%E7%BA%A7%E9%A1%B5%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-number">5.0.1.</span> <span class="toc-text">4.1 四级页表结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%BB%93%E6%9E%84%EF%BC%8848-%E4%BD%8D%EF%BC%89"><span class="toc-number">5.0.2.</span> <span class="toc-text">4.2 虚拟地址结构（48 位）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%EF%BC%88Page-Walk%EF%BC%89"><span class="toc-number">5.0.3.</span> <span class="toc-text">4.3 页表遍历（Page Walk）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-TLB%EF%BC%9A%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E5%90%8E%E5%A4%87%E7%BC%93%E5%86%B2%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. TLB：地址转换后备缓冲器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-TLB-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">6.0.1.</span> <span class="toc-text">5.1 TLB 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-TLB-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">6.0.2.</span> <span class="toc-text">5.2 TLB 的局限性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#6-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%88Page-Walk-Cache%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">6. 页表遍历缓存（Page Walk Cache）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">7.0.1.</span> <span class="toc-text">6.1 为什么需要页表遍历缓存？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="toc-number">7.0.2.</span> <span class="toc-text">6.2 工作机制</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#7-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E8%B6%85%E9%85%8D%EF%BC%9A%E4%BA%A4%E6%8D%A2%E3%80%81%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%E4%B8%8E%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8"><span class="toc-number">8.</span> <span class="toc-text">7. 虚拟内存超配：交换、按需分页与缺页异常</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%8C%89%E9%9C%80%E5%88%86%E9%A1%B5%EF%BC%88Demand-Paging%EF%BC%89"><span class="toc-number">8.0.1.</span> <span class="toc-text">7.1 按需分页（Demand Paging）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%BA%A4%E6%8D%A2%EF%BC%88Swapping%EF%BC%89"><span class="toc-number">8.0.2.</span> <span class="toc-text">7.2 交换（Swapping）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#8-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8D%95%E5%85%83%EF%BC%88MMU%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">8. 内存管理单元（MMU）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-MMU-%E7%9A%84%E8%81%8C%E8%B4%A3"><span class="toc-number">9.0.1.</span> <span class="toc-text">8.1 MMU 的职责</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%AE%8C%E6%95%B4%E8%AE%BF%E9%97%AE%E6%B5%81%E7%A8%8B"><span class="toc-number">9.0.2.</span> <span class="toc-text">8.2 完整访问流程</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#9-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%EF%BC%88Page-Fault%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">9. 缺页异常（Page Fault）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E8%A7%A6%E5%8F%91%E6%97%B6%E6%9C%BA"><span class="toc-number">10.0.1.</span> <span class="toc-text">9.1 触发时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="toc-number">10.0.2.</span> <span class="toc-text">9.2 处理流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E7%9A%84%E6%80%A7%E8%83%BD%E4%BB%A3%E4%BB%B7"><span class="toc-number">10.0.3.</span> <span class="toc-text">9.3 缺页异常的性能代价</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#10-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E7%9A%84%E5%AE%8C%E6%95%B4%E9%93%BE%E8%B7%AF"><span class="toc-number">11.</span> <span class="toc-text">10. 内存访问的完整链路</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#11-%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 内存访问延迟总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#12-%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88%E4%B8%8E%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="toc-number">13.</span> <span class="toc-text">12. 性能瓶颈与优化方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-TLB-%E6%9C%AA%E5%91%BD%E4%B8%AD%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.1.</span> <span class="toc-text">12.1 TLB 未命中频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E9%A1%B5%E8%A1%A8%E9%81%8D%E5%8E%86%E5%BC%80%E9%94%80%E9%AB%98"><span class="toc-number">13.0.2.</span> <span class="toc-text">12.2 页表遍历开销高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E7%BC%BA%E9%A1%B5%E5%BC%82%E5%B8%B8%E9%A2%91%E7%B9%81"><span class="toc-number">13.0.3.</span> <span class="toc-text">12.3 缺页异常频繁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-DRAM-%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E9%AB%98"><span class="toc-number">13.0.4.</span> <span class="toc-text">12.4 DRAM 访问延迟高</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#13-%E5%B0%8F%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li></ol>
       </div>
     
 
@@ -647,9 +651,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>

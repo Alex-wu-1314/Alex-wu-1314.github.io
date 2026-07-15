@@ -14,7 +14,7 @@
 <meta property="og:description" content="目录 UE RRC 状态机概述 RRC_IDLE 状态详解 RRC_INACTIVE 状态详解 RRC_CONNECTED 状态详解 状态转换流程与信令 三态对比总结 UE 能力上报概述 UECapabilityEnquiry 消息详解 UECapabilityInformation 消息详解 Feature Sets 与 Feature Set Combinations UE 能力上报流程与时序">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-12-16T02:44:19.000Z">
-<meta property="article:modified_time" content="2026-06-11T04:02:21.843Z">
+<meta property="article:modified_time" content="2026-07-13T07:45:08.213Z">
 <meta property="article:author" content="Alex Wu">
 <meta property="article:tag" content="3gpp">
 <meta name="twitter:card" content="summary">
@@ -84,9 +84,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </span>
@@ -173,21 +175,21 @@
 
   <div class="content e-content" itemprop="articleBody">
     <h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><ol>
-<li><a href="#1-ue-rrc-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A6%82%E8%BF%B0">UE RRC 状态机概述</a></li>
-<li><a href="#2-rrc_idle-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_IDLE 状态详解</a></li>
-<li><a href="#3-rrc_inactive-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_INACTIVE 状态详解</a></li>
-<li><a href="#4-rrc_connected-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_CONNECTED 状态详解</a></li>
+<li><a href="#1-UE-RRC-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%A6%82%E8%BF%B0">UE RRC 状态机概述</a></li>
+<li><a href="#2-RRC-IDLE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_IDLE 状态详解</a></li>
+<li><a href="#3-RRC-INACTIVE-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_INACTIVE 状态详解</a></li>
+<li><a href="#4-RRC-CONNECTED-%E7%8A%B6%E6%80%81%E8%AF%A6%E8%A7%A3">RRC_CONNECTED 状态详解</a></li>
 <li><a href="#5-%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2%E6%B5%81%E7%A8%8B%E4%B8%8E%E4%BF%A1%E4%BB%A4">状态转换流程与信令</a></li>
 <li><a href="#6-%E4%B8%89%E6%80%81%E5%AF%B9%E6%AF%94%E6%80%BB%E7%BB%93">三态对比总结</a></li>
-<li><a href="#7-ue-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%A6%82%E8%BF%B0">UE 能力上报概述</a></li>
-<li><a href="#8-uecapabilityenquiry-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityEnquiry 消息详解</a></li>
-<li><a href="#9-uecapabilityinformation-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityInformation 消息详解</a></li>
-<li><a href="#10-feature-sets-%E4%B8%8E-feature-set-combinations">Feature Sets 与 Feature Set Combinations</a></li>
-<li><a href="#11-ue-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%B5%81%E7%A8%8B%E4%B8%8E%E6%97%B6%E5%BA%8F">UE 能力上报流程与时序</a></li>
+<li><a href="#7-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%A6%82%E8%BF%B0">UE 能力上报概述</a></li>
+<li><a href="#8-UECapabilityEnquiry-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityEnquiry 消息详解</a></li>
+<li><a href="#9-UECapabilityInformation-%E6%B6%88%E6%81%AF%E8%AF%A6%E8%A7%A3">UECapabilityInformation 消息详解</a></li>
+<li><a href="#10-Feature-Sets-%E4%B8%8E-Feature-Set-Combinations">Feature Sets 与 Feature Set Combinations</a></li>
+<li><a href="#11-UE-%E8%83%BD%E5%8A%9B%E4%B8%8A%E6%8A%A5%E6%B5%81%E7%A8%8B%E4%B8%8E%E6%97%B6%E5%BA%8F">UE 能力上报流程与时序</a></li>
 <li><a href="#12-%E5%B0%8F%E7%BB%93">小结</a></li>
 </ol>
 <hr>
-<h1 id="1-UE-RRC-状态机概述"><a href="#1-UE-RRC-状态机概述" class="headerlink" title="1. UE RRC 状态机概述"></a>1. UE RRC 状态机概述</h1><p>Radio Resource Control（RRC）协议是 NR 接入层（AS）控制面的核心，由 <strong>3GPP TS 38.331</strong> 定义。RRC 层负责：</p>
+<h1 id="1-UE-RRC-状态机概述"><a href="#1-UE-RRC-状态机概述" class="headerlink" title="1. UE RRC 状态机概述"></a>1. UE RRC 状态机概述</h1><p>Radio Resource Control（RRC）协议是 NR 接入层（AS）控制面的主要协议，由 <strong>3GPP TS 38.331</strong> 定义。RRC 层负责：</p>
 <ul>
 <li>广播系统信息（SIB）</li>
 <li>寻呼（Paging）管理</li>
@@ -221,7 +223,7 @@
 </ul>
 <h3 id="2-2-UE-行为"><a href="#2-2-UE-行为" class="headerlink" title="2.2 UE 行为"></a>2.2 UE 行为</h3><p><strong>（1）PLMN 选择与小区驻留</strong></p>
 <p>UE 开机后由 NAS 层选择 PLMN，AS 层执行小区选择（Cell Selection），找到合适小区后”驻留（camp on）”该小区，开始监听控制信道。小区选择准则为 <strong>S 准则</strong>（TS 38.304 §5.2.3.2）：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Srxlev = Qrxlevmeas – (Qrxlevmin + Qrxlevminoffset) – Pcompensation – Qoffsettemp &gt; 0</span><br><span class="line">Squal   = Qqualmeas  – (Qqualmin  + Qqualminoffset)  – Qoffsettemp                 &gt; 0</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Srxlev = Qrxlevmeas - (Qrxlevmin + Qrxlevminoffset) - Pcompensation - Qoffsettemp &gt; 0</span><br><span class="line">Squal   = Qqualmeas  - (Qqualmin  + Qqualminoffset)  - Qoffsettemp                 &gt; 0</span><br></pre></td></tr></table></figure>
 
 <p><strong>（2）系统信息接收</strong></p>
 <p>UE 必须保持对以下系统信息的有效读取：</p>
@@ -266,7 +268,7 @@
 <p>DRX 周期由 NAS 层配置，TS 38.304 规定了 Paging DRX 周期（defaultPagingCycle）范围：32、64、128、256 个无线帧（即 320 ms ~ 2560 ms）。</p>
 <p><strong>（4）移动性管理</strong></p>
 <p>UE 自主执行 <strong>小区重选（Cell Reselection）</strong>，无需向网络发送任何信令。重选依赖 <strong>R 准则</strong>（Ranking Criterion）：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rs = Qmeas,s + QHyst</span><br><span class="line">Rn = Qmeas,n – Qoffset</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Rs = Qmeas,s + QHyst</span><br><span class="line">Rn = Qmeas,n - Qoffset</span><br></pre></td></tr></table></figure>
 
 <p>当邻区 Rn &gt; 服务小区 Rs 持续 Treselection 时间后，UE 重选至邻区。</p>
 <p><strong>（5）上行能力</strong></p>
@@ -292,7 +294,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h1 id="3-RRC-INACTIVE-状态详解"><a href="#3-RRC-INACTIVE-状态详解" class="headerlink" title="3. RRC_INACTIVE 状态详解"></a>3. RRC_INACTIVE 状态详解</h1><h3 id="3-1-设计动机与优势"><a href="#3-1-设计动机与优势" class="headerlink" title="3.1 设计动机与优势"></a>3.1 设计动机与优势</h3><p>RRC_INACTIVE 是 5G NR 的核心创新之一，首次标准化于 <strong>R15（TS 38.331 v15.3.0）</strong>。其核心设计理念：</p>
+<h1 id="3-RRC-INACTIVE-状态详解"><a href="#3-RRC-INACTIVE-状态详解" class="headerlink" title="3. RRC_INACTIVE 状态详解"></a>3. RRC_INACTIVE 状态详解</h1><h3 id="3-1-设计动机与优势"><a href="#3-1-设计动机与优势" class="headerlink" title="3.1 设计动机与优势"></a>3.1 设计动机与优势</h3><p>RRC_INACTIVE 是 5G NR 的主要改进之一，首次标准化于 <strong>R15（TS 38.331 v15.3.0）</strong>。其设计理念：</p>
 <ul>
 <li><strong>UE 侧</strong>：保存 AS 上下文（类似 IDLE 省电行为，但无需重建连接）</li>
 <li><strong>网络侧（gNB）</strong>：保存 UE 的 AS 上下文和最后服务小区信息</li>
@@ -520,7 +522,7 @@
 <td><strong>寻呼标识</strong></td>
 <td>5G-S-TMSI</td>
 <td>5G-S-TMSI &#x2F; fullI-RNTI</td>
-<td>—</td>
+<td>-</td>
 </tr>
 <tr>
 <td><strong>数据传输</strong></td>
@@ -554,7 +556,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h1 id="7-UE-能力上报概述"><a href="#7-UE-能力上报概述" class="headerlink" title="7. UE 能力上报概述"></a>7. UE 能力上报概述</h1><h3 id="7-1-为什么需要能力上报？"><a href="#7-1-为什么需要能力上报？" class="headerlink" title="7.1 为什么需要能力上报？"></a>7.1 为什么需要能力上报？</h3><p>5G NR 的 UE 种类繁多——从入门级 RedCap 设备到高端旗舰手机，其支持的频段、天线数量、调制阶数、CA 组合、MIMO 层数、编解码能力等千差万别。网络需要了解 UE 的确切能力，才能：</p>
+<h1 id="7-UE-能力上报概述"><a href="#7-UE-能力上报概述" class="headerlink" title="7. UE 能力上报概述"></a>7. UE 能力上报概述</h1><h3 id="7-1-为什么需要能力上报？"><a href="#7-1-为什么需要能力上报？" class="headerlink" title="7.1 为什么需要能力上报？"></a>7.1 为什么需要能力上报？</h3><p>5G NR 的 UE 种类繁多，从入门级 RedCap 设备到高端旗舰手机，其支持的频段、天线数量、调制阶数、CA 组合、MIMO 层数、编解码能力等千差万别。网络需要了解 UE 的确切能力，才能：</p>
 <ul>
 <li>选择合适的调度策略（MCS、MIMO 层数、CA 配置）</li>
 <li>避免下发 UE 无法执行的配置（如 UE 不支持 4 层 MIMO 却下发 4 层配置）</li>
@@ -623,7 +625,7 @@
 </tr>
 </tbody></table>
 <p><strong>（2）UE-CapabilityRequestFilterNR</strong></p>
-<p>这是网络对 UE 上报内容的<strong>过滤器</strong>，核心字段：</p>
+<p>这是网络对 UE 上报内容的<strong>过滤器</strong>，主要字段：</p>
 <table>
 <thead>
 <tr>
@@ -653,7 +655,7 @@
 </tr>
 </tbody></table>
 <blockquote>
-<p><strong>重要</strong>：在 NR 中，<code>frequencyBandListFilter</code> 是<strong>强制（mandatory）</strong>字段，而在 LTE 中这是可选的。这是 NR 的一个关键优化——网络只请求自己感兴趣频段的能力，大幅减少消息体积。</p>
+<p><strong>重要</strong>：在 NR 中，<code>frequencyBandListFilter</code> 是<strong>强制（mandatory）</strong>字段，而在 LTE 中这是可选的。这是 NR 的一个关键优化：网络只请求自己感兴趣频段的能力，大幅减少消息体积。</p>
 </blockquote>
 <hr>
 <h1 id="9-UECapabilityInformation-消息详解"><a href="#9-UECapabilityInformation-消息详解" class="headerlink" title="9. UECapabilityInformation 消息详解"></a>9. UECapabilityInformation 消息详解</h1><p><code>UECapabilityInformation</code> 是 UE 对 <code>UECapabilityEnquiry</code> 的响应，包含所有被请求的 RAT 能力容器（参见 TS 38.331 §5.6.1.3）。</p>
@@ -843,17 +845,17 @@
 </ul>
 <h3 id="11-3-能力的跨-RAT-一致性要求"><a href="#11-3-能力的跨-RAT-一致性要求" class="headerlink" title="11.3 能力的跨 RAT 一致性要求"></a>11.3 能力的跨 RAT 一致性要求</h3><p>当 UE 同时上报 <code>nr</code>、<code>eutra-nr</code> 等多个 RAT 容器时，TS 38.331 要求：</p>
 <blockquote>
-<p>UE 应确保所有能力容器中的 Feature Set ID 保持一致性——即以相同 <code>frequencyBandListFilter</code>、<code>requestedMaxCCsDL/UL</code> 等过滤条件查询时，各容器中的 Feature Set 定义应互相对应。</p>
+<p>UE 应确保所有能力容器中的 Feature Set ID 保持一致性，即以相同 <code>frequencyBandListFilter</code>、<code>requestedMaxCCsDL/UL</code> 等过滤条件查询时，各容器中的 Feature Set 定义应互相对应。</p>
 </blockquote>
 <h3 id="11-4-能力存储与复用"><a href="#11-4-能力存储与复用" class="headerlink" title="11.4 能力存储与复用"></a>11.4 能力存储与复用</h3><ul>
 <li>gNB 可将获取到的 UE 能力通过 <strong>UE Context</strong> 在 Xn 切换时传递给目标 gNB</li>
 <li>AMF 也可将 UE 能力（以 <code>UERadioCapability</code> IE 形式）存储并在 UE 重连时下发给 gNB，避免重复请求</li>
 </ul>
 <hr>
-<h1 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h1><h3 id="UE-状态机"><a href="#UE-状态机" class="headerlink" title="UE 状态机"></a>UE 状态机</h3><p>5G NR 定义了三种 RRC 状态，形成了一个功耗与响应时延的最优折衷：</p>
+<h1 id="12-小结"><a href="#12-小结" class="headerlink" title="12. 小结"></a>12. 小结</h1><h3 id="UE-状态机"><a href="#UE-状态机" class="headerlink" title="UE 状态机"></a>UE 状态机</h3><p>5G NR 定义了三种 RRC 状态，形成了一个功耗与响应时延的折衷：</p>
 <ul>
 <li><strong>RRC_IDLE</strong>：最省电，无 AS 上下文，移动性完全由 UE 自主控制，重建连接开销最大</li>
-<li><strong>RRC_INACTIVE</strong>：兼顾省电与快速恢复，AS 上下文双端保留，核心网连接不中断，是 5G NR 相对 LTE 的核心创新点之一</li>
+<li><strong>RRC_INACTIVE</strong>：兼顾省电与快速恢复，AS 上下文双端保留，核心网连接不中断，是 5G NR 相对 LTE 的主要新增特性之一</li>
 <li><strong>RRC_CONNECTED</strong>：完整数据收发能力，网络控制移动性，功耗最高但时延最低</li>
 </ul>
 <p>RRC_INACTIVE 状态的引入，对于频繁发送少量数据的物联网和移动互联网应用场景，相比 LTE 可带来约 8 倍的时延改善和约 5 倍的功耗改善。</p>
@@ -928,9 +930,11 @@
         
           <li><a href="/archives/">Writing</a></li>
         
-          <li><a href="/">Projects</a></li>
+          <li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li>
         
           <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/flip_book/">flipbook</a></li>
         
       </ul>
     </div>
@@ -990,9 +994,11 @@
      --><!--
        --><li><a href="/archives/">Writing</a></li><!--
      --><!--
-       --><li><a href="/">Projects</a></li><!--
+       --><li><a target="_blank" rel="noopener" href="https://web-nine-ebon-90.vercel.app">Projects</a></li><!--
      --><!--
        --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/flip_book/">flipbook</a></li><!--
      -->
       </ul>
     </nav>
