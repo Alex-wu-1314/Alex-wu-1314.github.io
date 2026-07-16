@@ -25,7 +25,7 @@
   html,body{margin:0;padding:0;height:100%;}
   body{
     min-height:100vh;
-    display:flex;align-items:center;justify-content:flex-end;padding-right:6%;
+    display:flex;align-items:center;justify-content:center;
     background:
       radial-gradient(ellipse 900px 600px at 70% 38%, rgba(255,224,170,0.10), transparent 70%),
       linear-gradient(160deg,#1c130e 0%, #120b08 55%, #0c0705 100%);
@@ -72,6 +72,7 @@
     position:relative;
     width:min(52vw, 560px);
     height:min(76vh, 700px);
+    transform:translateX(50%);
     transform-style:preserve-3d;
   }
   .spine-shadow{
@@ -348,14 +349,16 @@
           <div class="chapter-eyebrow">CHAPTER I</div>
           <div class="chapter-title">关于我</div>
           <div class="body-text">
-            <span class="dropcap">常</span>年与底层系统和实时通信打交道 —— 3GPP L2 协议栈、WebRTC、CPU 微架构优化，是我日常工作的核心领域。我在中国工作与生活，热衷于把复杂的系统问题拆解成可测量、可优化的模块。
+            <span class="dropcap">常</span>年与底层系统和实时通信打交道，熟悉3GPP L2 协议栈、WebRTC、CPU 微架构优化。我在中国工作与生活，习惯把复杂的系统问题拆解成可测量、可优化的模块。
             <br><br>
-            工作之余，我维护一份技术博客，系统性地记录 CPU 架构、WebRTC 协议栈、密码学与高性能数据平面的学习笔记，至今已积累 40 余篇文章。我相信最好的工程发生在 <em>硬件与软件的交叉点</em> —— 理解硬件才能写出真正高效的软件。
+            工作之余维护一份技术博客，系统性的记录工作中用的知识点，包括 CPU 架构、WebRTC 协议栈、密码学与高性能数据平面的笔记，至今已有 40 多篇。我相信最好的工程发生在硬件与软件的交叉点。因此不理解硬件，很难写出真正高效的软件。
             <br><br>
-            最近正在探索 <em>AI-assisted software development</em> —— 用 AI 辅助从文档转换、数据分析到全栈应用开发的完整工作流。本页展示的项目大多诞生于这种新范式。
+            十六年职业生涯，从 基站软件，到 手机厂商，再到 5G基带芯片，做过软件设计，带过团队，也写过架构方案；参与过 4G基站 的早期设计，牵头打通过 5G NR 第一通电话，现在在一家芯片公司搭建数据面代码框架。
             <br><br>
-            我的技术栈横跨底层系统与电信协议：
-            <span class="tag">3GPP L2</span><span class="tag">WebRTC</span><span class="tag">CPU Perf</span><span class="tag">5G NR</span><span class="tag">Cryptography</span><span class="tag">Lock-free DS</span>
+            最近正在探索 <em>AI-assisted software development</em>，在公司项目中也引入了AI辅助编程，从大型代码库的工程搭建、跨模块重构， 到对代码理解和调试，都在尝试用 AI 来提效。闲暇之余也用 AI 做了几个开源项目。
+            <br><br>
+            平时接触的技术栈包括：
+            <span class="tag">3GPP L2</span><span class="tag">WebRTC</span><span class="tag">CPU Perf</span><span class="tag">5G NR</span><span class="tag">Lock-free Programming</span>
           </div>
         </div>
         <div class="page-number">03</div>
@@ -375,17 +378,17 @@
             <div class="proj-card">
               <h4>Systems &amp; Performance</h4>
               <p>底层系统编程与性能调优，理解从 CPU 流水线到缓存层次的全栈性能模型。</p>
-              <span class="tag">C / C++</span><span class="tag">CPU Architecture</span><span class="tag">Linux</span><span class="tag">Lock-free DS</span><span class="tag">Multi-core Scheduling</span>
+              <span class="tag">C / C++</span><span class="tag">CPU Architecture</span><span class="tag">Linux</span><span class="tag">Lock-free Programming</span><span class="tag">Multi-core Scheduling</span>
             </div>
             <div class="proj-card">
-              <h4>Networking &amp; Telecom</h4>
-              <p>蜂窝协议栈与实时通信，从 3GPP 规范到 WebRTC 实现。</p>
-              <span class="tag">3GPP MAC / RLC / PDCP</span><span class="tag">5G NR</span><span class="tag">WebRTC</span><span class="tag">ICE / STUN / TURN</span><span class="tag">DPDK / VPP</span>
+              <h4>Cellular Protocols</h4>
+              <p>蜂窝协议栈，从 3GPP 规范到基站用户面实现。</p>
+              <span class="tag">3GPP MAC / RLC / PDCP</span><span class="tag">5G NR</span><span class="tag">LTE-A</span><span class="tag">NG-RAN</span>
             </div>
             <div class="proj-card">
-              <h4>Security &amp; Cryptography</h4>
-              <p>公钥密码学与现代加密协议的系统性理解与实践。</p>
-              <span class="tag">RSA / ECDH</span><span class="tag">Forward Secrecy</span><span class="tag">TLS / SSL</span><span class="tag">PKI</span>
+              <h4>Real-Time Communications</h4>
+              <p>实时音视频传输，从 WebRTC 框架到 P2P 穿越。</p>
+              <span class="tag">WebRTC</span><span class="tag">ICE / STUN / TURN</span><span class="tag">P2P</span><span class="tag">DTLS / SRTP</span>
             </div>
           </div>
         </div>
@@ -404,23 +407,23 @@
           <div class="chapter-title">项目志</div>
           <div class="body-text">
             <div class="proj-card">
-              <h4>ETF Invest</h4>
-              <p>一站式 ETF 数据分析与学习平台。聚合 ETF 知识教育、宏观/政策/市场数据、自选 ETF 追踪，以及基于自定义投资框架的 AI 辅助决策信号。Next.js + Supabase 全栈应用。</p>
-              <span class="tag">Next.js</span><span class="tag">Supabase</span><span class="tag">TypeScript</span>
+              <h4>5G NR 基站用户面</h4>
+              <p>作为架构师负责技术选型和架构守护。在基站报文处理中引入 VPP 思想，通过路径预测和矢量拆分提升 I-cache 命中率，整体性能大幅增长。牵头确定性网络方案，从 BE 模型演进为差分服务模型，引入优先级调度，时延抖动大幅降低。</p>
+              <span class="tag">5G NR</span><span class="tag">VPP</span><span class="tag">DPDK</span><span class="tag">CPU Perf</span>
             </div>
             <div class="proj-card">
-              <h4>Doc Converters</h4>
-              <p>面向 AI 友好处理的文档转换工具集：Word ↔ Markdown、Word → PDF、PDF → Word、3GPP PDU PNG → ASCII Art。</p>
-              <span class="tag">Python</span><span class="tag">AI Toolchain</span>
+              <h4>远场实时音视频传输</h4>
+              <p>研究 P2P 穿越技术与端云框架，提升穿越率，构建远场音视频传输体验。针对用户痛点，带领团队实施 demo 验证，寻找技术突破点。</p>
+              <span class="tag">WebRTC</span><span class="tag">P2P</span><span class="tag">ICE/STUN/TURN</span>
             </div>
             <div class="proj-card">
-              <h4>Summer Quest Planner</h4>
-              <p>纯前端暑假习惯追踪工具，学生每日记录学习、运动、家务完成情况。单页 HTML，数据存浏览器本地，开箱即用。</p>
-              <span class="tag">HTML5</span><span class="tag">LocalStorage</span>
+              <h4>5G/4G 基带芯片数据面</h4>
+              <p>担任芯片数据面负责人，负责数据面代码框架设计与实现，参与硬件设计与调试，完成两款芯片设计。主导虚拟测试框架搭建，两年内将脆弱代码调试成可支撑复杂业务场景的稳定版本。</p>
+              <span class="tag">3GPP L2</span><span class="tag">芯片</span>
             </div>
             <div class="proj-card">
               <h4>技术博客</h4>
-              <p>40+ 篇技术文章，覆盖 CPU 架构、WebRTC、密码学与高性能数据平面，持续系统化输出。</p>
+              <p>40+ 篇技术文章，覆盖 CPU 架构、WebRTC、密码学与高性能数据平面。</p>
             </div>
           </div>
         </div>
@@ -440,29 +443,32 @@
           <div class="body-text">
             <div class="proj-card">
               <h4>CPU Architecture</h4>
-              <p><a href="https://alex-wu-1314.github.io/2021/02/27/cpu%20arch/7.%E5%86%85%E5%AD%98%E8%AE%BF%E9%97%AE%E5%85%A8%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E3%80%81%E7%BC%93%E5%AD%98%E4%B8%8EDRAM%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D%E6%80%A7%E8%83%BD/" style="color:var(--ink);">内存访问全解析：虚拟内存、缓存与 DRAM 如何影响性能</a><br>
-              <a href="https://alex-wu-1314.github.io/2021/02/23/cpu%20arch/6.%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/" style="color:var(--ink);">三大并行计算技术：超标量执行、SIMD、多核并行</a><br>
-              <a href="https://alex-wu-1314.github.io/2021/02/17/cpu%20arch/5.cpu_pipeline/" style="color:var(--ink);">CPU 流水线：现代处理器如何加速指令执行</a></p>
+              <p><a href="https://alex-wu-1314.github.io/2021/02/10/cpu%20arch/4.cpu_cache/" style="color:var(--ink);">理解 CPU 缓存的组织与结构</a><br>
+              <a href="https://alex-wu-1314.github.io/2021/02/17/cpu%20arch/5.cpu_pipeline/" style="color:var(--ink);">CPU 流水线：现代处理器如何加速指令执行</a><br>
+              <a href="https://alex-wu-1314.github.io/2021/02/23/cpu%20arch/6.%E4%B8%89%E5%A4%A7%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%8A%80%E6%9C%AF%E8%A7%A3%E6%9E%90%EF%BC%9A%E8%B6%85%E6%A0%87%E9%87%8F%E6%89%A7%E8%A1%8C%E3%80%81SIMD%E3%80%81%E5%A4%9A%E6%A0%B8%E5%B9%B6%E8%A1%8C/" style="color:var(--ink);">三大并行计算技术：超标量执行、SIMD、多核并行</a></p>
+            </div>
+            <div class="proj-card">
+              <h4>Memory Model</h4>
+              <p><a href="https://alex-wu-1314.github.io/2019/01/09/memory%20model/1.memory-model-instruction-reordering/" style="color:var(--ink);">指令重排序：你的代码并不总按你写的顺序执行</a><br>
+              <a href="https://alex-wu-1314.github.io/2019/04/03/memory%20model/6.acquire-and-release-semantics/" style="color:var(--ink);">Acquire 与 Release 语义：多核编程的内存序基础</a><br>
+              <a href="https://alex-wu-1314.github.io/2019/08/15/memory%20model/10.cpp11_memory_model_and_atomic/" style="color:var(--ink);">C++11 内存模型与 atomic 全面解析</a></p>
+            </div>
+            <div class="proj-card">
+              <h4>HPPP</h4>
+              <p><a href="https://alex-wu-1314.github.io/2019/11/04/HPPP/1.high-performance-packet-processing/" style="color:var(--ink);">高效包处理技术：DPDK 和 VPP 的核心技术</a><br>
+              <a href="https://alex-wu-1314.github.io/2019/12/02/HPPP/high_performance_dataplane/" style="color:var(--ink);">如何设计高性能的数据平面软件</a></p>
+            </div>
+            <div class="proj-card">
+              <h4>Software Engineering</h4>
+              <p><a href="https://alex-wu-1314.github.io/2021/09/01/software%20engineering/01-Architecture%20laws/" style="color:var(--ink);">架构篇：系统运行的客观规律</a><br>
+              <a href="https://alex-wu-1314.github.io/2021/10/14/software%20engineering/04-quality%20laws/" style="color:var(--ink);">质量篇：代码腐烂的防御与质量底线</a><br>
+              <a href="https://alex-wu-1314.github.io/2021/11/04/software%20engineering/06-design%20laws/" style="color:var(--ink);">设计篇：减少复杂度、保持简单的原则</a></p>
             </div>
             <div class="proj-card">
               <h4>WebRTC</h4>
-              <p><a href="https://alex-wu-1314.github.io/2021/11/19/webrtc/02-p2p-sfu-mcu/" style="color:var(--ink);">P2P / SFU / MCU：三种 WebRTC 部署架构对比</a><br>
-              <a href="https://alex-wu-1314.github.io/2021/11/07/webrtc/01-webrtc-framework/" style="color:var(--ink);">WebRTC Framework：整体架构概览与浏览器内部模块分层</a></p>
-            </div>
-            <div class="proj-card">
-              <h4>Cryptology</h4>
-              <p><a href="https://alex-wu-1314.github.io/2021/07/22/cryptology/10.public_key_cryptography/" style="color:var(--ink);">公钥密码学（非对称密码学）深度解析</a><br>
-              <a href="https://alex-wu-1314.github.io/2021/07/01/cryptology/9.forward-secrecy/" style="color:var(--ink);">前向保密（Forward Secrecy）</a><br>
-              <a href="https://alex-wu-1314.github.io/2021/05/10/cryptology/5.RSA_cryptosystem/" style="color:var(--ink);">RSA Cryptosystem</a></p>
-            </div>
-            <div class="proj-card">
-              <h4>High-Performance Packet Processing</h4>
-              <p><a href="https://alex-wu-1314.github.io/2019/08/02/HPPP/high_performance_dataplane/" style="color:var(--ink);">如何设计高性能的数据平面软件</a><br>
-              <a href="https://alex-wu-1314.github.io/2019/07/02/HPPP/1.high-performance-packet-processing/" style="color:var(--ink);">高效包处理技术：DPDK 和 VPP 的核心技术</a></p>
-            </div>
-            <div class="proj-card">
-              <h4>Memory Model &amp; Consistency</h4>
-              <p><a href="https://alex-wu-1314.github.io/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="color:var(--ink);">内存模型 &amp; 一致性模型 系列文章</a></p>
+              <p><a href="https://alex-wu-1314.github.io/2022/02/07/webrtc/01-webrtc-framework/" style="color:var(--ink);">整体架构概览与浏览器内部模块分层</a><br>
+              <a href="https://alex-wu-1314.github.io/2022/02/27/webrtc/02-p2p-sfu-mcu/" style="color:var(--ink);">P2P / SFU / MCU：三种部署架构对比</a><br>
+              <a href="https://alex-wu-1314.github.io/2022/04/09/webrtc/05-ICE/" style="color:var(--ink);">ICE：交互式连接建立与 NAT 穿越机制</a></p>
             </div>
           </div>
         </div>
@@ -480,7 +486,7 @@
           <div class="chapter-eyebrow">CHAPTER V</div>
           <div class="chapter-title">联系</div>
           <div class="body-text">
-            <p>如果这本书里的某一页与你产生共鸣 —— 无论是低层系统、协议栈，还是某个技术细节 —— 都欢迎交流。</p>
+            <p>如果这本书里的某一页与你产生共鸣，无论是低层系统、协议栈，还是某个技术细节， 都欢迎交流。</p>
             <br>
             技术博客：<a href="https://alex-wu-1314.github.io" style="color:var(--ribbon);">alex-wu-1314.github.io</a><br>
             GitHub：<a href="https://github.com/alex-wu-1314" style="color:var(--ribbon);">github.com/alex-wu-1314</a><br>
